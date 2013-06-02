@@ -16,7 +16,7 @@
  * @package WordPress
  */
 class WP_JSON_Server extends wp_xmlrpc_server {
-  const METHOD_GET    = 1;
+	const METHOD_GET    = 1;
 	const METHOD_POST   = 2;
 	const METHOD_PUT    = 4;
 	const METHOD_PATCH  = 8;
