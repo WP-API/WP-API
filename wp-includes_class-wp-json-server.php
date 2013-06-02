@@ -23,9 +23,14 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	const METHOD_DELETE = 16;
 
 	const READABLE  = 1;  // GET
-	const CREATABLE = 6;  // POST | PUT
+	const CREATABLE = 2;  // POST
 	const EDITABLE  = 14; // POST | PUT | PATCH
 	const DELETABLE = 16; // DELETE
+
+	/**
+	 * Does the endpoint accept raw JSON entities?
+	 */
+	const ACCEPT_JSON = 128;
 
 	public function __construct() {
 		// No-op to avoid inheritance
@@ -113,13 +118,13 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$method = strtoupper($_GET['_method']);
+			$method = strtoupper( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error($result)) {
-			$result = $this->dispatch($path, $method);
+			$result = $this->dispatch( $path, $method );
 		}
 
 		if ( is_wp_error( $result ) ) {
@@ -157,19 +162,26 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			// Post endpoints
 			'/posts'             => array(
 				array( array( $this, 'getPosts' ), self::READABLE ),
-				array( array( $this, 'newPost' ),  self::EDITABLE ),
+				array( array( $this, 'newPost' ),  self::CREATABLE | self::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
 				array( array( $this, 'getPost' ),    self::READABLE ),
-				array( array( $this, 'editPost' ),   self::EDITABLE ),
+				array( array( $this, 'editPost' ),   self::EDITABLE | self::ACCEPT_JSON ),
 				array( array( $this, 'deletePost' ), self::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array( array( $this, 'getRevisions' ), self::READABLE ),
 
 			// Comments
-			'/posts/(?P<id>\d+)/comments'                  => array('__return_null', 0),
-			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array('__return_null', 0),
+			'/posts/(?P<id>\d+)/comments'                  => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
+			),
+			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::EDITABLE ),
+				array( '__return_null', self::DELETABLE ),
+			),
 
 			// Meta-post endpoints
 			'/posts/types'               => array('__return_null', 0),
@@ -197,7 +209,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 * @param string $path Requested route
 	 * @return mixed The value returned by the callback, or a WP_Error instance
 	 */
-	public function dispatch($path, $method = self::METHOD_GET) {
+	public function dispatch( $path, $method = self::METHOD_GET ) {
 		switch ( $method ) {
 			case 'HEAD':
 			case 'GET':
@@ -247,9 +259,13 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 				if ( ! is_callable($callback) )
 					return new WP_Error( 'json_invalid_handler', __('The handler for the route is invalid'), array( 'status' => 500 ) );
 
-				$args = array_merge($args, $_GET);
-				if ($method & self::METHOD_POST) {
-					$args = array_merge($args, $_POST);
+				$args = array_merge( $args, $_GET );
+				if ( $method & self::METHOD_POST ) {
+					$args = array_merge( $args, $_POST );
+				}
+				if ( $supported & self::ACCEPT_JSON ) {
+					$data = json_decode( $this->get_raw_data(), true );
+					$args = array_merge( $args, $data );
 				}
 
 				$params = $this->sort_callback_params($callback, $args);
@@ -312,7 +328,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 * in the response array.
 	 *
 	 * @uses wp_get_recent_posts()
-	 * @see wp_getPost() for more on $fields
+	 * @see WP_JSON_Server::getPost() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter optional
@@ -369,7 +385,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 
 		foreach ( $posts_list as $post ) {
 			$post_type = get_post_type_object( $post['post_type'] );
-			if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
+			if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
 				continue;
 
 			$this->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
@@ -431,29 +447,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 * @uses get_post()
 	 * @param int $id Post ID
 	 * @param array $fields Post fields to return (optional)
-	 * @return array contains (based on $fields parameter):
-	 *  - 'post_id'
-	 *  - 'post_title'
-	 *  - 'post_date'
-	 *  - 'post_date_gmt'
-	 *  - 'post_modified'
-	 *  - 'post_modified_gmt'
-	 *  - 'post_status'
-	 *  - 'post_type'
-	 *  - 'post_name'
-	 *  - 'post_author'
-	 *  - 'post_password'
-	 *  - 'post_excerpt'
-	 *  - 'post_content'
-	 *  - 'link'
-	 *  - 'comment_status'
-	 *  - 'ping_status'
-	 *  - 'sticky'
-	 *  - 'custom_fields'
-	 *  - 'terms'
-	 *  - 'categories'
-	 *  - 'tags'
-	 *  - 'enclosure'
+	 * @return array Post entity
 	 */
 	public function getPost( $id, $fields = array() ) {
 		$id = (int) $id;
@@ -508,24 +502,25 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		}
 
 		// convert the date field back to IXR form
-		$post['post_date'] = $post['post_date'];
+		$post['post_date'] = new IXR_Date(mysql2date( 'Ymd\TH:i:s', $post['post_date'], false ));
 
 		// ignore the existing GMT date if it is empty or a non-GMT date was supplied in $content_struct,
 		// since _insert_post will ignore the non-GMT date if the GMT date is set
 		if ( $post['post_date_gmt'] == '0000-00-00 00:00:00' || isset( $data['post_date'] ) )
 			unset( $post['post_date_gmt'] );
 		else
-			$post['post_date_gmt'] = $post['post_date_gmt'];
+			$post['post_date_gmt'] = new IXR_Date(mysql2date( 'Ymd\TH:i:s', $post['post_date_gmt'], false ));
 
 		$this->escape( $post );
 		$merged_content_struct = array_merge( $post, $data );
 
+		$user = wp_get_current_user();
 		$retval = $this->_insert_post( $user, $merged_content_struct );
 		if ( $retval instanceof IXR_Error ) {
 			return new WP_Error( 'json_edit_error', $retval->message, array( 'status' => $retval->code ) );
 		}
 
-		return true;
+		return array('message' => __('Updated post'), 'data' => $this->getPost($id));
 	}
 
 	/**
@@ -575,6 +570,23 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			$header .= '; ' . $key . '=' . $value;
 		}
 		header($header, false);
+	}
+
+	/**
+	 * Retrieve the raw request entity (body)
+	 *
+	 * @return string
+	 */
+	protected function get_raw_data() {
+		global $HTTP_RAW_POST_DATA;
+
+		// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
+		// but we can do it ourself.
+		if ( !isset( $HTTP_RAW_POST_DATA ) ) {
+			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
+		}
+
+		return $HTTP_RAW_POST_DATA;
 	}
 
 	// Overrides

@@ -4,7 +4,7 @@ Documents
 General
 -------
 
-  date          = 1*DIGIT
+	date          = 1*DIGIT
 	boolean       = "true" | "false"
 
 Post
@@ -55,7 +55,7 @@ are defined for the Post entity object:
 	               | ( "terms" ":" terms )
 	               | ( "custom_fields" ":" custom-fields ) )
 	post-status    = "draft" | "pending" | "private" | "publish" | "trash"
-	post-type      = "post" | "page" | string
+	post-type      = "post" | "page" | token
 	comment-status = "open" | "closed"
 	ping-status    = "open" | "closed"
 	post-thumbnail = "[" *( post-thumb ) "]"
