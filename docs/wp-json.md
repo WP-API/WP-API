@@ -1,3 +1,10 @@
+Introduction
+============
+The API is designed around two types of responses: entities, and collections.
+Entities are JSON objects representing internal objects, both abstract and
+WordPress objects. Collections are JSON arrays of Entities.
+
+
 Documents
 =========
 
