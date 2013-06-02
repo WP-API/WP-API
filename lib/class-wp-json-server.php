@@ -165,7 +165,7 @@ class WP_JSON_Server {
 	 *
 	 * @uses WP_JSON_Server::dispatch()
 	 */
-	public function serve_request() {
+	public function serve_request( $path = null ) {
 		header('Content-Type: application/json; charset=' . get_option('blog_charset'), true);
 
 		// Proper filter for turning off the JSON API. It is on by default.
@@ -189,10 +189,12 @@ class WP_JSON_Server {
 			}
 		}
 
-		if ( isset( $_SERVER['PATH_INFO'] ) )
-			$path = $_SERVER['PATH_INFO'];
-		else
-			$path = '/';
+		if ( empty( $path ) ) {
+			if ( isset( $_SERVER['PATH_INFO'] ) )
+				$path = $_SERVER['PATH_INFO'];
+			else
+				$path = '/';
+		}
 
 		$method = $_SERVER['REQUEST_METHOD'];
 
