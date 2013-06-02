@@ -104,21 +104,21 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			return false;
 		}
 
+		if ( isset( $_SERVER['PATH_INFO'] ) )
+			$path = $_SERVER['PATH_INFO'];
+		else
+			$path = '/';
+
+		$method = $_SERVER['REQUEST_METHOD'];
+
+		// Compatibility for clients that can't use PUT/PATCH/DELETE
+		if ( isset( $_GET['_method'] ) ) {
+			$method = strtoupper($_GET['_method']);
+		}
+
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error($result)) {
-			if ( isset( $_SERVER['PATH_INFO'] ) )
-				$path = $_SERVER['PATH_INFO'];
-			else
-				$path = '/';
-
-			$method = $_SERVER['REQUEST_METHOD'];
-
-			// Compatibility for clients that can't use PUT/PATCH/DELETE
-			if ( isset( $_GET['_method'] ) ) {
-				$method = strtoupper($_GET['_method']);
-			}
-
 			$result = $this->dispatch($path, $method);
 		}
 
@@ -131,7 +131,8 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			$result = $this->error_to_array( $result );
 		}
 
-		echo json_encode( $result );
+		if ( 'HEAD' !== $method )
+			echo json_encode( $result );
 	}
 
 	/**
@@ -153,14 +154,38 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 */
 	public function getRoutes() {
 		$endpoints = array(
-			'/posts'             => array( array( $this, 'getPosts' ),   self::READABLE ),
-			'/posts/new'         => array( array( $this, 'newPost' ),    self::EDITABLE ),
+			// Post endpoints
+			'/posts'             => array(
+				array( array( $this, 'getPosts' ), self::READABLE ),
+				array( array( $this, 'newPost' ),  self::EDITABLE ),
+			),
 
 			'/posts/(?P<id>\d+)' => array(
 				array( array( $this, 'getPost' ),    self::READABLE ),
 				array( array( $this, 'editPost' ),   self::EDITABLE ),
 				array( array( $this, 'deletePost' ), self::DELETABLE ),
 			),
+			'/posts/(?P<id>\d+)/revisions' => array( array( $this, 'getRevisions' ), self::READABLE ),
+
+			// Comments
+			'/posts/(?P<id>\d+)/comments'                  => array('__return_null', 0),
+			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array('__return_null', 0),
+
+			// Meta-post endpoints
+			'/posts/types'               => array('__return_null', 0),
+			'/posts/types/(?P<type>\w+)' => array('__return_null', 0),
+			'/posts/statuses'            => array('__return_null', 0),
+
+			// Taxonomies
+			'/taxonomies'                                       => array('__return_null', 0),
+			'/taxonomies/(?P<taxonomy>\w+)'                     => array('__return_null', 0),
+			'/taxonomies/(?P<taxonomy>\w+)/terms'               => array('__return_null', 0),
+			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array('__return_null', 0),
+
+			// Users
+			'/users'               => array('__return_null', 0),
+			'/users/me'            => array('__return_null', 0),
+			'/users/(?P<user>\d+)' => array('__return_null', 0),
 		);
 
 		return apply_filters( 'json_endpoints', $endpoints );
@@ -340,11 +365,14 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		// holds all the posts data
 		$struct = array();
 
+		header('Last-Modified: ' . mysql2date('D, d M Y H:i:s', get_lastpostmodified('GMT'), 0).' GMT');
+
 		foreach ( $posts_list as $post ) {
 			$post_type = get_post_type_object( $post['post_type'] );
 			if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
 				continue;
 
+			$this->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
 			$struct[] = $this->_prepare_post( $post, $fields );
 		}
 
@@ -384,6 +412,9 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		$user = wp_get_current_user();
 		$result = $this->_insert_post( $user, $data );
 		if ( is_string( $result ) ) {
+			status_header(201);
+			header('Location: ' . json_url('/posts/' . $result));
+
 			return $this->getPost( $result );
 		}
 		elseif ( $result instanceof IXR_Error ) {
@@ -438,6 +469,15 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $id ) )
 			return new WP_Error( 'json_user_cannot_read_post', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
+		// Link headers (see RFC 5988)
+		$this->link_header( 'alternate',  get_permalink($id), array( 'type' => 'text/html' ) );
+		$this->link_header( 'author',     json_url( '/users/' . $post['post_author'] ) );
+		$this->link_header( 'collection', json_url( '/posts' ) );
+		$this->link_header( 'replies',    json_url( '/posts/' . $id . '/comments' ) );
+		$this->link_header( 'version-history', json_url( '/posts/' . $id . '/revisions' ) );
+
+		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
+
 		return $this->_prepare_post( $post, $fields );
 	}
 
@@ -450,12 +490,8 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 * @since 3.4.0
 	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
 	 *
-	 * @param array $args Method parameters. Contains:
-	 *  - int     $blog_id
-	 *  - string  $username
-	 *  - string  $password
-	 *  - int     $post_id
-	 *  - array   $content_struct
+	 * @param int $id Post ID to edit
+	 * @param array $data Data construct, see {@see WP_JSON_Server::newPost}
 	 * @return true on success
 	 */
 	function editPost( $id, $data ) {
@@ -519,6 +555,38 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	}
 
 	/**
+	 * Send a Link header
+	 *
+	 * @todo Make this safe for <>"';,
+	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
+	 *
+	 * @link http://tools.ietf.org/html/rfc5988
+	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
+	 *
+	 * @param string $rel Link relation. Either a registered type, or an absolute URL
+	 * @param string $link Target IRI for the link
+	 * @param array $other Other parameters to send, as an assocative array
+	 */
+	protected function link_header( $rel, $link, $other = array() ) {
+		$header = 'Link: <' . $link . '>; rel="' . $rel . '"';
+		foreach ( $other as $key => $value ) {
+			if ( 'title' == $key )
+				$value = '"' . $value . '"';
+			$header .= '; ' . $key . '=' . $value;
+		}
+		header($header, false);
+	}
+
+	// Overrides
+	protected function _prepare_post( $post, $fields ) {
+		$data = parent::_prepare_post( $post, $fields );
+		$data['post_id'] = intval($data['post_id']);
+		$data['post_author'] = intval($data['post_author']);
+		$data['post_parent'] = intval($data['post_parent']);
+		return $data;
+	}
+
+	/**
 	 * Convert a WordPress date string to an array.
 	 *
 	 * @access protected
@@ -545,4 +613,17 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	protected function _convert_date_gmt( $date_gmt, $date ) {
 		return strtotime($date_gmt);
 	}
+}
+
+function json_url( $path = '', $scheme = 'json' ) {
+	return get_json_url( null, $path, $scheme );
+}
+
+function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
+	$url = get_site_url($blog_id, 'wp-json.php', $scheme);
+
+	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+		$url .= '/' . ltrim( $path, '/' );
+
+	return apply_filters( 'json_url', $url, $path, $blog_id );
 }
