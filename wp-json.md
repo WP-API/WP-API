@@ -6,6 +6,62 @@ General
 
 	date          = 1*DIGIT
 	boolean       = "true" | "false"
+	timezone      = quoted-string
+
+Index
+-----
+The Index entity is the root endpoint for the API server and describes the
+contents and abilities of the API server.
+
+### Entity
+The Index entity is a JSON object of site properties. The following properties
+are defined for the Index entity object:
+
+	Index            = "{" index-field *( "," index-field ) "}"
+	index-field      = ( ( "name" ":" quoted-string )
+	                 | ( "description" ":" quoted-string )
+	                 | ( "URL" ":" URI )
+	                 | ( "routes" ":" route-map )
+	                 | ( "meta" ":" meta-map ) )
+	route-map        = "{" route ":" route-descriptor
+	                 *( "," route ":" route-descriptor ) "}"
+	route            = quoted-string
+	route-descriptor = "{" route-property *( "," route-property ) "}"
+	route-property   = ( ( "supports" ":" "[" method *( "," method ) "]" )
+	                 | ( "accepts_json" ":" boolean ) )
+	method           = "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+
+### Example
+
+	{
+		"name":"My WordPress Site",
+		"description":"Just another WordPress site",
+		"URL":"http:\/\/example.com",
+		"routes": {
+			"\/": {
+				"supports": [ "HEAD", "GET" ]
+			},
+			"\/posts": {
+				"supports": [ "HEAD", "GET", "POST" ],
+				"accepts_json": true
+			},
+			"\/posts\/<id>": {
+				"supports": [ "HEAD", "GET", "POST", "PUT", "PATCH", "DELETE" ]
+			},
+			"\/posts\/<id>\/revisions": {
+				"supports": [ "HEAD", "GET" ]
+			},
+			"\/posts\/<id>\/comments": {
+				"supports": [ "HEAD", "GET", "POST" ],
+				"accepts_json":true
+			}
+		},
+		"meta": {
+			"links": {
+				"help":"http:\/\/codex.wordpress.org\/JSON_API"
+			}
+		}
+	}
 
 Post
 ----
@@ -29,21 +85,22 @@ The Post entity is a JSON object of post properties. The following properties
 are defined for the Post entity object:
 
 	Post           = "{" post-field *( "," post-field ) "}"
-	post-field     = ( ( "post_id" ":"  [ "-" ] 1*DIGIT )
-	               | ( "post_title" ":" quoted-string )
-	               | ( "post_date" ":" date )
-	               | ( "post_date_gmt" ":" date )
-	               | ( "post_modified" ":" date )
-	               | ( "post_modified_gmt" ":" date )
-	               | ( "post_status" ":" <"> post-status <"> )
-	               | ( "post_type" ":" <"> post-type <"> )
-	               | ( "post_name" ":" quoted-string )
-	               | ( "post_author" ":" 1*DIGIT )
-	               | ( "post_password" ":" quoted-string )
-	               | ( "post_excerpt" ":" quoted-string )
-	               | ( "post_content" ":" quoted-string )
-	               | ( "post_parent" ":" 1*DIGIT )
-	               | ( "post_mime_type" ":" quoted-string )
+	post-field     = ( ( "ID" ":"  [ "-" ] 1*DIGIT )
+	               | ( "title" ":" quoted-string )
+	               | ( "date" ":" date )
+	               | ( "date_tz" ":" timezone )
+	               | ( "date_gmt" ":" date )
+	               | ( "modified" ":" date )
+	               | ( "modified_tz" ":" timezone )
+	               | ( "modified_gmt" ":" date )
+	               | ( "status" ":" <"> post-status <"> )
+	               | ( "type" ":" <"> post-type <"> )
+	               | ( "name" ":" quoted-string )
+	               | ( "author" ":" ( 1*DIGIT | User ) )
+	               | ( "password" ":" quoted-string )
+	               | ( "excerpt" ":" quoted-string )
+	               | ( "content" ":" quoted-string )
+	               | ( "parent" ":" ( 1*DIGIT | Post ) )
 	               | ( "link" ":" URI )
 	               | ( "guid" ":" quoted-string )
 	               | ( "menu_order" ":" 1*DIGIT )
@@ -53,13 +110,13 @@ are defined for the Post entity object:
 	               | ( "post_thumbnail" ":" post-thumbnail )
 	               | ( "post_format" ":" post-format )
 	               | ( "terms" ":" terms )
-	               | ( "custom_fields" ":" custom-fields ) )
+	               | ( "post_meta" ":" custom-fields ) )
 	post-status    = "draft" | "pending" | "private" | "publish" | "trash"
 	post-type      = "post" | "page" | token
 	comment-status = "open" | "closed"
 	ping-status    = "open" | "closed"
 	post-thumbnail = "[" *( post-thumb ) "]"
-	post-format    = "aside" | "gallery" | "image" | "link" | "status"
+	post-format    = "standard" | "aside" | "gallery" | "image" | "link" | "status"
 	custom-fields  = "[" *( "{"
 	               ( "id" ":" 1*DIGIT
 	               | "key" ":" quoted-string
@@ -70,53 +127,77 @@ are defined for the Post entity object:
 ### Example
 
 	HTTP/1.1 200 OK
-	Date: Tue, 01 Jan 2013 23:59:59 GMT
-	Last-Modified: Tue, 01 Jan 2013 12:00:00 GMT
+	Date: Mon, 07 Jan 2013 03:35:14 GMT
+	Last-Modified: Mon, 07 Jan 2013 03:35:14 GMT
 	Link: <http://localhost/wptrunk/?p=1>; rel="alternate"; type=text/html
 	Link: <http://localhost/wptrunk/wp-json.php/users/1>; rel="author"
 	Link: <http://localhost/wptrunk/wp-json.php/posts>; rel="collection"
-	Link: <http://localhost/wptrunk/wp-json.php/posts/1/comments>; rel="replies"
-	Link: <http://localhost/wptrunk/wp-json.php/posts/1/revisions>; rel="version-history"
+	Link: <http://localhost/wptrunk/wp-json.php/posts/158/comments>; rel="replies"
+	Link: <http://localhost/wptrunk/wp-json.php/posts/158/revisions>; rel="version-history"
 	Content-Type: application/json; charset=UTF-8
 
 	{
-		"post_id": 69,
-		"post_title": "Hello!",
-		"post_date": 1352215701,
-		"post_date_gmt": 1352215701,
-		"post_modified": 1352259960,
-		"post_modified_gmt": 1352259960,
-		"post_status": "publish",
-		"post_type": "post",
-		"post_name": "hello",
-		"post_author": 1,
-		"post_password": "",
-		"post_excerpt": "",
-		"post_content": "<p>Hi there!<\/p>\n\n<p>This is just a proof of concept.</p>\n",
-		"post_parent": "0",
-		"post_mime_type": "",
-		"link": "http:\/\/localhost\/wptrunk\/?p=69",
-		"guid":"http:\/\/localhost\/wptrunk\/?p=69",
+		"ID":158,
+		"title":"This is a test!",
+		"status":"publish",
+		"type":"post",
+		"author":{
+			"ID":1,
+			"name":"admin",
+			"slug":"admin",
+			"URL":"",
+			"avatar":"http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
+			"meta":{
+				"links":{
+					"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1",
+					"archives":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1\/posts"
+				}
+			}
+		},
+		"content":"Hello.\r\n\r\nHah.",
+		"parent":0,
+		"link":"http:\/\/localhost\/wptrunk\/158\/this-is-a-test\/",
+		"date":"2013-01-07T13:35:14+10:00",
+		"modified":"2013-01-07T13:49:40+10:00",
+		"format":"standard",
+		"slug":"this-is-a-test",
+		"guid":"http:\/\/localhost\/wptrunk\/?p=158",
+		"excerpt":"",
 		"menu_order":0,
 		"comment_status":"open",
 		"ping_status":"open",
 		"sticky":false,
+		"date_tz":"Australia\/Brisbane",
+		"date_gmt":"2013-01-07T03:35:14+00:00",
+		"modified_tz":"Australia\/Brisbane",
+		"modified_gmt":"2013-01-07T03:49:40+00:00",
 		"post_thumbnail":[],
-		"post_format":"standard",
-		"terms":[
-			{
-				"term_id":"1",
+		"terms":{
+			"category":{
+				"ID":1,
 				"name":"Uncategorized",
 				"slug":"uncategorized",
-				"term_group":"0",
-				"term_taxonomy_id":"1",
-				"taxonomy":"category",
-				"description":"",
-				"parent":"0",
-				"count":3
+				"group":0,
+				"parent":0,
+				"count":4,
+				"meta":{
+					"links":{
+						"collection":"http:\/\/localhost\/wptrunk\/wp-json.php\/taxonomy\/category",
+						"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/taxonomy\/category\/terms\/1"
+					}
+				}
 			}
-		],
-		"custom_fields":[]
+		},
+		"post_meta":[],
+		"meta":{
+			"links":{
+				"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158",
+				"author":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1",
+				"collection":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts",
+				"replies":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158\/comments",
+				"version-history":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158\/revisions"
+			}
+		}
 	}
 
 Post Collection
@@ -142,6 +223,7 @@ Endpoints
 
 The following endpoints return the given document with associated headers.
 
+	/: Index
 	/posts: Post Collection
 	/posts/<id>: Post
 	/posts/<id>/revisions: Post Collection

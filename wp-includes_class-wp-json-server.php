@@ -2,20 +2,59 @@
 /**
  * WordPress JSON API
  *
- * Contains the WP_JSON_Server class
+ * Contains the WP_JSON_Server class.
+ *
+ *******************************************************************************
+ *     DO NOT USE THIS IN PRODUCTION UNDER ANY CIRCUMSTANCES. THIS IS ONLY A   *
+ *                             DEVELOPMENT SNAPSHOT.                           *
+ *******************************************************************************
+ *
+ * Changes so far:
+ *
+ * 0.0.4:
+ * - Hyperlinks now available in most constructs under the 'meta' key. At the
+ *   moment, the only thing under this key is 'links', but more will come
+ *   eventually. (Try browsing with a browser tool like JSONView; you should be
+ *   able to view all content just by clicking the links.)
+ * - Accessing / now gives an index which briefly describes the API and gives
+ *   links to more (also added the HIDDEN_ENDPOINT constant to hide from this).
+ * - Post collections now contain a summary of the post, with the full post
+ *   available via the single post call. (prepare_post() has fields split into
+ *   post and post-extended)
+ * - Post entities have dropped post_ prefixes, and custom_fields has changed to
+ *   post_meta.
+ * - Now supports JSONP callback via the _jsonp argument. This can be disabled
+ *   separately to the API itself, as it's only needed for
+ *   cross-origin requests.
+ * - Internal: No longer extends the XMLRPC class. All relevant pieces have been
+ *   copied over. Further work still needs to be done on this, but it's a start.
+ *
+ * 0.0.3:
+ * - Now accepts JSON bodies if an endpoint is marked with ACCEPT_JSON
+ *
+ * Todo:
+ *   Minor:
+ *   - Possibly send CORS headers when JSONP support is enabled
+ *   - Make endpoints completely output independent (i.e. don't send headers
+ *     inside the callbacks)
+ *
+ *   Major:
+ *   - Rework parts of the creation/updating of posts (sanitization, field
+ *     names, etc)
+ *   - Implement comment methods
+ *   - Implement user methods
+ *   - Implement taxonomy methods
  *
  * @package WordPress
+ * @version 0.0.4-soalphaithurts
  */
 
 /**
  * WordPress JSON API server handler
  *
- * This inherits from the XML-RPC server class to get access to the helper
- * methods, however it is not otherwise related.
- *
  * @package WordPress
  */
-class WP_JSON_Server extends wp_xmlrpc_server {
+class WP_JSON_Server {
 	const METHOD_GET    = 1;
 	const METHOD_POST   = 2;
 	const METHOD_PUT    = 4;
@@ -26,15 +65,30 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	const CREATABLE = 2;  // POST
 	const EDITABLE  = 14; // POST | PUT | PATCH
 	const DELETABLE = 16; // DELETE
+	const ALLMETHODS = 31; // GET | POST | PUT | PATCH | DELETE
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
 	 */
 	const ACCEPT_JSON = 128;
 
-	public function __construct() {
-		// No-op to avoid inheritance
-	}
+	/**
+	 * Should we hide this endpoint from the index?
+	 */
+	const HIDDEN_ENDPOINT = 256;
+
+	/**
+	 * Map of HTTP verbs to constants
+	 * @var array
+	 */
+	public static $method_map = array(
+		'HEAD'   => self::METHOD_GET,
+		'GET'    => self::METHOD_GET,
+		'POST'   => self::METHOD_POST,
+		'PUT'    => self::METHOD_PUT,
+		'PATCH'  => self::METHOD_PATCH,
+		'DELETE' => self::METHOD_DELETE,
+	);
 
 	/**
 	 * Check the authentication headers if supplied
@@ -43,22 +97,19 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 */
 	public function check_authentication() {
 		$user = apply_filters( 'json_check_authentication', null);
-		if ( is_a($user, 'WP_User') ) {
+		if ( is_a( $user, 'WP_User' ) )
 			return $user;
-		}
 
-		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) )
 			return;
-		}
 
 		$username = $_SERVER['PHP_AUTH_USER'];
 		$password = $_SERVER['PHP_AUTH_PW'];
 
 		$user = wp_authenticate( $username, $password );
 
-		if ( is_wp_error( $user ) ) {
+		if ( is_wp_error( $user ) )
 			return $user;
-		}
 
 		wp_set_current_user( $user->ID );
 		return $user;
@@ -85,6 +136,28 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	}
 
 	/**
+	 * Get an appropriate error representation in JSON
+	 *
+	 * Note: This should only be used in {@see WP_JSON_Server::serve_request()},
+	 * as it cannot handle WP_Error internally. All callbacks and other internal
+	 * methods should instead return a WP_Error with the data set to an array
+	 * that includes a 'status' key, with the value being the HTTP status to
+	 * send.
+	 *
+	 * @param string $code WP_Error-style code
+	 * @param string $message Human-readable message
+	 * @param int $status HTTP status code to send
+	 * @return string JSON representation of the error
+	 */
+	protected function json_error( $code, $message, $status = null ) {
+		if ( $status )
+			status_header( $status );
+
+		$error = compact( 'code', 'message' );
+		return json_encode(array($error));
+	}
+
+	/**
 	 * Handle serving an API request
 	 *
 	 * Matches the current server URI to a route and runs the first matching
@@ -97,16 +170,23 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
+		$jsonp_enabled = apply_filters( 'json_jsonp_enabled', true );
 
 		if ( ! $enabled ) {
-			status_header( 405 );
-
-			$error = array(
-				'code' => 'json_disabled',
-				'message' => 'The JSON API is disabled on this site.'
-			);
-			echo json_encode(array($error));
+			echo $this->json_error( 'json_disabled', 'The JSON API is disabled on this site.', 405 );
 			return false;
+		}
+		if ( isset($_GET['_jsonp']) ) {
+			if ( ! $jsonp_enabled ) {
+				echo $this->json_error( 'json_callback_disabled', 'JSONP support is disabled on this site.', 405 );
+				return false;
+			}
+
+			// Check for invalid characters (only alphanumeric allowed)
+			if ( preg_match( '/\W/', $_GET['_jsonp'] ) ) {
+				echo $this->json_error( 'json_callback_invalid', 'The JSONP callback function is invalid.', 400 );
+				return false;
+			}
 		}
 
 		if ( isset( $_SERVER['PATH_INFO'] ) )
@@ -136,7 +216,12 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			$result = $this->error_to_array( $result );
 		}
 
-		if ( 'HEAD' !== $method )
+		if ( 'HEAD' === $method )
+			return;
+
+		if ( isset($_GET['_jsonp']) )
+			echo $_GET['_jsonp'] . '(' . json_encode( $result ) . ')';
+		else
 			echo json_encode( $result );
 	}
 
@@ -159,6 +244,9 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 */
 	public function getRoutes() {
 		$endpoints = array(
+			// Meta endpoints
+			'/' => array( array($this, 'getIndex'), self::READABLE),
+
 			// Post endpoints
 			'/posts'             => array(
 				array( array( $this, 'getPosts' ), self::READABLE ),
@@ -170,7 +258,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 				array( array( $this, 'editPost' ),   self::EDITABLE | self::ACCEPT_JSON ),
 				array( array( $this, 'deletePost' ), self::DELETABLE ),
 			),
-			'/posts/(?P<id>\d+)/revisions' => array( array( $this, 'getRevisions' ), self::READABLE ),
+			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', self::READABLE ),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
@@ -179,28 +267,54 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::EDITABLE ),
+				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
 				array( '__return_null', self::DELETABLE ),
 			),
 
 			// Meta-post endpoints
-			'/posts/types'               => array('__return_null', 0),
-			'/posts/types/(?P<type>\w+)' => array('__return_null', 0),
-			'/posts/statuses'            => array('__return_null', 0),
+			'/posts/types'               => array('__return_null', self::READABLE),
+			'/posts/types/(?P<type>\w+)' => array('__return_null', self::READABLE),
+			'/posts/statuses'            => array('__return_null', self::READABLE),
 
 			// Taxonomies
-			'/taxonomies'                                       => array('__return_null', 0),
-			'/taxonomies/(?P<taxonomy>\w+)'                     => array('__return_null', 0),
-			'/taxonomies/(?P<taxonomy>\w+)/terms'               => array('__return_null', 0),
-			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array('__return_null', 0),
+			'/taxonomies'                                       => array('__return_null', self::READABLE),
+			'/taxonomies/(?P<taxonomy>\w+)'                     => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
+				array( '__return_null', self::DELETABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms'               => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
+				array( '__return_null', self::DELETABLE ),
+			),
 
 			// Users
-			'/users'               => array('__return_null', 0),
-			'/users/me'            => array('__return_null', 0),
-			'/users/(?P<user>\d+)' => array('__return_null', 0),
+			'/users'               => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
+			),
+			// /users/me is an alias, and simply redirects to /users/<id>
+			'/users/me'            => array( '__return_null', self::ALLMETHODS ),
+			'/users/(?P<user>\d+)' => array(
+				array( '__return_null', self::READABLE ),
+				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
+			),
 		);
 
-		return apply_filters( 'json_endpoints', $endpoints );
+		$endpoints = apply_filters( 'json_endpoints', $endpoints );
+
+		// Normalise the endpoints
+		foreach ( $endpoints as $route => &$handlers ) {
+			if ( count($handlers) <= 2 && ! is_array( $handlers[1] ) ) {
+				$handlers = array( $handlers );
+			}
+		}
+		return $endpoints;
 	}
 
 	/**
@@ -235,15 +349,8 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			default:
 				return new WP_Error( 'json_unsupported_method', __( 'Unsupported request method' ), array( 'status' => 400 ) );
 		}
-		foreach ( $this->getRoutes() as $route => $handler ) {
-			if ( count($handler) > 2 || is_array( $handler[1] ) ) {
-				$possible = $handler;
-			}
-			else {
-				$possible = array( $handler );
-			}
-
-			foreach ($possible as $handler) {
+		foreach ( $this->getRoutes() as $route => $handlers ) {
+			foreach ($handlers as $handler) {
 				$callback = $handler[0];
 				$supported = isset( $handler[1] ) ? $handler[1] : self::METHOD_GET;
 
@@ -316,6 +423,53 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	}
 
 	/**
+	 * Get the site index.
+	 *
+	 * This endpoint describes the capabilities of the site.
+	 *
+	 * @todo Should we generate text documentation too based on PHPDoc?
+	 *
+	 * @return array Index entity
+	 */
+	public function getIndex() {
+		// General site data
+		$available = array(
+			'name' => get_option('blogname'),
+			'description' => get_option('blogdescription'),
+			'URL' => get_option('siteurl'),
+			'routes' => array(),
+			'meta' => array(
+				'links' => array(
+					'help' => 'http://codex.wordpress.org/JSON_API',
+				),
+			),
+		);
+
+		// Find the available routes
+		foreach ( $this->getRoutes() as $route => $callbacks ) {
+			$data = array();
+
+			$route = preg_replace('#\(\?P(<\w+>).*\)#', '$1', $route);
+			$methods = array();
+			foreach ( self::$method_map as $name => $bitmask ) {
+				foreach ( $callbacks as $callback ) {
+					// Skip to the next route if any callback is hidden
+					if ( $callback[1] & self::HIDDEN_ENDPOINT )
+						continue 3;
+
+					if ( $callback[1] & $bitmask )
+						$data['supports'][] = $name;
+
+					if ( $callback[1] & self::ACCEPT_JSON )
+						$data['accepts_json'] = true;
+				}
+			}
+			$available['routes'][$route] = apply_filters( 'json_endpoints_description', $data );
+		}
+		return apply_filters( 'json_index', $available );
+	}
+
+	/**
 	 * Retrieve posts.
 	 *
 	 * @since 3.4.0
@@ -333,23 +487,17 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 *
 	 * @param array $filter optional
 	 * @param array $fields optional
-	 * @return array contains a collection of posts.
+	 * @return array contains a collection of Post entities.
 	 */
-	public function getPosts( $filter = array(), $fields = array() ) {
-		if ( !empty($fields) )
-			$fields = $args[4];
-		else
-			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'terms', 'custom_fields' ), 'getPosts' );
+	public function getPosts( $filter = array(), $fields = array(), $type = 'post' ) {
+		if ( empty($fields) )
+			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'meta', 'terms' ), 'getPosts' );
 
 		$query = array();
 
-		if ( isset( $filter['post_type'] ) ) {
-			$post_type = get_post_type_object( $filter['post_type'] );
-			if ( ! ( (bool) $post_type ) )
-				return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
-		} else {
-			$post_type = get_post_type_object( 'post' );
-		}
+		$post_type = get_post_type_object( $type );
+		if ( ! ( (bool) $post_type ) )
+			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
 
 		$query['post_type'] = $post_type->name;
 
@@ -389,7 +537,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 				continue;
 
 			$this->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
-			$struct[] = $this->_prepare_post( $post, $fields );
+			$struct[] = $this->prepare_post( $post, $fields );
 		}
 
 		return $struct;
@@ -454,7 +602,7 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		$post = get_post( $id, ARRAY_A );
 
 		if ( empty( $fields ) )
-			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'terms', 'custom_fields' ), 'getPost' );
+			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'post-extended', 'meta', 'terms', 'custom_fields' ), 'getPost' );
 
 		if ( empty( $post['ID'] ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404) );
@@ -464,15 +612,16 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 			return new WP_Error( 'json_user_cannot_read_post', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// Link headers (see RFC 5988)
-		$this->link_header( 'alternate',  get_permalink($id), array( 'type' => 'text/html' ) );
-		$this->link_header( 'author',     json_url( '/users/' . $post['post_author'] ) );
-		$this->link_header( 'collection', json_url( '/posts' ) );
-		$this->link_header( 'replies',    json_url( '/posts/' . $id . '/comments' ) );
-		$this->link_header( 'version-history', json_url( '/posts/' . $id . '/revisions' ) );
 
 		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
-		return $this->_prepare_post( $post, $fields );
+		$post = $this->prepare_post( $post, $fields );
+		foreach ($post['meta']['links'] as $rel => $url) {
+			$this->link_header( $rel, $url );
+		}
+		$this->link_header( 'alternate',  get_permalink($id), array( 'type' => 'text/html' ) );
+
+		return $post;
 	}
 
 	/**
@@ -589,13 +738,214 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 		return $HTTP_RAW_POST_DATA;
 	}
 
-	// Overrides
-	protected function _prepare_post( $post, $fields ) {
-		$data = parent::_prepare_post( $post, $fields );
-		$data['post_id'] = intval($data['post_id']);
-		$data['post_author'] = intval($data['post_author']);
-		$data['post_parent'] = intval($data['post_parent']);
-		return $data;
+	/**
+	 * Prepares post data for return in an XML-RPC object.
+	 *
+	 * @access protected
+	 *
+	 * @param array $post The unprepared post data
+	 * @param array $fields The subset of post type fields to return
+	 * @return array The prepared post data
+	 */
+	protected function prepare_post( $post, $fields, $context = 'single' ) {
+		// holds the data for this post. built up based on $fields
+		$_post = array(
+			'ID' => (int) $post['ID'],
+		);
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
+			return new WP_Error( 'json_user_cannot_read_post', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+
+		// prepare common post fields
+		$post_fields = array(
+			'title'        => $post['post_title'],
+			'status'       => $post['post_status'],
+			'type'         => $post['post_type'],
+			'author'       => (int) $post['post_author'],
+			'content'      => $post['post_content'],
+			'parent'       => (int) $post['post_parent'],
+			#'post_mime_type'    => $post['post_mime_type'],
+			'link'          => get_permalink( $post['ID'] ),
+		);
+		$post_fields_extended = array(
+			'slug'         => $post['post_name'],
+			'guid'          => $post['guid'],
+			'excerpt'      => $post['post_excerpt'],
+			'menu_order'    => (int) $post['menu_order'],
+			'comment_status'=> $post['comment_status'],
+			'ping_status'   => $post['ping_status'],
+			'sticky'        => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
+		);
+
+		// Dates
+		$tzstring = get_option('timezone_string');
+		if ( ! $tzstring ) {
+			 // Create a UTC+- zone if no timezone string exists
+			$current_offset = get_option('gmt_offset');
+			if ( 0 == $current_offset )
+				$tzstring = 'UTC+0';
+			elseif ($current_offset < 0)
+				$tzstring = 'UTC' . $current_offset;
+			else
+				$tzstring = 'UTC+' . $current_offset;
+		}
+		$timezone = new DateTimeZone( $tzstring );
+
+		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
+		$post_fields['date'] = $date->format( 'c' );
+		$post_fields_extended['date_tz'] = $date->format( 'e' );
+		$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
+
+		$modified = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
+		$post_fields['modified'] = $modified->format( 'c' );
+		$post_fields_extended['modified_tz'] = $modified->format( 'e' );
+		$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
+
+		// Authorized fields
+		// TODO: Send `Vary: Authorization` to clarify that the data can be
+		// changed by the user's auth status
+		if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			$post_fields_extended['password'] = $post['post_password'];
+		}
+
+		// Thumbnail
+		$post_fields_extended['post_thumbnail'] = array();
+		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
+		if ( $thumbnail_id ) {
+			$thumbnail_size = current_theme_supports('post-thumbnail') ? 'post-thumbnail' : 'thumbnail';
+			$post_fields_extended['post_thumbnail'] = $this->_prepare_media_item( get_post( $thumbnail_id ), $thumbnail_size );
+		}
+
+		// Consider future posts as published
+		if ( $post_fields['status'] === 'future' )
+			$post_fields['status'] = 'publish';
+
+		// Fill in blank post format
+		$post_fields['format'] = get_post_format( $post['ID'] );
+		if ( empty( $post_fields['format'] ) )
+			$post_fields['format'] = 'standard';
+
+		$post_fields['author'] = $this->prepare_author( $post['post_author'] );
+
+		if ( ( 'single' === $context || 'single-parent' === $context ) && 0 !== $post['post_parent'] ) {
+			// Avoid nesting too deeply
+			// This gives post + post-extended + meta for the main post,
+			// post + meta for the parent and just meta for the grandparent
+			$parent_fields = array( 'meta' );
+			if ( $context === 'single' )
+				$parent_fields[] = 'post';
+			$parent = get_post( $post['post_parent'], ARRAY_A );
+			$post_fields['parent'] = $this->prepare_post($parent, $parent_fields, 'single-parent' );
+		}
+
+		// Merge requested $post_fields fields into $_post
+		if ( in_array( 'post', $fields ) ) {
+			$_post = array_merge( $_post, $post_fields );
+		} else {
+			$requested_fields = array_intersect_key( $post_fields, array_flip( $fields ) );
+			$_post = array_merge( $_post, $requested_fields );
+		}
+
+		if ( in_array( 'post-extended', $fields ) )
+			$_post = array_merge( $_post, $post_fields_extended );
+
+		// Taxonomies
+		$all_taxonomy_fields = in_array( 'taxonomies', $fields );
+
+		if ( $all_taxonomy_fields || in_array( 'terms', $fields ) ) {
+			$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
+			$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
+			$_post['terms'] = array();
+			foreach ( $terms as $term ) {
+				$_post['terms'][ $term->taxonomy ] = $this->prepare_term( $term );
+			}
+		}
+
+		if ( in_array( 'custom_fields', $fields ) )
+			$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
+
+		if ( in_array( 'meta', $fields ) ) {
+			$_post['meta'] = array(
+				'links' => array(
+					'self'            => json_url( '/posts/' . $post['ID'] ),
+					'author'          => json_url( '/users/' . $post['post_author'] ),
+					'collection'      => json_url( '/posts' ),
+					'replies'         => json_url( '/posts/' . $post['ID'] . '/comments' ),
+					'version-history' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+				),
+			);
+
+			if ( ! empty( $post['post_parent'] ) )
+				$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
+		}
+
+		return apply_filters( 'json_prepare_post', $_post, $post, $fields );
+	}
+
+	/**
+	 * Prepares term data for return in an XML-RPC object.
+	 *
+	 * @access protected
+	 *
+	 * @param array|object $term The unprepared term data
+	 * @return array The prepared term data
+	 */
+	protected function prepare_term( $term ) {
+		$_term = $term;
+		if ( ! is_array( $_term) )
+			$_term = get_object_vars( $_term );
+
+		$_term['id'] = $term->term_id;
+		$_term['group'] = $term->term_group;
+		$_term['parent'] = $_term['parent'];
+		$_term['count'] = $_term['count'];
+		#unset($_term['term_id'], )
+
+		$data = array(
+			'ID'     => (int) $term->term_id,
+			'name'   => $term->name,
+			'slug'   => $term->slug,
+			'group'  => (int) $term->term_group,
+			'parent' => (int) $term->parent,
+			'count'  => (int) $term->count,
+			'meta'   => array(
+				'links' => array(
+					'collection' => json_url( '/taxonomy/' . $term->taxonomy ),
+					'self' => json_url( '/taxonomy/' . $term->taxonomy . '/terms/' . $term->term_id ),
+				),
+			),
+		);
+
+		return apply_filters( 'json_prepare_term', $data, $term );
+	}
+
+	/**
+	 * Retrieve custom fields for post.
+	 *
+	 * @since 2.5.0
+	 *
+	 * @param int $post_id Post ID.
+	 * @return array Custom fields, if exist.
+	 */
+	protected function prepare_meta( $post_id ) {
+		$post_id = (int) $post_id;
+
+		$custom_fields = array();
+
+		foreach ( (array) has_meta($post_id) as $meta ) {
+			// Don't expose protected fields.
+			if ( ! current_user_can( 'edit_post_meta', $post_id , $meta['meta_key'] ) )
+				continue;
+
+			$custom_fields[] = array(
+				'id'    => $meta['meta_id'],
+				'key'   => $meta['meta_key'],
+				'value' => $meta['meta_value']
+			);
+		}
+
+		return apply_filters( 'json_prepare_meta', $custom_fields );
 	}
 
 	/**
@@ -624,6 +974,66 @@ class WP_JSON_Server extends wp_xmlrpc_server {
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
 		return strtotime($date_gmt);
+	}
+
+	protected function prepare_author( $author ) {
+		$user = get_user_by( 'id', $author );
+
+		$author = array(
+			'ID' => $user->ID,
+			'name' => $user->display_name,
+			'slug' => $user->user_nicename,
+			'URL' => $user->user_url,
+			'avatar' => $this->get_avatar($user->user_email),
+			'meta' => array(
+				'links' => array(
+					'self' => json_url( '/users/' . $user->ID ),
+					'archives' => json_url( '/users/' . $user->ID . '/posts' ),
+				),
+			),
+		);
+
+		if ( current_user_can('edit_user', $user->ID) ) {
+			$author['first_name'] = $user->first_name;
+			$author['last_name'] = $user->last_name;
+		}
+		return $author;
+	}
+
+	/**
+	 * Retrieve the avatar for a user who provided a user ID or email address.
+	 *
+	 * {@see get_avatar()} doesn't return just the URL, so we have to
+	 * reimplement this here.
+	 *
+	 * @todo Rework how we do this. Copying it is a hack.
+	 *
+	 * @since 2.5
+	 * @param string $email Email address
+	 * @return string <img> tag for the user's avatar
+	*/
+	protected function get_avatar( $email ) {
+		if ( ! get_option('show_avatars') )
+			return false;
+
+		$email_hash = md5( strtolower( trim( $email ) ) );
+
+		if ( is_ssl() ) {
+			$host = 'https://secure.gravatar.com';
+		} else {
+			if ( !empty($email) )
+				$host = sprintf( "http://%d.gravatar.com", ( hexdec( $email_hash[0] ) % 2 ) );
+			else
+				$host = 'http://0.gravatar.com';
+		}
+
+		$avatar = "$host/avatar/$email_hash&d=404";
+
+		$rating = get_option('avatar_rating');
+		if ( !empty( $rating ) )
+			$avatar .= "&r={$rating}";
+
+		return apply_filters('get_avatar', $avatar, $email, '96', '404', '');
 	}
 }
 
