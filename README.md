@@ -20,12 +20,3 @@ All tickets for the project are being tracked on the [GSoC Trac][]. Make sure
 you use the JSON REST API component.
 
 [GSoC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
-
-
-## Contributing
-Thanks for considering contributing to the project. Unfortunately, GSoC rules
-state that I have to write basically all of the code. That pretty much rules out
-pull requests.
-
-That said, I'd be happy to get bug reports and feature requests on the GSoC
-Trac! Feel free to report to your heart's content!
