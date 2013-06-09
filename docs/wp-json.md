@@ -64,7 +64,7 @@ root. The template contains URL parts separated by forward slashes, with each
 URL part either a static string, or a route variable encased in angle brackets.
 
 	route            = ( "/"
-	                 | *( "/" ( token | route-variable ) ) )
+	                 / *( "/" ( token / route-variable ) ) )
 	route-variable   = "<" token ">"
 
 These routes can be converted into URLs by replacing all route variables with
@@ -114,8 +114,8 @@ Note that in addition to the normal Olsen timezones, manual offsets may be
 given. These manual offsets use the deprecated `Etc/GMT+...` zones and specify
 an integer offset in hours from UTC.
 
-	timezone      = Olsen-timezone | manual-offset
-	manual-offset = "Etc/GMT" ("-" | "+") 1*2( DIGIT )
+	timezone      = Olsen-timezone / manual-offset
+	manual-offset = "Etc/GMT" ("-" / "+") 1*2( DIGIT )
 
 Consumers SHOULD use the fields if they perform mathematical operations on the
 `date` and `modified` fields (such as adding an hour to the last modification
@@ -129,7 +129,7 @@ The `status` field is a string with the post's status. This status relates to
 where the post is in the editorial process. These are usually set values, but
 some providers may have extra post statuses.
 
-	post-status = "draft" | "pending" | "private" | "publish" | "trash" | token
+	post-status = "draft" / "pending" / "private" / "publish" / "trash" / token
 
 Consumers who encounter an unknown or missing post status SHOULD treat it the
 same as a "draft" status.
@@ -140,7 +140,7 @@ providers, with the most basic representation being "post". The type of the
 post usually relates to the fields in the Post entity, with other types having
 additional fields specific to the type.
 
-	post-type = "post" | token
+	post-type = "post" / token
 
 Consumers who encounter an unknown or missing post type SHOULD treat it the same
 as a "post" type.
@@ -173,7 +173,7 @@ Consumers who encounter a missing excerpt MAY present a shortened version of the
 The `parent` field is an integer with the post's parent post ID. A literal zero
 indicates that the post does not have a parent post.
 
-	post-parent = "0" | 1*DIGIT
+	post-parent = "0" / 1*DIGIT
 
 Consumers who encounter a missing parent ID MUST treat it the same as a parent
 post ID of 0.
@@ -194,7 +194,7 @@ The `menu_order` field is an integer with the post's sorting position. This is
 typically used to affect sorting when displaying the post in menus or lists.
 Larger integers should be treated as sorting before smaller integers.
 
-	menu-order = 1*DIGIT | "-" 1*DIGIT
+	menu-order = 1*DIGIT / "-" 1*DIGIT
 
 Consumers who encounter a missing sorting position MUST treat it the same as a
 sorting position of 0.
@@ -203,7 +203,7 @@ sorting position of 0.
 The `comment_status` field is a string with the post's current commenting
 status. This field indicates whether users can submit comments to the post.
 
-	comment-status = "open" | "closed" | token
+	comment-status = "open" / "closed" / token
 
 Providers MAY use statuses other than "open" or "closed" to indicate other
 statuses. Consumers who encounter an unknown or missing comment status SHOULD
@@ -214,7 +214,7 @@ The `ping_status` field is a string with the post's current pingback/trackback
 status. This field indicates whether users can submit pingbacks or trackbacks
 to the post.
 
-	ping-status = "open" | "closed" | token
+	ping-status = "open" / "closed" / token
 
 Providers MAY use statuses other than "open" or "closed" to indicate other
 statuses. Consumers who encounter an unknown or missing ping status SHOULD treat
@@ -234,7 +234,7 @@ indicates how some meta fields should be displayed. For example, posts with the
 "link" format may wish to display an extra link to a URL specified in a meta
 field or emphasise a link in the post content.
 
-	post-format = "standard" | "aside" | "gallery" | "image" | "link" | "status"
+	post-format = "standard" / "aside" / "gallery" / "image" / "link" / "status"
 
 Providers MUST NOT use post formats not specified by this specification, unless
 specified in a subsequent version of the specification. Consumers MUST treat
