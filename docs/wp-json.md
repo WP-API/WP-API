@@ -34,7 +34,7 @@ Entities
 
 Index
 -----
-The Index entity is a JSON object of site properties. The following properties
+The Index entity is a JSON object with site properties. The following properties
 are defined for the Index entity object.
 
 ### `name`
@@ -239,8 +239,8 @@ The `meta` field is a Metadata entity with metadata relating to the post.
 
 User
 ----
-The User entity is a JSON dictionary of user properties. The following
-properties are defined for the User entity object:
+The User entity is a JSON object with user properties. The following properties
+are defined for the User entity object:
 
 ### `ID`
 The `ID` field is an integer with the user's ID.
