@@ -26,6 +26,15 @@ parsing constructs above the standard JSON parsing rules.
 
 	token = 1*<any OCTET except CTLs> ; DQUOTE must be escaped with "\"
 
+Note that as per ABNF, literal strings are case insensitive. That is:
+
+	example-field = "id"
+	example-field = "ID"
+
+Providers SHOULD use the capitalisation as per this specification to ensure
+maximum compatibility with consumers. Consumers SHOULD ignore the case of
+literal strings when parsing data.
+
 [RFC5234]: http://tools.ietf.org/html/rfc5234
 
 
