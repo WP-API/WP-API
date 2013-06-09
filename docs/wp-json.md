@@ -32,7 +32,9 @@ are defined for the Index entity object:
 	                 | ( "meta" ":" meta-map ) )
 	route-map        = "{" route ":" route-descriptor
 	                 *( "," route ":" route-descriptor ) "}"
-	route            = quoted-string
+	route            = <"> ( "/"
+	                 | *( "/" ( token | route-variable ) ) ) <">
+	route-variable   = "<" token ">"
 	route-descriptor = "{" route-property *( "," route-property ) "}"
 	route-property   = ( ( "supports" ":" "[" method *( "," method ) "]" )
 	                 | ( "accepts_json" ":" boolean ) )
