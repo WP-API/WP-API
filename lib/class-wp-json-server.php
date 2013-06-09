@@ -49,6 +49,8 @@
  * @version 0.0.4-soalphaithurts
  */
 
+require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 /**
  * WordPress JSON API server handler
  *
