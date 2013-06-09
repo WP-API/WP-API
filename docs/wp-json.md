@@ -42,68 +42,6 @@ are defined for the Index entity object:
 	                 | ( DQUOTE "accepts_json" DQUOTE ":" boolean ) )
 	method           = DQUOTE ( "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" ) DQUOTE
 
-### JSON Schema
-
-	{
-		"$schema": "http://json-schema.org/schema#",
-		"id": "http://wp-api.ryanmccue.info/schema#/definitions/index",
-		"title": "Index",
-
-		"type": "object",
-		"properties": {
-			"name": {
-				"type": "string",
-				"description": "The site's name"
-			},
-			"description": {
-				"type": "string",
-				"description": "The site's description"
-			},
-			"URL": {
-				"type": "string",
-				"description": "The location of the site"
-			},
-			"routes": {
-				"type": "object",
-				"description": "The URL patterns that are handled by the API",
-				"patternProperties": {
-					".+": {
-						"type": "object",
-						"description": "A single route description",
-						"properties": {
-							"supports": {
-								"type": "array",
-								"description": "The HTTP methods supported by the endpoint",
-								"items": {
-									"enum": [
-										"HEAD",
-										"GET",
-										"POST",
-										"PUT",
-										"PATCH",
-										"DELETE"
-									]
-								}
-							},
-							"accepts_json": {
-								"type": "boolean",
-								"description": "Whether the endpoint accepts a raw JSON POST body for data",
-								"default": false
-							}
-						},
-						"required": ["supports"]
-					}
-				}
-			},
-			"meta": {
-				"type": "object",
-				"description": "Metadata for the Index entity"
-			}
-		},
-
-		"required": ["name", "description", "URL", "routes", "meta"]
-	}
-
 ### Example
 
 	{
@@ -197,149 +135,6 @@ are defined for the Post entity object:
 	               | DQUOTE "value" DQUOTE ":" quoted-string
 	               ) "}" ) "]"
 
-#### JSON Schema
-
-	{
-		"$schema": "http://json-schema.org/schema#",
-		"id": "http://wp-api.ryanmccue.info/schema#/definitions/post",
-		"title": "Post",
-
-		"type": "object",
-		"properties": {
-			"ID": {
-				"type": "integer",
-				"description": "Entity ID"
-			},
-			"title": {
-				"type": "string",
-				"description": "Post title"
-			},
-			"date": {
-				"type": "string",
-				"description": "Post creation datetime in the local timezone"
-			},
-			"date_tz": {
-				"type": "string",
-				"description": "Olsen timezone identifier for the date field"
-			},
-			"date_gmt": {
-				"type": "string",
-				"description": "Post creation datetime in UTC"
-			},
-			"modified": {
-				"type": "string",
-				"description": "Post last modification datetime in the local timezone"
-			},
-			"modified_tz": {
-				"type": "string",
-				"description": "Olsen timezone identifier for the modified field"
-			},
-			"modified_gmt": {
-				"type": "string",
-				"description":"Post last modification datetime in UTC"
-			},
-			"status": {
-				"type": "string",
-				"description": "Post published status",
-				"enum": [
-					"draft",
-					"pending",
-					"private",
-					"publish",
-					"trash"
-				]
-			},
-			"type": {
-				"type": "string",
-				"description": "Post type"
-			},
-			"name": {
-				"type": "string",
-				"description": "Post slug (URL identifier)"
-			},
-			"author": {
-				"type": "object",
-				"description": "Post author details"
-			},
-			"password": {
-				"type": "string",
-				"description": "Post password"
-			},
-			"excerpt": {
-				"type": "string",
-				"description": "Short version of the post content for display"
-			},
-			"content": {
-				"type": "string",
-				"description": "Post content"
-			},
-			"parent": {
-				"type": "integer",
-				"description": "Parent post's ID, 0 for no parent"
-			},
-			"link": {
-				"type": "string",
-				"format": "uri",
-				"description": "Full URL to the post"
-			},
-			"guid": {
-				"type": "string",
-				"description": "Globally unique identifier for the post"
-			},
-			"menu_order": {
-				"type": "integer",
-				"description": "The post's position in menus",
-				"default": 0
-			},
-			"comment_status": {
-				"type": "string",
-				"description": "Whether the post is open for commenting",
-				"enum": [
-					"open",
-					"closed"
-				]
-			},
-			"ping_status": {
-				"type": "string",
-				"description": "Whether the post is open for pingbacks/trackbacks",
-				"enum": [
-					"open",
-					"closed"
-				]
-			},
-			"sticky": {
-				"type": "boolean",
-				"description": "Whether the post is stickied (shown at the top of archives)"
-			},
-			"post_thumbnail": {
-				"type": [ "object", "array" ],
-				"description": "Thumbnail image representing the post"
-			},
-			"post_format": {
-				"type": "string",
-				"description": "Standardized post format",
-				"enum": [
-					"standard",
-					"aside",
-					"gallery",
-					"image",
-					"link",
-					"status"
-				]
-			},
-			"terms": {
-				"type": "object",
-				"description": "Taxonomic terms"
-			},
-			"post_meta": {
-				"type": "array",
-				"description": "Post meta fields"
-			}
-		},
-
-		"required": ["ID", "link"]
-	}
-
 ### Example
 
 	HTTP/1.1 200 OK
@@ -416,6 +211,14 @@ are defined for the Post entity object:
 		}
 	}
 
+User
+----
+The User entity describes a member of the site.
+
+### Entity
+The User entity is a JSON dictionary of user properties. The following
+properties are defined for the User entity object:
+
 Post Collection
 ---------------
 A Post Collection entity is defined as a collection of Post entities.
@@ -454,3 +257,9 @@ The following endpoints return the given document with associated headers.
 	/users: User Collection
 	/users/me: User
 	/users/<user>: User
+
+
+Appendix A: JSON Schema
+=======================
+The JSON Schema describing the entities in this document is available in
+schema.json.
