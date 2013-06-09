@@ -1,5 +1,6 @@
 {
 	"$schema": "http://json-schema.org/schema#",
+	"id": "http://wp-api.ryanmccue.info/schema#",
 
 	"definitions": {
 		"index": {
@@ -60,7 +61,6 @@
 			"required": ["name", "description", "URL", "routes", "meta"]
 		},
 		"post": {
-			"id": "http://wp-api.ryanmccue.info/schema#/definitions/post",
 			"title": "Post",
 
 			"type": "object",
@@ -200,8 +200,6 @@
 			"required": ["ID", "link"]
 		},
 		"user": {
-			"$schema": "http://json-schema.org/schema#",
-			"id": "http://wp-api.ryanmccue.info/schema#/definitions/user",
 			"title": "User",
 
 			"type": "object",
