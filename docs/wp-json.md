@@ -207,31 +207,40 @@ are defined for the Post entity object:
 		"type": "object",
 		"properties": {
 			"ID": {
-				"type": "integer"
+				"type": "integer",
+				"description": "Entity ID"
 			},
 			"title": {
-				"type": "string"
+				"type": "string",
+				"description": "Post title"
 			},
 			"date": {
-				"type": "string"
+				"type": "string",
+				"description": "Post creation datetime in the local timezone"
 			},
 			"date_tz": {
-				"type": "string"
+				"type": "string",
+				"description": "Olsen timezone identifier for the date field"
 			},
 			"date_gmt": {
-				"type": "string"
+				"type": "string",
+				"description": "Post creation datetime in UTC"
 			},
 			"modified": {
-				"type": "string"
+				"type": "string",
+				"description": "Post last modification datetime in the local timezone"
 			},
 			"modified_tz": {
-				"type": "string"
+				"type": "string",
+				"description": "Olsen timezone identifier for the modified field"
 			},
 			"modified_gmt": {
-				"type": "string"
+				"type": "string",
+				"description":"Post last modification datetime in UTC"
 			},
 			"status": {
 				"type": "string",
+				"description": "Post published status",
 				"enum": [
 					"draft",
 					"pending",
@@ -241,38 +250,50 @@ are defined for the Post entity object:
 				]
 			},
 			"type": {
-				"type": "string"
+				"type": "string",
+				"description": "Post type"
 			},
 			"name": {
-				"type": "string"
+				"type": "string",
+				"description": "Post slug (URL identifier)"
 			},
 			"author": {
-				"type": "object"
+				"type": "object",
+				"description": "Post author details"
 			},
 			"password": {
-				"type": "string"
+				"type": "string",
+				"description": "Post password"
 			},
 			"excerpt": {
-				"type": "string"
+				"type": "string",
+				"description": "Short version of the post content for display"
 			},
 			"content": {
-				"type": "string"
+				"type": "string",
+				"description": "Post content"
 			},
 			"parent": {
-				"type": "integer"
+				"type": "integer",
+				"description": "Parent post's ID, 0 for no parent"
 			},
 			"link": {
 				"type": "string",
-				"format": "uri"
+				"format": "uri",
+				"description": "Full URL to the post"
 			},
 			"guid": {
-				"type": "string"
+				"type": "string",
+				"description": "Globally unique identifier for the post"
 			},
 			"menu_order": {
-				"type": "integer"
+				"type": "integer",
+				"description": "The post's position in menus",
+				"default": 0
 			},
 			"comment_status": {
 				"type": "string",
+				"description": "Whether the post is open for commenting",
 				"enum": [
 					"open",
 					"closed"
@@ -280,19 +301,23 @@ are defined for the Post entity object:
 			},
 			"ping_status": {
 				"type": "string",
+				"description": "Whether the post is open for pingbacks/trackbacks",
 				"enum": [
 					"open",
 					"closed"
 				]
 			},
 			"sticky": {
-				"type": "boolean"
+				"type": "boolean",
+				"description": "Whether the post is stickied (shown at the top of archives)"
 			},
 			"post_thumbnail": {
-				"type": [ "object", "array" ]
+				"type": [ "object", "array" ],
+				"description": "Thumbnail image representing the post"
 			},
 			"post_format": {
 				"type": "string",
+				"description": "Standardized post format",
 				"enum": [
 					"standard",
 					"aside",
@@ -303,10 +328,12 @@ are defined for the Post entity object:
 				]
 			},
 			"terms": {
-				"type": "object"
+				"type": "object",
+				"description": "Taxonomic terms"
 			},
 			"post_meta": {
-				"type": "array"
+				"type": "array",
+				"description": "Post meta fields"
 			}
 		},
 
