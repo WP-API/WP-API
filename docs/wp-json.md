@@ -25,20 +25,20 @@ The Index entity is a JSON object of site properties. The following properties
 are defined for the Index entity object:
 
 	Index            = "{" index-field *( "," index-field ) "}"
-	index-field      = ( ( "name" ":" quoted-string )
-	                 | ( "description" ":" quoted-string )
-	                 | ( "URL" ":" URI )
-	                 | ( "routes" ":" route-map )
-	                 | ( "meta" ":" meta-map ) )
+	index-field      = ( ( DQUOTE "name" DQUOTE ":" quoted-string )
+	                 | ( DQUOTE "description" DQUOTE ":" quoted-string )
+	                 | ( DQUOTE "URL" DQUOTE ":" DQUOTE URI DQUOTE )
+	                 | ( DQUOTE "routes" DQUOTE ":" route-map )
+	                 | ( DQUOTE "meta" DQUOTE ":" meta-map ) )
 	route-map        = "{" route ":" route-descriptor
 	                 *( "," route ":" route-descriptor ) "}"
-	route            = <"> ( "/"
-	                 | *( "/" ( token | route-variable ) ) ) <">
+	route            = DQUOTE ( "/"
+	                 | *( "/" ( token | route-variable ) ) ) DQUOTE
 	route-variable   = "<" token ">"
 	route-descriptor = "{" route-property *( "," route-property ) "}"
-	route-property   = ( ( "supports" ":" "[" method *( "," method ) "]" )
-	                 | ( "accepts_json" ":" boolean ) )
-	method           = "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+	route-property   = ( ( DQUOTE "supports" DQUOTE ":" "[" method *( "," method ) "]" )
+	                 | ( DQUOTE "accepts_json" DQUOTE ":" boolean ) )
+	method           = DQUOTE ( "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" ) DQUOTE
 
 ### Example
 
@@ -95,31 +95,31 @@ are defined for the Post entity object:
 
 	Post           = "{" post-field *( "," post-field ) "}"
 	post-field     = ( ( "ID" ":"  [ "-" ] 1*DIGIT )
-	               | ( "title" ":" quoted-string )
-	               | ( "date" ":" date )
-	               | ( "date_tz" ":" timezone )
-	               | ( "date_gmt" ":" date )
-	               | ( "modified" ":" date )
-	               | ( "modified_tz" ":" timezone )
-	               | ( "modified_gmt" ":" date )
-	               | ( "status" ":" <"> post-status <"> )
-	               | ( "type" ":" <"> post-type <"> )
-	               | ( "name" ":" quoted-string )
-	               | ( "author" ":" ( 1*DIGIT | User ) )
-	               | ( "password" ":" quoted-string )
-	               | ( "excerpt" ":" quoted-string )
-	               | ( "content" ":" quoted-string )
-	               | ( "parent" ":" ( 1*DIGIT | Post ) )
-	               | ( "link" ":" URI )
-	               | ( "guid" ":" quoted-string )
-	               | ( "menu_order" ":" 1*DIGIT )
-	               | ( "comment_status" ":" comment-status )
-	               | ( "ping_status" ":" ping-status )
-	               | ( "sticky" ":" boolean )
-	               | ( "post_thumbnail" ":" post-thumbnail )
-	               | ( "post_format" ":" post-format )
-	               | ( "terms" ":" terms )
-	               | ( "post_meta" ":" custom-fields ) )
+	               | ( DQUOTE "title" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "date" DQUOTE ":" date )
+	               | ( DQUOTE "date_tz" DQUOTE ":" timezone )
+	               | ( DQUOTE "date_gmt" DQUOTE ":" date )
+	               | ( DQUOTE "modified" DQUOTE ":" date )
+	               | ( DQUOTE "modified_tz" DQUOTE ":" timezone )
+	               | ( DQUOTE "modified_gmt" DQUOTE ":" date )
+	               | ( DQUOTE "status" DQUOTE ":" DQUOTE post-status DQUOTE )
+	               | ( DQUOTE "type" DQUOTE ":" DQUOTE post-type DQUOTE )
+	               | ( DQUOTE "name" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "author" DQUOTE ":" ( 1*DIGIT | User ) )
+	               | ( DQUOTE "password" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "excerpt" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "content" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "parent" DQUOTE ":" ( 1*DIGIT | Post ) )
+	               | ( DQUOTE "link" DQUOTE ":" URI )
+	               | ( DQUOTE "guid" DQUOTE ":" quoted-string )
+	               | ( DQUOTE "menu_order" DQUOTE ":" 1*DIGIT )
+	               | ( DQUOTE "comment_status" DQUOTE ":" DQUOTE comment-status DQUOTE )
+	               | ( DQUOTE "ping_status" DQUOTE ":" DQUOTE ping-status DQUOTE )
+	               | ( DQUOTE "sticky" DQUOTE ":" boolean )
+	               | ( DQUOTE "post_thumbnail" DQUOTE ":" post-thumbnail )
+	               | ( DQUOTE "post_format" DQUOTE ":" DQUOTE post-format DQUOTE )
+	               | ( DQUOTE "terms" DQUOTE ":" terms )
+	               | ( DQUOTE "post_meta" DQUOTE ":" custom-fields ) )
 	post-status    = "draft" | "pending" | "private" | "publish" | "trash"
 	post-type      = "post" | "page" | token
 	comment-status = "open" | "closed"
@@ -127,9 +127,9 @@ are defined for the Post entity object:
 	post-thumbnail = "[" *( post-thumb ) "]"
 	post-format    = "standard" | "aside" | "gallery" | "image" | "link" | "status"
 	custom-fields  = "[" *( "{"
-	               ( "id" ":" 1*DIGIT
-	               | "key" ":" quoted-string
-	               | "value" ":" quoted-string
+	               ( DQUOTE "id" DQUOTE ":" 1*DIGIT
+	               | DQUOTE "key" DQUOTE ":" quoted-string
+	               | DQUOTE "value" DQUOTE ":" quoted-string
 	               ) "}" ) "]"
 
 
