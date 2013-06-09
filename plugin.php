@@ -16,7 +16,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
  * Register our rewrite rules for the API
  */
 function json_api_init() {
-	add_rewrite_rule( '^wp-json\.php/?','index.php?json_route=/','top' );
+	add_rewrite_rule( '^wp-json\.php/?$','index.php?json_route=/','top' );
 	add_rewrite_rule( '^wp-json\.php(.*)?','index.php?json_route=$matches[1]','top' );
 
 	global $wp;
