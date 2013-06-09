@@ -786,11 +786,11 @@ class WP_JSON_Server {
 			 // Create a UTC+- zone if no timezone string exists
 			$current_offset = get_option('gmt_offset');
 			if ( 0 == $current_offset )
-				$tzstring = 'UTC+0';
+				$tzstring = 'UTC';
 			elseif ($current_offset < 0)
-				$tzstring = 'UTC' . $current_offset;
+				$tzstring = 'Etc/GMT' . $current_offset;
 			else
-				$tzstring = 'UTC+' . $current_offset;
+				$tzstring = 'Etc/GMT+' . $current_offset;
 		}
 		$timezone = new DateTimeZone( $tzstring );
 
