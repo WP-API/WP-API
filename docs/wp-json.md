@@ -5,42 +5,294 @@ Entities are JSON objects representing internal objects, both abstract and
 WordPress objects. Collections are JSON arrays of Entities.
 
 
-Documents
-=========
+Defintions
+==========
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in [RFC2119][].
 
-General
--------
+* Provider: A site making the API available for use
+* Consumer: An application accessing and interacting with the API
+* slug: A URL-friendly human-readable identifier, usually derived from the title
+        of the entity.
 
-	date          = 1*DIGIT
-	boolean       = "true" | "false"
-	timezone      = quoted-string
+[RFC2119]: http://tools.ietf.org/html/rfc2119
+
+
+### ABNF
+Augmented Backus-Naur Form (ABNF) is to be interpreted as described in
+[RFC5234][]. In addition, the following basic rules are used to describe basic
+parsing constructs above the standard JSON parsing rules.
+
+	token = 1*<any OCTET except CTLs> ; DQUOTE must be escaped with "\"
+
+[RFC5234]: http://tools.ietf.org/html/rfc5234
+
+
+Entities
+========
 
 Index
 -----
-The Index entity is the root endpoint for the API server and describes the
+The Index entity is a JSON object of site properties. The following properties
+are defined for the Index entity object.
+
+### `name`
+The `name` field is a string with the site's name.
+
+### `description`
+The `description` field is a string with the site's description.
+
+### `URL`
+The `URL` field is a string with the URL to the site itself.
+
+### `routes`
+The `routes` field is an object with keys as a route and the values as a route
+descriptor.
+
+The route is a string giving the URL template for the route, relative to the API
+root. The template contains URL parts separated by forward slashes, with each
+URL part either a static string, or a route variable encased in angle brackets.
+
+	route            = ( "/"
+	                 | *( "/" ( token | route-variable ) ) )
+	route-variable   = "<" token ">"
+
+These routes can be converted into URLs by replacing all route variables with
+their relevant values, then concatenating the relative URL to the API base.
+
+### `meta`
+The `meta` field is a Meta entity.
+
+Typical `links` values for the meta object consist of a `help` key with the
+value indicating a human-readable documentation page about the API.
+
+Post
+----
+The Post entity is a JSON object of post properties. The following properties
+are defined for the Post entity object:
+
+### `title`
+The `title` field is a string with the post's title.
+
+### `date`, `date_gmt`
+The `date` and `date_gmt` fields are strings with the post's creation date and
+time in the local time and UTC respectively. These fields follow the [RFC3339][]
+Section 5.6 datetime representation.
+
+	date     = date-time
+	date_gmt = date-time
+
+[RFC3339]: http://tools.ietf.org/html/rfc3339
+
+### `modified`, `modified_gmt`
+The `date` and `date_gmt` fields are strings with the post's last modification
+date and time in the local time and UTC respectively. These fields follow the
+[RFC3339][] Section 5.6 datetime representation.
+
+	modified     = date-time
+	modified_gmt = date-time
+
+### `date_tz`, `modified_tz`
+The `date_tz` and `modified_tz` fields are strings with the timezone applying to
+the `date` and `modified` fields respectively. The timezone is a [Olsen zoneinfo
+database][] identifier. While the `date` and `modified` fields include timezone
+offset information, the `date_tz` and `modified_tz` fields allow proper data
+operations across Daylight Savings Time boundaries.
+
+Note that in addition to the normal Olsen timezones, manual offsets may be
+given. These manual offsets use the deprecated `Etc/GMT+...` zones and specify
+an integer offset in hours from UTC.
+
+	timezone      = Olsen-timezone | manual-offset
+	manual-offset = "Etc/GMT" ("-" | "+") 1*2( DIGIT )
+
+Consumers SHOULD use the fields if they perform mathematical operations on the
+`date` and `modified` fields (such as adding an hour to the last modification
+date) rather than relying on the `time-offset` in the `date` or
+`modified` fields.
+
+[Olsen zoneinfo database]: https://en.wikipedia.org/wiki/Tz_database
+
+### `status`
+The `status` field is a string with the post's status. This status relates to
+where the post is in the editorial process. These are usually set values, but
+some providers may have extra post statuses.
+
+	post-status = "draft" | "pending" | "private" | "publish" | "trash" | token
+
+Consumers who encounter an unknown or missing post status SHOULD treat it the
+same as a "draft" status.
+
+### `type`
+The `type` field is a string with the post's type. This field is specific to
+providers, with the most basic representation being "post". The type of the
+post usually relates to the fields in the Post entity, with other types having
+additional fields specific to the type.
+
+	post-type = "post" | token
+
+Consumers who encounter an unknown or missing post type SHOULD treat it the same
+as a "post" type.
+
+### `name`
+The `name` field is a string with the post's slug.
+
+### `author`
+The `author` field is a User entity with the user who created the post.
+
+### `password`
+The `password` field is a string with the post's password. A zero-length
+password indicates that the post does not have a password.
+
+Consumers who encounter a missing password MUST treat it the same as a
+zero-length password.
+
+### `content`
+The `content` field is a string with the post's content.
+
+### `excerpt`
+The `excerpt` field is a string with the post's excerpt. This is usually a
+shortened version of the post content, suitable for displaying in
+collection views.
+
+Consumers who encounter a missing excerpt MAY present a shortened version of the
+`content` field instead.
+
+### `parent`
+The `parent` field is an integer with the post's parent post ID. A literal zero
+indicates that the post does not have a parent post.
+
+	post-parent = "0" | 1*DIGIT
+
+Consumers who encounter a missing parent ID MUST treat it the same as a parent
+post ID of 0.
+
+### `link`
+The `link` field is a string with the full URL to the post's canonical view.
+This is typically the human-readable location of the entity.
+
+### `guid`
+The `guid` field is a string with the post's globally unique identifier (GUID).
+
+The GUID is typically in URL form, as this is a relatively easy way of ensuring
+that the GUID is globally unique. However, consumers MUST NOT treat the GUID as
+a URL, and MUST treat the GUID as a string of arbitrary characters.
+
+### `menu_order`
+The `menu_order` field is an integer with the post's sorting position. This is
+typically used to affect sorting when displaying the post in menus or lists.
+Larger integers should be treated as sorting before smaller integers.
+
+	menu-order = 1*DIGIT | "-" 1*DIGIT
+
+Consumers who encounter a missing sorting position MUST treat it the same as a
+sorting position of 0.
+
+### `comment_status`
+The `comment_status` field is a string with the post's current commenting
+status. This field indicates whether users can submit comments to the post.
+
+	comment-status = "open" | "closed" | token
+
+Providers MAY use statuses other than "open" or "closed" to indicate other
+statuses. Consumers who encounter an unknown or missing comment status SHOULD
+treat it as "closed".
+
+### `ping_status`
+The `ping_status` field is a string with the post's current pingback/trackback
+status. This field indicates whether users can submit pingbacks or trackbacks
+to the post.
+
+	ping-status = "open" | "closed" | token
+
+Providers MAY use statuses other than "open" or "closed" to indicate other
+statuses. Consumers who encounter an unknown or missing ping status SHOULD treat
+it as "closed".
+
+### `sticky`
+The `sticky` field is a boolean indicating whether the post is marked as a
+sticky post. Consumers typically display sticky posts before other posts in
+collection views.
+
+### `post_thumbnail`
+The `post_thumbnail` field is a Media entity.
+
+### `post_format`
+The `post_format` field is a string with the post format. The post format
+indicates how some meta fields should be displayed. For example, posts with the
+"link" format may wish to display an extra link to a URL specified in a meta
+field or emphasise a link in the post content.
+
+	post-format = "standard" | "aside" | "gallery" | "image" | "link" | "status"
+
+Providers MUST NOT use post formats not specified by this specification, unless
+specified in a subsequent version of the specification. Consumers MUST treat
+unknown post formats as "standard".
+
+### `terms`
+The `terms` field is a Term collection.
+
+### `post_meta`
+The `meta` field is a Metadata entity with metadata relating to the post.
+
+
+User
+----
+The User entity is a JSON dictionary of user properties. The following
+properties are defined for the User entity object:
+
+### `ID`
+The `ID` field is an integer with the user's ID.
+
+### `name`
+The `name` field is a string with the user's display name.
+
+### `slug`
+The `slug` field is a string with the user's slug.
+
+### `URL`
+The `URL` field is a string with the URL to the author's site. This is typically
+an external link of the author's choice.
+
+### `avatar`
+The `avatar` field is a string with the URL to the author's avatar image.
+
+Providers SHOULD ensure that for users without an avatar image, this field is
+either zero-length or the URL returns a HTTP 404 error code on access. Consumers
+MAY display a default avatar instead of a zero-length or URL which returns
+a HTTP 404 error code.
+
+### `meta`
+The `meta` field is a Metadata entity with metadata relating to the user.
+
+Metadata
+--------
+The Metadata entity is a JSON array with metadata fields. Each metadata field is
+a JSON object with `id`, `key` and `value` fields.
+
+### `id`
+The `id` field of the metadata field is a positive integer with the internal
+metadata ID.
+
+### `key`
+The `key` field of the metadata field is a string with the metadata field name.
+
+### `value`
+The `value` field of the metadata field is a string with the metadata
+field value.
+
+
+Documents
+=========
+
+Index
+-----
+The Index document is the root endpoint for the API server and describes the
 contents and abilities of the API server.
 
-### Entity
-The Index entity is a JSON object of site properties. The following properties
-are defined for the Index entity object:
-
-#### ABNF
-
-	Index            = "{" index-field *( "," index-field ) "}"
-	index-field      = ( ( DQUOTE "name" DQUOTE ":" quoted-string )
-	                 | ( DQUOTE "description" DQUOTE ":" quoted-string )
-	                 | ( DQUOTE "URL" DQUOTE ":" DQUOTE URI DQUOTE )
-	                 | ( DQUOTE "routes" DQUOTE ":" route-map )
-	                 | ( DQUOTE "meta" DQUOTE ":" meta-map ) )
-	route-map        = "{" route ":" route-descriptor
-	                 *( "," route ":" route-descriptor ) "}"
-	route            = DQUOTE ( "/"
-	                 | *( "/" ( token | route-variable ) ) ) DQUOTE
-	route-variable   = "<" token ">"
-	route-descriptor = "{" route-property *( "," route-property ) "}"
-	route-property   = ( ( DQUOTE "supports" DQUOTE ":" "[" method *( "," method ) "]" )
-	                 | ( DQUOTE "accepts_json" DQUOTE ":" boolean ) )
-	method           = DQUOTE ( "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" ) DQUOTE
+### Body
+The body of an Index document is an Index entity.
 
 ### Example
 
@@ -74,9 +326,10 @@ are defined for the Index entity object:
 		}
 	}
 
+
 Post
 ----
-A Post entity is defined as the representation of a post item, analogous to an
+A Post document is defined as the representation of a post item, analogous to an
 Atom item.
 
 ### Headers
@@ -91,49 +344,9 @@ The following headers are sent when a Post is the main entity:
 	  the revisions of the Post
 
 
-### Entity
-The Post entity is a JSON object of post properties. The following properties
-are defined for the Post entity object:
+### Body
+The body of a Post document is a Post entity.
 
-#### ABNF
-	Post           = "{" post-field *( "," post-field ) "}"
-	post-field     = ( ( "ID" ":"  [ "-" ] 1*DIGIT )
-	               | ( DQUOTE "title" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "date" DQUOTE ":" date )
-	               | ( DQUOTE "date_tz" DQUOTE ":" timezone )
-	               | ( DQUOTE "date_gmt" DQUOTE ":" date )
-	               | ( DQUOTE "modified" DQUOTE ":" date )
-	               | ( DQUOTE "modified_tz" DQUOTE ":" timezone )
-	               | ( DQUOTE "modified_gmt" DQUOTE ":" date )
-	               | ( DQUOTE "status" DQUOTE ":" DQUOTE post-status DQUOTE )
-	               | ( DQUOTE "type" DQUOTE ":" DQUOTE post-type DQUOTE )
-	               | ( DQUOTE "name" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "author" DQUOTE ":" ( 1*DIGIT | User ) )
-	               | ( DQUOTE "password" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "excerpt" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "content" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "parent" DQUOTE ":" ( 1*DIGIT | Post ) )
-	               | ( DQUOTE "link" DQUOTE ":" URI )
-	               | ( DQUOTE "guid" DQUOTE ":" quoted-string )
-	               | ( DQUOTE "menu_order" DQUOTE ":" 1*DIGIT )
-	               | ( DQUOTE "comment_status" DQUOTE ":" DQUOTE comment-status DQUOTE )
-	               | ( DQUOTE "ping_status" DQUOTE ":" DQUOTE ping-status DQUOTE )
-	               | ( DQUOTE "sticky" DQUOTE ":" boolean )
-	               | ( DQUOTE "post_thumbnail" DQUOTE ":" post-thumbnail )
-	               | ( DQUOTE "post_format" DQUOTE ":" DQUOTE post-format DQUOTE )
-	               | ( DQUOTE "terms" DQUOTE ":" terms )
-	               | ( DQUOTE "post_meta" DQUOTE ":" custom-fields ) )
-	post-status    = "draft" | "pending" | "private" | "publish" | "trash"
-	post-type      = "post" | "page" | token
-	comment-status = "open" | "closed"
-	ping-status    = "open" | "closed"
-	post-thumbnail = "[" *( post-thumb ) "]"
-	post-format    = "standard" | "aside" | "gallery" | "image" | "link" | "status"
-	custom-fields  = "[" *( "{"
-	               ( DQUOTE "id" DQUOTE ":" 1*DIGIT
-	               | DQUOTE "key" DQUOTE ":" quoted-string
-	               | DQUOTE "value" DQUOTE ":" quoted-string
-	               ) "}" ) "]"
 
 ### Example
 
@@ -211,17 +424,10 @@ are defined for the Post entity object:
 		}
 	}
 
-User
-----
-The User entity describes a member of the site.
-
-### Entity
-The User entity is a JSON dictionary of user properties. The following
-properties are defined for the User entity object:
 
 Post Collection
 ---------------
-A Post Collection entity is defined as a collection of Post entities.
+A Post Collection document is defined as a collection of Post entities.
 
 ### Headers
 The following headers are sent when a Post Collection is the main entity:
@@ -231,10 +437,16 @@ The following headers are sent when a Post Collection is the main entity:
 	  containing the location of the endpoint for that resource.
 
 
-### Entity
-The Post Collection entity is a JSON list of Post entities.
+### Body
+The Post Collection document is a JSON array of Post entities.
 
-	Post-Collection = "[" Post *( "," Post ) "]"
+
+User
+----
+The User document describes a member of the site.
+
+### Body
+The body of a User document is a User entity.
 
 
 Endpoints
