@@ -52,22 +52,28 @@ are defined for the Index entity object:
 		"type": "object",
 		"properties": {
 			"name": {
-				"type": "string"
+				"type": "string",
+				"description": "The site's name"
 			},
 			"description": {
-				"type": "string"
+				"type": "string",
+				"description": "The site's description"
 			},
 			"URL": {
-				"type": "string"
+				"type": "string",
+				"description": "The location of the site"
 			},
 			"routes": {
 				"type": "object",
+				"description": "The URL patterns that are handled by the API",
 				"patternProperties": {
 					".+": {
 						"type": "object",
+						"description": "A single route description",
 						"properties": {
 							"supports": {
 								"type": "array",
+								"description": "The HTTP methods supported by the endpoint",
 								"items": {
 									"enum": [
 										"HEAD",
@@ -80,7 +86,9 @@ are defined for the Index entity object:
 								}
 							},
 							"accepts_json": {
-								"type": "boolean"
+								"type": "boolean",
+								"description": "Whether the endpoint accepts a raw JSON POST body for data",
+								"default": false
 							}
 						},
 						"required": ["supports"]
@@ -88,7 +96,8 @@ are defined for the Index entity object:
 				}
 			},
 			"meta": {
-				"type": "object"
+				"type": "object",
+				"description": "Metadata for the Index entity"
 			}
 		},
 
