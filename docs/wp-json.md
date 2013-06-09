@@ -67,6 +67,7 @@ The `meta` field is a Meta entity.
 Typical `links` values for the meta object consist of a `help` key with the
 value indicating a human-readable documentation page about the API.
 
+
 Post
 ----
 The Post entity is a JSON object of post properties. The following properties
@@ -265,6 +266,7 @@ a HTTP 404 error code.
 
 ### `meta`
 The `meta` field is a Metadata entity with metadata relating to the user.
+
 
 Metadata
 --------
