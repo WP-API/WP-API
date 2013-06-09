@@ -70,8 +70,10 @@ URL part either a static string, or a route variable encased in angle brackets.
 These routes can be converted into URLs by replacing all route variables with
 their relevant values, then concatenating the relative URL to the API base.
 
+
 ### `meta`
-The `meta` field is a Meta entity.
+The `meta` field is a Entity Meta entity with metadata relating to the entity
+representation.
 
 Typical `links` values for the meta object consist of a `help` key with the
 value indicating a human-readable documentation page about the API.
@@ -246,6 +248,10 @@ The `terms` field is a Term collection.
 ### `post_meta`
 The `meta` field is a Metadata entity with metadata relating to the post.
 
+### `meta`
+The `meta` field is a Entity Meta entity with metadata relating to the entity
+representation.
+
 
 User
 ----
@@ -274,7 +280,8 @@ MAY display a default avatar instead of a zero-length or URL which returns
 a HTTP 404 error code.
 
 ### `meta`
-The `meta` field is a Metadata entity with metadata relating to the user.
+The `meta` field is a Entity Meta entity with metadata relating to the entity
+representation.
 
 
 Metadata
