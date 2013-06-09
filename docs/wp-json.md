@@ -24,6 +24,8 @@ contents and abilities of the API server.
 The Index entity is a JSON object of site properties. The following properties
 are defined for the Index entity object:
 
+#### ABNF
+
 	Index            = "{" index-field *( "," index-field ) "}"
 	index-field      = ( ( DQUOTE "name" DQUOTE ":" quoted-string )
 	                 | ( DQUOTE "description" DQUOTE ":" quoted-string )
@@ -39,6 +41,59 @@ are defined for the Index entity object:
 	route-property   = ( ( DQUOTE "supports" DQUOTE ":" "[" method *( "," method ) "]" )
 	                 | ( DQUOTE "accepts_json" DQUOTE ":" boolean ) )
 	method           = DQUOTE ( "HEAD" | "GET" | "POST" | "PUT" | "PATCH" | "DELETE" ) DQUOTE
+
+### JSON Schema
+
+	{
+		"$schema": "http://json-schema.org/schema#",
+		"id": "http://wp-api.ryanmccue.info/schema#/definitions/index",
+		"title": "Index",
+
+		"type": "object",
+		"properties": {
+			"name": {
+				"type": "string"
+			},
+			"description": {
+				"type": "string"
+			},
+			"URL": {
+				"type": "string"
+			},
+			"routes": {
+				"type": "object",
+				"patternProperties": {
+					".+": {
+						"type": "object",
+						"properties": {
+							"supports": {
+								"type": "array",
+								"items": {
+									"enum": [
+										"HEAD",
+										"GET",
+										"POST",
+										"PUT",
+										"PATCH",
+										"DELETE"
+									]
+								}
+							},
+							"accepts_json": {
+								"type": "boolean"
+							}
+						},
+						"required": ["supports"]
+					}
+				}
+			},
+			"meta": {
+				"type": "object"
+			}
+		},
+
+		"required": ["name", "description", "URL", "routes", "meta"]
+	}
 
 ### Example
 
@@ -93,6 +148,7 @@ The following headers are sent when a Post is the main entity:
 The Post entity is a JSON object of post properties. The following properties
 are defined for the Post entity object:
 
+#### ABNF
 	Post           = "{" post-field *( "," post-field ) "}"
 	post-field     = ( ( "ID" ":"  [ "-" ] 1*DIGIT )
 	               | ( DQUOTE "title" DQUOTE ":" quoted-string )
@@ -132,6 +188,121 @@ are defined for the Post entity object:
 	               | DQUOTE "value" DQUOTE ":" quoted-string
 	               ) "}" ) "]"
 
+#### JSON Schema
+
+	{
+		"$schema": "http://json-schema.org/schema#",
+		"id": "http://wp-api.ryanmccue.info/schema#/definitions/post",
+		"title": "Post",
+
+		"type": "object",
+		"properties": {
+			"ID": {
+				"type": "integer"
+			},
+			"title": {
+				"type": "string"
+			},
+			"date": {
+				"type": "string"
+			},
+			"date_tz": {
+				"type": "string"
+			},
+			"date_gmt": {
+				"type": "string"
+			},
+			"modified": {
+				"type": "string"
+			},
+			"modified_tz": {
+				"type": "string"
+			},
+			"modified_gmt": {
+				"type": "string"
+			},
+			"status": {
+				"type": "string",
+				"enum": [
+					"draft",
+					"pending",
+					"private",
+					"publish",
+					"trash"
+				]
+			},
+			"type": {
+				"type": "string"
+			},
+			"name": {
+				"type": "string"
+			},
+			"author": {
+				"type": "object"
+			},
+			"password": {
+				"type": "string"
+			},
+			"excerpt": {
+				"type": "string"
+			},
+			"content": {
+				"type": "string"
+			},
+			"parent": {
+				"type": "integer"
+			},
+			"link": {
+				"type": "string",
+				"format": "uri"
+			},
+			"guid": {
+				"type": "string"
+			},
+			"menu_order": {
+				"type": "integer"
+			},
+			"comment_status": {
+				"type": "string",
+				"enum": [
+					"open",
+					"closed"
+				]
+			},
+			"ping_status": {
+				"type": "string",
+				"enum": [
+					"open",
+					"closed"
+				]
+			},
+			"sticky": {
+				"type": "boolean"
+			},
+			"post_thumbnail": {
+				"type": [ "object", "array" ]
+			},
+			"post_format": {
+				"type": "string",
+				"enum": [
+					"standard",
+					"aside",
+					"gallery",
+					"image",
+					"link",
+					"status"
+				]
+			},
+			"terms": {
+				"type": "object"
+			},
+			"post_meta": {
+				"type": "array"
+			}
+		},
+
+		"required": ["ID", "link"]
+	}
 
 ### Example
 
