@@ -253,6 +253,21 @@ The `meta` field is a Entity Meta entity with metadata relating to the entity
 representation.
 
 
+Entity Meta
+-----------
+The Entity Meta entity is a JSON object with custom metadata relating to the
+representation of the parent entity.
+
+The following properties are defined for the Entity Meta entity object:
+
+### `links`
+The `links` field is a JSON object with hyperlinks to related entities. Each
+item's key is a link relation as per the [IANA Link Relations registry][] with
+the value of the item being the corresponding link URL.
+
+[IANA Link Relations registry]: http://www.iana.org/assignments/link-relations/link-relations.xml
+
+
 User
 ----
 The User entity is a JSON object with user properties. The following properties
