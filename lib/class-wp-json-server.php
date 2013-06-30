@@ -4,26 +4,8 @@
  *
  * Contains the WP_JSON_Server class.
  *
- *******************************************************************************
- *     DO NOT USE THIS IN PRODUCTION UNDER ANY CIRCUMSTANCES. THIS IS ONLY A   *
- *                             DEVELOPMENT SNAPSHOT.                           *
- *******************************************************************************
- *
- * Todo:
- *   Minor:
- *   - Possibly send CORS headers when JSONP support is enabled
- *   - Make endpoints completely output independent (i.e. don't send headers
- *     inside the callbacks)
- *
- *   Major:
- *   - Rework parts of the creation/updating of posts (sanitization, field
- *     names, etc)
- *   - Implement comment methods
- *   - Implement user methods
- *   - Implement taxonomy methods
- *
  * @package WordPress
- * @version 0.0.4-soalphaithurts
+ * @version 0.1
  */
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
