@@ -597,6 +597,9 @@ class WP_JSON_Server {
 		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
 		$post = $this->prepare_post( $post, $fields );
+		if ( is_wp_error( $post ) )
+			return $post;
+
 		foreach ($post['meta']['links'] as $rel => $url) {
 			$this->link_header( $rel, $url );
 		}
