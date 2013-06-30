@@ -353,7 +353,7 @@ class WP_JSON_Server {
 				}
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
-					$args = array_merge( $args, $data );
+					$args = array_merge( $args, array( 'data' => $data ) );
 				}
 
 				$params = $this->sort_callback_params($callback, $args);
