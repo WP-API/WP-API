@@ -40,10 +40,10 @@ class WP_JSON_Server {
 	const METHOD_PATCH  = 8;
 	const METHOD_DELETE = 16;
 
-	const READABLE  = 1;  // GET
-	const CREATABLE = 2;  // POST
-	const EDITABLE  = 14; // POST | PUT | PATCH
-	const DELETABLE = 16; // DELETE
+	const READABLE   = 1;  // GET
+	const CREATABLE  = 2;  // POST
+	const EDITABLE   = 14; // POST | PUT | PATCH
+	const DELETABLE  = 16; // DELETE
 	const ALLMETHODS = 31; // GET | POST | PUT | PATCH | DELETE
 
 	/**
@@ -75,7 +75,7 @@ class WP_JSON_Server {
 	 * @return WP_Error|WP_User|null WP_User object indicates successful login, WP_Error indicates unsuccessful login and null indicates no authentication provided
 	 */
 	public function check_authentication() {
-		$user = apply_filters( 'json_check_authentication', null);
+		$user = apply_filters( 'json_check_authentication', null );
 		if ( is_a( $user, 'WP_User' ) )
 			return $user;
 
@@ -106,9 +106,9 @@ class WP_JSON_Server {
 	 */
 	protected function error_to_array( $error ) {
 		$errors = array();
-		foreach ((array) $error->errors as $code => $messages) {
-			foreach ((array) $messages as $message) {
-				$errors[] = array('code' => $code, 'message' => $message);
+		foreach ( (array) $error->errors as $code => $messages ) {
+			foreach ( (array) $messages as $message ) {
+				$errors[] = array( 'code' => $code, 'message' => $message );
 			}
 		}
 		return $errors;
@@ -133,7 +133,7 @@ class WP_JSON_Server {
 			status_header( $status );
 
 		$error = compact( 'code', 'message' );
-		return json_encode(array($error));
+		return json_encode( array( $error ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class WP_JSON_Server {
 	 * @uses WP_JSON_Server::dispatch()
 	 */
 	public function serve_request( $path = null ) {
-		header('Content-Type: application/json; charset=' . get_option('blog_charset'), true);
+		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ), true );
 
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
@@ -184,7 +184,7 @@ class WP_JSON_Server {
 
 		$result = $this->check_authentication();
 
-		if ( ! is_wp_error($result)) {
+		if ( ! is_wp_error( $result ) ) {
 			$result = $this->dispatch( $path, $method );
 		}
 
@@ -226,7 +226,7 @@ class WP_JSON_Server {
 	public function getRoutes() {
 		$endpoints = array(
 			// Meta endpoints
-			'/' => array( array($this, 'getIndex'), self::READABLE),
+			'/' => array( array( $this, 'getIndex' ), self::READABLE ),
 
 			// Post endpoints
 			'/posts'             => array(
@@ -253,12 +253,12 @@ class WP_JSON_Server {
 			),
 
 			// Meta-post endpoints
-			'/posts/types'               => array('__return_null', self::READABLE),
-			'/posts/types/(?P<type>\w+)' => array('__return_null', self::READABLE),
-			'/posts/statuses'            => array('__return_null', self::READABLE),
+			'/posts/types'               => array( '__return_null', self::READABLE ),
+			'/posts/types/(?P<type>\w+)' => array( '__return_null', self::READABLE ),
+			'/posts/statuses'            => array( '__return_null', self::READABLE ),
 
 			// Taxonomies
-			'/taxonomies'                                       => array('__return_null', self::READABLE),
+			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
 			'/taxonomies/(?P<taxonomy>\w+)'                     => array(
 				array( '__return_null', self::READABLE ),
 				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
@@ -291,7 +291,7 @@ class WP_JSON_Server {
 
 		// Normalise the endpoints
 		foreach ( $endpoints as $route => &$handlers ) {
-			if ( count($handlers) <= 2 && ! is_array( $handlers[1] ) ) {
+			if ( count( $handlers ) <= 2 && ! is_array( $handlers[1] ) ) {
 				$handlers = array( $handlers );
 			}
 		}
@@ -331,7 +331,7 @@ class WP_JSON_Server {
 				return new WP_Error( 'json_unsupported_method', __( 'Unsupported request method' ), array( 'status' => 400 ) );
 		}
 		foreach ( $this->getRoutes() as $route => $handlers ) {
-			foreach ($handlers as $handler) {
+			foreach ( $handlers as $handler ) {
 				$callback = $handler[0];
 				$supported = isset( $handler[1] ) ? $handler[1] : self::METHOD_GET;
 
@@ -339,13 +339,13 @@ class WP_JSON_Server {
 					continue;
 
 
-				$match = preg_match('@^' . $route . '$@i', $path, $args);
+				$match = preg_match( '@^' . $route . '$@i', $path, $args );
 
 				if ( !$match )
 					continue;
 
-				if ( ! is_callable($callback) )
-					return new WP_Error( 'json_invalid_handler', __('The handler for the route is invalid'), array( 'status' => 500 ) );
+				if ( ! is_callable( $callback ) )
+					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 
 				$args = array_merge( $args, $_GET );
 				if ( $method & self::METHOD_POST ) {
@@ -356,11 +356,11 @@ class WP_JSON_Server {
 					$args = array_merge( $args, array( 'data' => $data ) );
 				}
 
-				$params = $this->sort_callback_params($callback, $args);
-				if ( is_wp_error($params) )
+				$params = $this->sort_callback_params( $callback, $args );
+				if ( is_wp_error( $params ) )
 					return $params;
 
-				return call_user_func_array($callback, $params);
+				return call_user_func_array( $callback, $params );
 			}
 		}
 
@@ -377,7 +377,7 @@ class WP_JSON_Server {
 	 * @param array $params
 	 * @return array
 	 */
-	protected function sort_callback_params($callback, $provided) {
+	protected function sort_callback_params( $callback, $provided ) {
 		if ( is_array( $callback ) )
 			$ref_func = new ReflectionMethod( $callback[0], $callback[1] );
 		else
@@ -389,7 +389,7 @@ class WP_JSON_Server {
 		foreach ( $wanted as $param ) {
 			if ( isset( $provided[ $param->getName() ] ) ) {
 				// We have this parameters in the list to choose from
-				$ordered_parameters[] = $provided[$param->getName()];
+				$ordered_parameters[] = $provided[ $param->getName() ];
 			}
 			elseif ( $param->isDefaultValueAvailable() ) {
 				// We don't have this parameter, but it's optional
@@ -415,9 +415,9 @@ class WP_JSON_Server {
 	public function getIndex() {
 		// General site data
 		$available = array(
-			'name' => get_option('blogname'),
-			'description' => get_option('blogdescription'),
-			'URL' => get_option('siteurl'),
+			'name' => get_option( 'blogname' ),
+			'description' => get_option( 'blogdescription' ),
+			'URL' => get_option( 'siteurl' ),
 			'routes' => array(),
 			'meta' => array(
 				'links' => array(
@@ -430,7 +430,7 @@ class WP_JSON_Server {
 		foreach ( $this->getRoutes() as $route => $callbacks ) {
 			$data = array();
 
-			$route = preg_replace('#\(\?P(<\w+>).*\)#', '$1', $route);
+			$route = preg_replace( '#\(\?P(<\w+>).*\)#', '$1', $route );
 			$methods = array();
 			foreach ( self::$method_map as $name => $bitmask ) {
 				foreach ( $callbacks as $callback ) {
@@ -510,7 +510,7 @@ class WP_JSON_Server {
 		// holds all the posts data
 		$struct = array();
 
-		header('Last-Modified: ' . mysql2date('D, d M Y H:i:s', get_lastpostmodified('GMT'), 0).' GMT');
+		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
 
 		foreach ( $posts_list as $post ) {
 			$post_type = get_post_type_object( $post['post_type'] );
@@ -556,8 +556,8 @@ class WP_JSON_Server {
 
 		$result = $this->insert_post( $data );
 		if ( is_string( $result ) || is_int( $result ) ) {
-			status_header(201);
-			header('Location: ' . json_url('/posts/' . $result));
+			status_header( 201 );
+			header( 'Location: ' . json_url( '/posts/' . $result ) );
 
 			return $this->getPost( $result );
 		}
@@ -565,7 +565,7 @@ class WP_JSON_Server {
 			return new WP_Error( 'json_insert_error', $result->message, array( 'status' => $result->code ) );
 		}
 		else {
-			return new WP_Error( 'json_insert_error', __('An unknown error occurred while creating the post'), array( 'status' => 500 ) );
+			return new WP_Error( 'json_insert_error', __( 'An unknown error occurred while creating the post' ), array( 'status' => 500 ) );
 		}
 	}
 
@@ -585,7 +585,7 @@ class WP_JSON_Server {
 			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'post-extended', 'meta', 'terms', 'custom_fields' ), 'getPost' ) );
 
 		if ( empty( $post['ID'] ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404) );
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $id ) )
@@ -599,10 +599,10 @@ class WP_JSON_Server {
 		if ( is_wp_error( $post ) )
 			return $post;
 
-		foreach ($post['meta']['links'] as $rel => $url) {
+		foreach ( $post['meta']['links'] as $rel => $url ) {
 			$this->link_header( $rel, $url );
 		}
-		$this->link_header( 'alternate',  get_permalink($id), array( 'type' => 'text/html' ) );
+		$this->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $post;
 	}
@@ -624,12 +624,12 @@ class WP_JSON_Server {
 		$post = get_post( $id, ARRAY_A );
 
 		if ( empty( $post['ID'] ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404) );
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		if ( isset( $data['if_not_modified_since'] ) ) {
 			// If the post has been modified since the date provided, return an error.
 			if ( mysql2date( 'U', $post['post_modified_gmt'] ) > $data['if_not_modified_since']->getTimestamp() ) {
-				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 409) );
+				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 409 ) );
 			}
 		}
 
@@ -640,7 +640,7 @@ class WP_JSON_Server {
 			return $retval;
 		}
 
-		return array('message' => __('Updated post'), 'data' => $this->getPost($id));
+		return array( 'message' => __( 'Updated post' ), 'data' => $this->getPost( $id ) );
 	}
 
 	/**
@@ -655,7 +655,7 @@ class WP_JSON_Server {
 		$post = get_post( $id, ARRAY_A );
 
 		if ( empty( $post['ID'] ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404) );
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( ! current_user_can( $post_type->cap->delete_post, $id ) )
@@ -667,11 +667,11 @@ class WP_JSON_Server {
 			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 
 		if ( $force ) {
-			return array('message' => __('Permanently deleted post'));
+			return array( 'message' => __( 'Permanently deleted post' ) );
 		}
 		else {
 			// TODO: return a HTTP 202 here instead
-			return array('message' => __('Deleted post'));
+			return array( 'message' => __( 'Deleted post' ) );
 		}
 	}
 
@@ -695,7 +695,7 @@ class WP_JSON_Server {
 				$value = '"' . $value . '"';
 			$header .= '; ' . $key . '=' . $value;
 		}
-		header($header, false);
+		header( $header, false );
 	}
 
 	/**
@@ -746,13 +746,13 @@ class WP_JSON_Server {
 			'link'          => get_permalink( $post['ID'] ),
 		);
 		$post_fields_extended = array(
-			'slug'          => $post['post_name'],
-			'guid'          => apply_filters( 'get_the_guid', $post['guid'] ),
-			'excerpt'       => $this->prepare_excerpt( $post['post_excerpt'] ),
-			'menu_order'    => (int) $post['menu_order'],
-			'comment_status'=> $post['comment_status'],
-			'ping_status'   => $post['ping_status'],
-			'sticky'        => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
+			'slug'           => $post['post_name'],
+			'guid'           => apply_filters( 'get_the_guid', $post['guid'] ),
+			'excerpt'        => $this->prepare_excerpt( $post['post_excerpt'] ),
+			'menu_order'     => (int) $post['menu_order'],
+			'comment_status' => $post['comment_status'],
+			'ping_status'    => $post['ping_status'],
+			'sticky'         => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
 		);
 		$post_fields_raw = array(
 			'title_raw'   => $post['post_title'],
@@ -761,10 +761,10 @@ class WP_JSON_Server {
 		);
 
 		// Dates
-		$tzstring = get_option('timezone_string');
+		$tzstring = get_option( 'timezone_string' );
 		if ( ! $tzstring ) {
-			 // Create a UTC+- zone if no timezone string exists
-			$current_offset = get_option('gmt_offset');
+			// Create a UTC+- zone if no timezone string exists
+			$current_offset = get_option( 'gmt_offset' );
 			if ( 0 == $current_offset )
 				$tzstring = 'UTC';
 			elseif ($current_offset < 0)
@@ -795,7 +795,7 @@ class WP_JSON_Server {
 		$post_fields_extended['post_thumbnail'] = array();
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
 		if ( $thumbnail_id ) {
-			$thumbnail_size = current_theme_supports('post-thumbnail') ? 'post-thumbnail' : 'thumbnail';
+			$thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
 			$post_fields_extended['post_thumbnail'] = $this->_prepare_media_item( get_post( $thumbnail_id ), $thumbnail_size );
 		}
 
@@ -818,7 +818,7 @@ class WP_JSON_Server {
 			if ( $context === 'single' )
 				$parent_fields[] = 'post';
 			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$post_fields['parent'] = $this->prepare_post($parent, $parent_fields, 'single-parent' );
+			$post_fields['parent'] = $this->prepare_post( $parent, $parent_fields, 'single-parent' );
 		}
 
 		// Merge requested $post_fields fields into $_post
@@ -893,7 +893,7 @@ class WP_JSON_Server {
 	 */
 	protected function prepare_term( $term ) {
 		$_term = $term;
-		if ( ! is_array( $_term) )
+		if ( ! is_array( $_term ) )
 			$_term = get_object_vars( $_term );
 
 		$_term['id'] = $term->term_id;
@@ -933,15 +933,15 @@ class WP_JSON_Server {
 
 		$custom_fields = array();
 
-		foreach ( (array) has_meta($post_id) as $meta ) {
+		foreach ( (array) has_meta( $post_id ) as $meta ) {
 			// Don't expose protected fields.
-			if ( ! current_user_can( 'edit_post_meta', $post_id , $meta['meta_key'] ) )
+			if ( ! current_user_can( 'edit_post_meta', $post_id, $meta['meta_key'] ) )
 				continue;
 
 			$custom_fields[] = array(
 				'id'    => $meta['meta_id'],
 				'key'   => $meta['meta_key'],
-				'value' => $meta['meta_value']
+				'value' => $meta['meta_value'],
 			);
 		}
 
@@ -960,7 +960,7 @@ class WP_JSON_Server {
 		if ( $date === '0000-00-00 00:00:00' ) {
 			return 0;
 		}
-		return strtotime($date);
+		return strtotime( $date );
 	}
 
 	/**
@@ -973,7 +973,7 @@ class WP_JSON_Server {
 	 * @return array
 	 */
 	protected function _convert_date_gmt( $date_gmt, $date ) {
-		return strtotime($date_gmt);
+		return strtotime( $date_gmt );
 	}
 
 	protected function prepare_author( $author ) {
@@ -984,7 +984,7 @@ class WP_JSON_Server {
 			'name' => $user->display_name,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
-			'avatar' => $this->get_avatar($user->user_email),
+			'avatar' => $this->get_avatar( $user->user_email ),
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
@@ -993,7 +993,7 @@ class WP_JSON_Server {
 			),
 		);
 
-		if ( current_user_can('edit_user', $user->ID) ) {
+		if ( current_user_can( 'edit_user', $user->ID ) ) {
 			$author['first_name'] = $user->first_name;
 			$author['last_name'] = $user->last_name;
 		}
@@ -1182,7 +1182,7 @@ class WP_JSON_Server {
 		if ( ! empty( $data['post_format'] ) ) {
 			$formats = get_post_format_slugs();
 			if ( ! in_array( $data['post_format'], $formats ) ) {
-				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.'), array( 'status' => 400 ) );
+				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
 			}
 			$post['post_format'] = $data['post_format'];
 		}
@@ -1227,7 +1227,7 @@ class WP_JSON_Server {
 	 * @return string <img> tag for the user's avatar
 	*/
 	protected function get_avatar( $email ) {
-		if ( ! get_option('show_avatars') )
+		if ( ! get_option( 'show_avatars' ) )
 			return false;
 
 		$email_hash = md5( strtolower( trim( $email ) ) );
@@ -1236,18 +1236,18 @@ class WP_JSON_Server {
 			$host = 'https://secure.gravatar.com';
 		} else {
 			if ( !empty($email) )
-				$host = sprintf( "http://%d.gravatar.com", ( hexdec( $email_hash[0] ) % 2 ) );
+				$host = sprintf( 'http://%d.gravatar.com', ( hexdec( $email_hash[0] ) % 2 ) );
 			else
 				$host = 'http://0.gravatar.com';
 		}
 
 		$avatar = "$host/avatar/$email_hash&d=404";
 
-		$rating = get_option('avatar_rating');
+		$rating = get_option( 'avatar_rating' );
 		if ( !empty( $rating ) )
 			$avatar .= "&r={$rating}";
 
-		return apply_filters('get_avatar', $avatar, $email, '96', '404', '');
+		return apply_filters( 'get_avatar', $avatar, $email, '96', '404', '' );
 	}
 }
 
@@ -1256,7 +1256,7 @@ function json_url( $path = '', $scheme = 'json' ) {
 }
 
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_site_url($blog_id, 'wp-json.php', $scheme);
+	$url = get_site_url( $blog_id, 'wp-json.php', $scheme );
 
 	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 		$url .= '/' . ltrim( $path, '/' );
