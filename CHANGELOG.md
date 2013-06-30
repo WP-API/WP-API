@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.1.1
+- No changes, process error
+
+## 0.1
+- Enable the code to be used via the plugin architecture (now uses rewrite rules
+	if running in this mode)
+- Design documents are now functionally complete for the current codebase
+	([#264][])
+- Add basic writing support ([#265][])
+- Filter fields by default - Unfiltered results are available via their
+	corresponding `*_raw` key, which is only available to users with
+	`edit_posts` ([#290][])
+- Use correct timezones for manual offsets (GMT+10, e.g.) ([#279][])
+- Allow permanently deleting posts ([#292])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/b3a8d7656ffc58c734aad95e0839609011b26781...0.1.1)
+
+[#264]: https://gsoc.trac.wordpress.org/ticket/264
+[#265]: https://gsoc.trac.wordpress.org/ticket/265
+[#279]: https://gsoc.trac.wordpress.org/ticket/279
+[#290]: https://gsoc.trac.wordpress.org/ticket/290
+[#292]: https://gsoc.trac.wordpress.org/ticket/292
+
 ## 0.0.4
 - Hyperlinks now available in most constructs under the 'meta' key. At the
 	moment, the only thing under this key is 'links', but more will come
