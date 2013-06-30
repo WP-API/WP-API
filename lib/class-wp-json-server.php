@@ -650,7 +650,7 @@ class WP_JSON_Server {
 	 * @param int $id
 	 * @return true on success
 	 */
-	public function deletePost( $id ) {
+	public function deletePost( $id, $force = false ) {
 		$id = (int) $id;
 		$post = get_post( $id, ARRAY_A );
 
@@ -661,12 +661,18 @@ class WP_JSON_Server {
 		if ( ! current_user_can( $post_type->cap->delete_post, $id ) )
 			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 
-		$result = wp_delete_post( $id );
+		$result = wp_delete_post( $id, $force );
 
 		if ( ! $result )
 			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 
-		return true;
+		if ( $force ) {
+			return array('message' => __('Permanently deleted post'));
+		}
+		else {
+			// TODO: return a HTTP 202 here instead
+			return array('message' => __('Deleted post'));
+		}
 	}
 
 	/**
