@@ -554,9 +554,8 @@ class WP_JSON_Server {
 	function newPost( $data ) {
 		unset( $data['ID'] );
 
-		$user = wp_get_current_user();
-		$result = $this->_insert_post( $user, $data );
-		if ( is_string( $result ) ) {
+		$result = $this->insert_post( $data );
+		if ( is_string( $result ) || is_int( $result ) ) {
 			status_header(201);
 			header('Location: ' . json_url('/posts/' . $result));
 
@@ -634,23 +633,11 @@ class WP_JSON_Server {
 			}
 		}
 
-		// convert the date field back to IXR form
-		$post['post_date'] = new IXR_Date(mysql2date( 'Ymd\TH:i:s', $post['post_date'], false ));
+		$data['ID'] = $id;
 
-		// ignore the existing GMT date if it is empty or a non-GMT date was supplied in $content_struct,
-		// since _insert_post will ignore the non-GMT date if the GMT date is set
-		if ( $post['post_date_gmt'] == '0000-00-00 00:00:00' || isset( $data['post_date'] ) )
-			unset( $post['post_date_gmt'] );
-		else
-			$post['post_date_gmt'] = new IXR_Date(mysql2date( 'Ymd\TH:i:s', $post['post_date_gmt'], false ));
-
-		$this->escape( $post );
-		$merged_content_struct = array_merge( $post, $data );
-
-		$user = wp_get_current_user();
-		$retval = $this->_insert_post( $user, $merged_content_struct );
-		if ( $retval instanceof IXR_Error ) {
-			return new WP_Error( 'json_edit_error', $retval->message, array( 'status' => $retval->code ) );
+		$retval = $this->insert_post( $data );
+		if ( is_wp_error( $retval ) ) {
+			return $retval;
 		}
 
 		return array('message' => __('Updated post'), 'data' => $this->getPost($id));
@@ -1005,6 +992,220 @@ class WP_JSON_Server {
 			$author['last_name'] = $user->last_name;
 		}
 		return $author;
+	}
+
+	/**
+	 * Helper method for wp_newPost and wp_editPost, containing shared logic.
+	 *
+	 * @since 3.4.0
+	 * @uses wp_insert_post()
+	 *
+	 * @param WP_User $user The post author if post_author isn't set in $content_struct.
+	 * @param array $content_struct Post data to insert.
+	 */
+	protected function insert_post( $data ) {
+		$post = array();
+		$update = ! empty( $data['ID'] );
+
+		if ( $update ) {
+			$current_post = get_post( absint( $data['ID'] ) );
+			if ( ! $current_post )
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
+			$post['ID'] = absint( $data['ID'] );
+		}
+		else {
+			// Defaults
+			$post['post_author'] = 0;
+			$post['post_password'] = '';
+			$post['post_excerpt'] = '';
+			$post['post_content'] = '';
+			$post['post_title'] = '';
+		}
+
+		// Post type
+		if ( ! empty( $data['type'] ) ) {
+			// Changing post type
+			$post_type = get_post_type_object( $data['type'] );
+			if ( ! $post_type )
+				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+
+			$post['post_type'] = $data['type'];
+		}
+		elseif ( $update ) {
+			// Updating post, use existing post type
+			$current_post = get_post( $data['ID'] );
+			if ( ! $current_post )
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
+
+			$post_type = get_post_type_object( $current_post->post_type );
+		}
+		else {
+			// Creating new post, use default type
+			$post['post_type'] = apply_filters( 'json_insert_default_post_type', 'post' );
+			$post_type = get_post_type_object( $post['post_type'] );
+			if ( ! $post_type )
+				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
+
+		// Permissions check
+		if ( $update ) {
+			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) )
+				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
+			if ( $post_type->name != get_post_type( $data['ID'] ) )
+				return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
+		} else {
+			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) )
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+		}
+
+		// Post status
+		if ( ! empty( $data['post_status'] ) ) {
+			$post['post_status'] = $data['post_status'];
+			switch ( $data['post_status'] ) {
+				case 'draft':
+				case 'pending':
+					break;
+				case 'private':
+					if ( ! current_user_can( $post_type->cap->publish_posts ) )
+						return new WP_Error( 'json_cannot_create_private', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
+					break;
+				case 'publish':
+				case 'future':
+					if ( ! current_user_can( $post_type->cap->publish_posts ) )
+						return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
+					break;
+				default:
+					if ( ! get_post_status_object( $post['post_status'] ) )
+						$post['post_status'] = 'draft';
+				break;
+			}
+		}
+
+		// Post title
+		if ( ! empty( $data['title'] ) ) {
+			$post['post_title'] = $data['title'];
+		}
+
+		// Post date
+		if ( ! empty( $data['date'] ) ) {
+			$post['post_date'] = $this->parse_date( $data['date'] );
+			$post['post_date_gmt'] = convert_to_gmt( $post['post_date'] );
+		}
+		elseif ( ! empty( $data['date_gmt'] ) ) {
+			$post['post_date_gmt'] = $this->parse_date( $data['date_gmt'] );
+			$post['post_date'] = convert_to_local( $post['post_date_gmt'] );
+		}
+
+		// Post modified
+		if ( ! empty( $data['modified'] ) ) {
+			$post['post_modified'] = $this->parse_date( $data['modified'] );
+			$post['post_modified_gmt'] = convert_to_gmt( $post['post_modified'] );
+		}
+		elseif ( ! empty( $data['modified_gmt'] ) ) {
+			$post['post_modified_gmt'] = $this->parse_date( $data['modified_gmt'] );
+			$post['post_modified'] = convert_to_local( $post['post_modified_gmt'] );
+		}
+
+		// Post slug
+		if ( ! empty( $data['name'] ) ) {
+			$post['post_name'] = $data['name'];
+		}
+
+		// Author
+		if ( ! empty( $data['author'] ) ) {
+			// Allow passing an author object
+			if ( is_object( $data['author'] ) ) {
+				if ( empty( $data['author']->ID ) ) {
+					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
+				}
+				$data['author'] = absint( $data['author']->ID );
+			}
+			else {
+				$data['author'] = absint( $data['author'] );
+			}
+
+			// Only check edit others' posts if we are another user
+			if ( $data['author'] !== get_current_user_id() ) {
+				if ( ! current_user_can( $post_type->cap->edit_others_posts ) )
+					return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
+
+				$author = get_userdata( $post['post_author'] );
+
+				if ( ! $author )
+					return new WP_Error( 'json_invalid_author', __( 'Invalid author ID.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		// Post password
+		if ( ! empty( $data['password'] ) ) {
+			$post['post_password'] = $data['password'];
+			if ( ! current_user_can( $post_type->cap->publish_posts ) )
+				return new WP_Error( 'json_cannot_create_passworded', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
+		}
+
+		// Content and excerpt
+		if ( ! empty( $data['content_raw'] ) ) {
+			$post['post_content'] = $data['content_raw'];
+		}
+		if ( ! empty( $data['excerpt_raw'] ) ) {
+			$post['post_excerpt'] = $data['excerpt_raw'];
+		}
+
+		// Parent
+		if ( ! empty( $data['parent'] ) ) {
+			$parent = get_post( $data['parent'] );
+			$post['post_parent'] = $data['post_parent'];
+		}
+
+		// Menu order
+		if ( ! empty( $data['menu_order'] ) ) {
+			$post['menu_order'] = $data['menu_order'];
+		}
+
+		// Comment status
+		if ( ! empty( $data['comment_status'] ) ) {
+			$post['comment_status'] = $data['comment_status'];
+		}
+
+		// Ping status
+		if ( ! empty( $data['ping_status'] ) ) {
+			$post['ping_status'] = $data['ping_status'];
+		}
+
+		// Post format
+		if ( ! empty( $data['post_format'] ) ) {
+			$formats = get_post_format_slugs();
+			if ( ! in_array( $data['post_format'], $formats ) ) {
+				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.'), array( 'status' => 400 ) );
+			}
+			$post['post_format'] = $data['post_format'];
+		}
+
+		// Post meta
+		// TODO: implement this
+		$post_ID = $update ? wp_update_post( $post, true ) : wp_insert_post( $post, true );
+
+		if ( is_wp_error( $post_ID ) ) {
+			return $post_ID;
+		}
+
+		// Sticky
+		if ( isset( $post['sticky'] ) )  {
+			if ( $post['sticky'] )
+				stick_post( $data['ID'] );
+			else
+				unstick_post( $data['ID'] );
+		}
+
+		// Terms
+		// TODO: implement this
+
+		// Post thumbnail
+		// TODO: implement this as part of #272
+
+		do_action( 'json_insert_post', $post, $data, $update );
+
+		return $post_ID;
 	}
 
 	/**
