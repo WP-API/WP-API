@@ -590,7 +590,7 @@ class WP_JSON_Server {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $id ) )
-			return new WP_Error( 'json_user_cannot_read_post', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// Link headers (see RFC 5988)
 
@@ -739,7 +739,7 @@ class WP_JSON_Server {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
-			return new WP_Error( 'json_user_cannot_read_post', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// prepare common post fields
 		$post_fields = array(
