@@ -471,8 +471,8 @@ class WP_JSON_Server {
 	 * @return array contains a collection of Post entities.
 	 */
 	public function getPosts( $filter = array(), $fields = array(), $type = 'post' ) {
-		if ( empty($fields) )
-			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'meta', 'terms' ), 'getPosts' );
+		if ( empty($fields) || in_array( 'default', $fields ) )
+			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'meta', 'terms' ), 'getPosts' ) );
 
 		$query = array();
 
@@ -582,8 +582,8 @@ class WP_JSON_Server {
 		$id = (int) $id;
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $fields ) )
-			$fields = apply_filters( 'json_default_post_fields', array( 'post', 'post-extended', 'meta', 'terms', 'custom_fields' ), 'getPost' );
+		if ( empty( $fields ) || in_array( 'default', $fields ) )
+			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'post-extended', 'meta', 'terms', 'custom_fields' ), 'getPost' ) );
 
 		if ( empty( $post['ID'] ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404) );
