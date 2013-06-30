@@ -743,23 +743,28 @@ class WP_JSON_Server {
 
 		// prepare common post fields
 		$post_fields = array(
-			'title'        => $post['post_title'],
+			'title'        => get_the_title( $post['ID'] ), // $post['post_title'],
 			'status'       => $post['post_status'],
 			'type'         => $post['post_type'],
 			'author'       => (int) $post['post_author'],
-			'content'      => $post['post_content'],
+			'content'      => apply_filters( 'the_content', $post['post_content'] ),
 			'parent'       => (int) $post['post_parent'],
 			#'post_mime_type'    => $post['post_mime_type'],
 			'link'          => get_permalink( $post['ID'] ),
 		);
 		$post_fields_extended = array(
-			'slug'         => $post['post_name'],
-			'guid'          => $post['guid'],
-			'excerpt'      => $post['post_excerpt'],
+			'slug'          => $post['post_name'],
+			'guid'          => apply_filters( 'get_the_guid', $post['guid'] ),
+			'excerpt'       => $this->prepare_excerpt( $post['post_excerpt'] ),
 			'menu_order'    => (int) $post['menu_order'],
 			'comment_status'=> $post['comment_status'],
 			'ping_status'   => $post['ping_status'],
 			'sticky'        => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
+		);
+		$post_fields_raw = array(
+			'title_raw'   => $post['post_title'],
+			'content_raw' => $post['post_content'],
+			'guid_raw'    => $post['guid'],
 		);
 
 		// Dates
@@ -834,6 +839,11 @@ class WP_JSON_Server {
 		if ( in_array( 'post-extended', $fields ) )
 			$_post = array_merge( $_post, $post_fields_extended );
 
+		if ( in_array( 'post-raw', $fields ) && current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
+			$_post = array_merge( $_post, $post_fields_raw );
+		elseif ( in_array( 'post-raw', $fields ) )
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+
 		// Taxonomies
 		$all_taxonomy_fields = in_array( 'taxonomies', $fields );
 
@@ -865,6 +875,19 @@ class WP_JSON_Server {
 		}
 
 		return apply_filters( 'json_prepare_post', $_post, $post, $fields );
+	}
+
+	/**
+	 * Retrieve the post excerpt.
+	 *
+	 * @return string
+	 */
+	protected function prepare_excerpt( $post ) {
+		if ( post_password_required() ) {
+			return __( 'There is no excerpt because this is a protected post.' );
+		}
+
+		return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt ) );
 	}
 
 	/**
