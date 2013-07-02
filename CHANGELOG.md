@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+- Disable media handling to avoid fatal error ([#298][])
+
+[#298]: http://gsoc.trac.wordpress.org/ticket/298
+
 ## 0.1.1
 - No changes, process error
 
