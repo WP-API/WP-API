@@ -774,12 +774,12 @@ class WP_JSON_Server {
 		}
 
 		// Thumbnail
-		$post_fields_extended['post_thumbnail'] = array();
+		/*$post_fields_extended['post_thumbnail'] = array();
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
 		if ( $thumbnail_id ) {
 			$thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
 			$post_fields_extended['post_thumbnail'] = $this->_prepare_media_item( get_post( $thumbnail_id ), $thumbnail_size );
-		}
+		}*/
 
 		// Consider future posts as published
 		if ( $post_fields['status'] === 'future' )
