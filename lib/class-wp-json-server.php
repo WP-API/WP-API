@@ -857,12 +857,12 @@ class WP_JSON_Server {
 	 *
 	 * @return string
 	 */
-	protected function prepare_excerpt( $post ) {
+	protected function prepare_excerpt( $excerpt ) {
 		if ( post_password_required() ) {
 			return __( 'There is no excerpt because this is a protected post.' );
 		}
 
-		return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt ) );
+		return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
 	}
 
 	/**
