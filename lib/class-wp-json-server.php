@@ -1122,22 +1122,18 @@ class WP_JSON_Server {
 
 		// Post date
 		if ( ! empty( $data['date'] ) ) {
-			$post['post_date'] = $this->parse_date( $data['date'] );
-			$post['post_date_gmt'] = convert_to_gmt( $post['post_date'] );
+			list( $post['post_date'], $post['post_date_gmt'] ) = $this->get_date_with_gmt( $data['date'] );
 		}
 		elseif ( ! empty( $data['date_gmt'] ) ) {
-			$post['post_date_gmt'] = $this->parse_date( $data['date_gmt'] );
-			$post['post_date'] = convert_to_local( $post['post_date_gmt'] );
+			list( $post['post_date'], $post['post_date_gmt'] ) = $this->get_date_with_gmt( $data['date_gmt'], true );
 		}
 
 		// Post modified
 		if ( ! empty( $data['modified'] ) ) {
-			$post['post_modified'] = $this->parse_date( $data['modified'] );
-			$post['post_modified_gmt'] = convert_to_gmt( $post['post_modified'] );
+			list( $post['post_modified'], $post['post_modified_gmt'] ) = $this->get_date_with_gmt( $data['modified'] );
 		}
 		elseif ( ! empty( $data['modified_gmt'] ) ) {
-			$post['post_modified_gmt'] = $this->parse_date( $data['modified_gmt'] );
-			$post['post_modified'] = convert_to_local( $post['post_modified_gmt'] );
+			list( $post['post_modified'], $post['post_modified_gmt'] ) = $this->get_date_with_gmt( $data['modified_gmt'], true );
 		}
 
 		// Post slug
@@ -1240,6 +1236,44 @@ class WP_JSON_Server {
 		do_action( 'json_insert_post', $post, $data, $update );
 
 		return $post_ID;
+	}
+
+	/**
+	 * Parse an RFC3339 timestamp into a DateTime
+	 *
+	 * @param string $date RFC3339 timestamp
+	 * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
+	 * @return DateTime
+	 */
+	protected function parse_date( $date, $force_utc = false ) {
+		// Default timezone to the server's current one
+		$timezone = self::get_timezone();
+		if ( $force_utc ) {
+			$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
+			$timezone = new DateTimeZone( 'UTC' );
+		}
+		$datetime = DateTime::createFromFormat( DateTime::RFC3339, $date );
+
+		return $datetime;
+	}
+
+	/**
+	 * Get a local date with its GMT equivalent, in MySQL datetime format
+	 *
+	 * @param string $date RFC3339 timestamp
+	 * @param boolean $force_utc Should we force UTC timestamp?
+	 * @return array Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s)
+	 */
+	protected function get_date_with_gmt( $date, $force_utc = false ) {
+		$datetime = $this->parse_date( $date, $force_utc );
+
+		$datetime->setTimezone( self::get_timezone() );
+		$local = $datetime->format( 'Y-m-d H:i:s' );
+
+		$datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+		$utc = $datetime->format('Y-m-d H:i:s');
+
+		return array( $local, $utc );
 	}
 
 	/**
