@@ -1104,9 +1104,9 @@ class WP_JSON_Server {
 		}
 
 		// Post status
-		if ( ! empty( $data['post_status'] ) ) {
-			$post['post_status'] = $data['post_status'];
-			switch ( $data['post_status'] ) {
+		if ( ! empty( $data['status'] ) ) {
+			$post['post_status'] = $data['status'];
+			switch ( $post['post_status'] ) {
 				case 'draft':
 				case 'pending':
 					break;
