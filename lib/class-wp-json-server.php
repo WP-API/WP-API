@@ -343,6 +343,13 @@ class WP_JSON_Server {
 				$args['_path']    = $path;
 				$args['_headers'] = $this->get_headers( $_SERVER );
 
+				$args = apply_filters( 'json_dispatch_args', $args, $callback );
+
+				// Allow plugins to halt the request via this filter
+				if ( is_wp_error( $args ) ) {
+					return $args;
+				}
+
 				$params = $this->sort_callback_params( $callback, $args );
 				if ( is_wp_error( $params ) )
 					return $params;
