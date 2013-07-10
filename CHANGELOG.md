@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2
+- Allow all public query vars to be passed to WP Query - Some private query vars
+	can also be passed in, and all can if the user has `edit_posts`
+	permissions ([#311][])
+- Pagination can now be handled by using the `page` argument without messing
+	with WP Query syntax ([#266][])
+- The index now generates links for non-variable routes ([#268][])
+- Editing a post now supports the `If-Unmodified-Since` header. Pass this in to
+	avoid conflicting edits ([#294][])
+- Post types and post statuses now have endpoints to access their data ([#268][])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.1.2...0.2)
+
+[#268]: https://gsoc.trac.wordpress.org/ticket/268
+[#294]: https://gsoc.trac.wordpress.org/ticket/294
+[#266]: https://gsoc.trac.wordpress.org/ticket/266
+[#311]: https://gsoc.trac.wordpress.org/ticket/311
+
 ## 0.1.2
 - Disable media handling to avoid fatal error ([#298][])
 
