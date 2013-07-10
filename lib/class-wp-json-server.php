@@ -627,18 +627,29 @@ class WP_JSON_Server {
 	 *
 	 * @param int $id Post ID to edit
 	 * @param array $data Data construct, see {@see WP_JSON_Server::newPost}
+	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function editPost( $id, $data ) {
+	function editPost( $id, $data, $_headers = array() ) {
 		$post = get_post( $id, ARRAY_A );
 
 		if ( empty( $post['ID'] ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
-		if ( isset( $data['if_not_modified_since'] ) ) {
+		if ( isset( $_headers['IF_UNMODIFIED_SINCE'] ) ) {
+			// As mandated by RFC2616, we have to check all of RFC1123, RFC1036
+			// and C's asctime() format (and ignore invalid headers)
+			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
+			foreach ( $formats as $format ) {
+				$check = DateTime::createFromFormat( DateTime::RFC1123, $_headers['IF_UNMODIFIED_SINCE'] );
+
+				if ( $check !== false )
+					break;
+			}
+
 			// If the post has been modified since the date provided, return an error.
-			if ( mysql2date( 'U', $post['post_modified_gmt'] ) > $data['if_not_modified_since']->getTimestamp() ) {
-				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 409 ) );
+			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format('U') ) {
+				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
 			}
 		}
 
