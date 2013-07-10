@@ -452,7 +452,7 @@ class WP_JSON_Server {
 	 * @param array $fields optional
 	 * @return array contains a collection of Post entities.
 	 */
-	public function getPosts( $filter = array(), $fields = array(), $type = 'post' ) {
+	public function getPosts( $filter = array(), $fields = array(), $type = 'post', $page = 1 ) {
 		if ( empty($fields) || in_array( 'default', $fields ) )
 			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'meta', 'terms' ), 'getPosts' ) );
 
@@ -491,7 +491,12 @@ class WP_JSON_Server {
 			}
 		}
 
-		$posts_list = wp_get_recent_posts( $query );
+		// Special parameter handling
+		$query['paged'] = absint( $page );
+
+		$post_query = new WP_Query();
+		$posts_list = $post_query->query( $query );
+		$this->query_navigation_headers( $post_query );
 
 		if ( ! $posts_list )
 			return array();
@@ -502,6 +507,7 @@ class WP_JSON_Server {
 		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
 
 		foreach ( $posts_list as $post ) {
+			$post = get_object_vars( $post );
 			$post_type = get_post_type_object( $post['post_type'] );
 			if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
 				continue;
@@ -686,6 +692,38 @@ class WP_JSON_Server {
 		}
 		header( $header, false );
 	}
+
+	/**
+	 * Send navigation-related headers for post collections
+	 *
+	 * @param WP_Query $query
+	 */
+	protected function query_navigation_headers( $query ) {
+		$max_page = $query->max_num_pages;
+		$paged = $query->get('paged');
+
+		if ( !$paged )
+			$paged = 1;
+
+		$nextpage = intval($paged) + 1;
+
+		if ( ! $query->is_single() ) {
+			if ( $paged > 1 ) {
+				$request = remove_query_arg( 'page' );
+				$request = add_query_arg( 'page', $paged - 1, $request );
+				$this->link_header( 'prev', $request );
+			}
+
+			if ( $nextpage <= $max_page ) {
+				$request = remove_query_arg( 'page' );
+				$request = add_query_arg( 'page', $nextpage, $request );
+				$this->link_header( 'next', $request );
+			}
+		}
+
+		do_action('json_query_navigation_headers', $this, $query);
+	}
+
 
 	/**
 	 * Retrieve the raw request entity (body)
