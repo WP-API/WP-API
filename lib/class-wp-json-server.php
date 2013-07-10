@@ -237,7 +237,7 @@ class WP_JSON_Server {
 			// Meta-post endpoints
 			'/posts/types'               => array( array( $this, 'getPostTypes' ), self::READABLE ),
 			'/posts/types/(?P<type>\w+)' => array( array( $this, 'getPostType' ), self::READABLE ),
-			'/posts/statuses'            => array( '__return_null', self::READABLE ),
+			'/posts/statuses'            => array( array( $this, 'getPostStatuses' ), self::READABLE ),
 
 			// Taxonomies
 			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
@@ -760,6 +760,40 @@ class WP_JSON_Server {
 				$data['meta']['archives'] = json_url( '/posts' );
 			else
 				$data['meta']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get the registered post statuses
+	 *
+	 * @return array List of post status data
+	 */
+	public function getPostStatuses() {
+		$statuses = get_post_stati(array(), 'objects');
+
+		$data = array();
+		foreach ($statuses as $status) {
+			if ( $status->internal === true || ! $status->show_in_admin_status_list )
+				continue;
+
+			$data[ $status->name ] = array(
+				'name' => $status->label,
+				'slug' => $status->name,
+				'public' => $status->public,
+				'protected' => $status->protected,
+				'private' => $status->private,
+				'queryable' => $status->publicly_queryable,
+				'show_in_list' => $status->show_in_admin_all_list,
+				'meta' => array(),
+			);
+			if ( $type->publicly_queryable ) {
+				if ($type->name === 'publish')
+					$data['meta']['archives'] = json_url( '/posts' );
+				else
+					$data['meta']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+			}
 		}
 
 		return $data;
