@@ -235,8 +235,8 @@ class WP_JSON_Server {
 			),
 
 			// Meta-post endpoints
-			'/posts/types'               => array( '__return_null', self::READABLE ),
-			'/posts/types/(?P<type>\w+)' => array( '__return_null', self::READABLE ),
+			'/posts/types'               => array( array( $this, 'getPostTypes' ), self::READABLE ),
+			'/posts/types/(?P<type>\w+)' => array( array( $this, 'getPostType' ), self::READABLE ),
 			'/posts/statuses'            => array( '__return_null', self::READABLE ),
 
 			// Taxonomies
@@ -696,6 +696,67 @@ class WP_JSON_Server {
 			// TODO: return a HTTP 202 here instead
 			return array( 'message' => __( 'Deleted post' ) );
 		}
+	}
+
+	/**
+	 * Get all public post types
+	 *
+	 * @uses self::getPostType()
+	 * @return array List of post type data
+	 */
+	public function getPostTypes() {
+		$data = get_post_types( array(), 'objects' );
+
+		$types = array();
+		foreach ($data as $name => $type) {
+			$type = $this->getPostType( $type, true );
+			if ( is_wp_error( $type ) )
+				continue;
+
+			$types[ $name ] = $type;
+		}
+
+		return $types;
+	}
+
+	/**
+	 * Get a post type
+	 *
+	 * @param string|object $type Type name, or type object (internal use)
+	 * @param boolean $_in_collection Is this in a collection? (internal use)
+	 * @return array Post type data
+	 */
+	public function getPostType( $type, $_in_collection = false ) {
+		if ( ! is_object( $type ) )
+			$type = get_post_type_object($type);
+
+		if ( $type->public === false )
+			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+
+		$data = array(
+			'name' => $type->label,
+			'slug' => $type->name,
+			'description' => $type->description,
+			'labels' => $type->labels,
+			'queryable' => $type->publicly_queryable,
+			'searchable' => ! $type->exclude_from_search,
+			'hierarchical' => $type->hierarchical,
+			'meta' => array(),
+		);
+
+		if ( $_in_collection )
+			$data['meta']['self'] = json_url( '/posts/types/' . $type->name );
+		else
+			$data['meta']['collection'] = json_url( '/posts/types' );
+
+		if ( $type->publicly_queryable ) {
+			if ($type->name === 'post')
+				$data['meta']['archives'] = json_url( '/posts' );
+			else
+				$data['meta']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+		}
+
+		return $data;
 	}
 
 	/**
