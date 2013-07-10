@@ -425,6 +425,13 @@ class WP_JSON_Server {
 
 					if ( $callback[1] & self::ACCEPT_JSON )
 						$data['accepts_json'] = true;
+
+					// For non-variable routes, generate links
+					if ( strpos( $route, '<' ) === false ) {
+						$data['meta'] = array(
+							'self' => json_url( $route ),
+						);
+					}
 				}
 			}
 			$available['routes'][$route] = apply_filters( 'json_endpoints_description', $data );
