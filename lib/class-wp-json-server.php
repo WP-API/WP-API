@@ -800,18 +800,7 @@ class WP_JSON_Server {
 		);
 
 		// Dates
-		$tzstring = get_option( 'timezone_string' );
-		if ( ! $tzstring ) {
-			// Create a UTC+- zone if no timezone string exists
-			$current_offset = get_option( 'gmt_offset' );
-			if ( 0 == $current_offset )
-				$tzstring = 'UTC';
-			elseif ($current_offset < 0)
-				$tzstring = 'Etc/GMT' . $current_offset;
-			else
-				$tzstring = 'Etc/GMT+' . $current_offset;
-		}
-		$timezone = new DateTimeZone( $tzstring );
+		$timezone = $this->get_timezone();
 
 		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
 		$post_fields['date'] = $date->format( 'c' );
@@ -1287,6 +1276,31 @@ class WP_JSON_Server {
 			$avatar .= "&r={$rating}";
 
 		return apply_filters( 'get_avatar', $avatar, $email, '96', '404', '' );
+	}
+
+	/**
+	 * Get the timezone object for the site
+	 *
+	 * @return DateTimeZone
+	 */
+	protected function get_timezone() {
+		static $zone = null;
+		if ($zone !== null)
+			return $zone;
+
+		$tzstring = get_option( 'timezone_string' );
+		if ( ! $tzstring ) {
+			// Create a UTC+- zone if no timezone string exists
+			$current_offset = get_option( 'gmt_offset' );
+			if ( 0 == $current_offset )
+				$tzstring = 'UTC';
+			elseif ($current_offset < 0)
+				$tzstring = 'Etc/GMT' . $current_offset;
+			else
+				$tzstring = 'Etc/GMT+' . $current_offset;
+		}
+		$zone = new DateTimeZone( $tzstring );
+		return $zone;
 	}
 }
 
