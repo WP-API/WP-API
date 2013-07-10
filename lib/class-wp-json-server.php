@@ -464,24 +464,31 @@ class WP_JSON_Server {
 
 		$query['post_type'] = $post_type->name;
 
-		if ( isset( $filter['post_status'] ) )
-			$query['post_status'] = $filter['post_status'];
+		global $wp;
+		// Allow the same as normal WP
+		$valid_vars = apply_filters('query_vars', $wp->public_query_vars);
 
-		if ( isset( $filter['number'] ) )
-			$query['numberposts'] = absint( $filter['number'] );
+		// If the user has the correct permissions, also allow use of internal
+		// query parameters, which are only undesirable on the frontend
+		//
+		// To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
 
-		if ( isset( $filter['offset'] ) )
-			$query['offset'] = absint( $filter['offset'] );
-
-		if ( isset( $filter['orderby'] ) ) {
-			$query['orderby'] = $filter['orderby'];
-
-			if ( isset( $filter['order'] ) )
-				$query['order'] = $filter['order'];
+		if ( current_user_can( $post_type->cap->edit_post ) ) {
+			$private = apply_filters('json_private_query_vars', $wp->private_query_vars);
+			$valid_vars = array_merge($valid_vars, $private);
 		}
 
-		if ( isset( $filter['s'] ) ) {
-			$query['s'] = $filter['s'];
+		$valid_vars = apply_filters('json_query_vars', $valid_vars);
+		$valid_vars = array_flip($valid_vars);
+
+		// Exclude the post_type query var to avoid dodging the permission
+		// check above
+		unset($valid_vars['post_type']);
+
+		foreach ($valid_vars as $var => $index) {
+			if ( isset( $filter[ $var ] ) ) {
+				$query[ $var ] = apply_filters( 'json_query_var-' . $var, $filter[ $var ] );
+			}
 		}
 
 		$posts_list = wp_get_recent_posts( $query );
