@@ -338,6 +338,9 @@ class WP_JSON_Server {
 					$args = array_merge( $args, array( 'data' => $data ) );
 				}
 
+				$args['_method']  = $method;
+				$args['_route']   = $route;
+				$args['_path']    = $path;
 				$args['_headers'] = $this->get_headers( $_SERVER );
 
 				$params = $this->sort_callback_params( $callback, $args );
