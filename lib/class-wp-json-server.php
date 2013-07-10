@@ -403,7 +403,7 @@ class WP_JSON_Server {
 			'routes' => array(),
 			'meta' => array(
 				'links' => array(
-					'help' => 'http://codex.wordpress.org/JSON_API',
+					'help' => 'https://github.com/rmccue/WP-API',
 				),
 			),
 		);
