@@ -478,6 +478,11 @@ class WP_JSON_Server {
 			$valid_vars = array_merge($valid_vars, $private);
 		}
 
+		// Define our own in addition to WP's normal vars
+		$json_valid = array('posts_per_page');
+		$valid_vars = array_merge($valid_vars, $json_valid);
+
+		// Filter and flip for querying
 		$valid_vars = apply_filters('json_query_vars', $valid_vars);
 		$valid_vars = array_flip($valid_vars);
 
