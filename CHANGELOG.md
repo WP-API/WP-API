@@ -45,6 +45,6 @@
 	cross-origin requests.
 - Internal: No longer extends the XMLRPC class. All relevant pieces have been
 	copied over. Further work still needs to be done on this, but it's a start.
- 
+
 ## 0.0.3:
  - Now accepts JSON bodies if an endpoint is marked with ACCEPT_JSON

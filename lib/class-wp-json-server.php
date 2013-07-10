@@ -320,7 +320,6 @@ class WP_JSON_Server {
 				if ( !( $supported & $method ) )
 					continue;
 
-
 				$match = preg_match( '@^' . $route . '$@i', $path, $args );
 
 				if ( !$match )
