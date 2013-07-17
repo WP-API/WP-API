@@ -316,6 +316,103 @@ The `value` field of the metadata field is a string with the metadata
 field value.
 
 
+Comment
+-------
+The Comment entity is a JSON object with comment properties. The following
+properties are defined for the Comment entity object:
+
+### `ID`
+The `ID` field is an integer with the comment's ID.
+
+### `content`
+The `content` field is a string with the comment's content.
+
+### `status`
+The `status` field is a string with the comment's status. This field indicates
+whether the comment is in the publishing process, or if it has been deleted or
+marked as spam.
+
+	comment-status = "hold" / "approved" / "spam" / "trash" / token
+
+Providers MAY use other values to indicate other statuses. Consumers who
+encounter an unknown or missing status SHOULD treat it as "hold".
+
+### `type`
+The `type` field is a string with the comment's type. This is usually one of the
+following, but providers may provide additional values.
+
+	comment-type = "comment" / "trackback" / "pingback" / token
+
+Providers MAY use other values to indicate other types. Consumers who encounter
+an unknown or missing status SHOULD treat it as "comment".
+
+### `post`
+The `post` field is an integer with the parent post for the comment, or a Post
+entity describing the parent post. A literal zero indicates that the comment
+does not have a parent post.
+
+	comment-post-parent = "0" / 1*DIGIT
+
+Consumers who encounter a missing post ID MUST treat it the same as a parent
+post ID of 0.
+
+### `parent`
+The `post` field is an integer with the parent comment, or a Comment entity
+describing the parent comment. A literal zero indicates that the comment does
+not have a parent comment.
+
+	comment-parent = "0" / 1*DIGIT
+
+Consumers who encounter a missing parent ID MUST treat it the same as a parent
+comment ID of 0.
+
+### `author`
+The `author` field is a User entity with the comment author's data, or a
+User-like object for anonymous authors. The User-like object contains the
+following properties:
+
+#### `ID`
+The `ID` property on the User-like object is always set to `0` for anonymous
+authors.
+
+#### `name`
+The `name` property on the User-like object is a string with the author's name.
+
+#### `URL`
+The `URL` property on the User-like object is a string with the author's URL.
+
+#### `avatar`
+The `avatar` property on the User-like object is a string with the URL to the
+author's avatar image.
+
+This property should be treated the same as the avatar property on the
+User entity.
+
+
+### `date`, `date_gmt`
+The `date` and `date_gmt` fields are strings with the post's creation date and
+time in the local time and UTC respectively. These fields follow the [RFC3339][]
+Section 5.6 datetime representation.
+
+	date     = date-time
+	date_gmt = date-time
+
+This field should be treated the same as the `date` and `date_gmt` properties on
+a Post entity.
+
+[RFC3339]: http://tools.ietf.org/html/rfc3339
+
+### `date_tz`, `modified_tz`
+The `date_tz` and `modified_tz` fields are strings with the timezone applying to
+the `date` and `modified` fields respectively. The timezone is a [Olsen zoneinfo
+database][] identifier. While the `date` field includes timezone offset
+information, the `date_tz` field allows proper data operations across Daylight
+Savings Time boundaries.
+
+This field should be treated the same as the `date_tz` property on a
+Post entity.
+
+
 Documents
 =========
 
