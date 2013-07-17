@@ -179,13 +179,19 @@ class WP_JSON_Server {
 			$result = $this->error_to_array( $result );
 		}
 
-		if ( 'HEAD' === $method )
-			return;
+		// This is a filter rather than an action, since this is designed to be
+		// re-entrant if needed
+		$served = apply_filters( 'json_serve_request', false, $result, $path, $method );
 
-		if ( isset($_GET['_jsonp']) )
-			echo $_GET['_jsonp'] . '(' . json_encode( $result ) . ')';
-		else
-			echo json_encode( $result );
+		if ( ! $served ) {
+			if ( 'HEAD' === $method )
+				return;
+
+			if ( isset($_GET['_jsonp']) )
+				echo $_GET['_jsonp'] . '(' . json_encode( $result ) . ')';
+			else
+				echo json_encode( $result );
+		}
 	}
 
 	/**
