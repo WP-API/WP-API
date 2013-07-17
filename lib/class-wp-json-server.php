@@ -669,7 +669,7 @@ class WP_JSON_Server {
 			return $retval;
 		}
 
-		return array( 'message' => __( 'Updated post' ), 'data' => $this->getPost( $id ) );
+		return $this->getPost( $id );
 	}
 
 	/**
