@@ -205,7 +205,7 @@ sorting position of 0.
 The `comment_status` field is a string with the post's current commenting
 status. This field indicates whether users can submit comments to the post.
 
-	comment-status = "open" / "closed" / token
+	post-comment-status = "open" / "closed" / token
 
 Providers MAY use statuses other than "open" or "closed" to indicate other
 statuses. Consumers who encounter an unknown or missing comment status SHOULD
