@@ -421,6 +421,7 @@ class WP_JSON_Server {
 			'meta' => array(
 				'links' => array(
 					'help' => 'https://github.com/rmccue/WP-API',
+					'profile' => 'https://raw.github.com/rmccue/WP-API/master/docs/schema.json',
 				),
 			),
 		);
