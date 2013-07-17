@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3
+- Add initial comment endpoints to get comments for a post, and get a single
+	comment ([#320][])
+- Return a Post entity when updating a post, rather than wrapping it with
+	useless text ([#329][])
+- Allow filtering the output as well as input. You can now use the
+	`json_dispatch_args` filter for input as well as the `json_serve_request`
+	filter for output to serve up alternative formats (e.g. MsgPack, XML (if
+	you're insane))
+- Include a `profile` link in the index, to indicate the JSON Schema that the
+	API conforms to. In the future, this will be versioned.
+
+[#320]: https://gsoc.trac.wordpress.org/ticket/320
+[#329]: https://gsoc.trac.wordpress.org/ticket/329
+
 ## 0.2
 - Allow all public query vars to be passed to WP Query - Some private query vars
 	can also be passed in, and all can if the user has `edit_posts`

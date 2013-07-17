@@ -5,7 +5,7 @@
  * Contains the WP_JSON_Server class.
  *
  * @package WordPress
- * @version 0.2
+ * @version 0.3
  */
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
