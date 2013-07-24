@@ -28,9 +28,7 @@ add_action( 'init', 'json_api_init' );
  * Load the JSON API
  */
 function json_api_loaded() {
-	$route = $GLOBALS['wp']->query_vars['json_route'];
-
-	if ( empty( $route ) )
+	if ( empty( $GLOBALS['wp']->query_vars['json_route'] ) )
 		return;
 
 	/**
@@ -53,7 +51,7 @@ function json_api_loaded() {
 	$wp_json_server = new $wp_json_server_class;
 
 	// Fire off the request
-	$wp_json_server->serve_request( $route );
+	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
 
 	// Finish off our request
 	die();
