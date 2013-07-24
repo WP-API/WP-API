@@ -8,10 +8,6 @@
  * Plugin URI: https://github.com/rmccue/WP-API
  */
 
-include_once( ABSPATH . WPINC . '/class-IXR.php' );
-include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
-
 /**
  * Register our rewrite rules for the API
  */
@@ -30,6 +26,10 @@ add_action( 'init', 'json_api_init' );
 function json_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['json_route'] ) )
 		return;
+
+	include_once( ABSPATH . WPINC . '/class-IXR.php' );
+	include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
+	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 
 	/**
 	 * Whether this is a XMLRPC Request
