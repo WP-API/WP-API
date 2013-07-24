@@ -279,7 +279,7 @@ class WP_JSON_Server {
 
 		// Normalise the endpoints
 		foreach ( $endpoints as $route => &$handlers ) {
-			if ( count( $handlers ) <= 2 && ! is_array( $handlers[1] ) ) {
+			if ( count( $handlers ) <= 2 && isset( $handlers[1] ) && ! is_array( $handlers[1] ) ) {
 				$handlers = array( $handlers );
 			}
 		}
