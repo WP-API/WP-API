@@ -73,3 +73,32 @@ function json_api_deactivation() {
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'json_api_activation' );
+
+/**
+ * Get URL to a JSON endpoint on a site
+ *
+ * @todo Check if this is even necessary
+ * @param int $blog_id Blog ID
+ * @param string $path JSON route
+ * @param string $scheme Sanitization scheme (usually 'json')
+ * @return string Full URL to the endpoint
+ */
+function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
+	$url = get_site_url( $blog_id, 'wp-json.php', $scheme );
+
+	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+		$url .= '/' . ltrim( $path, '/' );
+
+	return apply_filters( 'json_url', $url, $path, $blog_id );
+}
+
+/**
+ * Get URL to a JSON endpoint
+ *
+ * @param string $path JSON route
+ * @param string $scheme Sanitization scheme (usually 'json')
+ * @return string Full URL to the endpoint
+ */
+function json_url( $path = '', $scheme = 'json' ) {
+	return get_json_url( null, $path, $scheme );
+}
