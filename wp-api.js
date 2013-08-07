@@ -173,7 +173,11 @@
 		parse: function ( response, options ) {
 			// Parse dates into native Date objects
 			_.each( parseable_dates, function ( key ) {
-				response[ key ] = api.parseISO8601( response[ key ] );
+				if ( ! ( key in response ) )
+					return;
+
+				var timestamp = api.parseISO8601( response[ key ] );
+				response[ key ] = new Date( timestamp );
 			});
 			return response;
 		},
