@@ -171,8 +171,6 @@
 		 * @return {!Object} Fully parsed attributes
 		 */
 		parse: function ( response, options ) {
-			console.log(response);
-
 			// Parse dates into native Date objects
 			_.each( parseable_dates, function ( key ) {
 				response[ key ] = api.parseISO8601( response[ key ] );
@@ -223,7 +221,4 @@
 
 		model: api.models.Post
 	});
-
-	var post = new api.models.Post({ID: 1});
-	post.fetch();
 })(jQuery);
