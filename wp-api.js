@@ -152,7 +152,7 @@
 		 * @return {!Object} Serializable attributes
 		 */
 		toJSON: function () {
-			var attributes = this.attributes;
+			var attributes = _.clone( this.attributes );
 
 			// Remove GMT dates in favour of our native Date objects
 			// The API only requires one of `date` and `date_gmt`, so this is
