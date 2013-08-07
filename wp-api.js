@@ -100,7 +100,7 @@
 		}
 	});
 
-	var parseable_dates = [ 'date', 'date_gmt', 'modified', 'modified_gmt' ];
+	var parseable_dates = [ 'date', 'modified' ];
 
 	/**
 	 * wp.api.models.Post
@@ -120,9 +120,9 @@
 				parent:         0,
 				link:           "",
 				date:           new Date(),
-				date_gmt:       new Date(),
+				// date_gmt:       new Date(),
 				modified:       new Date(),
-				modified_gmt:   new Date(),
+				// modified_gmt:   new Date(),
 				format:         "standard",
 				slug:           "",
 				guid:           "",
@@ -154,6 +154,12 @@
 		toJSON: function () {
 			var attributes = this.attributes;
 
+			// Remove GMT dates in favour of our native Date objects
+			// The API only requires one of `date` and `date_gmt`, so this is
+			// safe for use.
+			delete attributes.date_gmt;
+			delete attributes.modified_gmt;
+
 			// Serialize Date objects back into 8601 strings
 			_.each( parseable_dates, function ( key ) {
 				attributes[ key ] = attributes[ key ].toISOString();
@@ -179,6 +185,11 @@
 				var timestamp = api.parseISO8601( response[ key ] );
 				response[ key ] = new Date( timestamp );
 			});
+
+			// Remove GMT dates in favour of our native Date objects
+			delete response.date_gmt;
+			delete response.modified_gmt;
+
 			return response;
 		},
 
