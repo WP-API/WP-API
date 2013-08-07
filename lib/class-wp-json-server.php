@@ -1409,6 +1409,11 @@ class WP_JSON_Server {
 			$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
 			$timezone = new DateTimeZone( 'UTC' );
 		}
+
+		// Strip millisecond precision (a full stop followed by one or more digits)
+		if ( strpos( $date, '.' ) !== false ) {
+			$date = preg_replace( '/\.\d+/', '', $date );
+		}
 		$datetime = DateTime::createFromFormat( DateTime::RFC3339, $date );
 
 		return $datetime;
