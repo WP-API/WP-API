@@ -75,6 +75,15 @@ function json_api_deactivation() {
 register_deactivation_hook( __FILE__, 'json_api_activation' );
 
 /**
+ * Register our API Javascript helpers
+ */
+function json_register_scripts() {
+	wp_register_script( 'wp-api', plugins_url( dirname( __FILE__ ) . '/wp-api.js' ), array( 'jquery', 'backbone', 'underscore' ), '0.4-dev', true );
+	wp_localize_script( 'wp-api', 'wpApiOptions', array( 'base' => json_url() ) );
+}
+add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
+
+/**
  * Get URL to a JSON endpoint on a site
  *
  * @todo Check if this is even necessary
