@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4
+- Add Backbone-based models and collections - These are available to your code
+	by declaring a dependency on `wp-api` ([#270][])
+- Check `json_route` before using it ([#336][])
+- Conditionally load classes ([#337][])
+- Add additional test helper plugin - Provides code coverage as needed to the
+	API client tests. Currently unused. ([#269][])
+- Move `json_url()` and `get_json_url()` to `plugin.php` - This allows using
+	both outside of the API itself ([#343][])
+- `getPost(0)` now returns an error rather than the latest post ([#344][])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.3...0.4)
+
+[#269]: https://gsoc.trac.wordpress.org/ticket/269
+[#270]: https://gsoc.trac.wordpress.org/ticket/270
+[#336]: https://gsoc.trac.wordpress.org/ticket/336
+[#337]: https://gsoc.trac.wordpress.org/ticket/337
+[#343]: https://gsoc.trac.wordpress.org/ticket/343
+[#344]: https://gsoc.trac.wordpress.org/ticket/344
+
 ## 0.3
 - Add initial comment endpoints to get comments for a post, and get a single
 	comment ([#320][])
