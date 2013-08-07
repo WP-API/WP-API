@@ -190,6 +190,9 @@
 			delete response.date_gmt;
 			delete response.modified_gmt;
 
+			// Parse the author into a User object
+			response.author = new api.models.User(response.author);
+
 			return response;
 		},
 
