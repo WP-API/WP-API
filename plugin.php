@@ -30,6 +30,7 @@ function json_api_loaded() {
 	include_once( ABSPATH . WPINC . '/class-IXR.php' );
 	include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
+	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 
 	/**
 	 * Whether this is a XMLRPC Request
@@ -45,6 +46,8 @@ function json_api_loaded() {
 	 * @var bool
 	 */
 	define('JSON_REQUEST', true);
+
+	global $wp_json_server;
 
 	// Allow for a plugin to insert a different class to handle requests.
 	$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_JSON_Server');
