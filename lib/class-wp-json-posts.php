@@ -374,11 +374,11 @@ class WP_JSON_Posts {
 				'show_in_list' => $status->show_in_admin_all_list,
 				'meta' => array(),
 			);
-			if ( $type->publicly_queryable ) {
-				if ($type->name === 'publish')
-					$data['meta']['archives'] = json_url( '/posts' );
+			if ( $status->publicly_queryable ) {
+				if ($status->name === 'publish')
+					$data[ $status->name ]['meta']['archives'] = json_url( '/posts' );
 				else
-					$data['meta']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+					$data[ $status->name ]['meta']['archives'] = json_url( add_query_arg( 'status', $status->name, '/posts' ) );
 			}
 		}
 
