@@ -212,7 +212,7 @@ class WP_JSON_Server {
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or `'/path/regex' => array( array( $callback, $bitmask ), ...)`
 	 */
 	public function getRoutes() {
-		$posts = new WP_JSON_Posts();
+		$GLOBALS['wp_json_posts'] = $posts = new WP_JSON_Posts();
 
 		$endpoints = array(
 			// Meta endpoints
