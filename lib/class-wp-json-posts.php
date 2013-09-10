@@ -457,12 +457,11 @@ class WP_JSON_Posts {
 		}
 
 		// Thumbnail
-		/*$post_fields_extended['post_thumbnail'] = array();
+		$post_fields_extended['featured_image'] = null;
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
 		if ( $thumbnail_id ) {
-			$thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
-			$post_fields_extended['post_thumbnail'] = $this->_prepare_media_item( get_post( $thumbnail_id ), $thumbnail_size );
-		}*/
+			$post_fields_extended['featured_image'] = $GLOBALS['wp_json_media']->getAttachment( $thumbnail_id, 'child' );
+		}
 
 		// Consider future posts as published
 		if ( $post_fields['status'] === 'future' )

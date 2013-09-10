@@ -32,6 +32,7 @@ function json_api_loaded() {
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
+	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 
 	/**
 	 * Whether this is a XMLRPC Request

@@ -31,6 +31,7 @@ class WP_JSON_Server {
 	/**
 	 * Does the endpoint accept raw JSON entities?
 	 */
+	const ACCEPT_RAW = 64;
 	const ACCEPT_JSON = 128;
 
 	/**
@@ -214,6 +215,7 @@ class WP_JSON_Server {
 	public function getRoutes() {
 		$GLOBALS['wp_json_posts'] = $posts = new WP_JSON_Posts();
 		$GLOBALS['wp_json_pages'] = $pages = new WP_JSON_Pages();
+		$GLOBALS['wp_json_media'] = $media = new WP_JSON_Media();
 
 		$endpoints = array(
 			// Meta endpoints
@@ -306,6 +308,17 @@ class WP_JSON_Server {
 				array( '__return_null', self::READABLE ),
 				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
 			),
+
+			'/media' => array(
+				array( array( $media, 'getPosts' ),   self::READABLE ),
+				array( array( $media, 'uploadAttachment' ), self::CREATABLE ),
+			),
+
+			'/media/(?P<id>\d+)' => array(
+				array( array( $media, 'getPost' ),    self::READABLE ),
+				array( array( $media, 'editPost' ),   self::EDITABLE ),
+				array( array( $media, 'deletePost' ), self::DELETABLE ),
+			),
 		);
 
 		$endpoints = apply_filters( 'json_endpoints', $endpoints );
@@ -375,11 +388,15 @@ class WP_JSON_Server {
 					$data = json_decode( $this->get_raw_data(), true );
 					$args = array_merge( $args, array( 'data' => $data ) );
 				}
+				elseif ( $supported & self::ACCEPT_RAW ) {
+					$data = $this->get_raw_data();
+				}
 
 				$args['_method']  = $method;
 				$args['_route']   = $route;
 				$args['_path']    = $path;
 				$args['_headers'] = $this->get_headers( $_SERVER );
+				$args['_files']   = $_FILES;
 
 				$args = apply_filters( 'json_dispatch_args', $args, $callback );
 
