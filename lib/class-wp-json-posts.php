@@ -21,10 +21,8 @@ class WP_JSON_Posts {
 	 * @param array $fields optional
 	 * @return array contains a collection of Post entities.
 	 */
-	public function getPosts( $filter = array(), $fields = array(), $type = 'post', $page = 1 ) {
+	public function getPosts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		global $wp_json_server;
-		if ( empty($fields) || in_array( 'default', $fields ) )
-			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'meta', 'terms' ), 'getPosts' ) );
 
 		$query = array();
 
@@ -88,7 +86,7 @@ class WP_JSON_Posts {
 				continue;
 
 			$wp_json_server->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
-			$struct[] = $this->prepare_post( $post, $fields );
+			$struct[] = $this->prepare_post( $post, $context );
 		}
 
 		return $struct;
@@ -147,7 +145,7 @@ class WP_JSON_Posts {
 	 * @param array $fields Post fields to return (optional)
 	 * @return array Post entity
 	 */
-	public function getPost( $id, $fields = array() ) {
+	public function getPost( $id, $context = 'view' ) {
 		global $wp_json_server;
 		$id = (int) $id;
 
@@ -155,9 +153,6 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $fields ) || in_array( 'default', $fields ) )
-			$fields = array_merge( $fields, apply_filters( 'json_default_post_fields', array( 'post', 'post-extended', 'meta', 'terms', 'custom_fields' ), 'getPost' ) );
 
 		if ( empty( $post['ID'] ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
@@ -170,7 +165,7 @@ class WP_JSON_Posts {
 
 		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
-		$post = $this->prepare_post( $post, $fields );
+		$post = $this->prepare_post( $post, $context );
 		if ( is_wp_error( $post ) )
 			return $post;
 
@@ -403,7 +398,7 @@ class WP_JSON_Posts {
 	 * @param array $fields The subset of post type fields to return
 	 * @return array The prepared post data
 	 */
-	protected function prepare_post( $post, $fields, $context = 'single' ) {
+	protected function prepare_post( $post, $context = 'view' ) {
 		global $wp_json_server;
 
 		// holds the data for this post. built up based on $fields
@@ -480,64 +475,51 @@ class WP_JSON_Posts {
 
 		$post_fields['author'] = $this->prepare_author( $post['post_author'] );
 
-		if ( ( 'single' === $context || 'single-parent' === $context ) && 0 !== $post['post_parent'] ) {
+		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
 			// post + meta for the parent and just meta for the grandparent
-			$parent_fields = array( 'meta' );
-			if ( $context === 'single' )
-				$parent_fields[] = 'post';
 			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$post_fields['parent'] = $this->prepare_post( $parent, $parent_fields, 'single-parent' );
+			$post_fields['parent'] = $this->prepare_post( $parent, 'parent' );
 		}
 
 		// Merge requested $post_fields fields into $_post
-		if ( in_array( 'post', $fields ) ) {
-			$_post = array_merge( $_post, $post_fields );
-		} else {
-			$requested_fields = array_intersect_key( $post_fields, array_flip( $fields ) );
-			$_post = array_merge( $_post, $requested_fields );
-		}
+		$_post = array_merge( $_post, $post_fields );
 
-		if ( in_array( 'post-extended', $fields ) )
-			$_post = array_merge( $_post, $post_fields_extended );
+		// Include extended fields. We might come back to this.
+		$_post = array_merge( $_post, $post_fields_extended );
 
-		if ( in_array( 'post-raw', $fields ) && current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
+		if ( 'edit' === $context && current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
 			$_post = array_merge( $_post, $post_fields_raw );
-		elseif ( in_array( 'post-raw', $fields ) )
+		elseif ( 'edit' === $context )
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 
 		// Taxonomies
-		$all_taxonomy_fields = in_array( 'taxonomies', $fields );
-
-		if ( $all_taxonomy_fields || in_array( 'terms', $fields ) ) {
-			$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
-			$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
-			$_post['terms'] = array();
-			foreach ( $terms as $term ) {
-				$_post['terms'][ $term->taxonomy ] = $this->prepare_term( $term );
-			}
+		$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
+		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
+		$_post['terms'] = array();
+		foreach ( $terms as $term ) {
+			$_post['terms'][ $term->taxonomy ] = $this->prepare_term( $term );
 		}
 
-		if ( in_array( 'custom_fields', $fields ) )
-			$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
+		// Post meta
+		$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
 
-		if ( in_array( 'meta', $fields ) ) {
-			$_post['meta'] = array(
-				'links' => array(
-					'self'            => json_url( '/posts/' . $post['ID'] ),
-					'author'          => json_url( '/users/' . $post['post_author'] ),
-					'collection'      => json_url( '/posts' ),
-					'replies'         => json_url( '/posts/' . $post['ID'] . '/comments' ),
-					'version-history' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-				),
-			);
+		// Entity meta
+		$_post['meta'] = array(
+			'links' => array(
+				'self'            => json_url( '/posts/' . $post['ID'] ),
+				'author'          => json_url( '/users/' . $post['post_author'] ),
+				'collection'      => json_url( '/posts' ),
+				'replies'         => json_url( '/posts/' . $post['ID'] . '/comments' ),
+				'version-history' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			),
+		);
 
-			if ( ! empty( $post['post_parent'] ) )
-				$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
-		}
+		if ( ! empty( $post['post_parent'] ) )
+			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
 
-		return apply_filters( 'json_prepare_post', $_post, $post, $fields );
+		return apply_filters( 'json_prepare_post', $_post, $post, $context );
 	}
 
 	/**
