@@ -604,6 +604,9 @@ class WP_JSON_Posts {
 
 		$user = get_user_by( 'id', $author );
 
+		if (!$author)
+			return null;
+
 		$author = array(
 			'ID' => $user->ID,
 			'name' => $user->display_name,
