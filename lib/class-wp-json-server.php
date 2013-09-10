@@ -213,6 +213,7 @@ class WP_JSON_Server {
 	 */
 	public function getRoutes() {
 		$GLOBALS['wp_json_posts'] = $posts = new WP_JSON_Posts();
+		$GLOBALS['wp_json_pages'] = $pages = new WP_JSON_Pages();
 
 		$endpoints = array(
 			// Meta endpoints
@@ -246,6 +247,36 @@ class WP_JSON_Server {
 			'/posts/types'               => array( array( $posts, 'getPostTypes' ), self::READABLE ),
 			'/posts/types/(?P<type>\w+)' => array( array( $posts, 'getPostType' ), self::READABLE ),
 			'/posts/statuses'            => array( array( $posts, 'getPostStatuses' ), self::READABLE ),
+
+			// Page endpoints
+			'/pages'             => array(
+				array( array( $pages, 'getPosts' ), self::READABLE ),
+				array( array( $pages, 'newPost' ),  self::CREATABLE | self::ACCEPT_JSON ),
+			),
+
+			'/pages/(?P<id>\d+)' => array(
+				array( array( $pages, 'getPost' ),    self::READABLE ),
+				array( array( $pages, 'editPost' ),   self::EDITABLE | self::ACCEPT_JSON ),
+				array( array( $pages, 'deletePost' ), self::DELETABLE ),
+			),
+			'/pages/(?P<path>.+)' => array(
+				array( array( $pages, 'getPostByPath' ),    self::READABLE ),
+				array( array( $pages, 'editPostByPath' ),   self::EDITABLE | self::ACCEPT_JSON ),
+				array( array( $pages, 'deletePostByPath' ), self::DELETABLE ),
+			),
+
+			'/pages/(?P<id>\d+)/revisions' => array( '__return_null', self::READABLE ),
+
+			// Page comments
+			'/pages/(?P<id>\d+)/comments'                  => array(
+				array( array( $pages, 'getComments' ), self::READABLE ),
+				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
+			),
+			'/pages/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
+				array( array( $pages, 'getComment' ), self::READABLE ),
+				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
+				array( '__return_null', self::DELETABLE ),
+			),
 
 			// Taxonomies
 			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
