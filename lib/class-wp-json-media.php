@@ -406,7 +406,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		$data['featured_image'] = null;
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
 		if ( $thumbnail_id ) {
-			$data['featured_image'] = $GLOBALS['wp_json_media']->getAttachment( $thumbnail_id, 'child' );
+			$data['featured_image'] = $this->getPost( $thumbnail_id, 'child' );
 		}
 
 		return $data;
