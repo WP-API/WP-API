@@ -106,23 +106,16 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function uploadAttachment( $_files, $_headers ) {
 		global $wp_json_server;
 
+		// Get the file via $_FILES or raw data
 		if ( empty( $_files ) ) {
 			$file = $this->uploadFromData( $_files, $_headers );
-			if ( is_wp_error( $file ) )
-				return $file;
 		}
 		else {
-			if ( empty( $_files['file'] ) )
-				return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
-
-			$overrides = array(
-				'test_form' => false,
-			);
-			$file = wp_handle_upload( $_files['file'], $overrides );
-
-			if ( isset($file['error']) )
-				return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
+			$file = $this->uploadFromFile( $_files, $_headers );
 		}
+
+		if ( is_wp_error( $file ) )
+			return $file;
 
 		$name = basename( $file['file'] );
 		$name_parts = pathinfo( $name );
@@ -198,6 +191,14 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $_headers['CONTENT_MD5'] );
+			$actual = md5( $data );
+			if ( $expected !== $actual ) {
+				return new WP_Error( 'json_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+			}
+		}
+
 		// Get the content-type
 		$type = $_headers['CONTENT_TYPE'];
 
@@ -230,5 +231,30 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		return $sideloaded;
+	}
+
+	protected function uploadFromFile( $_files, $_headers ) {
+		if ( empty( $_files['file'] ) )
+			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+
+		// Verify hash, if given
+		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $_headers['CONTENT_MD5'] );
+			$actual = md5_file( $_files['file']['tmp_name'] );
+			if ( $expected !== $actual ) {
+				return new WP_Error( 'json_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+			}
+		}
+
+		// Pass off to WP to handle the actual upload
+		$overrides = array(
+			'test_form' => false,
+		);
+		$file = wp_handle_upload( $_files['file'], $overrides );
+
+		if ( isset($file['error']) )
+			return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
+
+		return $file;
 	}
 }
