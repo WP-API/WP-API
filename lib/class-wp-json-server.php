@@ -504,6 +504,8 @@ class WP_JSON_Server {
 			}
 		}
 
+		$this->header( 'X-WP-TotalPages', $max_page );
+
 		do_action('json_query_navigation_headers', $this, $query);
 	}
 
