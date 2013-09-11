@@ -35,7 +35,29 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		if ( $type !== 'attachment' )
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 
-		return parent::getPosts( $filter, $context, 'attachment', $page );
+		if ( empty( $filter['post_status'])) {
+			$filter['post_status'] = array( 'publish', 'inherit' );
+
+			// Always allow status queries for attachments
+			add_filter( 'query_vars', array( $this, 'allowStatusQuery' ) );
+		}
+
+		$posts = parent::getPosts( $filter, $context, 'attachment', $page );
+
+		return $posts;
+	}
+
+	/**
+	 * Add post_status to the available query vars
+	 *
+	 * @param array $vars Query variables
+	 * @return array Filtered query variables
+	 */
+	public function allowStatusQuery( $vars ) {
+		remove_filter( 'query_vars', array( $this, 'allowStatusQuery' ) );
+
+		$vars[] = 'post_status';
+		return $vars;
 	}
 
 	/**
