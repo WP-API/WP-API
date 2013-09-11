@@ -121,8 +121,9 @@ class WP_JSON_Posts {
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
-			$post_type = get_post_type_object( $post['post_type'] );
-			if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
+
+			// Do we have permission to read this post?
+			if ( ! $this->checkReadPermission( $post ) )
 				continue;
 
 			$wp_json_server->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
@@ -130,6 +131,29 @@ class WP_JSON_Posts {
 		}
 
 		return $struct;
+	}
+
+	/**
+	 * Check if we can read a post
+	 *
+	 * Correctly handles posts with the inherit status.
+	 * @param array $post Post data
+	 * @return boolean Can we read it?
+	 */
+	protected function checkReadPermission( $post ) {
+		// Can we read the post?
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
+			return true;
+		}
+
+		// Can we read the parent if we're inheriting?
+		$parent = get_post( $post['post_parent'], ARRAY_A );
+		if ( 'inherit' === $post['post_status'] && $this->checkReadPermission( $parent ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -198,7 +222,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		$post_type = get_post_type_object( $post['post_type'] );
-		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $id ) )
+		if ( ! $this->checkReadPermission( $post ) )
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// Link headers (see RFC 5988)
@@ -447,7 +471,7 @@ class WP_JSON_Posts {
 		);
 
 		$post_type = get_post_type_object( $post['post_type'] );
-		if ( 'publish' !== $post['post_status'] && ! current_user_can( $post_type->cap->read_post, $post['ID'] ) )
+		if ( ! $this->checkReadPermission( $post ) )
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// prepare common post fields
