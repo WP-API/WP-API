@@ -148,9 +148,12 @@ class WP_JSON_Posts {
 		}
 
 		// Can we read the parent if we're inheriting?
-		$parent = get_post( $post['post_parent'], ARRAY_A );
-		if ( 'inherit' === $post['post_status'] && $this->checkReadPermission( $parent ) ) {
-			return true;
+		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+			$parent = get_post( $post['post_parent'], ARRAY_A );
+
+			if ( $this->checkReadPermission( $parent ) ) {
+				return true;
+			}
 		}
 
 		return false;
