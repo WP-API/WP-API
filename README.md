@@ -9,6 +9,9 @@ Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
 
 ### As Part of Core
+**Note: These instructions will likely be broken while in development. Please
+use the plugin method instead.**
+
 Drop `wp-json.php` into your WordPress directory, and drop
 `class-wp-json-server.php` into your `wp-includes/` directory. You'll need
 working `PATH_INFO` on your server, but you don't need pretty permalinks
