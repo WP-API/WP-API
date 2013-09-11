@@ -117,7 +117,7 @@ class WP_JSON_Posts {
 		// holds all the posts data
 		$struct = array();
 
-		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
+		$wp_json_server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
@@ -184,12 +184,13 @@ class WP_JSON_Posts {
 	 * @return array Post data (see {@see WP_JSON_Posts::getPost})
 	 */
 	function newPost( $data ) {
+		global $wp_json_server;
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
 		if ( is_string( $result ) || is_int( $result ) ) {
-			status_header( 201 );
-			header( 'Location: ' . json_url( '/posts/' . $result ) );
+			$wp_json_server->send_status( 201 );
+			$wp_json_server->header( 'Location', json_url( '/posts/' . $result ) );
 
 			return $this->getPost( $result );
 		}
@@ -227,7 +228,7 @@ class WP_JSON_Posts {
 
 		// Link headers (see RFC 5988)
 
-		header( 'Last-Modified: ' . mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
+		$wp_json_server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
 		$post = $this->prepare_post( $post, $context );
 		if ( is_wp_error( $post ) )

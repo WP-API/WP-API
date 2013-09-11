@@ -113,7 +113,7 @@ class WP_JSON_Server {
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status )
-			status_header( $status );
+			$this->send_status( $status );
 
 		$error = compact( 'code', 'message' );
 		return json_encode( array( $error ) );
@@ -128,7 +128,7 @@ class WP_JSON_Server {
 	 * @uses WP_JSON_Server::dispatch()
 	 */
 	public function serve_request( $path = null ) {
-		header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ), true );
+		$this->header( 'Content-Type', 'application/json; charset=' . get_option( 'blog_charset' ), true );
 
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
@@ -174,7 +174,7 @@ class WP_JSON_Server {
 		if ( is_wp_error( $result ) ) {
 			$data = $result->get_error_data();
 			if ( is_array( $data ) && isset( $data['status'] ) ) {
-				status_header( $data['status'] );
+				$this->send_status( $data['status'] );
 			}
 
 			$result = $this->error_to_array( $result );
@@ -434,6 +434,26 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Send a HTTP status code
+	 *
+	 * @param int $code HTTP status
+	 */
+	public function send_status( $code ) {
+		status_header( $code );
+	}
+
+	/**
+	 * Send a HTTP header
+	 *
+	 * @param string $key Header key
+	 * @param string $value Header value
+	 * @param boolean $replace Should we replace the existing header?
+	 */
+	public function header( $key, $value, $replace = true ) {
+		header( sprintf( '%s: %s', $key, $value ), $replace );
+	}
+
+	/**
 	 * Send a Link header
 	 *
 	 * @todo Make this safe for <>"';,
@@ -453,7 +473,7 @@ class WP_JSON_Server {
 				$value = '"' . $value . '"';
 			$header .= '; ' . $key . '=' . $value;
 		}
-		header( $header, false );
+		$this->header( 'Link', $header, false );
 	}
 
 	/**
