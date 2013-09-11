@@ -156,6 +156,12 @@ class WP_JSON_Posts {
 			}
 		}
 
+		// If we don't have a parent, but the status is set to inherit, assume
+		// it's published (as per get_post_status())
+		if ( 'inherit' === $post['post_status'] ) {
+			return true;
+		}
+
 		return false;
 	}
 
