@@ -103,6 +103,17 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		return parent::deletePost( $id, $force );
 	}
 
+	/**
+	 * Upload a new attachment
+	 *
+	 * Creating a new attachment is done in two steps: uploading the data, then
+	 * setting the post. This is achieved by first creating an attachment, then
+	 * editing the post data for it.
+	 *
+	 * @param array $_files Data from $_FILES
+	 * @param array $_headers HTTP headers from the request
+	 * @return array|WP_Error Attachment data or error
+	 */
 	public function uploadAttachment( $_files, $_headers ) {
 		global $wp_json_server;
 
@@ -158,6 +169,13 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		return $id;
 	}
 
+	/**
+	 * Handle an upload via raw POST data
+	 *
+	 * @param array $_files Data from $_FILES. Unused.
+	 * @param array $_headers HTTP headers from the request
+	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
+	 */
 	protected function uploadFromData( $_files, $_headers ) {
 		global $wp_json_server;
 		$data = $wp_json_server->get_raw_data();
@@ -233,6 +251,13 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		return $sideloaded;
 	}
 
+	/**
+	 * Handle an upload via multipart/form-data ($_FILES)
+	 *
+	 * @param array $_files Data from $_FILES
+	 * @param array $_headers HTTP headers from the request
+	 * @return array|WP_Error Data from {@see wp_handle_upload()}
+	 */
 	protected function uploadFromFile( $_files, $_headers ) {
 		if ( empty( $_files['file'] ) )
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
