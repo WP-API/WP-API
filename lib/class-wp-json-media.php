@@ -117,6 +117,14 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function uploadAttachment( $_files, $_headers ) {
 		global $wp_json_server;
 
+		$post_type = get_post_type_object( 'attachment' );
+		if ( ! $post_type )
+			return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+
+		// Permissions check
+		if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) )
+			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+
 		// Get the file via $_FILES or raw data
 		if ( empty( $_files ) ) {
 			$file = $this->uploadFromData( $_files, $_headers );
