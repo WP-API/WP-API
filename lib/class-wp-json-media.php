@@ -174,7 +174,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 		}
 
-		return $id;
+		return $this->getPost( $id, 'edit' );
 	}
 
 	/**
