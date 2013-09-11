@@ -110,7 +110,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		// Override entity meta keys with the correct links
 		$data['meta'] = array(
 			'links' => array(
-				'self'            => json_url( '/media/' . get_page_uri( $post['ID'] ) ),
+				'self'            => json_url( '/media/' . $post['ID'] ),
 				'author'          => json_url( '/users/' . $post['post_author'] ),
 				'collection'      => json_url( '/media' ),
 				'replies'         => json_url( '/media/' . $post['ID'] . '/comments' ),
