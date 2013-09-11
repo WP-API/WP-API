@@ -135,12 +135,12 @@ class WP_JSON_Server {
 		$jsonp_enabled = apply_filters( 'json_jsonp_enabled', true );
 
 		if ( ! $enabled ) {
-			echo $this->json_error( 'json_disabled', 'The JSON API is disabled on this site.', 405 );
+			echo $this->json_error( 'json_disabled', 'The JSON API is disabled on this site.', 404 );
 			return false;
 		}
 		if ( isset($_GET['_jsonp']) ) {
 			if ( ! $jsonp_enabled ) {
-				echo $this->json_error( 'json_callback_disabled', 'JSONP support is disabled on this site.', 405 );
+				echo $this->json_error( 'json_callback_disabled', 'JSONP support is disabled on this site.', 400 );
 				return false;
 			}
 
