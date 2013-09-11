@@ -1027,11 +1027,8 @@ class WP_JSON_Posts {
 
 		// Post
 		if ( 'single' === $context ) {
-			$parent_fields = array( 'meta' );
-			if ( $context === 'single' )
-				$parent_fields[] = 'post';
 			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$fields['parent'] = $this->prepare_post( $parent, $parent_fields, 'single-parent' );
+			$fields['parent'] = $this->prepare_post( $parent, 'single-parent' );
 		}
 
 		// Parent
