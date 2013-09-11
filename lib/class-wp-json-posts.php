@@ -813,6 +813,14 @@ class WP_JSON_Posts {
 			$post['post_format'] = $data['post_format'];
 		}
 
+		// Featured image (pre-verification)
+		if ( ! empty( $data['featured_image'] ) ) {
+			$thumbnail = $GLOBALS['wp_json_media']->getAttachment( $data['featured_image'], 'child' );
+			if ( is_wp_error( $thumbnail ) ) {
+				return new WP_Error( 'json_invalid_featured_image', __( 'Invalid featured image.' ), array( 'status' => 400 ) );
+			}
+		}
+
 		// Post meta
 		// TODO: implement this
 		$post_ID = $update ? wp_update_post( $post, true ) : wp_insert_post( $post, true );
@@ -833,7 +841,9 @@ class WP_JSON_Posts {
 		// TODO: implement this
 
 		// Post thumbnail
-		// TODO: implement this as part of #272
+		if ( ! $thumbnail ) {
+			set_post_thumbnail( $post_ID, $thumbnail['ID'] );
+		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
 
