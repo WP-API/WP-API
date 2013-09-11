@@ -89,6 +89,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	protected function prepare_post( $post, $context = 'single' ) {
 		$data = parent::prepare_post( $post, $context );
 
+		if ( is_wp_error( $data ) )
+			return $data;
+
 		// $thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
 		$data['source'] = wp_get_attachment_url( $post['ID'] );
 		$data['is_image'] = wp_attachment_is_image( $post['ID'] );
