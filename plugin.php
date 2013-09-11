@@ -7,6 +7,9 @@
  * Version: 0.5-dev
  * Plugin URI: https://github.com/rmccue/WP-API
  */
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -21,6 +24,31 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 /**
+ * Register the default JSON API filters
+ *
+ * @internal This will live in default-filters.php
+ */
+function json_api_default_filters() {
+	global $wp_json_posts, $wp_json_pages, $wp_json_media;
+
+	// Posts
+	$wp_json_posts = new WP_JSON_Posts();
+	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ) );
+
+	// Pages
+	$wp_json_pages = new WP_JSON_Pages();
+	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ) );
+
+	// Media
+	$wp_json_media = new WP_JSON_Media();
+	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ) );
+	add_filter( 'json_prepare_post',    array( $wp_json_media, 'addThumbnailData' ), 10, 3 );
+	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
+	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
+}
+add_action( 'plugins_loaded', 'json_api_default_filters' );
+
+/**
  * Load the JSON API
  */
 function json_api_loaded() {
@@ -30,9 +58,6 @@ function json_api_loaded() {
 	include_once( ABSPATH . WPINC . '/class-IXR.php' );
 	include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
-	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
-	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
-	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 
 	/**
 	 * Whether this is a XMLRPC Request

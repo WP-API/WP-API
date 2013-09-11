@@ -213,72 +213,9 @@ class WP_JSON_Server {
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or `'/path/regex' => array( array( $callback, $bitmask ), ...)`
 	 */
 	public function getRoutes() {
-		$GLOBALS['wp_json_posts'] = $posts = new WP_JSON_Posts();
-		$GLOBALS['wp_json_pages'] = $pages = new WP_JSON_Pages();
-		$GLOBALS['wp_json_media'] = $media = new WP_JSON_Media();
-
 		$endpoints = array(
 			// Meta endpoints
 			'/' => array( array( $this, 'getIndex' ), self::READABLE ),
-
-			// Post endpoints
-			'/posts'             => array(
-				array( array( $posts, 'getPosts' ), self::READABLE ),
-				array( array( $posts, 'newPost' ),  self::CREATABLE | self::ACCEPT_JSON ),
-			),
-
-			'/posts/(?P<id>\d+)' => array(
-				array( array( $posts, 'getPost' ),    self::READABLE ),
-				array( array( $posts, 'editPost' ),   self::EDITABLE | self::ACCEPT_JSON ),
-				array( array( $posts, 'deletePost' ), self::DELETABLE ),
-			),
-			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', self::READABLE ),
-
-			// Comments
-			'/posts/(?P<id>\d+)/comments'                  => array(
-				array( array( $posts, 'getComments' ), self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $posts, 'getComment' ), self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
-
-			// Meta-post endpoints
-			'/posts/types'               => array( array( $posts, 'getPostTypes' ), self::READABLE ),
-			'/posts/types/(?P<type>\w+)' => array( array( $posts, 'getPostType' ), self::READABLE ),
-			'/posts/statuses'            => array( array( $posts, 'getPostStatuses' ), self::READABLE ),
-
-			// Page endpoints
-			'/pages'             => array(
-				array( array( $pages, 'getPosts' ), self::READABLE ),
-				array( array( $pages, 'newPost' ),  self::CREATABLE | self::ACCEPT_JSON ),
-			),
-
-			'/pages/(?P<id>\d+)' => array(
-				array( array( $pages, 'getPost' ),    self::READABLE ),
-				array( array( $pages, 'editPost' ),   self::EDITABLE | self::ACCEPT_JSON ),
-				array( array( $pages, 'deletePost' ), self::DELETABLE ),
-			),
-			'/pages/(?P<path>.+)' => array(
-				array( array( $pages, 'getPostByPath' ),    self::READABLE ),
-				array( array( $pages, 'editPostByPath' ),   self::EDITABLE | self::ACCEPT_JSON ),
-				array( array( $pages, 'deletePostByPath' ), self::DELETABLE ),
-			),
-
-			'/pages/(?P<id>\d+)/revisions' => array( '__return_null', self::READABLE ),
-
-			// Page comments
-			'/pages/(?P<id>\d+)/comments'                  => array(
-				array( array( $pages, 'getComments' ), self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			'/pages/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $pages, 'getComment' ), self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
 
 			// Taxonomies
 			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
@@ -307,17 +244,6 @@ class WP_JSON_Server {
 			'/users/(?P<user>\d+)' => array(
 				array( '__return_null', self::READABLE ),
 				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-
-			'/media' => array(
-				array( array( $media, 'getPosts' ),   self::READABLE ),
-				array( array( $media, 'uploadAttachment' ), self::CREATABLE ),
-			),
-
-			'/media/(?P<id>\d+)' => array(
-				array( array( $media, 'getPost' ),    self::READABLE ),
-				array( array( $media, 'editPost' ),   self::EDITABLE ),
-				array( array( $media, 'deletePost' ), self::DELETABLE ),
 			),
 		);
 

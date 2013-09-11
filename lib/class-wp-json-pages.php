@@ -20,6 +20,47 @@
  */
 class WP_JSON_Pages extends WP_JSON_Posts {
 	/**
+	 * Register the page-related routes
+	 *
+	 * @param array $routes Existing routes
+	 * @return array Modified routes
+	 */
+	public function registerRoutes( $routes ) {
+		$page_routes = array(
+			// Page endpoints
+			'/pages'             => array(
+				array( array( $this, 'getPosts' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'newPost' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			),
+
+			'/pages/(?P<id>\d+)' => array(
+				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
+			),
+			'/pages/(?P<path>.+)' => array(
+				array( array( $this, 'getPostByPath' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'editPostByPath' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'deletePostByPath' ), WP_JSON_Server::DELETABLE ),
+			),
+
+			'/pages/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
+
+			// Page comments
+			'/pages/(?P<id>\d+)/comments'                  => array(
+				array( array( $this, 'getComments' ), WP_JSON_Server::READABLE ),
+				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			),
+			'/pages/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
+				array( array( $this, 'getComment' ), WP_JSON_Server::READABLE ),
+				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( '__return_null', WP_JSON_Server::DELETABLE ),
+			),
+		);
+		return array_merge( $routes, $page_routes );
+	}
+
+	/**
 	 * Retrieve pages
 	 *
 	 * Overrides the $type to set to 'page', then passes through to the post

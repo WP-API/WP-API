@@ -2,6 +2,46 @@
 
 class WP_JSON_Posts {
 	/**
+	 * Register the post-related routes
+	 *
+	 * @param array $routes Existing routes
+	 * @return array Modified routes
+	 */
+	public function registerRoutes( $routes ) {
+		$post_routes = array(
+			// Post endpoints
+			'/posts'             => array(
+				array( array( $this, 'getPosts' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'newPost' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			),
+
+			'/posts/(?P<id>\d+)' => array(
+				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
+			),
+			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
+
+			// Comments
+			'/posts/(?P<id>\d+)/comments'                  => array(
+				array( array( $this, 'getComments' ), WP_JSON_Server::READABLE ),
+				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			),
+			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
+				array( array( $this, 'getComment' ), WP_JSON_Server::READABLE ),
+				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( '__return_null', WP_JSON_Server::DELETABLE ),
+			),
+
+			// Meta-post endpoints
+			'/posts/types'               => array( array( $this, 'getPostTypes' ), WP_JSON_Server::READABLE ),
+			'/posts/types/(?P<type>\w+)' => array( array( $this, 'getPostType' ), WP_JSON_Server::READABLE ),
+			'/posts/statuses'            => array( array( $this, 'getPostStatuses' ), WP_JSON_Server::READABLE ),
+		);
+		return array_merge( $routes, $post_routes );
+	}
+
+	/**
 	 * Retrieve posts.
 	 *
 	 * @since 3.4.0
@@ -456,13 +496,6 @@ class WP_JSON_Posts {
 			$post_fields_extended['password'] = $post['post_password'];
 		}
 
-		// Thumbnail
-		$post_fields_extended['featured_image'] = null;
-		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
-		if ( $thumbnail_id ) {
-			$post_fields_extended['featured_image'] = $GLOBALS['wp_json_media']->getAttachment( $thumbnail_id, 'child' );
-		}
-
 		// Consider future posts as published
 		if ( $post_fields['status'] === 'future' )
 			$post_fields['status'] = 'publish';
@@ -813,12 +846,10 @@ class WP_JSON_Posts {
 			$post['post_format'] = $data['post_format'];
 		}
 
-		// Featured image (pre-verification)
-		if ( ! empty( $data['featured_image'] ) ) {
-			$thumbnail = $GLOBALS['wp_json_media']->getAttachment( $data['featured_image'], 'child' );
-			if ( is_wp_error( $thumbnail ) ) {
-				return new WP_Error( 'json_invalid_featured_image', __( 'Invalid featured image.' ), array( 'status' => 400 ) );
-			}
+		// Pre-insert hook
+		$can_insert = apply_filters( 'json_pre_insert_post', true, $post, $data, $update );
+		if ( is_wp_error( $can_insert ) ) {
+			return $can_insert;
 		}
 
 		// Post meta
@@ -839,11 +870,6 @@ class WP_JSON_Posts {
 
 		// Terms
 		// TODO: implement this
-
-		// Post thumbnail
-		if ( ! $thumbnail ) {
-			set_post_thumbnail( $post_ID, $thumbnail['ID'] );
-		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
 

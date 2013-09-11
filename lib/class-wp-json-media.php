@@ -2,6 +2,28 @@
 
 class WP_JSON_Media extends WP_JSON_Posts {
 	/**
+	 * Register the media-related routes
+	 *
+	 * @param array $routes Existing routes
+	 * @return array Modified routes
+	 */
+	public function registerRoutes( $routes ) {
+		$media_routes = array(
+			'/media' => array(
+				array( array( $this, 'getPosts' ),         WP_JSON_Server::READABLE ),
+				array( array( $this, 'uploadAttachment' ), WP_JSON_Server::CREATABLE ),
+			),
+
+			'/media/(?P<id>\d+)' => array(
+				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE ),
+				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
+			),
+		);
+		return array_merge( $routes, $media_routes );
+	}
+
+	/**
 	 * Retrieve pages
 	 *
 	 * Overrides the $type to set to 'attachment', then passes through to the post
@@ -289,5 +311,63 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
 
 		return $file;
+	}
+
+	/**
+	 * Check featured image data before creating/updating post
+	 *
+	 * @param bool|WP_Error $status Previous status
+	 * @param array $post Post data to be inserted
+	 * @param array $data Supplied post data
+	 * @return bool|WP_Error Success or error object
+	 */
+	public function preinsertCheck( $status, $post, $data ) {
+		if ( is_wp_error( $status ) ) {
+			return $status;
+		}
+
+		// Featured image (pre-verification)
+		if ( ! empty( $data['featured_image'] ) ) {
+			$thumbnail = $this->getPost( (int) $data['featured_image'], 'child' );
+			if ( is_wp_error( $thumbnail ) ) {
+				return new WP_Error( 'json_invalid_featured_image', __( 'Invalid featured image.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Set the featured image on post update
+	 *
+	 * @param array $post Post data
+	 * @param array $data Supplied post data
+	 * @param boolean $update Is this an update?
+	 */
+	public function attachThumbnail( $post, $data, $update ) {
+		if ( ! empty( $data['featured_image'] ) ) {
+			// Already verified in preinsertCheck()
+			$thumbnail = $this->getPost( $data['featured_image'], 'child' );
+			set_post_thumbnail( $post_ID, $thumbnail['ID'] );
+		}
+	}
+
+	/**
+	 * Add the featured image data to the post data
+	 *
+	 * @param array $data Post data
+	 * @param array $post Raw post data from the database
+	 * @param string $context Display context
+	 * @return array Filtered post data
+	 */
+	public function addThumbnailData( $data, $post, $context ) {
+		// Thumbnail
+		$data['featured_image'] = null;
+		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
+		if ( $thumbnail_id ) {
+			$data['featured_image'] = $GLOBALS['wp_json_media']->getAttachment( $thumbnail_id, 'child' );
+		}
+
+		return $data;
 	}
 }
