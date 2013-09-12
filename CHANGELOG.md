@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.5
+- Add support for media - This has been a long time coming, and it's finally at
+	a point where I'm happy to push it out. Good luck. ([#272][])
+- Separate the post-related endpoints - Post-related endpoints are now located
+	in the `WP_JSON_Posts` class. When implementing custom post type support,
+	it's recommended to subclass this.
+
+	The various types are now also only registered via hooks, rather than
+	directly in the server class, which should make it easier to override them
+	as well ([#348][])
+- Add page support - This is a good base if you're looking to create your own
+	custom post type support ([#271][])
+- Switch from fields to context - Rather than passing in a list of fields that
+	you want, you can now pass in a context (usually `view` or `edit`)
+	([#328][]).
+- Always send headers via the server handler - Endpoints are now completely
+	separate from the request, so the server class can now be used for
+	non-HTTP/JSON handlers if needed ([#293][])
+- Use better error codes for disabled features ([#338][])
+- Send `X-WP-Total` and `X-WP-TotalPages` headers for information on
+	post/pagination counts ([#266][])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.4...0.5)
+
+[#266]: https://gsoc.trac.wordpress.org/ticket/266
+[#271]: https://gsoc.trac.wordpress.org/ticket/271
+[#272]: https://gsoc.trac.wordpress.org/ticket/272
+[#293]: https://gsoc.trac.wordpress.org/ticket/293
+[#328]: https://gsoc.trac.wordpress.org/ticket/328
+[#338]: https://gsoc.trac.wordpress.org/ticket/338
+[#348]: https://gsoc.trac.wordpress.org/ticket/348
+
+
 ## 0.4
 - Add Backbone-based models and collections - These are available to your code
 	by declaring a dependency on `wp-api` ([#270][])
