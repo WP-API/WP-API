@@ -217,23 +217,6 @@ class WP_JSON_Server {
 			// Meta endpoints
 			'/' => array( array( $this, 'getIndex' ), self::READABLE ),
 
-			// Taxonomies
-			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
-			'/taxonomies/(?P<taxonomy>\w+)'                     => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms'               => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
-
 			// Users
 			'/users'               => array(
 				array( '__return_null', self::READABLE ),

@@ -564,14 +564,6 @@ class WP_JSON_Posts {
 		elseif ( 'edit' === $context )
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 
-		// Taxonomies
-		$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
-		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
-		$_post['terms'] = array();
-		foreach ( $terms as $term ) {
-			$_post['terms'][ $term->taxonomy ] = $this->prepare_term( $term );
-		}
-
 		// Post meta
 		$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
 
@@ -603,43 +595,6 @@ class WP_JSON_Posts {
 		}
 
 		return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
-	}
-
-	/**
-	 * Prepares term data for return in an XML-RPC object.
-	 *
-	 * @access protected
-	 *
-	 * @param array|object $term The unprepared term data
-	 * @return array The prepared term data
-	 */
-	protected function prepare_term( $term ) {
-		$_term = $term;
-		if ( ! is_array( $_term ) )
-			$_term = get_object_vars( $_term );
-
-		$_term['id'] = $term->term_id;
-		$_term['group'] = $term->term_group;
-		$_term['parent'] = $_term['parent'];
-		$_term['count'] = $_term['count'];
-		#unset($_term['term_id'], )
-
-		$data = array(
-			'ID'     => (int) $term->term_id,
-			'name'   => $term->name,
-			'slug'   => $term->slug,
-			'group'  => (int) $term->term_group,
-			'parent' => (int) $term->parent,
-			'count'  => (int) $term->count,
-			'meta'   => array(
-				'links' => array(
-					'collection' => json_url( '/taxonomy/' . $term->taxonomy ),
-					'self' => json_url( '/taxonomy/' . $term->taxonomy . '/terms/' . $term->term_id ),
-				),
-			),
-		);
-
-		return apply_filters( 'json_prepare_term', $data, $term );
 	}
 
 	/**
@@ -905,9 +860,6 @@ class WP_JSON_Posts {
 			else
 				unstick_post( $data['ID'] );
 		}
-
-		// Terms
-		// TODO: implement this
 
 		do_action( 'json_insert_post', $post, $data, $update );
 

@@ -11,6 +11,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -30,7 +31,7 @@ add_action( 'init', 'json_api_init' );
  * @internal This will live in default-filters.php
  */
 function json_api_default_filters() {
-	global $wp_json_posts, $wp_json_pages, $wp_json_media;
+	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
 
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts();
@@ -48,6 +49,12 @@ function json_api_default_filters() {
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link' ), 10, 2 );
+
+	// Posts
+	$wp_json_taxonomies = new WP_JSON_Taxonomies();
+	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'registerRoutes' ), 2 );
+	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
+	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data' ), 10, 3 );
 }
 add_action( 'plugins_loaded', 'json_api_default_filters' );
 
