@@ -3,6 +3,12 @@ This is a project to create a JSON-based REST API for WordPress. This project is
 run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
 
 
+## Documentation
+Read the [plugin's documentation][docs].
+
+[docs]: https://github.com/rmccue/WP-API/tree/master/docs
+
+
 ## Installation
 ### As a Plugin
 Drop this directory in and activate it. You need to be using pretty permalinks
