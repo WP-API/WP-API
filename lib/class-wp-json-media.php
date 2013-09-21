@@ -411,4 +411,20 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		return $data;
 	}
+
+	/**
+	 * Filter the post type archive link
+	 *
+	 * @param array $data Post type data
+	 * @param stdClass $type Internal post type data
+	 * @return array Filtered data
+	 */
+	public function type_archive_link( $data, $type ) {
+		if ( $type->name !== 'attachment' ) {
+			return $data;
+		}
+
+		$data['meta']['links']['archives'] = json_url( '/media' );
+		return $data;
+	}
 }
