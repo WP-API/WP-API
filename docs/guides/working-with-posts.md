@@ -277,7 +277,9 @@ able to implement a fully compliant client for the API. You might now want to
 take a look at the other APIs, or look at documentation on the specifics.
 
 * [Schema][schema]: Full documentation of every parameter for the APIs.
+* [Extending the API][]: Create your own API endpoints.
 
 [Getting Started]: getting-started.md
-[schema]: ../wp-json.md
+[Extending the API]: extending.md
+[schema]: ../schema.md
 [WP_Query]: http://codex.wordpress.org/Class_Reference/WP_Query

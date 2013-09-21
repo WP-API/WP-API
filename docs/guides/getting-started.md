@@ -430,4 +430,4 @@ get exploring!
 * [Schema][schema]: View technical information on all the available data
 
 [Working with Posts]: working-with-posts.md
-[schema]: ../wp-json.md
+[schema]: ../schema.md

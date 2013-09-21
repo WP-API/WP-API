@@ -304,6 +304,6 @@ improving the built-in APIs.
   own entity design.
 * [Internal Implementation][]: Learn about how the REST server works internally.
 
-[API Philosophy]: ../philosophy.md
-[Schema]: ../wp-json.md
-[Internal Implementation]: ../implementation.md
+[API Philosophy]: ../internals/philosophy.md
+[Schema]: ../schema.md
+[Internal Implementation]: ../internals/implementation.md
