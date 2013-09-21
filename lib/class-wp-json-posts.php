@@ -1081,11 +1081,11 @@ class WP_JSON_Posts {
 		// Meta
 		$meta = array(
 			'links' => array(
-				'in-reply-to' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) )
+				'up' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) )
 			),
 		);
 		if ( 0 !== (int) $comment->comment_parent ) {
-			$meta['links']['in-reply-to'] .= ',' . json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) );
+			$meta['links']['in-reply-to'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) );
 		}
 		if ( 'single' !== $context ) {
 			$meta['links']['self'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_ID ) );
