@@ -108,7 +108,7 @@ register_deactivation_hook( __FILE__, 'json_api_activation' );
  * Register our API Javascript helpers
  */
 function json_register_scripts() {
-	wp_register_script( 'wp-api', plugins_url( dirname( __FILE__ ) . '/wp-api.js' ), array( 'jquery', 'backbone', 'underscore' ), '0.5', true );
+	wp_register_script( 'wp-api', plugins_url( '/wp-api.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '0.5', true );
 	wp_localize_script( 'wp-api', 'wpApiOptions', array( 'base' => json_url() ) );
 }
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
