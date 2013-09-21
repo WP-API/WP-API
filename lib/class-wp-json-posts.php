@@ -281,7 +281,7 @@ class WP_JSON_Posts {
 			// and C's asctime() format (and ignore invalid headers)
 			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
 			foreach ( $formats as $format ) {
-				$check = DateTime::createFromFormat( DateTime::RFC1123, $_headers['IF_UNMODIFIED_SINCE'] );
+				$check = DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
 
 				if ( $check !== false )
 					break;
