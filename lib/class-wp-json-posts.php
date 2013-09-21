@@ -428,7 +428,7 @@ class WP_JSON_Posts {
 				$data['meta']['links']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
 		}
 
-		return $data;
+		return apply_filters( 'json_post_type_data', $data, $type );
 	}
 
 	/**
@@ -464,7 +464,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		return $data;
+		return apply_filters( 'json_post_statuses', $data, $statuses );
 	}
 
 	/**
