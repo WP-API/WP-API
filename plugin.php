@@ -34,16 +34,16 @@ function json_api_default_filters() {
 
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts();
-	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ) );
+	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ), 0 );
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages();
-	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ) );
+	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ), 1 );
 	add_filter( 'json_post_type_data', array( $wp_json_pages, 'type_archive_link' ), 10, 2 );
 
 	// Media
 	$wp_json_media = new WP_JSON_Media();
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ) );
+	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ), 1 );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'addThumbnailData' ), 10, 3 );
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
