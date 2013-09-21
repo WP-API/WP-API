@@ -411,19 +411,21 @@ class WP_JSON_Posts {
 			'queryable' => $type->publicly_queryable,
 			'searchable' => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
-			'meta' => array(),
+			'meta' => array(
+				'links' => array()
+			),
 		);
 
 		if ( $_in_collection )
-			$data['meta']['self'] = json_url( '/posts/types/' . $type->name );
+			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
 		else
-			$data['meta']['collection'] = json_url( '/posts/types' );
+			$data['meta']['links']['collection'] = json_url( '/posts/types' );
 
 		if ( $type->publicly_queryable ) {
 			if ($type->name === 'post')
-				$data['meta']['archives'] = json_url( '/posts' );
+				$data['meta']['links']['archives'] = json_url( '/posts' );
 			else
-				$data['meta']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+				$data['meta']['links']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
 		}
 
 		return $data;
@@ -450,13 +452,15 @@ class WP_JSON_Posts {
 				'private' => $status->private,
 				'queryable' => $status->publicly_queryable,
 				'show_in_list' => $status->show_in_admin_all_list,
-				'meta' => array(),
+				'meta' => array(
+					'links' => array()
+				),
 			);
 			if ( $status->publicly_queryable ) {
 				if ($status->name === 'publish')
-					$data[ $status->name ]['meta']['archives'] = json_url( '/posts' );
+					$data[ $status->name ]['meta']['links']['archives'] = json_url( '/posts' );
 				else
-					$data[ $status->name ]['meta']['archives'] = json_url( add_query_arg( 'status', $status->name, '/posts' ) );
+					$data[ $status->name ]['meta']['links']['archives'] = json_url( add_query_arg( 'status', $status->name, '/posts' ) );
 			}
 		}
 
@@ -1093,7 +1097,7 @@ class WP_JSON_Posts {
 			$data = array_merge( $data, $fields );
 
 		if ( in_array( 'meta', $requested_fields ) )
-			$data = array_merge( $data, $meta );
+			$data['meta'] = $meta;
 
 		return $data;
 	}
