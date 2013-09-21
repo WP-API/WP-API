@@ -124,9 +124,10 @@ to start implementing it.
 
 The recommended way to organize your endpoints is to group related endpoints
 together into a class, and extend the base classes built into the API.
-Post-related endpoints should look to extend the `WP_JSON_Posts` class, and use
-the same method naming as it, falling back to it for the post preparation and
-request handling.
+Post-related endpoints should look to extend the `WP_JSON_CustomPostType` class,
+and use the same method naming as it, falling back to it for the post
+preparation and request handling. This will automatically register all the post
+methods for their endpoints.
 
 Along these lines, keep your methods named as generically as possible; while
 `MyPlugin_API_MyType::getMyTypeItems()` might seem like a good name, it makes it
@@ -248,11 +249,46 @@ built-in types, your registration code should look something like this:
 				array( array( $this, 'deletePost'), WP_JSON_Server::DELETABLE ),
 			);
 
+			// Add more custom routes here
+
 			return $routes;
 		}
 
 		// ...
 	}
+
+Alternatively, use the custom post type base class, which will handle the
+hooking and more for you:
+
+	// main.php
+	function myplugin_api_init() {
+		global $myplugin_api_mytype;
+
+		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
+		$myplugin_api_mytype = new MyPlugin_API_MyType();
+	}
+	add_action( 'plugins_loaded', 'myplugin_api_init' );
+
+	// class-myplugin-api-mytype.php
+	class MyPlugin_API_MyType extends WP_JSON_CustomPostType {
+		protected $base = '/myplugin/mytypeitems';
+		protected $type = 'myplugin-mytype';
+
+		public function registerRoutes( $routes ) {
+			$routes = parent::registerRoutes( $routes );
+			// $routes = parent::registerRevisionRoutes( $routes );
+			// $routes = parent::registerCommentRoutes( $routes );
+
+			// Add more custom routes here
+
+			return $routes;
+		}
+
+		// ...
+	}
+
+(Note that this CPT base class handles other things as well, including strict
+post type checking and correcting URLs.)
 
 The data passed in and returned by the `json_endpoints` filter should be in the
 format of an array containing a map of route regular expression to endpoint

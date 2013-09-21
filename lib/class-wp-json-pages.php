@@ -18,7 +18,21 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_JSON_Pages extends WP_JSON_Posts {
+class WP_JSON_Pages extends WP_JSON_CustomPostType {
+	/**
+	 * Base route
+	 *
+	 * @var string
+	 */
+	protected $base = '/pages';
+
+	/**
+	 * Post type
+	 *
+	 * @var string
+	 */
+	protected $type = 'page';
+
 	/**
 	 * Register the page-related routes
 	 *
@@ -26,112 +40,18 @@ class WP_JSON_Pages extends WP_JSON_Posts {
 	 * @return array Modified routes
 	 */
 	public function registerRoutes( $routes ) {
-		$page_routes = array(
-			// Page endpoints
-			'/pages'             => array(
-				array( array( $this, 'getPosts' ), WP_JSON_Server::READABLE ),
-				array( array( $this, 'newPost' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
-			),
+		$routes = parent::registerRoutes( $routes );
+		$routes = parent::registerRevisionRoutes( $routes );
+		$routes = parent::registerCommentRoutes( $routes );
 
-			'/pages/(?P<id>\d+)' => array(
-				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
-			),
-			'/pages/(?P<path>.+)' => array(
-				array( array( $this, 'getPostByPath' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'editPostByPath' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'deletePostByPath' ), WP_JSON_Server::DELETABLE ),
-			),
-
-			'/pages/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
-
-			// Page comments
-			'/pages/(?P<id>\d+)/comments'                  => array(
-				array( array( $this, 'getComments' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
-			),
-			'/pages/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $this, 'getComment' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
-			),
+		// Add post-by-path routes
+		$routes[ $this->base . '/(?P<path>.+)'] = array(
+			array( array( $this, 'getPostByPath' ),    WP_JSON_Server::READABLE ),
+			array( array( $this, 'editPostByPath' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+			array( array( $this, 'deletePostByPath' ), WP_JSON_Server::DELETABLE ),
 		);
-		return array_merge( $routes, $page_routes );
-	}
 
-	/**
-	 * Retrieve pages
-	 *
-	 * Overrides the $type to set to 'page', then passes through to the post
-	 * endpoints.
-	 *
-	 * @see WP_JSON_Posts::getPosts()
-	 */
-	public function getPosts( $filter = array(), $context = 'view', $type = 'page', $page = 1 ) {
-		if ( $type !== 'page' )
-			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-
-		return parent::getPosts( $filter, $context, 'page', $page );
-	}
-
-	/**
-	 * Retrieve a page
-	 *
-	 * @see WP_JSON_Posts::getPost()
-	 */
-	public function getPost( $id, $context = 'view' ) {
-		$id = (int) $id;
-
-		if ( empty( $id ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( $post['post_type'] !== 'page' )
-			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-
-		return parent::getPost( $id, $context );
-	}
-
-	/**
-	 * Edit a page
-	 *
-	 * @see WP_JSON_Posts::editPost()
-	 */
-	function editPost( $id, $data, $_headers = array() ) {
-		$id = (int) $id;
-		if ( empty( $id ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $post['ID'] ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-
-		if ( $post['post_type'] !== 'page' )
-			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-
-		return parent::editPost( $id, $data, $_headers );
-	}
-
-	/**
-	 * Delete a page
-	 *
-	 * @see WP_JSON_Posts::deletePost()
-	 */
-	public function deletePost( $id, $force = false ) {
-		$id = (int) $id;
-
-		if ( empty( $id ) )
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( $post['post_type'] !== 'page' )
-			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-
-		return parent::deletePost( $id, $force );
+		return $routes;
 	}
 
 	/**
@@ -187,15 +107,7 @@ class WP_JSON_Pages extends WP_JSON_Posts {
 		$_post = parent::prepare_post( $post, $context );
 
 		// Override entity meta keys with the correct links
-		$_post['meta'] = array(
-			'links' => array(
-				'self'            => json_url( '/pages/' . get_page_uri( $post['ID'] ) ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/pages' ),
-				'replies'         => json_url( '/pages/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( '/pages/' . $post['ID'] . '/revisions' ),
-			),
-		);
+		$_post['meta']['links']['self'] = json_url( '/pages/' . get_page_uri( $post['ID'] ) );
 
 		if ( ! empty( $post['post_parent'] ) )
 			$_post['meta']['links']['up'] = json_url( '/posts/' . get_page_uri( (int) $post['post_parent'] ) );
