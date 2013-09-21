@@ -1,8 +1,5 @@
-Routes
-======
-
 Notes
------
+=====
 
 ### Inputting data as an "array"
 Endpoints may allow passing in an array of data, typically used for querying
