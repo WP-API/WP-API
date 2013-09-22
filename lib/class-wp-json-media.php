@@ -98,7 +98,11 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		$data['attachment_meta'] = wp_get_attachment_metadata( $post['ID'] );
 
-		if ( ! empty( $data['attachment_meta']['sizes'] ) ) {
+		// Ensure empty meta is an empty object
+		if ( empty( $data['attachment_meta'] ) ){
+			$data['attachment_meta'] = new stdClass;
+		}
+		elseif ( ! empty( $data['attachment_meta']['sizes'] ) ) {
 			$img_url_basename = wp_basename( $data['source'] );
 
 			foreach ($data['attachment_meta']['sizes'] as $size => &$size_data) {
