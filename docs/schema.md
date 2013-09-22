@@ -587,6 +587,72 @@ This field should be treated the same as the `date_tz` property on a
 Post entity.
 
 
+Media
+-----
+The Media entity is a JSON object based on the Post entity. It contains all
+properties of the Post entity, with the following additional properties defined:
+
+### `source`
+The `source` field is a string with the URL of the entity's original file. For
+image media, this is the source file that intermediate representations are
+generated from. For non-image media, this is the attached media file itself.
+
+### `is_image`
+The `is_image` field is a boolean which indicates whether the entity's
+associated file should be handled as an image.
+
+### `attachment_meta`
+The `attachment_meta` field is a Media Meta entity. If the file is not an image
+(as indicated by the `is_image` field), this is an empty JSON object.
+
+
+Media Meta
+----------
+The Media Meta entity is a JSON object with properties relating to the
+associated Media entity. The following properties are defined for the entity:
+
+### `width`
+The `width` field is an integer with the original file's width in pixels.
+
+### `height`
+The `height` field is an integer with the original file's height in pixels.
+
+### `file`
+The `file` field is a string with the path to the original file, relative to the
+site's upload directory.
+
+### `sizes`
+The `sizes` field is a JSON object mapping intermediate image sizes to image
+data objects. The key of each item is the size of the intermediate image as an
+internal string representation. The value of each item has the following
+properties defined.
+
+* `file`: The filename of the intermediate file, relative to the directory of
+  the original file.
+* `width`: The width of the intermediate file in pixels.
+* `height`: The height of the intermediate file in pixels.
+* `mime-type`: The MIME type of the intermediate file.
+* `url`: The full URL to the intermediate file.
+
+### `image_meta`
+The `image_meta` field is a JSON object mapping image meta properties to their
+values. This data is taken from the EXIF data on the original image. The
+following properties are defined.
+
+* `aperture`: The aperture used to create the original image as a decimal number
+  (with two decimal places).
+* `credit`: Credit for the original image.
+* `camera`: The camera used to create the original image.
+* `created_timestamp`: When the file was created, as a Unix timestamp.
+* `copyright`: Copyright for the original image.
+* `focal_length`: The focal length used to create the original image as a
+  decimal string.
+* `iso`: The ISO used to create the original image.
+* `shutter_speed`: The shutter speed used to create the original image, as a
+  decimal string.
+* `title`: The original title of the image.
+
+
 Documents
 =========
 
