@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.6
+- Huge documentation update - Guides on getting started and extending the API
+	are [now available for your perusal][docs]
+- Add generic CPT class - Plugins are now encouraged to extend
+	`WP_JSON_CustomPostType` and get free hooking for common actions. This
+	removes most of the boilerplate that you needed to write for new CPT-based
+	routes and endpoints ([#380][])
+- Use defined filter priorities for endpoint registration - It's now easier to
+	inject your own endpoints at a defined point
+- Update the schema - Now includes documentation on the Media entity, plus more
+	([#264][])
+- Add better taxonomy support - You can now query for taxonomies and terms
+	directly. The routes here might seem strange
+	(`/posts/types/post/taxonomies/category` for example), but the intention is
+	to [future-proof them](http://make.wordpress.org/core/2013/07/28/potential-roadmap-for-taxonomy-meta-and-post-relationships/)
+	as much as possible([#275][])
+- Ensure the JSON URL is relative to the home URL ([#375][])
+- Check all date formats for If-Unmodified-Since ([#378][])
+- Register the correct URL for the JS library ([#376][])
+- Correct the usage of meta links ([#379][])
+- Add filters for post type and post status data ([#380][])
+- Separate parent post and parent comment relation ([#330][]()
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.5...0.6)
+
+[docs]: https://github.com/rmccue/WP-API/tree/master/docs
+
+[#264]: https://gsoc.trac.wordpress.org/ticket/264
+[#275]: https://gsoc.trac.wordpress.org/ticket/275
+[#330]: https://gsoc.trac.wordpress.org/ticket/330
+[#375]: https://gsoc.trac.wordpress.org/ticket/375
+[#376]: https://gsoc.trac.wordpress.org/ticket/376
+[#378]: https://gsoc.trac.wordpress.org/ticket/378
+[#379]: https://gsoc.trac.wordpress.org/ticket/379
+[#380]: https://gsoc.trac.wordpress.org/ticket/380
+
+
 ## 0.5
 - Add support for media - This has been a long time coming, and it's finally at
 	a point where I'm happy to push it out. Good luck. ([#272][])
