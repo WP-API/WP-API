@@ -28,7 +28,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	/**
 	 * Construct the API handler object
 	 */
-	public function __construct() {
+	public function __construct(WP_JSON_ResponseHandler $server) {
 		if ( empty( $this->base ) ) {
 			_doing_it_wrong( 'WP_JSON_CustomPostType::__construct', __( 'The route base must be overridden' ), 'WPAPI-0.6' );
 			return;
@@ -40,6 +40,8 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 
 		add_filter( 'json_endpoints', array( $this, 'registerRoutes' ) );
 		add_filter( 'json_post_type_data', array( $this, 'type_archive_link' ), 10, 2 );
+
+		parent::__construct($server);
 	}
 
 	/**

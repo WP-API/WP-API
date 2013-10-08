@@ -2,6 +2,22 @@
 
 class WP_JSON_Posts {
 	/**
+	 * Server object
+	 *
+	 * @var WP_JSON_ResponseHandler
+	 */
+	protected $server;
+
+	/**
+	 * Constructor
+	 *
+	 * @param WP_JSON_ResponseHandler $server Server object
+	 */
+	public function __construct(WP_JSON_ResponseHandler $server) {
+		$this->server = $server;
+	}
+
+	/**
 	 * Register the post-related routes
 	 *
 	 * @param array $routes Existing routes
@@ -62,8 +78,6 @@ class WP_JSON_Posts {
 	 * @return array contains a collection of Post entities.
 	 */
 	public function getPosts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
-		global $wp_json_server;
-
 		$query = array();
 
 		$post_type = get_post_type_object( $type );
@@ -109,7 +123,7 @@ class WP_JSON_Posts {
 
 		$post_query = new WP_Query();
 		$posts_list = $post_query->query( $query );
-		$wp_json_server->query_navigation_headers( $post_query );
+		$this->server->query_navigation_headers( $post_query );
 
 		if ( ! $posts_list )
 			return array();
@@ -117,7 +131,7 @@ class WP_JSON_Posts {
 		// holds all the posts data
 		$struct = array();
 
-		$wp_json_server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
+		$this->server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
@@ -126,7 +140,7 @@ class WP_JSON_Posts {
 			if ( ! $this->checkReadPermission( $post ) )
 				continue;
 
-			$wp_json_server->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
+			$this->server->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
 			$struct[] = $this->prepare_post( $post, $context );
 		}
 
@@ -193,13 +207,12 @@ class WP_JSON_Posts {
 	 * @return array Post data (see {@see WP_JSON_Posts::getPost})
 	 */
 	function newPost( $data ) {
-		global $wp_json_server;
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
 		if ( is_string( $result ) || is_int( $result ) ) {
-			$wp_json_server->send_status( 201 );
-			$wp_json_server->header( 'Location', json_url( '/posts/' . $result ) );
+			$this->server->send_status( 201 );
+			$this->server->header( 'Location', json_url( '/posts/' . $result ) );
 
 			return $this->getPost( $result );
 		}
@@ -220,7 +233,6 @@ class WP_JSON_Posts {
 	 * @return array Post entity
 	 */
 	public function getPost( $id, $context = 'view' ) {
-		global $wp_json_server;
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -237,16 +249,16 @@ class WP_JSON_Posts {
 
 		// Link headers (see RFC 5988)
 
-		$wp_json_server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
+		$this->server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
 		$post = $this->prepare_post( $post, $context );
 		if ( is_wp_error( $post ) )
 			return $post;
 
 		foreach ( $post['meta']['links'] as $rel => $url ) {
-			$wp_json_server->link_header( $rel, $url );
+			$this->server->link_header( $rel, $url );
 		}
-		$wp_json_server->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+		$this->server->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $post;
 	}
@@ -477,8 +489,6 @@ class WP_JSON_Posts {
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
-		global $wp_json_server;
-
 		// holds the data for this post. built up based on $fields
 		$_post = array(
 			'ID' => (int) $post['ID'],
@@ -515,7 +525,7 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = $wp_json_server->get_timezone();
+		$timezone = $this->server->get_timezone();
 
 		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
 		$post_fields['date'] = $date->format( 'c' );
@@ -626,8 +636,6 @@ class WP_JSON_Posts {
 	}
 
 	protected function prepare_author( $author ) {
-		global $wp_json_server;
-
 		$user = get_user_by( 'id', $author );
 
 		if (!$author)
@@ -638,7 +646,7 @@ class WP_JSON_Posts {
 			'name' => $user->display_name,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
-			'avatar' => $wp_json_server->get_avatar( $user->user_email ),
+			'avatar' => $this->server->get_avatar( $user->user_email ),
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
@@ -664,8 +672,6 @@ class WP_JSON_Posts {
 	 * @param array $content_struct Post data to insert.
 	 */
 	protected function insert_post( $data ) {
-		global $wp_json_server;
-
 		$post = array();
 		$update = ! empty( $data['ID'] );
 
@@ -750,18 +756,18 @@ class WP_JSON_Posts {
 
 		// Post date
 		if ( ! empty( $data['date'] ) ) {
-			list( $post['post_date'], $post['post_date_gmt'] ) = $wp_json_server->get_date_with_gmt( $data['date'] );
+			list( $post['post_date'], $post['post_date_gmt'] ) = $this->server->get_date_with_gmt( $data['date'] );
 		}
 		elseif ( ! empty( $data['date_gmt'] ) ) {
-			list( $post['post_date'], $post['post_date_gmt'] ) = $wp_json_server->get_date_with_gmt( $data['date_gmt'], true );
+			list( $post['post_date'], $post['post_date_gmt'] ) = $this->server->get_date_with_gmt( $data['date_gmt'], true );
 		}
 
 		// Post modified
 		if ( ! empty( $data['modified'] ) ) {
-			list( $post['post_modified'], $post['post_modified_gmt'] ) = $wp_json_server->get_date_with_gmt( $data['modified'] );
+			list( $post['post_modified'], $post['post_modified_gmt'] ) = $this->server->get_date_with_gmt( $data['modified'] );
 		}
 		elseif ( ! empty( $data['modified_gmt'] ) ) {
-			list( $post['post_modified'], $post['post_modified_gmt'] ) = $wp_json_server->get_date_with_gmt( $data['modified_gmt'], true );
+			list( $post['post_modified'], $post['post_modified_gmt'] ) = $this->server->get_date_with_gmt( $data['modified_gmt'], true );
 		}
 
 		// Post slug
@@ -898,9 +904,7 @@ class WP_JSON_Posts {
 	 * @return array Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s)
 	 */
 	protected function get_date_with_gmt( $date, $force_utc = false ) {
-		global $wp_json_server;
-
-		$datetime = $wp_json_server->parse_date( $date, $force_utc );
+		$datetime = $this->server->parse_date( $date, $force_utc );
 
 		$datetime->setTimezone( self::get_timezone() );
 		$local = $datetime->format( 'Y-m-d H:i:s' );
@@ -956,8 +960,6 @@ class WP_JSON_Posts {
 	 * @return array Comment data for JSON serialization
 	 */
 	protected function prepare_comment( $comment, $requested_fields = array( 'comment', 'meta' ), $context = 'single' ) {
-		global $wp_json_server;
-
 		$fields = array(
 			'ID' => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
@@ -1018,12 +1020,12 @@ class WP_JSON_Posts {
 				'ID' => 0,
 				'name' => $comment->comment_author,
 				'URL' => $comment->comment_author_url,
-				'avatar' => $wp_json_server->get_avatar( $comment->comment_author_email ),
+				'avatar' => $this->server->get_avatar( $comment->comment_author_email ),
 			);
 		}
 
 		// Date
-		$timezone = $wp_json_server->get_timezone();
+		$timezone = $this->server->get_timezone();
 
 		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date'] = $date->format( 'c' );
