@@ -53,6 +53,44 @@ class WP_JSON_Server {
 	);
 
 	/**
+	 * Requested path (relative to the API root, wp-json.php)
+	 *
+	 * @var string
+	 */
+	public $path = '';
+
+	/**
+	 * Requested method (GET/HEAD/POST/PUT/PATCH/DELETE)
+	 *
+	 * @var string
+	 */
+	public $method = 'HEAD';
+
+	/**
+	 * Request parameters
+	 *
+	 * This acts as an abstraction of the superglobals
+	 * (GET => $_GET, POST => $_POST)
+	 *
+	 * @var array
+	 */
+	public $params = array( 'GET' => array(), 'POST' => array() );
+
+	/**
+	 * Request headers
+	 *
+	 * @var array
+	 */
+	public $headers = array();
+
+	/**
+	 * Request files (matches $_FILES)
+	 *
+	 * @var array
+	 */
+	public $files = array();
+
+	/**
 	 * Check the authentication headers if supplied
 	 *
 	 * @return WP_Error|WP_User|null WP_User object indicates successful login, WP_Error indicates unsuccessful login and null indicates no authentication provided
@@ -158,17 +196,22 @@ class WP_JSON_Server {
 				$path = '/';
 		}
 
-		$method = $_SERVER['REQUEST_METHOD'];
+		$this->path = $path;
+		$this->method = $_SERVER['REQUEST_METHOD'];
+		$this->params['GET'] = $_GET;
+		$this->params['POST'] = $_POST;
+		$this->headers = $this->get_headers( $_SERVER );
+		$this->files = $_FILES;
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$method = strtoupper( $_GET['_method'] );
+			$this->method = strtoupper( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
-			$result = $this->dispatch( $path, $method );
+			$result = $this->dispatch();
 		}
 
 		if ( is_wp_error( $result ) ) {
@@ -182,10 +225,10 @@ class WP_JSON_Server {
 
 		// This is a filter rather than an action, since this is designed to be
 		// re-entrant if needed
-		$served = apply_filters( 'json_serve_request', false, $result, $path, $method );
+		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method );
 
 		if ( ! $served ) {
-			if ( 'HEAD' === $method )
+			if ( 'HEAD' === $this->method )
 				return;
 
 			if ( isset($_GET['_jsonp']) )
@@ -247,8 +290,8 @@ class WP_JSON_Server {
 	 * @param string $path Requested route
 	 * @return mixed The value returned by the callback, or a WP_Error instance
 	 */
-	public function dispatch( $path, $method = self::METHOD_GET ) {
-		switch ( $method ) {
+	public function dispatch() {
+		switch ( $this->method ) {
 			case 'HEAD':
 			case 'GET':
 				$method = self::METHOD_GET;
@@ -281,7 +324,7 @@ class WP_JSON_Server {
 				if ( !( $supported & $method ) )
 					continue;
 
-				$match = preg_match( '@^' . $route . '$@i', $path, $args );
+				$match = preg_match( '@^' . $route . '$@i', $this->path, $args );
 
 				if ( !$match )
 					continue;
@@ -289,9 +332,9 @@ class WP_JSON_Server {
 				if ( ! is_callable( $callback ) )
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 
-				$args = array_merge( $args, $_GET );
+				$args = array_merge( $args, $this->params['GET'] );
 				if ( $method & self::METHOD_POST ) {
-					$args = array_merge( $args, $_POST );
+					$args = array_merge( $args, $this->params['POST'] );
 				}
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
@@ -303,9 +346,9 @@ class WP_JSON_Server {
 
 				$args['_method']  = $method;
 				$args['_route']   = $route;
-				$args['_path']    = $path;
-				$args['_headers'] = $this->get_headers( $_SERVER );
-				$args['_files']   = $_FILES;
+				$args['_path']    = $this->path;
+				$args['_headers'] = $this->headers;
+				$args['_files']   = $this->files;
 
 				$args = apply_filters( 'json_dispatch_args', $args, $callback );
 
