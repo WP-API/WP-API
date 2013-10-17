@@ -112,7 +112,7 @@ register_activation_hook( __FILE__, 'json_api_activation' );
 function json_api_deactivation() {
 	flush_rewrite_rules();
 }
-register_deactivation_hook( __FILE__, 'json_api_activation' );
+register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
  * Register our API Javascript helpers
