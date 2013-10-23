@@ -612,7 +612,7 @@ class WP_JSON_Posts {
 
 		foreach ( (array) has_meta( $post_id ) as $meta ) {
 			// Don't expose protected fields.
-			if ( ! current_user_can( 'edit_post_meta', $post_id, $meta['meta_key'] ) )
+			if ( is_protected_meta( $meta['meta_key'] ) )
 				continue;
 
 			$custom_fields[] = array(
