@@ -963,6 +963,8 @@ class WP_JSON_Posts {
 			'post' => (int) $comment->comment_post_ID,
 		);
 
+		$post = (array) get_post( $fields['post'] );
+
 		// Content
 		$fields['content'] = apply_filters( 'comment_text', $comment->comment_content, $comment );
 		// $fields['content_raw'] = $comment->comment_content;
@@ -1028,7 +1030,7 @@ class WP_JSON_Posts {
 		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date'] = $date->format( 'c' );
 		$fields['date_tz'] = $date->format( 'e' );
-		$fields['date_gmt'] = date( 'c', strtotime( $post->comment_date_gmt ) );
+		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
 
 		// Meta
 		$meta = array(
