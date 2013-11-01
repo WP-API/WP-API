@@ -66,7 +66,6 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @see WP_JSON_Posts::getPost()
 	 */
 	public function getPost( $id, $context = 'view' ) {
-		global $wp_json_server;
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -180,8 +179,6 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @return array|WP_Error Attachment data or error
 	 */
 	public function uploadAttachment( $_files, $_headers ) {
-		global $wp_json_server;
-
 		$post_type = get_post_type_object( 'attachment' );
 		if ( ! $post_type )
 			return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
@@ -239,8 +236,8 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 		}
 
-		$wp_json_server->send_status( 201 );
-		$wp_json_server->header( 'Location', json_url( '/media/' . $id ) );
+		$this->server->send_status( 201 );
+		$this->server->header( 'Location', json_url( '/media/' . $id ) );
 		return $this->getPost( $id, 'edit' );
 	}
 
@@ -252,8 +249,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
 	protected function uploadFromData( $_files, $_headers ) {
-		global $wp_json_server;
-		$data = $wp_json_server->get_raw_data();
+		$data = $this->server->get_raw_data();
 
 		if ( empty( $data ) ) {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
