@@ -373,9 +373,9 @@ class WP_JSON_Posts {
 	 *
 	 * @return new comment ID
 	 */
-	public function saveComment($data) {
-		$data['comment_date'] = current_time('mysql');
-		$newComment = wp_insert_comment($data);
+	public function saveComment( $data ) {
+		$data[ 'comment_date' ] = current_time( 'mysql' );
+		$newComment = wp_insert_comment( $data );
 		return $newComment;
 	}
 
