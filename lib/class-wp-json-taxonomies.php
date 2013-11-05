@@ -191,7 +191,6 @@ class WP_JSON_Taxonomies {
 			'slug'   => $term->slug,
 			'parent' => (int) $term->parent,
 			'count'  => (int) $term->count,
-                        'link'   => get_term_link($term, $term->taxonomy),
 			'meta'   => array(
 				'links' => array(
 					'collection' => json_url( $base_url ),
