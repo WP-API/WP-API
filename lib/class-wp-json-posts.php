@@ -575,7 +575,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 
 		// Post meta
-		$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
+		$_post['post_meta'] = $this->( $post['ID'] );
 
 		// Entity meta
 		$_post['meta'] = array(
@@ -618,18 +618,12 @@ class WP_JSON_Posts {
 	protected function prepare_meta( $post_id ) {
 		$post_id = (int) $post_id;
 
-		$custom_fields = array();
+		$custom_fields = (array) get_post_meta( $post_id );
 
-		foreach ( (array) has_meta( $post_id ) as $meta ) {
+		foreach ( $custom_fields as $meta_key => $meta_value ) {
 			// Don't expose protected fields.
-			if ( is_protected_meta( $meta['meta_key'] ) )
-				continue;
-
-			$custom_fields[] = array(
-				'id'    => $meta['meta_id'],
-				'key'   => $meta['meta_key'],
-				'value' => $meta['meta_value'],
-			);
+			if ( is_protected_meta( $meta_key ) )
+				unset($custom_fields[$meta_key]);
 		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields );
