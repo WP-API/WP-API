@@ -171,7 +171,7 @@ class WP_JSON_Taxonomies {
 		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
 		$data['terms'] = array();
 		foreach ( $terms as $term ) {
-			$data['terms'][ $term->taxonomy ] = $this->prepare_term( $term, $post['post_type'] );
+			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term, $post['post_type'] );
 		}
 
 		return $data;
