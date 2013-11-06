@@ -10,6 +10,7 @@
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-widgets.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -45,6 +46,10 @@ function json_api_default_filters() {
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'addThumbnailData' ), 10, 3 );
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
+
+	// Posts
+	$wp_json_widgets = new WP_JSON_Widgets();
+	add_filter( 'json_endpoints', array( $wp_json_widgets, 'registerRoutes' ) );
 }
 add_action( 'plugins_loaded', 'json_api_default_filters' );
 
