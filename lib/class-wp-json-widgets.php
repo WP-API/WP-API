@@ -118,10 +118,12 @@ class WP_JSON_Widgets {
 	      }
 	    }
 	    
-	    return array(
-	      'sidebar_id' => $index,
-	      'widgets' => $widgets
-	    );
+	    // return array(
+	    //   'sidebar_id' => $index,
+	    //   'widgets' => $widgets
+	    // );
+
+	    return $widgets;
 		
 	}
 
