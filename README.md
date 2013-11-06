@@ -27,4 +27,4 @@ you use the JSON REST API component.
 ## RoyBoy789 Additions
 I have added in a /widgets route with will handle /widgets/id where id is the sidebar id  
 I have also added in a POST for /post/comments to add new comments  
-All code used in my [AngularJS Wordpress Theme](http://www.roysivan.com/angular-wordpress/theme)
+All code used in my [AngularJS Wordpress Theme](http://www.roysivan.com/angular-wordpress-theme)
