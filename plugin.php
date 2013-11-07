@@ -4,12 +4,16 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: Ryan McCue
  * Author URI: http://ryanmccue.info/
- * Version: 0.5
+ * Version: 0.6
  * Plugin URI: https://github.com/rmccue/WP-API
  */
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-widgets.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -29,22 +33,38 @@ add_action( 'init', 'json_api_init' );
  * @internal This will live in default-filters.php
  */
 function json_api_default_filters() {
-	global $wp_json_posts, $wp_json_pages, $wp_json_media;
+	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies, $wp_json_widgets, $wp_json_users;
 
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts();
-	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ) );
+	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ), 0 );
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages();
-	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ) );
+	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ), 1 );
+	add_filter( 'json_post_type_data', array( $wp_json_pages, 'type_archive_link' ), 10, 2 );
 
 	// Media
 	$wp_json_media = new WP_JSON_Media();
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ) );
+	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ), 1 );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'addThumbnailData' ), 10, 3 );
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
+	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link' ), 10, 2 );
+
+	// Posts
+	$wp_json_taxonomies = new WP_JSON_Taxonomies();
+	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'registerRoutes' ), 2 );
+	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
+	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data' ), 10, 3 );
+
+	// Widgets
+	$wp_json_widgets = new WP_JSON_Widgets();
+	add_filter( 'json_endpoints', array( $wp_json_widgets, 'registerRoutes' ), 0 );
+	
+	// Users
+	$wp_json_users = new WP_JSON_Users();
+	add_filter( 'json_endpoints', array( $wp_json_users, 'registerRoutes' ), 0 );
 }
 add_action( 'plugins_loaded', 'json_api_default_filters' );
 
@@ -108,7 +128,7 @@ register_deactivation_hook( __FILE__, 'json_api_activation' );
  * Register our API Javascript helpers
  */
 function json_register_scripts() {
-	wp_register_script( 'wp-api', plugins_url( dirname( __FILE__ ) . '/wp-api.js' ), array( 'jquery', 'backbone', 'underscore' ), '0.5', true );
+	wp_register_script( 'wp-api', plugins_url( '/wp-api.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '0.6', true );
 	wp_localize_script( 'wp-api', 'wpApiOptions', array( 'base' => json_url() ) );
 }
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
@@ -123,7 +143,7 @@ add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
  * @return string Full URL to the endpoint
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_site_url( $blog_id, 'wp-json.php', $scheme );
+	$url = get_home_url( $blog_id, 'wp-json.php', $scheme );
 
 	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 		$url .= '/' . ltrim( $path, '/' );

@@ -25,7 +25,7 @@ class WP_JSON_Posts {
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
 				array( array( $this, 'getComments' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'saveComment' ), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( array( $this, 'getComment' ), WP_JSON_Server::READABLE ),
@@ -366,6 +366,17 @@ class WP_JSON_Posts {
 		$comment = get_comment( $comment );
 		$data = $this->prepare_comment( $comment );
 		return $data;
+	}
+
+	/**
+	 * Save a single comment
+	 *
+	 * @return new comment ID
+	 */
+	public function saveComment($data) {
+		$data['comment_date'] = current_time('mysql');
+		$newComment = wp_insert_comment($data);
+		return $newComment;
 	}
 
 	/**

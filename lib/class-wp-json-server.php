@@ -5,7 +5,7 @@
  * Contains the WP_JSON_Server class.
  *
  * @package WordPress
- * @version 0.5
+ * @version 0.6
  */
 
 require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -216,35 +216,6 @@ class WP_JSON_Server {
 		$endpoints = array(
 			// Meta endpoints
 			'/' => array( array( $this, 'getIndex' ), self::READABLE ),
-
-			// Taxonomies
-			'/taxonomies'                                       => array( '__return_null', self::READABLE ),
-			'/taxonomies/(?P<taxonomy>\w+)'                     => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms'               => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::EDITABLE | self::ACCEPT_JSON ),
-				array( '__return_null', self::DELETABLE ),
-			),
-
-			// Users
-			'/users'               => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			// /users/me is an alias, and simply redirects to /users/<id>
-			'/users/me'            => array( '__return_null', self::ALLMETHODS ),
-			'/users/(?P<user>\d+)' => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
 		);
 
 		$endpoints = apply_filters( 'json_endpoints', $endpoints );

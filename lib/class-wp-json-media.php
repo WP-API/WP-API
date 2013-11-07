@@ -98,7 +98,11 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		$data['attachment_meta'] = wp_get_attachment_metadata( $post['ID'] );
 
-		if ( ! empty( $data['attachment_meta']['sizes'] ) ) {
+		// Ensure empty meta is an empty object
+		if ( empty( $data['attachment_meta'] ) ){
+			$data['attachment_meta'] = new stdClass;
+		}
+		elseif ( ! empty( $data['attachment_meta']['sizes'] ) ) {
 			$img_url_basename = wp_basename( $data['source'] );
 
 			foreach ($data['attachment_meta']['sizes'] as $size => &$size_data) {
@@ -409,6 +413,22 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			$data['featured_image'] = $this->getPost( $thumbnail_id, 'child' );
 		}
 
+		return $data;
+	}
+
+	/**
+	 * Filter the post type archive link
+	 *
+	 * @param array $data Post type data
+	 * @param stdClass $type Internal post type data
+	 * @return array Filtered data
+	 */
+	public function type_archive_link( $data, $type ) {
+		if ( $type->name !== 'attachment' ) {
+			return $data;
+		}
+
+		$data['meta']['links']['archives'] = json_url( '/media' );
 		return $data;
 	}
 }
