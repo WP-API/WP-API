@@ -71,7 +71,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 * @return array Modified routes
 	 */
 	public function registerRevisionRoutes( $routes ) {
-		$routes[ '/pages/(?P<id>\d+)/revisions' ] = array(
+		$routes[ $this->base . '/(?P<id>\d+)/revisions' ] = array(
 			array( '__return_null', WP_JSON_Server::READABLE ),
 		);
 		return $routes;
@@ -185,7 +185,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			'links' => array(
 				'self'            => json_url( $this->base . '/' . $post['ID'] ),
 				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/pages' ),
+				'collection'      => json_url( $this->base ),
 				'replies'         => json_url( $this->base . '/' . $post['ID'] . '/comments' ),
 				'version-history' => json_url( $this->base . '/' . $post['ID'] . '/revisions' ),
 			),
