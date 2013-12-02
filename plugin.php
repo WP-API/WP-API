@@ -18,13 +18,17 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
  * Register our rewrite rules for the API
  */
 function json_api_init() {
-	add_rewrite_rule( '^wp-json\.php/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^wp-json\.php(.*)?','index.php?json_route=$matches[1]','top' );
+	json_api_register_rewrites();
 
 	global $wp;
 	$wp->add_query_var('json_route');
 }
 add_action( 'init', 'json_api_init' );
+
+function json_api_register_rewrites() {
+	add_rewrite_rule( '^wp-json\.php/?$','index.php?json_route=/','top' );
+	add_rewrite_rule( '^wp-json\.php(.*)?','index.php?json_route=$matches[1]','top' );
+}
 
 /**
  * Register the default JSON API filters
@@ -114,6 +118,7 @@ add_action( 'template_redirect', 'json_api_loaded', -100 );
  * Flush the rewrite rules on activation
  */
 function json_api_activation() {
+	json_api_register_rewrites();
 	flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'json_api_activation' );
