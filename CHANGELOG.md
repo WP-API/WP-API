@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.7
+- The response handler object is now passed into the endpoint objects via the
+  constructor, allowing you to avoid excess global state where possible. It's
+  recommended to use this where possible rather than the global object.
+
+  (props @rmccue, [#2][gh-2])
+
+- Fix undefined variables and indices
+  (props @pippinsplugins, [#5][gh-5])
+
+- Correct call to deactivation hook
+  (props @ericpedia, [#9][gh-9])
+
+- Check metadata access correctly rather than always hiding for users without
+  the `edit_post_meta` capability
+  (props @kokarn, [#10][gh-10])
+
+- Return all term metadata, rather than just the last one
+  (props @afurculita, [#13][gh-13])
+
+- Access post metadata from cache where possible - Note, this is a backwards
+  compatibility break, as the format of the metadata has changed. This may
+  change again in the near future, so don't rely on it until 1.0.
+  (props @afurculita, [#14][gh-14])
+
+- Add term_link to prepare_term
+  (props @afurculita, [#15][gh-15])
+
+- Fix hardcoded `/pages` references in `WP_JSON_CustomPostType`
+  (props @thenbrent, [#26][gh-26])
+
+- Sanitize headers for newlines
+  (props @kokarn, [#7][gh-7])
+
+- Register rewrite rules during plugin activation
+  (props @pippinsplugins, [#17][gh-17])
+
+[gh-2]:  https://github.com/WP-API/WP-API/issues/2
+[gh-5]:  https://github.com/WP-API/WP-API/issues/5
+[gh-7]:  https://github.com/WP-API/WP-API/issues/7
+[gh-9]:  https://github.com/WP-API/WP-API/issues/9
+[gh-10]: https://github.com/WP-API/WP-API/issues/10
+[gh-13]: https://github.com/WP-API/WP-API/issues/13
+[gh-14]: https://github.com/WP-API/WP-API/issues/14
+[gh-15]: https://github.com/WP-API/WP-API/issues/15
+[gh-17]: https://github.com/WP-API/WP-API/issues/17
+[gh-26]: https://github.com/WP-API/WP-API/issues/26
+
 ## 0.6
 - Huge documentation update - Guides on getting started and extending the API
 	are [now available for your perusal][docs]
