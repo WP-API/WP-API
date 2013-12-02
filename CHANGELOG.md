@@ -37,6 +37,8 @@
 - Register rewrite rules during plugin activation
   (props @pippinsplugins, [#17][gh-17])
 
+[View all changes](https://github.com/rmccue/WP-API/compare/0.6...0.7)
+
 [gh-2]:  https://github.com/WP-API/WP-API/issues/2
 [gh-5]:  https://github.com/WP-API/WP-API/issues/5
 [gh-7]:  https://github.com/WP-API/WP-API/issues/7
