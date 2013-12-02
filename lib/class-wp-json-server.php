@@ -476,6 +476,11 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @param boolean $replace Should we replace the existing header?
 	 */
 	public function header( $key, $value, $replace = true ) {
+		// Sanitize as per RFC2616 (Section 4.2):
+		//   Any LWS that occurs between field-content MAY be replaced with a
+		//   single SP before interpreting the field value or forwarding the
+		//   message downstream.
+		$value = preg_replace( '/\s+/', ' ', $value );
 		header( sprintf( '%s: %s', $key, $value ), $replace );
 	}
 
