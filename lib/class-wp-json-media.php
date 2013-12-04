@@ -402,6 +402,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @return array Filtered post data
 	 */
 	public function addThumbnailData( $data, $post, $context ) {
+		if( !post_type_supports( $post['post_type'], 'thumbnail' ) ) {
+			return $data;
+		}
+
 		// Thumbnail
 		$data['featured_image'] = null;
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
