@@ -8,7 +8,7 @@
  * @subpackage JSON API
  */
 
-if ( ! class_exists( 'JsonSerializable' ) ) {
+if ( ! interface_exists( 'JsonSerializable' ) ) {
 	define( 'WP_JSON_SERIALIZE_COMPATIBLE', true );
 	interface JsonSerializable {
 		public function jsonSerialize();
