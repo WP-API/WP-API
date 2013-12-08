@@ -603,39 +603,22 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Retrieve the avatar for a user who provided a user ID or email address.
+	 * Retrieve the avatar url for a user who provided a user ID or email address.
 	 *
 	 * {@see get_avatar()} doesn't return just the URL, so we have to
-	 * reimplement this here.
+	 * extract it here.
 	 *
-	 * @todo Rework how we do this. Copying it is a hack.
-	 *
-	 * @since 2.5
 	 * @param string $email Email address
-	 * @return string <img> tag for the user's avatar
+	 * @return string url for the user's avatar
 	*/
 	public function get_avatar( $email ) {
-		if ( ! get_option( 'show_avatars' ) )
-			return false;
-
-		$email_hash = md5( strtolower( trim( $email ) ) );
-
-		if ( is_ssl() ) {
-			$host = 'https://secure.gravatar.com';
-		} else {
-			if ( !empty($email) )
-				$host = sprintf( 'http://%d.gravatar.com', ( hexdec( $email_hash[0] ) % 2 ) );
-			else
-				$host = 'http://0.gravatar.com';
+		$avatar_html = get_avatar( $email );
+		// strip the avatar url from the get_avatar img tag.
+		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
+		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+			return esc_url_raw( $matches[1] );
 		}
-
-		$avatar = "$host/avatar/$email_hash&d=404";
-
-		$rating = get_option( 'avatar_rating' );
-		if ( !empty( $rating ) )
-			$avatar .= "&r={$rating}";
-
-		return apply_filters( 'get_avatar', $avatar, $email, '96', '404', '' );
+		return '';
 	}
 
 	/**
