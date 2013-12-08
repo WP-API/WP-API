@@ -615,9 +615,12 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$avatar_html = get_avatar( $email );
 		// strip the avatar url from the get_avatar img tag.
 		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
+
 		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+
 			return esc_url_raw( $matches[1] );
 		}
+
 		return '';
 	}
 
