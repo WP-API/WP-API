@@ -290,6 +290,11 @@ hooking and more for you:
 (Note that this CPT base class handles other things as well, including strict
 post type checking and correcting URLs.)
 
+It is important that this class lives in a separate file that is only included
+on a WP API hook, as your plugin may load before the WP API plugin. If you get
+errors about the `WP_JSON_CustomPostType` class not being loaded, this is
+the reason.
+
 The data passed in and returned by the `json_endpoints` filter should be in the
 format of an array containing a map of route regular expression to endpoint
 lists. An endpoint list is a potentially unlimited array of endpoints' data.
