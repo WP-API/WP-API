@@ -632,8 +632,10 @@ class WP_JSON_Posts {
 	protected function prepare_author( $author ) {
 		$user = get_user_by( 'id', $author );
 
-		if (!$author)
+		if (! $author || ! is_object( $user ) ) {
 			return null;
+		}
+
 
 		$author = array(
 			'ID' => $user->ID,
