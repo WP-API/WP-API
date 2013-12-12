@@ -386,10 +386,14 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param boolean $update Is this an update?
 	 */
 	public function attachThumbnail( $post, $data, $update ) {
+		if ( ! $update ) {
+			return;
+		}
+
 		if ( ! empty( $data['featured_image'] ) ) {
 			// Already verified in preinsertCheck()
 			$thumbnail = $this->getPost( $data['featured_image'], 'child' );
-			set_post_thumbnail( $post_ID, $thumbnail['ID'] );
+			set_post_thumbnail( $post['ID'], $thumbnail['ID'] );
 		}
 	}
 
