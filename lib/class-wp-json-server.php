@@ -500,7 +500,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @param array $other Other parameters to send, as an assocative array
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
-		$header = 'Link: <' . $link . '>; rel="' . $rel . '"';
+		$header = '<' . $link . '>; rel="' . $rel . '"';
 		foreach ( $other as $key => $value ) {
 			if ( 'title' == $key )
 				$value = '"' . $value . '"';
