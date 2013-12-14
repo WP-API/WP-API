@@ -640,7 +640,7 @@ class WP_JSON_Posts {
 			'name' => $user->display_name,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar( $user->user_email ),
+			'avatar' => $this->server->get_avatar_url( $user->user_email ),
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
@@ -912,28 +912,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Retrieve the avatar url for a user who provided a user ID or email address.
-	 *
-	 * {@see get_avatar()} doesn't return just the URL, so we have to
-	 * extract it here.
-	 *
-	 * @param string $email Email address
-	 * @return string url for the user's avatar
-	*/
-	protected function get_avatar( $email ) {
-		$avatar_html = get_avatar( $email );
-		// strip the avatar url from the get_avatar img tag.
-		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
-
-		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
-
-			return esc_url_raw( $matches[1] );
-		}
-
-		return '';
-	}
-
-	/**
 	 * Prepares comment data for returning as a JSON response.
 	 *
 	 * @param stdClass $comment Comment object
@@ -1004,7 +982,7 @@ class WP_JSON_Posts {
 				'ID' => 0,
 				'name' => $comment->comment_author,
 				'URL' => $comment->comment_author_url,
-				'avatar' => $this->server->get_avatar( $comment->comment_author_email ),
+				'avatar' => $this->server->get_avatar_url( $comment->comment_author_email ),
 			);
 		}
 
