@@ -787,11 +787,13 @@ class WP_JSON_Posts {
 				if ( ! current_user_can( $post_type->cap->edit_others_posts ) )
 					return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
 
-				$author = get_userdata( $post['post_author'] );
+				$author = get_userdata( $data['author'] );
 
 				if ( ! $author )
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author ID.' ), array( 'status' => 400 ) );
 			}
+
+			$post['post_author'] = $data['author'];
 		}
 
 		// Post password
