@@ -110,7 +110,7 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		$_post['meta']['links']['self'] = json_url( '/pages/' . get_page_uri( $post['ID'] ) );
 
 		if ( ! empty( $post['post_parent'] ) )
-			$_post['meta']['links']['up'] = json_url( '/posts/' . get_page_uri( (int) $post['post_parent'] ) );
+			$_post['meta']['links']['up'] = json_url( '/pages/' . get_page_uri( (int) $post['post_parent'] ) );
 
 		return apply_filters( 'json_prepare_page', $_post, $post, $context );
 	}
