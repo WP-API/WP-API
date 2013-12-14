@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.8
+- Add compatibility layer for JsonSerializable. You can now return arbitrary
+  objects from endpoints and use the `jsonSerialize()` method to return the data
+  to serialize instead of just using the properties of the object.
+
+  (props @rmccue, [#24][gh-24])
+
+- Fix page parent links to use `/pages`
+
+  (props @thenbrent, [#27][gh-27])
+
+- Remove redundant `WP_JSON_Pages::type_archive_link()` function
+
+  (props @thenbrent, [#29][gh-29])
+
+- Removed unneeded executable bit on all files
+
+  (props @tierra, [#31][gh-31])
+
+- Don't include the `featured_image` property for post types that don't
+  support thumbnails
+
+  (props @phh, [#43][gh-43])
+
+- Use `wp_json_server_before_serve` instead of `plugins_loaded` in the Extending
+  documentation for plugins
+
+  (props @phh, [#43][gh-43])
+
+- Parse the avatar URL from the `get_avatar()` function in core, allowing custom
+  avatar implementations
+
+  (props @rachelbaker, [#47][gh-47], [#35][gh-35])
+
+- Ensure that the author is set if passed
+
+  (props @kuchenundkakao, [#44][gh-44])
+
+- Clarify the usage of `WP_JSON_CustomPostType` in plugins
+
+  (props @rmccue, [#45][gh-45])
+
+- Ensure JSON disabled error messages are translated
+
+  (props @rmccue, [#38][gh-38])
+
+- Remove extra "Link: " from link headers
+
+  (props @jmusal, [#56][gh-56], [#30][gh-30])
+
+- Remove redundant `get_avatar` method in `WP_JSON_Posts`
+
+  (props @rachelbaker, [#35][gh-35])
+
+- Rename `WP_JSON_Server::get_avatar()` to `WP_JSON_Server::get_avatar_url()`
+
+  (props @rachelbaker, [#35][gh-35])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.7...0.8)
+
+[gh-24]: https://github.com/WP-API/WP-API/issues/24
+[gh-27]: https://github.com/WP-API/WP-API/issues/27
+[gh-29]: https://github.com/WP-API/WP-API/issues/29
+[gh-30]: https://github.com/WP-API/WP-API/issues/30
+[gh-31]: https://github.com/WP-API/WP-API/issues/31
+[gh-35]: https://github.com/WP-API/WP-API/issues/35
+[gh-38]: https://github.com/WP-API/WP-API/issues/38
+[gh-43]: https://github.com/WP-API/WP-API/issues/43
+[gh-43]: https://github.com/WP-API/WP-API/issues/43
+[gh-44]: https://github.com/WP-API/WP-API/issues/44
+[gh-45]: https://github.com/WP-API/WP-API/issues/45
+[gh-47]: https://github.com/WP-API/WP-API/issues/47
+[gh-56]: https://github.com/WP-API/WP-API/issues/56
+
 ## 0.7
 - The response handler object is now passed into the endpoint objects via the
   constructor, allowing you to avoid excess global state where possible. It's
