@@ -114,20 +114,4 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 
 		return apply_filters( 'json_prepare_page', $_post, $post, $context );
 	}
-
-	/**
-	 * Filter the post type archive link
-	 *
-	 * @param array $data Post type data
-	 * @param stdClass $type Internal post type data
-	 * @return array Filtered data
-	 */
-	public function type_archive_link( $data, $type ) {
-		if ( $type->name !== 'page' ) {
-			return $data;
-		}
-
-		$data['meta']['links']['archives'] = json_url( '/pages' );
-		return $data;
-	}
 }
