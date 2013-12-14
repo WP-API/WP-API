@@ -640,7 +640,7 @@ class WP_JSON_Posts {
 			'name' => $user->display_name,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar( $user->user_email ),
+			'avatar' => $this->server->get_avatar_url( $user->user_email ),
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
@@ -982,7 +982,7 @@ class WP_JSON_Posts {
 				'ID' => 0,
 				'name' => $comment->comment_author,
 				'URL' => $comment->comment_author_url,
-				'avatar' => $this->server->get_avatar( $comment->comment_author_email ),
+				'avatar' => $this->server->get_avatar_url( $comment->comment_author_email ),
 			);
 		}
 
