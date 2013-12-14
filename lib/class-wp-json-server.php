@@ -173,18 +173,18 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$jsonp_enabled = apply_filters( 'json_jsonp_enabled', true );
 
 		if ( ! $enabled ) {
-			echo $this->json_error( 'json_disabled', 'The JSON API is disabled on this site.', 404 );
+			echo $this->json_error( 'json_disabled', __( 'The JSON API is disabled on this site.' ), 404 );
 			return false;
 		}
 		if ( isset($_GET['_jsonp']) ) {
 			if ( ! $jsonp_enabled ) {
-				echo $this->json_error( 'json_callback_disabled', 'JSONP support is disabled on this site.', 400 );
+				echo $this->json_error( 'json_callback_disabled', __( 'JSONP support is disabled on this site.' ), 400 );
 				return false;
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
 			if ( preg_match( '/\W/', $_GET['_jsonp'] ) ) {
-				echo $this->json_error( 'json_callback_invalid', 'The JSONP callback function is invalid.', 400 );
+				echo $this->json_error( 'json_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
 		}
