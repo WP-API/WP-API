@@ -231,8 +231,9 @@ built-in types, your registration code should look something like this:
 
 	function myplugin_api_init() {
 		global $myplugin_api_mytype;
+	    global $wp_json_server;
 
-		$myplugin_api_mytype = new MyPlugin_API_MyType();
+		$myplugin_api_mytype = new MyPlugin_API_MyType( $wp_json_server );
 		add_filter( 'json_endpoints', array( $myplugin_api_mytype, 'registerRoutes' ) );
 	}
 	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
@@ -263,9 +264,10 @@ hooking and more for you:
 	// main.php
 	function myplugin_api_init() {
 		global $myplugin_api_mytype;
+	    global $wp_json_server;
 
 		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
-		$myplugin_api_mytype = new MyPlugin_API_MyType();
+		$myplugin_api_mytype = new MyPlugin_API_MyType( $wp_json_server );
 	}
 	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
 
