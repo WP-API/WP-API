@@ -6,7 +6,7 @@ run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
 ## Documentation
 Read the [plugin's documentation][docs].
 
-[docs]: https://github.com/rmccue/WP-API/tree/master/docs
+[docs]: https://github.com/WP-API/WP-API/tree/master/docs
 
 
 ## Installation
