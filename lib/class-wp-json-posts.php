@@ -847,12 +847,23 @@ class WP_JSON_Posts {
 			return $can_insert;
 		}
 
-		// Post meta
-		// TODO: implement this
+		// Insert or update post
 		$post_ID = $update ? wp_update_post( $post, true ) : wp_insert_post( $post, true );
 
 		if ( is_wp_error( $post_ID ) ) {
 			return $post_ID;
+		}
+
+		// Post meta
+		// Needs to happen after we have a post ID, in case it's an insertion
+		if ( ! empty( $data['post_meta'] ) ) {
+			foreach ($data['post_meta'] as $key => $value) {
+				$meta_inserted = update_post_meta( $post_ID, $key, $value );
+				if ( is_wp_error( $meta_inserted ) ) {
+					return new WP_Error( 'json_invalid_post_meta_format', __( 'Invalid post meta format.' ), array( 'status' => 400 ) );
+				}
+			}
+			$post['post_meta'] = $data['post_meta'];
 		}
 
 		// Sticky
