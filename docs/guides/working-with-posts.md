@@ -60,7 +60,8 @@ The last parameter is the `filter` parameter. This gives you full access to the
 level of access you have, not all parameters will be available, so check the
 [schema][] for the available parameters. A good assumption to make is that
 anything you can put in a query on the site itself (such as `?s=...` for
-searches) will be available.
+searches) will be available. You can specify filter parameters in a request
+using [array-style URL formatting][].
 
 
 Creating and Editing Posts
@@ -283,3 +284,4 @@ take a look at the other APIs, or look at documentation on the specifics.
 [Extending the API]: extending.md
 [schema]: ../schema.md
 [WP_Query]: http://codex.wordpress.org/Class_Reference/WP_Query
+[array-style URL formatting]: ../compatibility.md#inputting-data-as-an-array
