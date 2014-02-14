@@ -620,10 +620,14 @@ class WP_JSON_Posts {
 
 		$custom_fields = (array) get_post_meta( $post_id );
 
-		foreach ( $custom_fields as $meta_key => $meta_value ) {
+		foreach ( $custom_fields as $meta_key => &$meta_values ) {
 			// Don't expose protected fields.
 			if ( is_protected_meta( $meta_key ) )
-			    unset( $custom_fields[$meta_key] );
+				unset( $custom_fields[$meta_key] );
+
+			foreach ($meta_values as &$metavalue) {
+				$metavalue = maybe_unserialize($metavalue);
+			}
 		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields );
