@@ -80,8 +80,6 @@ function json_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['json_route'] ) )
 		return;
 
-	include_once( ABSPATH . WPINC . '/class-IXR.php' );
-	include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 
 	/**
