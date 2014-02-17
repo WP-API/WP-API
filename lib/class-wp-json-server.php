@@ -700,7 +700,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		if ( strpos( $date, '.' ) !== false ) {
 			$date = preg_replace( '/\.\d+/', '', $date );
 		}
-		$datetime = DateTime::createFromFormat( DateTime::RFC3339, $date );
+		$datetime = WP_JSON_DateTime::createFromFormat( DateTime::RFC3339, $date );
 
 		return $datetime;
 	}
