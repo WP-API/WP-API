@@ -24,8 +24,6 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		parent::setUp();
 
-		include_once( ABSPATH . WPINC . '/class-IXR.php' );
-		include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
 		include_once( plugin_dir_path( dirname( __FILE__ ) ) . 'lib/class-wp-json-server.php' );
 
 		// Allow for a plugin to insert a different class to handle requests.
