@@ -299,7 +299,7 @@ class WP_JSON_Posts {
 			// and C's asctime() format (and ignore invalid headers)
 			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
 			foreach ( $formats as $format ) {
-				$check = DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
+				$check = WP_JSON_DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
 
 				if ( $check !== false )
 					break;
@@ -533,12 +533,12 @@ class WP_JSON_Posts {
 		// Dates
 		$timezone = $this->server->get_timezone();
 
-		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
+		$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
 		$post_fields['date'] = $date->format( 'c' );
 		$post_fields_extended['date_tz'] = $date->format( 'e' );
 		$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
 
-		$modified = DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
+		$modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
 		$post_fields['modified'] = $modified->format( 'c' );
 		$post_fields_extended['modified_tz'] = $modified->format( 'e' );
 		$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
@@ -895,7 +895,7 @@ class WP_JSON_Posts {
 		if ( strpos( $date, '.' ) !== false ) {
 			$date = preg_replace( '/\.\d+/', '', $date );
 		}
-		$datetime = DateTime::createFromFormat( DateTime::RFC3339, $date );
+		$datetime = WP_JSON_DateTime::createFromFormat( DateTime::RFC3339, $date );
 
 		return $datetime;
 	}
@@ -997,7 +997,7 @@ class WP_JSON_Posts {
 		// Date
 		$timezone = $this->server->get_timezone();
 
-		$date = DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
+		$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date'] = $date->format( 'c' );
 		$fields['date_tz'] = $date->format( 'e' );
 		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
