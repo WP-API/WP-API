@@ -10,6 +10,9 @@
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
+
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );

@@ -236,9 +236,8 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 		}
 
-		$this->server->send_status( 201 );
-		$this->server->header( 'Location', json_url( '/media/' . $id ) );
-		return $this->getPost( $id, 'edit' );
+		$headers = array( 'Location' => json_url( '/media/' . $id ) );
+		return new WP_JSON_Response( $this->getPost( $id, 'edit' ), 201, $headers );
 	}
 
 	/**

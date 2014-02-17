@@ -123,15 +123,18 @@ class WP_JSON_Posts {
 
 		$post_query = new WP_Query();
 		$posts_list = $post_query->query( $query );
-		$this->server->query_navigation_headers( $post_query );
+		$response = new WP_JSON_Response();
+		$response->query_navigation_headers( $post_query );
 
-		if ( ! $posts_list )
-			return array();
+		if ( ! $posts_list ) {
+			$response->set_data( array() );
+			return $response;
+		}
 
 		// holds all the posts data
 		$struct = array();
 
-		$this->server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
+		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
@@ -140,11 +143,12 @@ class WP_JSON_Posts {
 			if ( ! $this->checkReadPermission( $post ) )
 				continue;
 
-			$this->server->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
+			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
 			$struct[] = $this->prepare_post( $post, $context );
 		}
+		$response->set_data( $struct );
 
-		return $struct;
+		return $response;
 	}
 
 	/**
@@ -211,10 +215,10 @@ class WP_JSON_Posts {
 
 		$result = $this->insert_post( $data );
 		if ( is_string( $result ) || is_int( $result ) ) {
-			$this->server->send_status( 201 );
-			$this->server->header( 'Location', json_url( '/posts/' . $result ) );
-
-			return $this->getPost( $result );
+			$response = $this->getPost( $result );
+			$response->set_status( 201 );
+			$response->header( 'Location', json_url( '/posts/' . $result ) );
+			return $response;
 		}
 		elseif ( $result instanceof IXR_Error ) {
 			return new WP_Error( 'json_insert_error', $result->message, array( 'status' => $result->code ) );
@@ -249,18 +253,20 @@ class WP_JSON_Posts {
 
 		// Link headers (see RFC 5988)
 
-		$this->server->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
+		$response = new WP_JSON_Response();
+		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
 		$post = $this->prepare_post( $post, $context );
 		if ( is_wp_error( $post ) )
 			return $post;
 
 		foreach ( $post['meta']['links'] as $rel => $url ) {
-			$this->server->link_header( $rel, $url );
+			$response->link_header( $rel, $url );
 		}
-		$this->server->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
-		return $post;
+		$response->set_data( $post );
+		return $response;
 	}
 
 	/**
