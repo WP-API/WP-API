@@ -120,19 +120,50 @@ function json_api_loaded() {
 add_action( 'template_redirect', 'json_api_loaded', -100 );
 
 /**
- * Flush the rewrite rules on activation
+ * Register routes and flush the rewrite rules on activation.
  */
-function json_api_activation() {
-	json_api_register_rewrites();
-	flush_rewrite_rules();
+function json_api_activation( $network_wide ) {
+	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
+
+		$mu_blogs = wp_get_sites();
+
+		foreach ( $mu_blogs as $mu_blog ) {
+
+			switch_to_blog( $mu_blog['blog_id'] );
+			json_api_register_rewrites();
+			flush_rewrite_rules();
+		}
+
+		restore_current_blog();
+
+	} else {
+
+		json_api_register_rewrites();
+		flush_rewrite_rules();
+	}
 }
 register_activation_hook( __FILE__, 'json_api_activation' );
 
 /**
- * Also flush the rewrite rules on deactivation
+ * Flush the rewrite rules on deactivation
  */
-function json_api_deactivation() {
-	flush_rewrite_rules();
+function json_api_deactivation( $network_wide ) {
+	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
+
+		$mu_blogs = wp_get_sites();
+
+		foreach ( $mu_blogs as $mu_blog ) {
+
+			switch_to_blog( $mu_blog['blog_id'] );
+			flush_rewrite_rules();
+		}
+
+		restore_current_blog();
+
+	} else {
+
+		flush_rewrite_rules();
+	}
 }
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
