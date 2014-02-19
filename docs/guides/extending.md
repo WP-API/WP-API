@@ -130,9 +130,9 @@ preparation and request handling. This will automatically register all the post
 methods for their endpoints.
 
 Along these lines, keep your methods named as generically as possible; while
-`MyPlugin_API_MyType::getMyTypeItems()` might seem like a good name, it makes it
+`MyPlugin_API_MyType::get_my_type_items()` might seem like a good name, it makes it
 harder for other plugins to use; standardising on
-`MyPlugin_API_MyType::getPosts()` with similar arguments to the parent is a
+`MyPlugin_API_MyType::get_posts()` with similar arguments to the parent is a
 better idea and allows a nicer fall-through.
 
 You should also aim to keep these related endpoints modular, and make liberal
@@ -159,7 +159,7 @@ errors.
 For example, an endpoint that takes a required `context` parameter, an optional
 `type` parameter and uses the `X-WP-Example` header would look like this:
 
-	function getMyData( $context, $_headers, $type = 'my-default-value' ) {
+	function get_my_data( $context, $_headers, $type = 'my-default-value' ) {
 		if ( isset( $_headers['X-WP-EXAMPLE'] ) ) {
 			$my_header_value = $_headers['X-WP-EXAMPLE'];
 		}
@@ -233,20 +233,20 @@ built-in types, your registration code should look something like this:
 		global $myplugin_api_mytype;
 
 		$myplugin_api_mytype = new MyPlugin_API_MyType();
-		add_filter( 'json_endpoints', array( $myplugin_api_mytype, 'registerRoutes' ) );
+		add_filter( 'json_endpoints', array( $myplugin_api_mytype, 'register_routes' ) );
 	}
 	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
 
 	class MyPlugin_API_MyType {
-		public function registerRoutes( $routes ) {
+		public function register_routes( $routes ) {
 			$routes['/myplugin/mytypeitems'] = array(
-				array( array( $this, 'getPosts'), WP_JSON_Server::READABLE ),
-				array( array( $this, 'newPost'), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_posts'), WP_JSON_Server::READABLE ),
+				array( array( $this, 'new_post'), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			);
 			$routes['/myplugin/mytypeitems/(?P<id>\d+)'] = array(
-				array( array( $this, 'getPost'), WP_JSON_Server::READABLE ),
-				array( array( $this, 'editPost'), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'deletePost'), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_post'), WP_JSON_Server::READABLE ),
+				array( array( $this, 'edit_post'), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete_post'), WP_JSON_Server::DELETABLE ),
 			);
 
 			// Add more custom routes here
@@ -274,10 +274,10 @@ hooking and more for you:
 		protected $base = '/myplugin/mytypeitems';
 		protected $type = 'myplugin-mytype';
 
-		public function registerRoutes( $routes ) {
-			$routes = parent::registerRoutes( $routes );
-			// $routes = parent::registerRevisionRoutes( $routes );
-			// $routes = parent::registerCommentRoutes( $routes );
+		public function register_routes( $routes ) {
+			$routes = parent::register_routes( $routes );
+			// $routes = parent::register_revision_routes( $routes );
+			// $routes = parent::register_comment_routes( $routes );
 
 			// Add more custom routes here
 
