@@ -1036,7 +1036,7 @@ class WP_JSON_Posts {
 	public function __call($name, $arguments) {
 		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
 		if ( method_exists( $this, $underscored ) ) {
-			_deprecated_function( __CLASS__ . '->' . $name, '0.9', __CLASS__ . '->' . $underscored );
+			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
 			return call_user_func_array( array( $this, $underscored ), $arguments );
 		}
 	}
