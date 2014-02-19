@@ -288,10 +288,10 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 *
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or `'/path/regex' => array( array( $callback, $bitmask ), ...)`
 	 */
-	public function getRoutes() {
+	public function get_routes() {
 		$endpoints = array(
 			// Meta endpoints
-			'/' => array( array( $this, 'getIndex' ), self::READABLE ),
+			'/' => array( array( $this, 'get_index' ), self::READABLE ),
 
 			// Users
 			'/users'               => array(
@@ -349,7 +349,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			default:
 				return new WP_Error( 'json_unsupported_method', __( 'Unsupported request method' ), array( 'status' => 400 ) );
 		}
-		foreach ( $this->getRoutes() as $route => $handlers ) {
+		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
 				$callback = $handler[0];
 				$supported = isset( $handler[1] ) ? $handler[1] : self::METHOD_GET;
@@ -446,7 +446,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 *
 	 * @return array Index entity
 	 */
-	public function getIndex() {
+	public function get_index() {
 		// General site data
 		$available = array(
 			'name' => get_option( 'blogname' ),
@@ -462,7 +462,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		);
 
 		// Find the available routes
-		foreach ( $this->getRoutes() as $route => $callbacks ) {
+		foreach ( $this->get_routes() as $route => $callbacks ) {
 			$data = array();
 
 			$route = preg_replace( '#\(\?P(<\w+?>).*?\)#', '$1', $route );

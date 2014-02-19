@@ -39,16 +39,16 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
 	 */
-	public function registerRoutes( $routes ) {
-		$routes = parent::registerRoutes( $routes );
-		$routes = parent::registerRevisionRoutes( $routes );
-		$routes = parent::registerCommentRoutes( $routes );
+	public function register_routes( $routes ) {
+		$routes = parent::register_routes( $routes );
+		$routes = parent::register_revision_routes( $routes );
+		$routes = parent::register_comment_routes( $routes );
 
 		// Add post-by-path routes
 		$routes[ $this->base . '/(?P<path>.+)'] = array(
-			array( array( $this, 'getPostByPath' ),    WP_JSON_Server::READABLE ),
-			array( array( $this, 'editPostByPath' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-			array( array( $this, 'deletePostByPath' ), WP_JSON_Server::DELETABLE ),
+			array( array( $this, 'get_post_by_path' ),    WP_JSON_Server::READABLE ),
+			array( array( $this, 'edit_post_by_path' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+			array( array( $this, 'delete_post_by_path' ), WP_JSON_Server::DELETABLE ),
 		);
 
 		return $routes;
@@ -59,13 +59,13 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 *
 	 * @param string $path
 	 */
-	public function getPostByPath( $path, $context = 'view' ) {
+	public function get_post_by_path( $path, $context = 'view' ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
 		if ( empty( $post ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
-		return $this->getPost( $post['ID'], $context );
+		return $this->get_post( $post['ID'], $context );
 	}
 
 	/**
@@ -73,13 +73,13 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 *
 	 * @param string $path
 	 */
-	public function editPostByPath( $path, $data, $_headers = array() ) {
+	public function edit_post_by_path( $path, $data, $_headers = array() ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
 		if ( empty( $post ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
-		return $this->editPost( $post['ID'], $data, $_headers );
+		return $this->edit_post( $post['ID'], $data, $_headers );
 	}
 
 	/**
@@ -87,13 +87,13 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 *
 	 * @param string $path
 	 */
-	public function deletePostByPath( $path, $force = false ) {
+	public function delete_post_by_path( $path, $force = false ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
 		if ( empty( $post ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
-		return $this->deletePost( $post['ID'], $force );
+		return $this->delete_post( $post['ID'], $force );
 	}
 
 	/**
