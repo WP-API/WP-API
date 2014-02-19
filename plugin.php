@@ -47,24 +47,24 @@ function json_api_default_filters($server) {
 
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts($server);
-	add_filter( 'json_endpoints', array( $wp_json_posts, 'registerRoutes' ), 0 );
+	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages($server);
-	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ), 1 );
+	add_filter( 'json_endpoints', array( $wp_json_pages, 'register_routes' ), 1 );
 	add_filter( 'json_post_type_data', array( $wp_json_pages, 'type_archive_link' ), 10, 2 );
 
 	// Media
 	$wp_json_media = new WP_JSON_Media($server);
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'registerRoutes' ), 1 );
-	add_filter( 'json_prepare_post',    array( $wp_json_media, 'addThumbnailData' ), 10, 3 );
-	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsertCheck' ),   10, 3 );
-	add_filter( 'json_insert_post',     array( $wp_json_media, 'attachThumbnail' ),  10, 3 );
+	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes' ), 1 );
+	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
+	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check' ),   10, 3 );
+	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail' ),  10, 3 );
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link' ), 10, 2 );
 
 	// Posts
 	$wp_json_taxonomies = new WP_JSON_Taxonomies($server);
-	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'registerRoutes' ), 2 );
+	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes' ), 2 );
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data' ), 10, 3 );
 }
