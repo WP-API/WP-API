@@ -126,19 +126,19 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @return array List of associative arrays with code and message keys
 	 */
 	protected function error_to_response( $error ) {
-		if ( is_array( $data ) && isset( $data['status'] ) ) {
-			$status = $data['status'];
-		}
-		else {
-			$status = 500;
-		}
+		$status = 500;
 
 		$data = array();
 		foreach ( (array) $error->errors as $code => $messages ) {
 			foreach ( (array) $messages as $message ) {
+				if ( isset( $error->error_data[$code]['status'] ) ) {
+					$status = $error->error_data[$code]['status'];
+				}
+
 				$data[] = array( 'code' => $code, 'message' => $message );
 			}
 		}
+
 		$response = new WP_JSON_Response( $data, $status );
 
 		return $response;
