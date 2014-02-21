@@ -3,33 +3,11 @@
 # Tell Travis CI we're using PHP
 language: php
 
-# PHP version used in first build configuration.
 php:
+    - "5.2"
+    - "5.3"
+    - "5.4"
     - "5.5"
-
-# WordPress version used in first build configuration.
-env:
-    - WP_VERSION=master
-
-# Next we define our matrix of additional build configurations to test against.
-# The versions listed above will automatically create our first configuration,
-# so it doesn't need to be re-defined below.
-
-# WP_VERSION specifies the tag to use. The way these tests are configured to run
-# requires at least WordPress 3.8. Specify "master" to test against SVN trunk.
-
-# Note that Travis CI supports listing these above to automatically build a
-# matrix of configurations, but we're being nice here by manually building a
-# total of four configurations even though we're testing 4 versions of PHP
-# along with 2 versions of WordPress (which would build 8 configs otherwise).
-# This takes half as long to run while still providing adequate coverage.
-
-matrix:
-  include:
-    - php: "5.2"
-    - php: "5.3"
-    - php: "5.4"
-    - php: "5.4"
 
 # Clones WordPress and configures our testing environment.
 before_script:
@@ -37,7 +15,6 @@ before_script:
     - git clone https://github.com/tierra/wordpress.git /tmp/wordpress
     - git clone . "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
     - cd /tmp/wordpress
-    - git checkout $WP_VERSION
     - mysql -e "CREATE DATABASE wordpress_tests;" -uroot
     - cp wp-tests-config-sample.php wp-tests-config.php
     - sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
