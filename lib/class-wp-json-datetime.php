@@ -12,6 +12,9 @@ class WP_JSON_DateTime extends DateTime
      */
     public static function createFromFormat($format, $time, $timezone = null)
     {
+		if ( is_null( $timezone ) ) {
+			$timezone = new DateTimeZone( date_default_timezone_get() );
+		}
         if ( method_exists('DateTime', 'createFromFormat') ) {
             return parent::createFromFormat($format, $time, $timezone);
         }
