@@ -51,8 +51,6 @@ function json_api_default_filters($server) {
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages($server);
-	add_filter( 'json_endpoints', array( $wp_json_pages, 'registerRoutes' ), 1 );
-	add_filter( 'json_post_type_data', array( $wp_json_pages, 'type_archive_link' ), 10, 2 );
 
 	// Media
 	$wp_json_media = new WP_JSON_Media($server);
