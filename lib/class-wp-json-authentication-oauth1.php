@@ -81,12 +81,15 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 
 		$param_names = array(
 			'oauth_consumer_key',
-			'oauth_token',
 			'oauth_timestamp',
 			'oauth_nonce',
 			'oauth_signature',
 			'oauth_signature_method'
 		);
+
+		if ( $require_token ) {
+			$param_names[] = 'oauth_token';
+		}
 
 		$errors = array();
 		$have_one = false;
@@ -237,7 +240,16 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 	 * @param int $oauth_timestamp
 	 * @return array
 	 */
-	public function generate_request_token( $oauth_consumer_key, $oauth_signature, $oauth_signature_method, $oauth_nonce, $oauth_timestamp ) {
+	public function generate_request_token() {
+		$params = $this->get_parameters( false );
+
+		if ( is_wp_error( $params ) ) {
+			return $params;
+		}
+		if ( empty( $params ) ) {
+			return new WP_Error( 'json_oauth1_missing_parameter', __( 'No OAuth parameters supplied' ), array( 'status' => 400 ) );
+		}
+
 		$consumer = $this->get_consumer( $oauth_consumer_key );
 		if ( is_wp_error( $consumer ) ) {
 			return $consumer;
