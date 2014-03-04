@@ -40,22 +40,45 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 	}
 
 	/**
-	 * Check OAuth authentication
+	 * Parse the Authorization header into parameters
 	 *
-	 * This follows the spec for simple OAuth 1.0a authentication (RFC 5849) as
-	 * closely as possible, with two exceptions.
-	 *
-	 * @link http://tools.ietf.org/html/rfc5849 OAuth 1.0a Specification
-	 *
-	 * @param WP_User|null Already authenticated user (will be passed through), or null to perform OAuth authentication
-	 * @return WP_User|null|WP_Error Authenticated user on success, null if no OAuth data supplied, error otherwise
+	 * @param string $header Authorization header value (not including "Authorization: " prefix)
+	 * @return array|boolean Map of parameter values, false if not an OAuth header
 	 */
-	public function authenticate( $user ) {
-		if ( ! empty( $user ) ) {
-			return $user;
+	public function parse_header( $header ) {
+		if ( substr( $header, 0, 6 ) !== 'OAuth ' ) {
+			return false;
 		}
 
-		$params = $this->server->params['GET'];
+		// From OAuth PHP library, used under MIT license
+		$params = array();
+		if ( preg_match_all( '/(oauth_[a-z_-]*)=(:?"([^"]*)"|([^,]*))/', $header, $matches ) ) {
+			foreach ($matches[1] as $i => $h) {
+				$params[$h] = urldecode( empty($matches[3][$i]) ? $matches[4][$i] : $matches[3][$i] );
+			}
+			if (isset($params['realm'])) {
+				unset($params['realm']);
+			}
+		}
+		return $params;
+
+	}
+
+	public function get_parameters( $require_token = true ) {
+		$params = array_merge( $this->server->params['GET'], $this->server->params['POST'] );
+
+		if ( ! empty( $this->server->headers['AUTHORIZATION'] ) ) {
+			$header = wp_unslash( $this->server->headers['AUTHORIZATION'] );
+
+			// Trim leading 'Authorization:'
+			$header = trim( substr( $header, 14 ) );
+
+			$header_params = $this->parse_header( $header );
+			if ( ! empty( $header_params ) ) {
+				$params = array_merge( $params, $header_params );
+			}
+		}
+
 		$param_names = array(
 			'oauth_consumer_key',
 			'oauth_token',
@@ -93,6 +116,35 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 				implode(', ', $errors )
 			);
 			return new WP_Error( 'json_oauth1_missing_parameter', $message, array( 'status' => 401 ) );
+		}
+
+		return $params;
+	}
+
+	/**
+	 * Check OAuth authentication
+	 *
+	 * This follows the spec for simple OAuth 1.0a authentication (RFC 5849) as
+	 * closely as possible, with two exceptions.
+	 *
+	 * @link http://tools.ietf.org/html/rfc5849 OAuth 1.0a Specification
+	 *
+	 * @param WP_User|null Already authenticated user (will be passed through), or null to perform OAuth authentication
+	 * @return WP_User|null|WP_Error Authenticated user on success, null if no OAuth data supplied, error otherwise
+	 */
+	public function authenticate( $user ) {
+		if ( ! empty( $user ) ) {
+			return $user;
+		}
+
+		// Skip authentication for OAuth meta requests
+		if ( strpos( $this->server->path, '/oauth1/' ) !== false ) {
+			return null;
+		}
+
+		$params = $this->get_parameters();
+		if ( ! is_array( $params ) ) {
+			return $params;
 		}
 
 		// Fetch user by token key
