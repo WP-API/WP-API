@@ -97,7 +97,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	public function check_authentication() {
 		$user = apply_filters( 'json_check_authentication', null );
-		if ( is_a( $user, 'WP_User' ) )
+		if ( is_a( $user, 'WP_User' ) || is_wp_error( $user ) )
 			return $user;
 
 		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) )
