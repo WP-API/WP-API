@@ -276,6 +276,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		$data = array(
 			'oauth_token' => OAuthUtil::urlencode_rfc3986($key),
 			'oauth_token_secret' => OAuthUtil::urlencode_rfc3986($data['secret']),
+			'oauth_callback_confirmed' => 'true',
 		);
 		return $data;
 	}
