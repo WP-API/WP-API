@@ -71,7 +71,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		// check for required OAuth parameters
 		foreach ( $param_names as $param_name ) {
 			if ( empty( $params[ $param_name ] ) )
-				$errors[] = true;
+				$errors[] = $param_name;
 			else
 				$have_one = true;
 		}
