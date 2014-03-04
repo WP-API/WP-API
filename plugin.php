@@ -75,7 +75,7 @@ add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_json_server_class filter and serving requests. This would also
- *       help for code re-use by wp-json.php endpoint. Note that we can't unit
+ *       help for code re-use by `wp-json` endpoint. Note that we can't unit
  *       test any method that calls die().
  */
 function json_api_loaded() {

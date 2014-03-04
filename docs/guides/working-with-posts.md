@@ -15,12 +15,12 @@ This guide also assumes that you know how to send requests given how to use
 them, so the examples will be HTTP requests. I recommend reading the cURL manual
 or using a higher level tool if you don't know how to wrangle cURL.
 
-The examples also pretend that your JSON base URL (`wp-json.php` in the main WP
+The examples also pretend that your JSON base URL (`wp-json` in the main WP
 directory) is located at `/`, which is probably not the case. For example, if
-your base URL is `http://example.com/wp-json.php` and the example request is
+your base URL is `http://example.com/wp-json` and the example request is
 `GET /posts`, you should should actually send the following:
 
-    GET /wp-json.php/posts HTTP/1.1
+    GET /wp-json/posts HTTP/1.1
     Host: example.com
 
 Higher level HTTP clients can usually handle this for you.
@@ -137,8 +137,8 @@ This should return a list of the available types:
             "hierarchical": false,
             "meta": {
                 "links": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/types\/post",
-                    "archives": "http:\/\/example.com\/wp-json.php\/posts"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/types\/post",
+                    "archives": "http:\/\/example.com\/wp-json\/posts"
                 }
             }
         },
@@ -167,7 +167,7 @@ This should return a list of the available types:
             "hierarchical": true,
             "meta": {
                 "links": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/types\/page"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/types\/page"
                 }
             }
         },
@@ -196,8 +196,8 @@ This should return a list of the available types:
             "hierarchical": false,
             "meta": {
                 "links": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/types\/attachment",
-                    "archives": "http:\/\/example.com\/wp-json.php\/posts?type=attachment"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/types\/attachment",
+                    "archives": "http:\/\/example.com\/wp-json\/posts?type=attachment"
                 }
             }
         }
@@ -221,7 +221,7 @@ A similar API exists for post statuses at `/posts/statuses`:
             "queryable": true,
             "show_in_list": true,
             "meta": {
-                "archives": "http:\/\/example.com\/wp-json.php\/posts"
+                "archives": "http:\/\/example.com\/wp-json\/posts"
             }
         },
         "future": {
