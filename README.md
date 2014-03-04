@@ -2,6 +2,8 @@
 This is a project to create a JSON-based REST API for WordPress. This project is
 run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
 
+[![Build Status](https://travis-ci.org/WP-API/WP-API.png?branch=master)](https://travis-ci.org/WP-API/WP-API)
+
 
 ## Documentation
 Read the [plugin's documentation][docs].
