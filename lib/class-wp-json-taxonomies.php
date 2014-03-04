@@ -7,20 +7,20 @@ class WP_JSON_Taxonomies {
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
 	 */
-	public function registerRoutes( $routes ) {
+	public function register_routes( $routes ) {
 		$tax_routes = array(
 			'/posts/types/(?P<type>\w+)/taxonomies' => array(
-				array( array( $this, 'getTaxonomies' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
-				array( array( $this, 'getTaxonomy' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomy' ), WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
-				array( array( $this, 'getTerms' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( array( $this, 'getTerm' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( '__return_null', WP_JSON_Server::DELETABLE ),
 			),
@@ -30,11 +30,11 @@ class WP_JSON_Taxonomies {
 
 	/**
 	 * Get taxonomies
-	 * 
+	 *
 	 * @param string $type Post type to get taxonomies for
 	 * @return array Taxonomy data
 	 */
-	public function getTaxonomies( $type ) {
+	public function get_taxonomies( $type ) {
 		$taxonomies = get_object_taxonomies( $type, 'objects' );
 
 		$data = array();
@@ -51,11 +51,11 @@ class WP_JSON_Taxonomies {
 
 	/**
 	 * Get taxonomies
-	 * 
+	 *
 	 * @param string $type Post type to get taxonomies for
 	 * @return array Taxonomy data
 	 */
-	public function getTaxonomy( $type, $taxonomy ) {
+	public function get_taxonomy( $type, $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
 		if ( empty( $tax ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
@@ -108,7 +108,7 @@ class WP_JSON_Taxonomies {
 	 * @return array Filtered data
 	 */
 	public function add_taxonomy_data( $data, $type ) {
-		$data['taxonomies'] = $this->getTaxonomies( $type->name );
+		$data['taxonomies'] = $this->get_taxonomies( $type->name );
 
 		return $data;
 	}
@@ -120,7 +120,7 @@ class WP_JSON_Taxonomies {
 	 * @param string $taxonomy Taxonomy slug
 	 * @return array Term collection
 	 */
-	public function getTerms( $type, $taxonomy ) {
+	public function get_terms( $type, $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -147,7 +147,7 @@ class WP_JSON_Taxonomies {
 	 * @param string $context Context (view/view-parent)
 	 * @return array Term entity
 	 */
-	public function getTerm( $type, $taxonomy, $term, $context = 'view' ) {
+	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -201,12 +201,27 @@ class WP_JSON_Taxonomies {
 		);
 
 		if ( ! empty( $data['parent'] ) && $context === 'view' ) {
-			$data['parent'] = $this->getTerm( $type, $term->taxonomy, $data['parent'], 'view-parent' );
+			$data['parent'] = $this->get_term( $type, $term->taxonomy, $data['parent'], 'view-parent' );
 		}
 		elseif ( empty( $data['parent'] ) ) {
 			$data['parent'] = null;
 		}
 
 		return apply_filters( 'json_prepare_term', $data, $term );
+	}
+
+	/**
+	 * Magic method used to temporaly deprecate camelcase functions
+	 *
+	 * @param string $name      Function name
+	 * @param array  $arguments Function arguments
+	 * @return mixed
+	 */
+	public function __call($name, $arguments) {
+		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
+		if ( method_exists( $this, $underscored ) ) {
+			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
+			return call_user_func_array( array( $this, $underscored ), $arguments );
+		}
 	}
 }
