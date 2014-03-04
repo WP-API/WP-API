@@ -24,8 +24,8 @@ define('JSON_REQUEST', true);
 include('./wp-load.php');
 
 include_once(ABSPATH . 'wp-admin/includes/admin.php');
-include_once(ABSPATH . WPINC . '/class-IXR.php');
 include_once(ABSPATH . WPINC . '/class-wp-xmlrpc-server.php');
+include_once(ABSPATH . WPINC . '/class-wp-json-datetime.php');
 include_once(ABSPATH . WPINC . '/class-wp-json-server.php');
 
 // Allow for a plugin to insert a different class to handle requests.

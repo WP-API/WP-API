@@ -257,15 +257,17 @@ built-in types, your registration code should look something like this:
 		// ...
 	}
 
+You will need to implement the getPost, editPost, getPosts, and newPost methods within your new class. Take a look at the WP_JSON_Posts class to see examples of how these methods can be written.
+
 Alternatively, use the custom post type base class, which will handle the
 hooking and more for you:
 
 	// main.php
-	function myplugin_api_init() {
+	function myplugin_api_init( $server ) {
 		global $myplugin_api_mytype;
 
 		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
-		$myplugin_api_mytype = new MyPlugin_API_MyType();
+		$myplugin_api_mytype = new MyPlugin_API_MyType( $server );
 	}
 	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
 

@@ -9,6 +9,8 @@
  */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
+
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
@@ -31,8 +33,8 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 function json_api_register_rewrites() {
-	add_rewrite_rule( '^wp-json\.php/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^wp-json\.php(.*)?','index.php?json_route=$matches[1]','top' );
+	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
+	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
 }
 
 /**
@@ -73,15 +75,13 @@ add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_json_server_class filter and serving requests. This would also
- *       help for code re-use by wp-json.php endpoint. Note that we can't unit
+ *       help for code re-use by `wp-json` endpoint. Note that we can't unit
  *       test any method that calls die().
  */
 function json_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['json_route'] ) )
 		return;
 
-	include_once( ABSPATH . WPINC . '/class-IXR.php' );
-	include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
 	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 
 	/**
@@ -230,7 +230,7 @@ add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
  * @return string Full URL to the endpoint
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_home_url( $blog_id, 'wp-json.php', $scheme );
+	$url = get_home_url( $blog_id, 'wp-json', $scheme );
 
 	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 		$url .= '/' . ltrim( $path, '/' );

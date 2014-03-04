@@ -12,8 +12,9 @@ php:
 # Clones WordPress and configures our testing environment.
 before_script:
     - export PLUGIN_SLUG=$(basename $(pwd))
-    - git clone https://github.com/tierra/wordpress.git /tmp/wordpress
-    - git clone . "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - git clone git://develop.git.wordpress.org/ /tmp/wordpress
+    - mkdir "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - cp -r . "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/"
     - cd /tmp/wordpress
     - mysql -e "CREATE DATABASE wordpress_tests;" -uroot
     - cp wp-tests-config-sample.php wp-tests-config.php
