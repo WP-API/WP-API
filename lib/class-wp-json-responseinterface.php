@@ -31,5 +31,5 @@ interface WP_JSON_ResponseInterface extends JsonSerializable {
 	 *
 	 * @return mixed Any JSON-serializable value
 	 */
-	public function jsonSerialize();
+	// public function jsonSerialize();
 }
