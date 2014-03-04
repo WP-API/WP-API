@@ -31,7 +31,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 
 	public function register_routes( $endpoints ) {
 		$endpoints['/oauth1/request'] = array(
-			array( array( $this, 'get_request_token' ), WP_JSON_Server::CREATABLE ),
+			array( array( $this, 'generate_request_token' ), WP_JSON_Server::CREATABLE ),
 		);
 		$endpoints['/oauth1/access'] = array(
 			array( array( $this, 'get_access_token' ), WP_JSON_Server::CREATABLE ),
