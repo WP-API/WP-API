@@ -214,18 +214,14 @@ class WP_JSON_Posts {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
-		if ( is_string( $result ) || is_int( $result ) ) {
-			$response = $this->getPost( $result );
-			$response->set_status( 201 );
-			$response->header( 'Location', json_url( '/posts/' . $result ) );
-			return $response;
+		if ( $result instanceof WP_Error ) {
+			return $result;
 		}
-		elseif ( $result instanceof IXR_Error ) {
-			return new WP_Error( 'json_insert_error', $result->message, array( 'status' => $result->code ) );
-		}
-		else {
-			return new WP_Error( 'json_insert_error', __( 'An unknown error occurred while creating the post' ), array( 'status' => 500 ) );
-		}
+
+		$response = $this->getPost( $result );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/posts/' . $result ) );
+		return $response;
 	}
 
 	/**
