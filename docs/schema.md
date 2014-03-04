@@ -102,7 +102,7 @@ value indicating a human-readable documentation page about the API.
 					"GET"
 				],
 				"meta": {
-					"self": "http:\/\/example.com\/wp-json.php\/"
+					"self": "http:\/\/example.com\/wp-json\/"
 				}
 			},
 			"\/posts": {
@@ -112,7 +112,7 @@ value indicating a human-readable documentation page about the API.
 					"POST"
 				],
 				"meta": {
-					"self": "http:\/\/example.com\/wp-json.php\/posts"
+					"self": "http:\/\/example.com\/wp-json\/posts"
 				},
 				"accepts_json": true
 			},
@@ -365,8 +365,8 @@ representation.
 			"avatar": "http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
 			"meta": {
 				"links": {
-					"self": "http:\/\/example.com\/wp-json.php\/users\/1",
-					"archives": "http:\/\/example.com\/wp-json.php\/users\/1\/posts"
+					"self": "http:\/\/example.com\/wp-json\/users\/1",
+					"archives": "http:\/\/example.com\/wp-json\/users\/1\/posts"
 				}
 			},
 			"first_name": "",
@@ -394,11 +394,11 @@ representation.
 		],
 		"meta": {
 			"links": {
-				"self": "http:\/\/example.com\/wp-json.php\/posts\/1",
-				"author": "http:\/\/example.com\/wp-json.php\/users\/1",
-				"collection": "http:\/\/example.com\/wp-json.php\/posts",
-				"replies": "http:\/\/example.com\/wp-json.php\/posts\/1\/comments",
-				"version-history": "http:\/\/example.com\/wp-json.php\/posts\/1\/revisions"
+				"self": "http:\/\/example.com\/wp-json\/posts\/1",
+				"author": "http:\/\/example.com\/wp-json\/users\/1",
+				"collection": "http:\/\/example.com\/wp-json\/posts",
+				"replies": "http:\/\/example.com\/wp-json\/posts\/1\/comments",
+				"version-history": "http:\/\/example.com\/wp-json\/posts\/1\/revisions"
 			}
 		},
 		"featured_image": null,
@@ -411,8 +411,8 @@ representation.
 				"count": 7,
 				"meta": {
 					"links": {
-						"collection": "http:\/\/example.com\/wp-json.php\/posts\/types\/post\/taxonomies\/category\/terms",
-						"self": "http:\/\/example.com\/wp-json.php\/posts\/types\/post\/taxonomies\/category\/terms\/1"
+						"collection": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms",
+						"self": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms\/1"
 					}
 				}
 			}
@@ -724,10 +724,10 @@ The body of a Post document is a Post entity.
 	Date: Mon, 07 Jan 2013 03:35:14 GMT
 	Last-Modified: Mon, 07 Jan 2013 03:35:14 GMT
 	Link: <http://localhost/wptrunk/?p=1>; rel="alternate"; type=text/html
-	Link: <http://localhost/wptrunk/wp-json.php/users/1>; rel="author"
-	Link: <http://localhost/wptrunk/wp-json.php/posts>; rel="collection"
-	Link: <http://localhost/wptrunk/wp-json.php/posts/158/comments>; rel="replies"
-	Link: <http://localhost/wptrunk/wp-json.php/posts/158/revisions>; rel="version-history"
+	Link: <http://localhost/wptrunk/wp-json/users/1>; rel="author"
+	Link: <http://localhost/wptrunk/wp-json/posts>; rel="collection"
+	Link: <http://localhost/wptrunk/wp-json/posts/158/comments>; rel="replies"
+	Link: <http://localhost/wptrunk/wp-json/posts/158/revisions>; rel="version-history"
 	Content-Type: application/json; charset=UTF-8
 
 	{
@@ -743,8 +743,8 @@ The body of a Post document is a Post entity.
 			"avatar":"http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
 			"meta":{
 				"links":{
-					"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1",
-					"archives":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1\/posts"
+					"self":"http:\/\/localhost\/wptrunk\/wp-json\/users\/1",
+					"archives":"http:\/\/localhost\/wptrunk\/wp-json\/users\/1\/posts"
 				}
 			}
 		},
@@ -776,8 +776,8 @@ The body of a Post document is a Post entity.
 				"count":4,
 				"meta":{
 					"links":{
-						"collection":"http:\/\/localhost\/wptrunk\/wp-json.php\/taxonomy\/category",
-						"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/taxonomy\/category\/terms\/1"
+						"collection":"http:\/\/localhost\/wptrunk\/wp-json\/taxonomy\/category",
+						"self":"http:\/\/localhost\/wptrunk\/wp-json\/taxonomy\/category\/terms\/1"
 					}
 				}
 			}
@@ -785,11 +785,11 @@ The body of a Post document is a Post entity.
 		"post_meta":[],
 		"meta":{
 			"links":{
-				"self":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158",
-				"author":"http:\/\/localhost\/wptrunk\/wp-json.php\/users\/1",
-				"collection":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts",
-				"replies":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158\/comments",
-				"version-history":"http:\/\/localhost\/wptrunk\/wp-json.php\/posts\/158\/revisions"
+				"self":"http:\/\/localhost\/wptrunk\/wp-json\/posts\/158",
+				"author":"http:\/\/localhost\/wptrunk\/wp-json\/users\/1",
+				"collection":"http:\/\/localhost\/wptrunk\/wp-json\/posts",
+				"replies":"http:\/\/localhost\/wptrunk\/wp-json\/posts\/158\/comments",
+				"version-history":"http:\/\/localhost\/wptrunk\/wp-json\/posts\/158\/revisions"
 			}
 		}
 	}

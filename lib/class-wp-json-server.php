@@ -53,7 +53,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	);
 
 	/**
-	 * Requested path (relative to the API root, wp-json.php)
+	 * Requested path (relative to the API root, `wp-json`)
 	 *
 	 * @var string
 	 */
@@ -126,8 +126,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @return array List of associative arrays with code and message keys
 	 */
 	protected function error_to_response( $error ) {
-		if ( is_array( $data ) && isset( $data['status'] ) ) {
-			$status = $data['status'];
+		$error_data = $error->get_error_data();
+		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
+			$status = $error_data['status'];
 		}
 		else {
 			$status = 500;
@@ -158,7 +159,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		_deprecated_function( 'WP_JSON_Server::error_to_array', 'WPAPI-0.8', 'WP_JSON_Server::error_to_response' );
 
 		$response = $this->error_to_response( $error );
-		return $errors->get_data();
+		return $response->get_data();
 	}
 
 	/**

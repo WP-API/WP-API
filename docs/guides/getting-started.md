@@ -25,15 +25,15 @@ Checking for the API
 As our first command, let's go ahead and check the API index. The index tells us
 what routes are available, and a short summary about the site.
 
-The index is always available at the site's address with `/wp-json.php/` on the
+The index is always available at the site's address with `/wp-json/` on the
 end. Note the trailing slash there; it indicates that we want to access the `/`
 route. My test site is set up at `http://example.com/`, so all my routes will
-start with `http://example.com/wp-json.php` followed by the route (which here is
+start with `http://example.com/wp-json` followed by the route (which here is
 just `/`).
 
 Let's fire off the request:
 
-    curl -i http://example.com/wp-json.php/
+    curl -i http://example.com/wp-json/
 
 (By the way, `-i` tells cURL that we want to see the headers as well. I'll strip
 some irrelevant ones for this documentation.)
@@ -54,7 +54,7 @@ And here's what we get back:
                     "GET"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/"
+                    "self": "http:\/\/example.com\/wp-json\/"
                 }
             },
             "\/posts": {
@@ -64,7 +64,7 @@ And here's what we get back:
                     "POST"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts"
+                    "self": "http:\/\/example.com\/wp-json\/posts"
                 },
                 "accepts_json": true
             },
@@ -110,7 +110,7 @@ And here's what we get back:
                     "GET"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/types"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/types"
                 }
             },
             "\/posts\/types\/<type>": {
@@ -125,7 +125,7 @@ And here's what we get back:
                     "GET"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/statuses"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/statuses"
                 }
             },
             "\/taxonomies": {
@@ -134,7 +134,7 @@ And here's what we get back:
                     "GET"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/taxonomies"
+                    "self": "http:\/\/example.com\/wp-json\/taxonomies"
                 }
             },
             "\/taxonomies\/<taxonomy>": {
@@ -174,7 +174,7 @@ And here's what we get back:
                     "POST"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/users"
+                    "self": "http:\/\/example.com\/wp-json\/users"
                 },
                 "accepts_json": true
             },
@@ -188,7 +188,7 @@ And here's what we get back:
                     "DELETE"
                 ],
                 "meta": {
-                    "self": "http:\/\/example.com\/wp-json.php\/users\/me"
+                    "self": "http:\/\/example.com\/wp-json\/users\/me"
                 }
             },
             "\/users\/<user>": {
@@ -273,13 +273,13 @@ Getting Posts
 Now that we understand some of the basics, let's have a look at the posts route.
 All we need to do is send a GET request to the posts endpoint.
 
-    curl -i http://example.com/wp-json.php/posts
+    curl -i http://example.com/wp-json/posts
 
 And this time, we get (again trimming headers, you'll have more than this):
 
     HTTP/1.1 200 OK
     Last-Modified: Wed, 31 Oct 2012 18:26:17 GMT
-    Link: <http://example.com/wp-json.php/posts/1>; rel="item"; title="Hello world!"
+    Link: <http://example.com/wp-json/posts/1>; rel="item"; title="Hello world!"
 
     [
         {
@@ -295,8 +295,8 @@ And this time, we get (again trimming headers, you'll have more than this):
                 "avatar": "http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
                 "meta": {
                     "links": {
-                        "self": "http:\/\/example.com\/wp-json.php\/users\/1",
-                        "archives": "http:\/\/example.com\/wp-json.php\/users\/1\/posts"
+                        "self": "http:\/\/example.com\/wp-json\/users\/1",
+                        "archives": "http:\/\/example.com\/wp-json\/users\/1\/posts"
                     }
                 }
             },
@@ -316,19 +316,19 @@ And this time, we get (again trimming headers, you'll have more than this):
                     "count": 1,
                     "meta": {
                         "links": {
-                            "collection": "http:\/\/example.com\/wp-json.php\/taxonomy\/category",
-                            "self": "http:\/\/example.com\/wp-json.php\/taxonomy\/category\/terms\/1"
+                            "collection": "http:\/\/example.com\/wp-json\/taxonomy\/category",
+                            "self": "http:\/\/example.com\/wp-json\/taxonomy\/category\/terms\/1"
                         }
                     }
                 }
             },
             "meta": {
                 "links": {
-                    "self": "http:\/\/example.com\/wp-json.php\/posts\/1",
-                    "author": "http:\/\/example.com\/wp-json.php\/users\/1",
-                    "collection": "http:\/\/example.com\/wp-json.php\/posts",
-                    "replies": "http:\/\/example.com\/wp-json.php\/posts\/1\/comments",
-                    "version-history": "http:\/\/example.com\/wp-json.php\/posts\/1\/revisions"
+                    "self": "http:\/\/example.com\/wp-json\/posts\/1",
+                    "author": "http:\/\/example.com\/wp-json\/users\/1",
+                    "collection": "http:\/\/example.com\/wp-json\/posts",
+                    "replies": "http:\/\/example.com\/wp-json\/posts\/1\/comments",
+                    "version-history": "http:\/\/example.com\/wp-json\/posts\/1\/revisions"
                 }
             }
         }
@@ -353,14 +353,14 @@ Example of pagination headers:
 
     X-WP-Total: 492
     X-WP-TotalPages: 50
-    Link: <http://example.com/wp-json.php/posts?page=4>; rel="next",
-     <http://example.com/wp-json.php/posts?page=2>; rel="prev"
+    Link: <http://example.com/wp-json/posts?page=4>; rel="next",
+     <http://example.com/wp-json/posts?page=2>; rel="prev"
 
 If you want to grab a single post, you can instead send a GET request to the
 post itself. You can grab the URL for this from the `meta.links.self` field, or
 construct it yourself (`/posts/<id>`):
 
-    curl -i http://example.com/wp-json.php/posts/1
+    curl -i http://example.com/wp-json/posts/1
 
 
 Editing and Creating Posts
@@ -381,7 +381,7 @@ the correct headers and authentication. The API uses HTTP Basic authentication:
     curl --data-binary="@updated-post.json" \
         -H "Content-Type: application/javascript" \
         --user admin:password \
-        http://example.com/wp-json.php/posts/1
+        http://example.com/wp-json/posts/1
 
 And we should get back a 200 status code, indicating that the post has been
 updated, plus the updated Post in the body.
@@ -396,18 +396,18 @@ before, but this time, we POST it to the main posts route.
     curl --data-binary="@updated-post.json" \
         -H "Content-Type: application/javascript" \
         --user admin:password \
-        http://example.com/wp-json.php/posts
+        http://example.com/wp-json/posts
 
 We should get a similar response to the editing endpoint, but this time we get
 a 201 Created status code, with a Location header telling us where to access the
 post in future:
 
     HTTP/1.1 201 Created
-    Location: http://example.com/wp-json.php/posts/2
+    Location: http://example.com/wp-json/posts/2
 
 Finally, we can clean this post up and delete it by sending a DELETE request:
 
-    curl -X DELETE --user admin:password http://example.com/wp-json.php/posts/2
+    curl -X DELETE --user admin:password http://example.com/wp-json/posts/2
 
 In general, routes follow the same pattern:
 
