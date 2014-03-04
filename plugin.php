@@ -33,8 +33,8 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 function json_api_register_rewrites() {
-	add_rewrite_rule( '^wp-json\.php/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^wp-json\.php(.*)?','index.php?json_route=$matches[1]','top' );
+	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
+	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
 }
 
 /**
@@ -232,7 +232,7 @@ add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
  * @return string Full URL to the endpoint
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_home_url( $blog_id, 'wp-json.php', $scheme );
+	$url = get_home_url( $blog_id, 'wp-json', $scheme );
 
 	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 		$url .= '/' . ltrim( $path, '/' );
