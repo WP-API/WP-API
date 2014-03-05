@@ -16,11 +16,11 @@ class WP_JSON_Server_TestHelper {
 	protected $reports = array();
 
 	public function __construct() {
-		add_action('init', array($this, 'startCoverage'));
-		add_filter('json_endpoints', array($this, 'addEndpoints'));
+		add_action('init', array($this, 'start_coverage'));
+		add_filter('json_endpoints', array($this, 'add_endpoints'));
 	}
 
-	public function startCoverage() {
+	public function start_coverage() {
 		if ( ! isset( $_REQUEST['_jsoncurrenttest'] ) ) {
 			return;
 		}
@@ -38,7 +38,7 @@ class WP_JSON_Server_TestHelper {
 		$this->coverage->start( $current_test );
 	}
 
-	public function endCoverage() {
+	public function end_coverage() {
 		if ( ! $this->coverage ) {
 			return;
 		}
@@ -48,14 +48,14 @@ class WP_JSON_Server_TestHelper {
 		set_transient('json_testhelper_coverage', $this->reports, 30 * MINUTE_IN_SECONDS);
 	}
 
-	public function addEndpoints($routes) {
+	public function add_endpoints($routes) {
 		$routes['/testhelper/report'] = array(
-			array( array( $this, 'getReports' ), WP_JSON_Server::METHOD_POST ),
+			array( array( $this, 'get_reports' ), WP_JSON_Server::METHOD_POST ),
 		);
 		return $routes;
 	}
 
-	public function getReports() {
+	public function get_reports() {
 		$this->reports = get_transient('json_testhelper_coverage');
 		if (empty($this->reports)) {
 			return new WP_Error('json_testhelper_no_report', __('No report data available', 'json_testhelper'), array('status' => 400));

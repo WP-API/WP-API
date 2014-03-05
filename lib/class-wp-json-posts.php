@@ -23,36 +23,36 @@ class WP_JSON_Posts {
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
 	 */
-	public function registerRoutes( $routes ) {
+	public function register_routes( $routes ) {
 		$post_routes = array(
 			// Post endpoints
 			'/posts'             => array(
-				array( array( $this, 'getPosts' ), WP_JSON_Server::READABLE ),
-				array( array( $this, 'newPost' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_posts' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'new_post' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
-				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
-				array( array( $this, 'getComments' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_comments' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $this, 'getComment' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( '__return_null', WP_JSON_Server::DELETABLE ),
 			),
 
 			// Meta-post endpoints
-			'/posts/types'               => array( array( $this, 'getPostTypes' ), WP_JSON_Server::READABLE ),
-			'/posts/types/(?P<type>\w+)' => array( array( $this, 'getPostType' ), WP_JSON_Server::READABLE ),
-			'/posts/statuses'            => array( array( $this, 'getPostStatuses' ), WP_JSON_Server::READABLE ),
+			'/posts/types'               => array( array( $this, 'get_post_types' ), WP_JSON_Server::READABLE ),
+			'/posts/types/(?P<type>\w+)' => array( array( $this, 'get_post_type' ), WP_JSON_Server::READABLE ),
+			'/posts/statuses'            => array( array( $this, 'get_post_statuses' ), WP_JSON_Server::READABLE ),
 		);
 		return array_merge( $routes, $post_routes );
 	}
@@ -70,14 +70,14 @@ class WP_JSON_Posts {
 	 * in the response array.
 	 *
 	 * @uses wp_get_recent_posts()
-	 * @see WP_JSON_Posts::getPost() for more on $fields
+	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter optional
 	 * @param array $fields optional
 	 * @return array contains a collection of Post entities.
 	 */
-	public function getPosts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
+	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
 		$post_type = get_post_type_object( $type );
@@ -140,7 +140,7 @@ class WP_JSON_Posts {
 			$post = get_object_vars( $post );
 
 			// Do we have permission to read this post?
-			if ( ! $this->checkReadPermission( $post ) )
+			if ( ! $this->check_read_permission( $post ) )
 				continue;
 
 			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
@@ -158,7 +158,7 @@ class WP_JSON_Posts {
 	 * @param array $post Post data
 	 * @return boolean Can we read it?
 	 */
-	protected function checkReadPermission( $post ) {
+	protected function check_read_permission( $post ) {
 		// Can we read the post?
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
@@ -169,7 +169,7 @@ class WP_JSON_Posts {
 		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
 			$parent = get_post( $post['post_parent'], ARRAY_A );
 
-			if ( $this->checkReadPermission( $parent ) ) {
+			if ( $this->check_read_permission( $parent ) ) {
 				return true;
 			}
 		}
@@ -208,9 +208,9 @@ class WP_JSON_Posts {
 	 *  - terms_names - array, with taxonomy names as keys and arrays of term names as values
 	 *  - enclosure
 	 *  - any other fields supported by wp_insert_post()
-	 * @return array Post data (see {@see WP_JSON_Posts::getPost})
+	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	function newPost( $data ) {
+	function new_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -218,7 +218,7 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = $this->getPost( $result );
+		$response = $this->get_post( $result );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 		return $response;
@@ -232,7 +232,7 @@ class WP_JSON_Posts {
 	 * @param array $fields Post fields to return (optional)
 	 * @return array Post entity
 	 */
-	public function getPost( $id, $context = 'view' ) {
+	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -244,7 +244,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		$post_type = get_post_type_object( $post['post_type'] );
-		if ( ! $this->checkReadPermission( $post ) )
+		if ( ! $this->check_read_permission( $post ) )
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// Link headers (see RFC 5988)
@@ -275,11 +275,11 @@ class WP_JSON_Posts {
 	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
 	 *
 	 * @param int $id Post ID to edit
-	 * @param array $data Data construct, see {@see WP_JSON_Posts::newPost}
+	 * @param array $data Data construct, see {@see WP_JSON_Posts::new_post}
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function editPost( $id, $data, $_headers = array() ) {
+	function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -324,7 +324,7 @@ class WP_JSON_Posts {
 	 * @param int $id
 	 * @return true on success
 	 */
-	public function deletePost( $id, $force = false ) {
+	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -359,7 +359,7 @@ class WP_JSON_Posts {
 	 * @param int $id Post ID to retrieve comments for
 	 * @return array List of Comment entities
 	 */
-	public function getComments( $id ) {
+	public function get_comments( $id ) {
 		//$args = array('status' => $status, 'post_id' => $id, 'offset' => $offset, 'number' => $number )l
 		$comments = get_comments( array('post_id' => $id) );
 
@@ -376,7 +376,7 @@ class WP_JSON_Posts {
 	 * @param int $comment Comment ID
 	 * @return array Comment entity
 	 */
-	public function getComment( $comment ) {
+	public function get_comment( $comment ) {
 		$comment = get_comment( $comment );
 		$data = $this->prepare_comment( $comment );
 		return $data;
@@ -385,15 +385,15 @@ class WP_JSON_Posts {
 	/**
 	 * Get all public post types
 	 *
-	 * @uses self::getPostType()
+	 * @uses self::get_post_type()
 	 * @return array List of post type data
 	 */
-	public function getPostTypes() {
+	public function get_post_types() {
 		$data = get_post_types( array(), 'objects' );
 
 		$types = array();
 		foreach ($data as $name => $type) {
-			$type = $this->getPostType( $type, true );
+			$type = $this->get_post_type( $type, true );
 			if ( is_wp_error( $type ) )
 				continue;
 
@@ -410,7 +410,7 @@ class WP_JSON_Posts {
 	 * @param boolean $_in_collection Is this in a collection? (internal use)
 	 * @return array Post type data
 	 */
-	public function getPostType( $type, $_in_collection = false ) {
+	public function get_post_type( $type, $_in_collection = false ) {
 		if ( ! is_object( $type ) )
 			$type = get_post_type_object($type);
 
@@ -450,7 +450,7 @@ class WP_JSON_Posts {
 	 *
 	 * @return array List of post status data
 	 */
-	public function getPostStatuses() {
+	public function get_post_statuses() {
 		$statuses = get_post_stati(array(), 'objects');
 
 		$data = array();
@@ -497,7 +497,7 @@ class WP_JSON_Posts {
 		);
 
 		$post_type = get_post_type_object( $post['post_type'] );
-		if ( ! $this->checkReadPermission( $post ) )
+		if ( ! $this->check_read_permission( $post ) )
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
 		// prepare common post fields
@@ -1020,5 +1020,20 @@ class WP_JSON_Posts {
 			$data['meta'] = $meta;
 
 		return $data;
+	}
+
+	/**
+	 * Magic method used to temporaly deprecate camelcase functions
+	 *
+	 * @param string $name      Function name
+	 * @param array  $arguments Function arguments
+	 * @return mixed
+	 */
+	public function __call($name, $arguments) {
+		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
+		if ( method_exists( $this, $underscored ) ) {
+			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
+			return call_user_func_array( array( $this, $underscored ), $arguments );
+		}
 	}
 }

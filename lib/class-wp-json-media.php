@@ -7,17 +7,17 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
 	 */
-	public function registerRoutes( $routes ) {
+	public function register_routes( $routes ) {
 		$media_routes = array(
 			'/media' => array(
-				array( array( $this, 'getPosts' ),         WP_JSON_Server::READABLE ),
-				array( array( $this, 'uploadAttachment' ), WP_JSON_Server::CREATABLE ),
+				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE ),
+				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE ),
 			),
 
 			'/media/(?P<id>\d+)' => array(
-				array( array( $this, 'getPost' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'editPost' ),   WP_JSON_Server::EDITABLE ),
-				array( array( $this, 'deletePost' ), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE ),
+				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
 			),
 		);
 		return array_merge( $routes, $media_routes );
@@ -29,9 +29,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * Overrides the $type to set to 'attachment', then passes through to the post
 	 * endpoints.
 	 *
-	 * @see WP_JSON_Posts::getPosts()
+	 * @see WP_JSON_Posts::get_posts()
 	 */
-	public function getPosts( $filter = array(), $context = 'view', $type = 'attachment', $page = 1 ) {
+	public function get_posts( $filter = array(), $context = 'view', $type = 'attachment', $page = 1 ) {
 		if ( $type !== 'attachment' )
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 
@@ -39,10 +39,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			$filter['post_status'] = array( 'publish', 'inherit' );
 
 			// Always allow status queries for attachments
-			add_filter( 'query_vars', array( $this, 'allowStatusQuery' ) );
+			add_filter( 'query_vars', array( $this, 'allow_status_query' ) );
 		}
 
-		$posts = parent::getPosts( $filter, $context, 'attachment', $page );
+		$posts = parent::get_posts( $filter, $context, 'attachment', $page );
 
 		return $posts;
 	}
@@ -53,8 +53,8 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $vars Query variables
 	 * @return array Filtered query variables
 	 */
-	public function allowStatusQuery( $vars ) {
-		remove_filter( 'query_vars', array( $this, 'allowStatusQuery' ) );
+	public function allow_status_query( $vars ) {
+		remove_filter( 'query_vars', array( $this, 'allow_status_query' ) );
 
 		$vars[] = 'post_status';
 		return $vars;
@@ -63,9 +63,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	/**
 	 * Retrieve a attachment
 	 *
-	 * @see WP_JSON_Posts::getPost()
+	 * @see WP_JSON_Posts::get_post()
 	 */
-	public function getPost( $id, $context = 'view' ) {
+	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -76,7 +76,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		if ( $post['post_type'] !== 'attachment' )
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 
-		return parent::getPost( $id, $context );
+		return parent::get_post( $id, $context );
 	}
 
 	/**
@@ -130,9 +130,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	/**
 	 * Edit a attachment
 	 *
-	 * @see WP_JSON_Posts::editPost()
+	 * @see WP_JSON_Posts::edit_post()
 	 */
-	public function editPost( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 		if ( empty( $id ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
@@ -145,15 +145,15 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		if ( $post['post_type'] !== 'attachment' )
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 
-		return parent::editPost( $id, $data, $_headers );
+		return parent::edit_post( $id, $data, $_headers );
 	}
 
 	/**
 	 * Delete a attachment
 	 *
-	 * @see WP_JSON_Posts::deletePost()
+	 * @see WP_JSON_Posts::delete_post()
 	 */
-	public function deletePost( $id, $force = false ) {
+	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) )
@@ -164,7 +164,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		if ( $post['post_type'] !== 'attachment' )
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 
-		return parent::deletePost( $id, $force );
+		return parent::delete_post( $id, $force );
 	}
 
 	/**
@@ -178,7 +178,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Attachment data or error
 	 */
-	public function uploadAttachment( $_files, $_headers ) {
+	public function upload_attachment( $_files, $_headers ) {
 		$post_type = get_post_type_object( 'attachment' );
 		if ( ! $post_type )
 			return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
@@ -189,10 +189,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		// Get the file via $_FILES or raw data
 		if ( empty( $_files ) ) {
-			$file = $this->uploadFromData( $_files, $_headers );
+			$file = $this->upload_from_data( $_files, $_headers );
 		}
 		else {
-			$file = $this->uploadFromFile( $_files, $_headers );
+			$file = $this->upload_from_file( $_files, $_headers );
 		}
 
 		if ( is_wp_error( $file ) )
@@ -247,7 +247,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
-	protected function uploadFromData( $_files, $_headers ) {
+	protected function upload_from_data( $_files, $_headers ) {
 		$data = $this->server->get_raw_data();
 
 		if ( empty( $data ) ) {
@@ -328,7 +328,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_upload()}
 	 */
-	protected function uploadFromFile( $_files, $_headers ) {
+	protected function upload_from_file( $_files, $_headers ) {
 		if ( empty( $_files['file'] ) )
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 
@@ -361,7 +361,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $data Supplied post data
 	 * @return bool|WP_Error Success or error object
 	 */
-	public function preinsertCheck( $status, $post, $data ) {
+	public function preinsert_check( $status, $post, $data ) {
 		if ( is_wp_error( $status ) ) {
 			return $status;
 		}
@@ -384,14 +384,14 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $data Supplied post data
 	 * @param boolean $update Is this an update?
 	 */
-	public function attachThumbnail( $post, $data, $update ) {
+	public function attach_thumbnail( $post, $data, $update ) {
 		if ( ! $update ) {
 			return;
 		}
 
 		if ( ! empty( $data['featured_image'] ) ) {
 			// Already verified in preinsertCheck()
-			$thumbnail = $this->getPost( $data['featured_image'], 'child' );
+			$thumbnail = $this->get_post( $data['featured_image'], 'child' );
 			set_post_thumbnail( $post['ID'], $thumbnail['ID'] );
 		}
 	}
@@ -404,7 +404,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param string $context Display context
 	 * @return array Filtered post data
 	 */
-	public function addThumbnailData( $data, $post, $context ) {
+	public function add_thumbnail_data( $data, $post, $context ) {
 		if( !post_type_supports( $post['post_type'], 'thumbnail' ) ) {
 			return $data;
 		}
@@ -413,7 +413,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		$data['featured_image'] = null;
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
 		if ( $thumbnail_id ) {
-			$data['featured_image'] = $this->getPost( $thumbnail_id, 'child' );
+			$data['featured_image'] = $this->get_post( $thumbnail_id, 'child' );
 		}
 
 		return $data;
