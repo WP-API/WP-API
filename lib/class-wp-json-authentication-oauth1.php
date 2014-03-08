@@ -278,8 +278,8 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		add_option( 'oauth1_request_' . $key, $data, null, 'no' );
 
 		$data = array(
-			'oauth_token' => OAuthUtil::urlencode_rfc3986($key),
-			'oauth_token_secret' => OAuthUtil::urlencode_rfc3986($data['secret']),
+			'oauth_token' => self::urlencode_rfc3986($key),
+			'oauth_token_secret' => self::urlencode_rfc3986($data['secret']),
 			'oauth_callback_confirmed' => 'true',
 		);
 		return $data;
@@ -343,8 +343,8 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 
 		// Return the new token's data
 		$data = array(
-			'oauth_token' => OAuthUtil::urlencode_rfc3986( $key ),
-			'oauth_token_secret' => OAuthUtil::urlencode_rfc3986( $data['secret'] ),
+			'oauth_token' => self::urlencode_rfc3986( $key ),
+			'oauth_token_secret' => self::urlencode_rfc3986( $data['secret'] ),
 		);
 		return $data;
 	}
@@ -489,5 +489,9 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		update_user_meta( $consumer->ID, 'nonces', $used_nonces );
 
 		return true;
+	}
+
+	protected static function urlencode_rfc3986( $value ) {
+		return str_replace( array( '+', '%7E' ), array( ' ', '~' ), rawurlencode( $value ) );
 	}
 }
