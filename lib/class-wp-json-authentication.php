@@ -43,9 +43,10 @@ abstract class WP_JSON_Authentication {
 		$query = new WP_Query();
 		$consumers = $query->query( array(
 			'post_type' => 'json_consumer',
+			'post_status' => 'any',
 			'meta_query' => array(
 				array(
-					'meta_key' => 'consumer_key',
+					'meta_key' => 'key',
 					'meta_value' => $key,
 				),
 				array(
