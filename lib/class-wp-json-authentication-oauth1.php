@@ -375,7 +375,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 	 * @param array $params the request parameters
 	 * @return boolean|WP_Error True on success, error otherwise
 	 */
-	protected function check_oauth_signature( $consumer, $oauth_params ) {
+	protected function check_oauth_signature( $consumer, $oauth_params, $token = null ) {
 		$http_method = strtoupper( $this->server->method );
 
 		switch ( $this->server->method ) {
@@ -415,6 +415,11 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		$query_string = implode( '%26', $query_params ); // join with ampersand
 
 		$string_to_sign = $http_method . '&' . $base_request_uri . '&' . $query_string;
+		$key_parts = array(
+			$consumer->secret,
+			( $token ? $token->secret : '' )
+		);
+		$key = implode( '&', $key_parts );
 
 		switch ($params['oauth_signature_method']) {
 			case 'HMAC-SHA1':
@@ -429,7 +434,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 				return new WP_Error( 'json_oauth1_invalid_signature_method', __( 'Signature method is invalid' ), array( 'status' => 401 ) );
 		}
 
-		$signature = base64_encode( hash_hmac( $hash_algorithm, $string_to_sign, $consumer->consumer_secret, true ) );
+		$signature = base64_encode( hash_hmac( $hash_algorithm, $string_to_sign, $key, true ) );
 
 		if ( $signature !== $consumer_signature ) {
 			return new WP_Error( 'json_oauth1_signature_mismatch', __( 'OAuth signature does not match' ), array( 'status' => 401 ) );
