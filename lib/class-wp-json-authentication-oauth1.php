@@ -185,6 +185,10 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 			'key'    => wp_generate_password( self::CONSUMER_KEY_LENGTH, false ),
 			'secret' => wp_generate_password( self::CONSUMER_SECRET_LENGTH, false ),
 		);
+
+		if ( empty( $params['meta'] ) ) {
+			$params['meta'] = array();
+		}
 		$params['meta'] = array_merge( $params['meta'], $meta );
 
 		return parent::add_consumer( $params );
