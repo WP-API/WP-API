@@ -254,13 +254,13 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 			return new WP_Error( 'json_oauth1_missing_parameter', __( 'No OAuth parameters supplied' ), array( 'status' => 400 ) );
 		}
 
-		$consumer = $this->get_consumer( $oauth_consumer_key );
+		$consumer = $this->get_consumer( $params['oauth_consumer_key'] );
 		if ( is_wp_error( $consumer ) ) {
 			return $consumer;
 		}
 
 		// Check the OAuth request signature against the current request
-		$result = $this->check_oauth_signature( $consumer );
+		$result = $this->check_oauth_signature( $consumer, $params );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
@@ -375,7 +375,7 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 	 * @param array $params the request parameters
 	 * @return boolean|WP_Error True on success, error otherwise
 	 */
-	protected function check_oauth_signature( $consumer ) {
+	protected function check_oauth_signature( $consumer, $oauth_params ) {
 		$http_method = strtoupper( $this->server->method );
 
 		switch ( $this->server->method ) {
@@ -390,6 +390,8 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 				$params = $this->server->params['POST'];
 				break;
 		}
+
+		$params = array_merge( $params, $oauth_params );
 
 		$base_request_uri = rawurlencode( get_home_url( null, parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), 'http' ) );
 
