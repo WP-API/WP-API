@@ -57,7 +57,8 @@ testing environment in a few easy steps:
 
 5. Browse to http://vagrant.local/wp/wp-admin/ and activate the WP API plugin
 
-   ```Username: admin
+   ```
+   Username: admin
    Password: password
    ```
 
