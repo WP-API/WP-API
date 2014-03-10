@@ -6,12 +6,14 @@ run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
 
 
 ## Documentation
+
 Read the [plugin's documentation][docs].
 
 [docs]: https://github.com/WP-API/WP-API/tree/master/docs
 
 
 ## Installation
+
 ### As a Plugin
 Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
@@ -27,6 +29,7 @@ enabled.
 
 
 ## Quick Setup
+
 Want to test out WP-API and work on it? Here's how you can set up your own
 testing environment in a few easy steps:
 
@@ -34,12 +37,14 @@ testing environment in a few easy steps:
 2. Clone [Chassis](https://github.com/sennza/Chassis):
 
    ```bash
-   git clone git@github.com:sennza/Chassis.git api-tester
+   git clone --recursive git@github.com:sennza/Chassis.git api-tester
+   vagrant plugin install vagrant-hostsupdater
    ```
 
 3. Grab a copy of WP API:
 
    ```bash
+   cd api-tester
    mkdir -p content/plugins
    git clone git@github.com:WP-API/WP-API.git content/plugins/json-rest-api
    ```
@@ -51,34 +56,45 @@ testing environment in a few easy steps:
    ```
 
 5. Browse to http://vagrant.local/wp/wp-admin/ and activate the WP API plugin
+
+   ```
+   Username: admin
+   Password: password
+   ```
+
 6. Browse to http://vagrant.local/wp-json/
 
 
 ### Testing
+
 For testing, you'll need a little bit more:
 
-1. Install PHPUnit:
+1. SSH into your Vagrant box, and install PHPUnit:
 
    ```bash
-   wget https://phar.phpunit.de/phpunit.phar
+   vagrant ssh
+   sudo apt-get install php-pear
+   sudo pear config-set auto_discover 1
+   sudo pear install pear.phpunit.de/PHPUnit
    ```
 
 2. Clone WordPress development (including tests):
 
    ```bash
-   git clone https://github.com/tierra/wordpress.git /tmp/wordpress
+   git clone git://develop.git.wordpress.org/ /tmp/wordpress
    export WP_DEVELOP_DIR=/tmp/wordpress
    ```
 
 3. Run the testing suite:
 
    ```bash
-   cd /vagrant/content/plugins/json-rest-api/tests
+   cd /vagrant/content/plugins/json-rest-api
    phpunit
    ```
 
 
 ## Issue Tracking
+
 All tickets for the project are being tracked on the [GSoC Trac][]. Make sure
 you use the JSON REST API component.
 
