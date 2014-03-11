@@ -151,14 +151,19 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		}
 
 		// Fetch user by token key
-		$result = $this->check_token( $params['oauth_token'], $params['oauth_consumer_key'] );
+		$token = $this->get_access_token( $params['oauth_token'] );
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+
+		$result = $this->check_token( $token, $params['oauth_consumer_key'] );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 		list( $consumer, $user ) = $result;
 
 		// Perform OAuth validation
-		$error = $this->check_oauth_signature( $user, $params );
+		$error = $this->check_oauth_signature( $user, $params, $token );
 		if ( is_wp_error( $error ) ) {
 			return $error;
 		}
@@ -197,16 +202,11 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 	/**
 	 * Check a token against the database
 	 *
-	 * @param string $token_key Token ID
+	 * @param string $token Token object
 	 * @param string $consumer_key Consumer ID
 	 * @return array Array of consumer object, user object
 	 */
-	public function check_token( $token_key, $consumer_key ) {
-		$token = $this->get_access_token( $token_key );
-		if ( is_wp_error( $token ) ) {
-			return $token;
-		}
-
+	public function check_token( $token, $consumer_key ) {
 		$consumer = $this->get_consumer( $consumer_key );
 		if ( is_wp_error( $consumer ) ) {
 			return $consumer;
