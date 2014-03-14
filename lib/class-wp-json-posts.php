@@ -96,7 +96,7 @@ class WP_JSON_Posts {
 		// To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
 
 		if ( current_user_can( $post_type->cap->edit_posts ) ) {
-			$private = apply_filters('json_private_query_vars', $wp->private_query_vars);
+			$private = apply_filters('json_private_query_vars', $wp->private_query_vars, $filter, $context, $type, $page);
 			$valid_vars = array_merge($valid_vars, $private);
 		}
 
@@ -105,7 +105,7 @@ class WP_JSON_Posts {
 		$valid_vars = array_merge($valid_vars, $json_valid);
 
 		// Filter and flip for querying
-		$valid_vars = apply_filters('json_query_vars', $valid_vars);
+		$valid_vars = apply_filters('json_query_vars', $valid_vars, $filter, $context, $type, $page);
 		$valid_vars = array_flip($valid_vars);
 
 		// Exclude the post_type query var to avoid dodging the permission
@@ -114,7 +114,7 @@ class WP_JSON_Posts {
 
 		foreach ($valid_vars as $var => $index) {
 			if ( isset( $filter[ $var ] ) ) {
-				$query[ $var ] = apply_filters( 'json_query_var-' . $var, $filter[ $var ] );
+				$query[ $var ] = apply_filters( 'json_query_var-' . $var, $filter[ $var ], $context, $type, $page );
 			}
 		}
 
