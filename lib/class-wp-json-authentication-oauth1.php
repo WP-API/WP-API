@@ -289,8 +289,8 @@ class WP_JSON_Authentication_OAuth1 extends WP_JSON_Authentication {
 		delete_option( 'oauth1_request_' . $key );
 	}
 
-	public function get_access_token( $key ) {
-		$data = get_option( 'oauth1_access_' . $key, null );
+	public function get_access_token( $oauth_token ) {
+		$data = get_option( 'oauth1_access_' . $oauth_token, null );
 		if ( empty( $data ) ) {
 			return null;
 		}
