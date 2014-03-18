@@ -159,10 +159,12 @@ class WP_JSON_Posts {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $post ) {
+		$permission = false;
+
 		// Can we read the post?
 		$post_type = get_post_type_object( $post['post_type'] );
 		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
-			return true;
+			$permission = true;
 		}
 
 		// Can we read the parent if we're inheriting?
@@ -170,17 +172,17 @@ class WP_JSON_Posts {
 			$parent = get_post( $post['post_parent'], ARRAY_A );
 
 			if ( $this->check_read_permission( $parent ) ) {
-				return true;
+				$permission = true;
 			}
 		}
 
 		// If we don't have a parent, but the status is set to inherit, assume
 		// it's published (as per get_post_status())
 		if ( 'inherit' === $post['post_status'] ) {
-			return true;
+			$permission = true;
 		}
 
-		return false;
+		return apply_filters( 'json_check_read_permission', $permission, $post );
 	}
 
 	/**
