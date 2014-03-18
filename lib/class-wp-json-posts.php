@@ -168,7 +168,7 @@ class WP_JSON_Posts {
 		}
 
 		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+		elseif ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
 			$parent = get_post( $post['post_parent'], ARRAY_A );
 
 			if ( $this->check_read_permission( $parent ) ) {
@@ -178,7 +178,7 @@ class WP_JSON_Posts {
 
 		// If we don't have a parent, but the status is set to inherit, assume
 		// it's published (as per get_post_status())
-		if ( 'inherit' === $post['post_status'] ) {
+		elseif ( 'inherit' === $post['post_status'] ) {
 			$permission = true;
 		}
 
