@@ -606,7 +606,11 @@ class WP_JSON_Posts {
 			return __( 'There is no excerpt because this is a protected post.' );
 		}
 
-		return apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
+		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
+		if ( empty( $excerpt ) ) {
+			return null;
+		}
+		return $excerpt;
 	}
 
 	/**
