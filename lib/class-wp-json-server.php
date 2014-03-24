@@ -101,7 +101,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			return $user;
 
 		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) )
-			return;
+			return new WP_Error('authentication_failed', __('<strong>ERROR</strong>: Invalid username or incorrect password.'));
 
 		$username = $_SERVER['PHP_AUTH_USER'];
 		$password = $_SERVER['PHP_AUTH_PW'];
