@@ -51,7 +51,7 @@ class WP_JSON_Posts {
 
 			// Meta-post endpoints
 			'/posts/types'               => array( array( $this, 'get_post_types' ), WP_JSON_Server::READABLE ),
-			'/posts/types/(?P<type>\w+)' => array( array( $this, 'get_post_type' ), WP_JSON_Server::READABLE ),
+			'/posts/types/(?P<type>[\w\-]+)' => array( array( $this, 'getPostType' ), WP_JSON_Server::READABLE ),
 			'/posts/statuses'            => array( array( $this, 'get_post_statuses' ), WP_JSON_Server::READABLE ),
 		);
 		return array_merge( $routes, $post_routes );
