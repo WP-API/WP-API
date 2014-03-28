@@ -101,7 +101,7 @@ class WP_JSON_Posts {
 		}
 
 		// Define our own in addition to WP's normal vars
-		$json_valid = array('posts_per_page');
+		$json_valid = array('posts_per_page','tax_query','meta_query');
 		$valid_vars = array_merge($valid_vars, $json_valid);
 
 		// Filter and flip for querying
