@@ -16,6 +16,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' )
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
@@ -48,6 +49,10 @@ function json_api_default_filters($server) {
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts($server);
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
+
+	// Users
+	$wp_json_users = new WP_JSON_Users($server);
+	add_filter( 'json_endpoints', array( $wp_json_users, 'registerRoutes' ), 0 );
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages($server);
