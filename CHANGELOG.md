@@ -1,5 +1,148 @@
 # Changelog
 
+## 0.9
+
+- Move from `wp-json.php/` to `wp-json/`
+
+  **This breaks backwards compatibility** and requires any clients to now use
+  `wp-json/`, or preferably the new RSD/Link headers.
+
+  (props @rmccue, @matrixik, [#46][gh-46], [#96][gh-96], [#106][gh-106])
+
+- Move filter registration out of CPT constructor. CPT subclasses now require
+  you to call `$myobject->register_filters()`, in order to move global state out
+  of the constructor.
+
+  **This breaks backwards compatibility** and requires any subclassing to now
+  call `$myobject->register_filters()`
+
+  (props @rmccue, @thenbrent, [#42][gh-42], [#126][gh-126])
+
+- Introduce Response/ResponseInterface
+
+  Endpoints that need to set headers or response codes should now return a
+  `WP_JSON_Response` rather than using the server methods.
+  `WP_JSON_ResponseInterface` may also be used for more flexible use of the
+  response methods.
+
+  **Deprecation warning:** Calling `WP_JSON_Server::header`,
+  `WP_JSON_Server::link_header` and `WP_JSON_Server::query_navigation_headers`
+  is now deprecated. This will be removed in 1.0.
+
+  (props @rmccue, [#33][gh-33])
+
+- Change all semiCamelCase names to underscore_case.
+
+  **Deprecation warning**: Any calls to semiCamelCase methods require any
+  subclassing to update method references. This will be removed in 1.0.
+
+  (props @osiux, [#36][gh-36], [#82][gh-82])
+
+- Add multisite compatibility. If the plugin is network activated, the plugin is
+  now activated once-per-site, so `wp-json/` is always site-local.
+
+  (props @rachelbaker, [#48][gh-48], [#49][gh-49])
+
+- Add RSD and Link headers for discovery
+
+  (props @rmccue, [#40][gh-40])
+
+- WP_JSON_Posts->prepare_author() now verifies the `$user` object is set.
+
+  (props @rachelbaker, [#51][gh-51], [#54][gh-54])
+
+- Added unit testing framework. Currently only a smaller number of tests, but we
+  plan to increase this significantly as soon as possible.
+
+  (props @tierra, @osiux, [#65][gh-65], [#76][gh-76], [#84][gh-84])
+
+- Link collection filtering docs to URL formatting guide.
+
+  (props @kadamwhite, [#74][gh-74])
+
+- Remove hardcoded `/pages` references from `WP_JSON_Pages`
+
+  (props @rmccue, @thenbrent, [#28][gh-28], [#78][gh-78])
+
+- Fix compatibility with `DateTime::createFromFormat` on PHP 5.2
+
+  (props @osiux, [#52][gh-52], [#79][gh-79])
+
+- Document that `WP_JSON_CustomPostType::__construct()` requires a param of type
+  `WP_JSON_ResponseHandler`.
+
+  (props @tlovett1, [#88][gh-88])
+
+- Add timezone parameter to WP_JSON_DateTime::createFromFormat()
+
+  (props @royboy789, @rachelbaker, [#85][gh-85], [#87][gh-87])
+
+- Remove IXR references. `IXR_Error` is no longer accepted as a return value.
+
+  **This breaks backwards compatibility** and requires anyone returning
+  `IXR_Error` objects to now return `WP_Error` or `WP_JSON_ResponseInterface`
+  objects.
+
+  (props @rmccue, [#50][gh-50], [#77][gh-77])
+
+- Fix bugs with attaching featured images to posts:
+  - `WP_JSON_Media::attachThumbnail()` should do nothing if `$update` is false
+    without a post ID
+  - The post ID must be fetched from the `$post` array.
+
+  (props @Webbgaraget, [#55][gh-55])
+
+- Don't declare `jsonSerialize` on ResponseInterface
+
+  (props @rmccue, [#97][gh-97])
+
+- Allow JSON post creation/update for `WP_JSON_CustomPostType`
+
+  (props @tlovett1, [#90][gh-90], [#108][gh-108])
+
+- Return null if post doesn't have an excerpt
+
+  (props @rachelbacker, [#72][gh-72])
+
+- Fix link to issue tracker in README
+
+  (props @rmccue, @tobych, [#125][gh-125])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.8...0.9)
+
+[gh-28]: https://github.com/WP-API/WP-API/issues/28
+[gh-33]: https://github.com/WP-API/WP-API/issues/33
+[gh-36]: https://github.com/WP-API/WP-API/issues/36
+[gh-40]: https://github.com/WP-API/WP-API/issues/40
+[gh-42]: https://github.com/WP-API/WP-API/issues/42
+[gh-46]: https://github.com/WP-API/WP-API/issues/46
+[gh-48]: https://github.com/WP-API/WP-API/issues/48
+[gh-49]: https://github.com/WP-API/WP-API/issues/49
+[gh-50]: https://github.com/WP-API/WP-API/issues/50
+[gh-51]: https://github.com/WP-API/WP-API/issues/51
+[gh-52]: https://github.com/WP-API/WP-API/issues/52
+[gh-54]: https://github.com/WP-API/WP-API/issues/54
+[gh-55]: https://github.com/WP-API/WP-API/issues/55
+[gh-65]: https://github.com/WP-API/WP-API/issues/65
+[gh-72]: https://github.com/WP-API/WP-API/issues/72
+[gh-74]: https://github.com/WP-API/WP-API/issues/74
+[gh-76]: https://github.com/WP-API/WP-API/issues/76
+[gh-77]: https://github.com/WP-API/WP-API/issues/77
+[gh-78]: https://github.com/WP-API/WP-API/issues/78
+[gh-79]: https://github.com/WP-API/WP-API/issues/79
+[gh-82]: https://github.com/WP-API/WP-API/issues/82
+[gh-84]: https://github.com/WP-API/WP-API/issues/84
+[gh-85]: https://github.com/WP-API/WP-API/issues/85
+[gh-87]: https://github.com/WP-API/WP-API/issues/87
+[gh-88]: https://github.com/WP-API/WP-API/issues/88
+[gh-90]: https://github.com/WP-API/WP-API/issues/90
+[gh-96]: https://github.com/WP-API/WP-API/issues/96
+[gh-97]: https://github.com/WP-API/WP-API/issues/97
+[gh-106]: https://github.com/WP-API/WP-API/issues/106
+[gh-108]: https://github.com/WP-API/WP-API/issues/108
+[gh-125]: https://github.com/WP-API/WP-API/issues/125
+[gh-126]: https://github.com/WP-API/WP-API/issues/126
+
 ## 0.8
 - Add compatibility layer for JsonSerializable. You can now return arbitrary
   objects from endpoints and use the `jsonSerialize()` method to return the data
