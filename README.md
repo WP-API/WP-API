@@ -45,6 +45,7 @@ testing environment in a few easy steps:
 
    ```bash
    cd api-tester
+   cp local-config-sample.php local-config.php
    mkdir -p content/plugins
    git clone git@github.com:WP-API/WP-API.git content/plugins/json-rest-api
    ```
