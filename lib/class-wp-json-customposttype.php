@@ -38,10 +38,18 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return;
 		}
 
+		parent::__construct($server);
+	}
+
+	/**
+	 * Add actions and filters for the post type
+	 *
+	 * This method should be called after instantiation to automatically add the
+	 * required filters for the post type.
+	 */
+	public function register_filters() {
 		add_filter( 'json_endpoints', array( $this, 'register_routes' ) );
 		add_filter( 'json_post_type_data', array( $this, 'type_archive_link' ), 10, 2 );
-
-		parent::__construct($server);
 	}
 
 	/**
