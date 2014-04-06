@@ -9,6 +9,8 @@
  */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-authentication.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-authentication-oauth1.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
@@ -37,6 +39,21 @@ function json_api_register_rewrites() {
 	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
 }
 
+function json_api_setup_authentication() {
+	register_post_type( 'json_consumer', array(
+		'labels' => array(
+			'name' => __( 'Consumer' ),
+			'singular_name' => __( 'Consumers' ),
+		),
+		'public' => false,
+		'hierarchical' => false,
+		'rewrite' => false,
+		'delete_with_user' => true,
+		'query_var' => false,
+	) );
+}
+add_action( 'init', 'json_api_setup_authentication' );
+
 /**
  * Register the default JSON API filters
  *
@@ -44,6 +61,11 @@ function json_api_register_rewrites() {
  */
 function json_api_default_filters($server) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
+
+	global $wp_json_auth_oauth1;
+
+	$wp_json_auth_oauth1 = new WP_JSON_Authentication_OAuth1($server);
+	// add_action( 'json_endpoints', array( $wp_json_auth_oauth1, 'register_routes' ) );
 
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts($server);
