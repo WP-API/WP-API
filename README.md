@@ -96,7 +96,9 @@ For testing, you'll need a little bit more:
 
 ## Issue Tracking
 
-All tickets for the project are being tracked on the [GSoC Trac][]. Make sure
-you use the JSON REST API component.
+All tickets for the project are being tracked on [GitHub][]. Previous issues can
+be found on the [GSOC Trac][] issue tracker, however new issues should not be
+filed there.
 
-[GSoC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
+[GitHub]: https://github.com/WP-API/WP-API
+[GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
