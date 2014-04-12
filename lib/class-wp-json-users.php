@@ -28,6 +28,7 @@ class WP_JSON_Users {
 			// User endpoints
 			'/users' => array(
 				array( array( $this, 'get_users' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'new_user' ), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/users/(?P<id>\d+)' => array(
 				array( array( $this, 'get_user' ), WP_JSON_Server::READABLE ),
@@ -192,6 +193,72 @@ class WP_JSON_Users {
 		do_action( 'json_insert_user', $user, $data, true ); // $update is always true
 
 		return $this->get_user( $id );
+	}
+
+	/**
+	 * Create a new user.
+	 *
+	 * @param $data
+	 * @return mixed
+	 */
+	public function new_user( $data ) {
+		# TODO: Use WP_User here, and refactor so we're sharing code with edit_user
+		# You can provide a WP_User to wp_insert_user. But the semantics of using WP_User to create a new
+		# user aren't defined well in the documentation: it doesn't even tell you how to create a WP_User without
+		# using an ID. So we won't try to do that.
+		#
+		# https://codex.wordpress.org/Function_Reference/wp_insert_user - provide complete user_data
+		# https://codex.wordpress.org/Function_Reference/wp_create_user - just takes username, password, email
+		# https://codex.wordpress.org/Class_Reference/WP_User
+		# http://tommcfarlin.com/create-a-user-in-wordpress/
+
+		if ( empty( $data['username'] )) {
+			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'), array( 'status' => 400 ) );
+		}
+		if ( empty( $data['password'] )) {
+			return new WP_Error( 'json_user_password_missing', __( 'No password supplied.' ), array( 'status' => 400 ) );
+		}
+		if ( empty( $data['email'] )) {
+			return new WP_Error( 'json_user_email_missing', __( 'No email supplied.' ), array( 'status' => 400 ) );
+		}
+
+		$userdata = array(
+			// These are the required fields for wp_insert_user
+			'user_login' => $data['username'], // must be unique
+			'user_pass' => $data['password'], // we're sending this in plain text
+			'user_email' => $data['email'], // must be unique
+		);
+
+		if ( ! empty( $data['slug'] ) ) {
+			$userdata['user_nicename'] = $data['slug']; // TODO: This is made unique eg to Fred-3 - what to do?
+		}
+		if ( ! empty( $data['name'] ) ) {
+			$userdata['display_name'] = $data['name'];
+		}
+		if ( ! empty( $data['URL'] ) ) {
+			$userdata['user_url'] = $data['URL'];
+		}
+
+		$result = wp_insert_user( $userdata );
+		// TODO: Send appropriate HTTP error codes along with the JSON rendering of the WP_Error we send back
+		// These are the errors wp_insert_user() might return (from the wp_create_user documentation)
+		// - empty_user_login, Cannot create a user with an empty login name. => 400
+		// - existing_user_login, This username is already registered. => 409 Conflict
+		// - existing_user_email, This email address is already registered. => 409 Conflict
+		// http://stackoverflow.com/questions/942951/rest-api-error-return-good-practices
+		// http://stackoverflow.com/questions/3825990/http-response-code-for-post-when-resource-already-exists
+		// http://soabits.blogspot.com/2013/05/error-handling-considerations-and-best.html
+		// TODO: Some other error codes above should be changed to 400 from 404. And in other resources. Just sayin'.
+		if ( $result instanceof WP_Error ) {
+			return $result;
+		} else {
+			$user_id = $result;
+		}
+
+		$response = $this->get_user( $user_id );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/users/' . $user_id ) );
+		return $response;
 	}
 
 	/**
