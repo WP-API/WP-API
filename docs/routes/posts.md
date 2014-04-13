@@ -60,7 +60,7 @@ Content-Type: application/x-www-form-urlencoded
 
 Content-Type: application/json
 
-	{"post_title":"Hello World!","post_content":"Content"}
+	{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
 
 ### Response
 On a successful creation, a 201 Created status is given, indicating that the
