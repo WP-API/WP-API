@@ -180,7 +180,8 @@ class WP_JSON_Users {
 			return $retval;
 		}
 
-		// TBD Pre-insert/update hook (I don't understand what one of those is yet)
+		// Pre-update hook
+		$user = apply_filters( 'pre_wp_json_update_user', $user, $id, $data, $_headers );
 
 		// Update the user in the database
 		// http://codex.wordpress.org/Function_Reference/wp_update_user
@@ -239,6 +240,14 @@ class WP_JSON_Users {
 			$userdata['user_url'] = $data['URL'];
 		}
 
+
+		// Pre-insert hook
+		// TODO: Or json_pre_insert_user? Or insert rather than create? "Insert" seems to mean create or edit in WP...?
+		$can_insert = apply_filters( 'pre_wp_json_create_user', $userdata, $data );
+		if ( is_wp_error( $can_insert ) ) {
+			return $can_insert;
+		}
+
 		$result = wp_insert_user( $userdata );
 		// TODO: Send appropriate HTTP error codes along with the JSON rendering of the WP_Error we send back
 		// These are the errors wp_insert_user() might return (from the wp_create_user documentation)
@@ -290,7 +299,6 @@ class WP_JSON_Users {
 
 		if ( ! $result )
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-
 	}
 
 	/**
