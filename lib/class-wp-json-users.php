@@ -1,15 +1,16 @@
 <?php
 
-// TODO: Move these somewhere else, or use whatever PHP or WordPress provides. I just want to avoid magic numbers.
-
-const HTTP_STATUS_BAD_REQUEST = 400; // invalid data provided
-// We'll use FORBIDDEN for insufficient permissions; not UNAUTHORIZED (unlike Post; I think I'm right, anyway :-)
-// see http://stackoverflow.com/a/6937030/76452
-const HTTP_STATUS_UNAUTHORIZED = 401; // not authorized
-const HTTP_STATUS_FORBIDDEN = 403; // insufficient permissions
-const HTTP_STATUS_NOT_FOUND = 404; // can't find this user
-const HTTP_STATUS_CONFLICT = 409; // e.g. user already exists
-const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500; // cannot delete
+class HttpStatusCode {
+	// TODO: Move these somewhere else, or use whatever PHP or WordPress provides. I just want to avoid magic numbers.
+	const HTTP_STATUS_BAD_REQUEST = 400; // invalid data provided
+	// We'll use FORBIDDEN for insufficient permissions; not UNAUTHORIZED (unlike Post; I think I'm right, anyway :-)
+	// see http://stackoverflow.com/a/6937030/76452
+	const HTTP_STATUS_UNAUTHORIZED = 401; // not authorized
+	const HTTP_STATUS_FORBIDDEN = 403; // insufficient permissions
+	const HTTP_STATUS_NOT_FOUND = 404; // can't find this user
+	const HTTP_STATUS_CONFLICT = 409; // e.g. user already exists
+	const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500; // cannot delete
+}
 
 class WP_JSON_Users {
 	/**
@@ -66,7 +67,7 @@ class WP_JSON_Users {
 
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
-				array( 'status' => HTTP_STATUS_FORBIDDEN ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		$args = array( 'orderby' => 'user_login', 'order' => 'ASC' );
@@ -94,19 +95,19 @@ class WP_JSON_Users {
 
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
-				array( 'status' => HTTP_STATUS_FORBIDDEN ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		if ( empty( $id ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// http://codex.wordpress.org/Function_Reference/get_userdata
 		$user = get_userdata( $id );
 
 		if ( empty( $user->ID ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		$response = new WP_JSON_Response();
 
@@ -172,19 +173,19 @@ class WP_JSON_Users {
 
 		if ( empty( $id ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// http://codex.wordpress.org/Function_Reference/get_userdata
 		$user = get_userdata( $id ); // returns False on failure
 
 		if ( ! $user )
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be an integer.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// Permissions check
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ),
-				array( 'status' => HTTP_STATUS_FORBIDDEN ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		// Update attributes of the user from $data
@@ -228,15 +229,15 @@ class WP_JSON_Users {
 
 		if ( empty( $data['username'] )) {
 			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 		if ( empty( $data['password'] )) {
 			return new WP_Error( 'json_user_password_missing', __( 'No password supplied.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 		if ( empty( $data['email'] )) {
 			return new WP_Error( 'json_user_email_missing', __( 'No email supplied.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
 		$userdata = array(
@@ -298,19 +299,19 @@ class WP_JSON_Users {
 
 		if ( empty( $id ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// Permissions check
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ),
-				array( 'status' => HTTP_STATUS_FORBIDDEN ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		$user = get_userdata( $id );
 
 		if ( ! $user )
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// https://codex.wordpress.org/Function_Reference/wp_delete_user
 		// TODO: Allow posts to be reassigned (see the docs for wp_delete_user) - use a HTTP parameter?
@@ -318,7 +319,7 @@ class WP_JSON_Users {
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ),
-				array( 'status' => HTTP_STATUS_INTERNAL_SERVER_ERROR ) );
+				array( 'status' => HttpStatusCode::HTTP_STATUS_INTERNAL_SERVER_ERROR ) );
 		} else {
 			// "TODO: return a HTTP 202 here instead"... says the Post endpoint... really? Inappropriate (says tobych)?
 			return array( 'message' => __( 'Deleted user' ) );
