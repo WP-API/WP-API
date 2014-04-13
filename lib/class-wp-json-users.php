@@ -90,7 +90,7 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
-		$id = (int) $id;
+		$id = absint( $id );
 
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
@@ -172,7 +172,7 @@ class WP_JSON_Users {
 	 * @return true on success
 	 */
 	function edit_user( $id, $data, $_headers = array() ) {
-		$id = (int) $id;
+		$id = absint( $id );
 
 		if ( empty( $id ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ),
@@ -298,7 +298,7 @@ class WP_JSON_Users {
 	 * @return true on success
 	 */
 	public function delete_user( $id, $force = false ) {
-		$id = (int) $id;
+		$id = absint( $id );
 
 		if ( empty( $id ) )
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
