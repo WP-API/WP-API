@@ -1,6 +1,7 @@
 <?php
 
 // TODO: Move these somewhere else, or use whatever PHP or WordPress provides. I just want to avoid magic numbers.
+
 const HTTP_STATUS_BAD_REQUEST = 400; // invalid data provided
 // We'll use FORBIDDEN for insufficient permissions; not UNAUTHORIZED (unlike Post; I think I'm right, anyway :-)
 // see http://stackoverflow.com/a/6937030/76452
@@ -315,9 +316,13 @@ class WP_JSON_Users {
 		// TODO: Allow posts to be reassigned (see the docs for wp_delete_user) - use a HTTP parameter?
 		$result = wp_delete_user( $id );
 
-		if ( ! $result )
+		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ),
 				array( 'status' => HTTP_STATUS_INTERNAL_SERVER_ERROR ) );
+		} else {
+			// "TODO: return a HTTP 202 here instead"... says the Post endpoint... really? Inappropriate (says tobych)?
+			return array( 'message' => __( 'Deleted user' ) );
+		}
 	}
 
 	/**
