@@ -107,11 +107,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
 				array( 'status' => HTTP_STATUS_BAD_REQUEST ) );
 
-		// Link headers (see RFC 5988)
-
 		$response = new WP_JSON_Response();
-		// user model doesn't appear to include a last-modified date
-		// $response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $user->TBW ) . 'GMT' );
 
 		$user = $this->prepare_user( $user, $context );
 		if ( is_wp_error( $user ) )
