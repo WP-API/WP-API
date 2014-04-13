@@ -1,5 +1,6 @@
 <?php
 
+// We can't use const outside of a class yet; Travis is building against PHP 5.2.17... it fails, otherwise
 class HttpStatusCode {
 	// TODO: Move these somewhere else, or use whatever PHP or WordPress provides. I just want to avoid magic numbers.
 	const HTTP_STATUS_BAD_REQUEST = 400; // invalid data provided
@@ -11,6 +12,21 @@ class HttpStatusCode {
 	const HTTP_STATUS_CONFLICT = 409; // e.g. user already exists
 	const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500; // cannot delete
 }
+
+// These are the relevant capabilities we can use:
+// https://codex.wordpress.org/Roles_and_Capabilities
+// https://codex.wordpress.org/Function_Reference/map_meta_cap
+// edit_users - 2.0
+// edit_user (meta)
+// delete_users - 2.1
+// delete_user (meta)
+// remove_users - 3.0 (what's the difference?)
+// remove_user (meta)
+// create_users - 2.1
+// list_users - 3.0
+// add_users - 3.0
+// promote_users - 3.0 (this is about changing a users's level... not sure it's relevant to roles/caps)
+// promote_user (meta)
 
 class WP_JSON_Users {
 	/**
@@ -65,8 +81,8 @@ class WP_JSON_Users {
 	 */
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
 
-		if ( ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
+		if ( ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ),
 				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
@@ -93,8 +109,8 @@ class WP_JSON_Users {
 	public function get_user( $id, $context = 'view' ) {
 		$id = absint( $id );
 
-		if ( ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
+		if ( ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ),
 				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
@@ -183,8 +199,8 @@ class WP_JSON_Users {
 				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// Permissions check
-		if ( ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ),
+		if ( ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'You need edit_user(s) capability to do this.' ),
 				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
@@ -302,8 +318,8 @@ class WP_JSON_Users {
 				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 
 		// Permissions check
-		if ( ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ),
+		if ( ! current_user_can( 'delete_user', $id ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'You need delete_user(s) capability to do this' ),
 				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
