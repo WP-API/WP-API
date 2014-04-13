@@ -58,11 +58,10 @@ class WP_JSON_Users {
 	 *
 	 * @param array $filter optional
 	 * @param string $context optional
-	 * @param string $type optional
-	 * @param int $page optional
+	 * @param int $page optional - TODO: Not implemented!
 	 * @return array contains a collection of User entities.
 	 */
-	public function get_users( $filter = array(), $context = 'view', $type = 'user', $page = 1 ) {
+	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
 
 		if ( ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'json_cannot_get', __( 'Sorry, you are not allowed to get users.' ),
