@@ -30,7 +30,7 @@ Content-Type: application/x-www-form-urlencoded
 
 Content-Type: application/json
 
-	{"post_title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
+	{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
 
 
 ### HTTP method compatibility
