@@ -372,7 +372,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				}
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
-					$args = array_merge( $args, array( 'data' => $data ) );
+					if ( $data !== null ) {
+						$args = array_merge( $args, array( 'data' => $data ) );
+					}
 				}
 				elseif ( $supported & self::ACCEPT_RAW ) {
 					$data = $this->get_raw_data();
