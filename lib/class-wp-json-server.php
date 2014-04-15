@@ -456,6 +456,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			'description' => get_option( 'blogdescription' ),
 			'URL' => get_option( 'siteurl' ),
 			'routes' => array(),
+			'authentication' => array(),
 			'meta' => array(
 				'links' => array(
 					'help' => 'https://github.com/rmccue/WP-API',
