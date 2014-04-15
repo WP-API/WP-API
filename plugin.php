@@ -229,10 +229,24 @@ add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
  * @return string Full URL to the endpoint
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_home_url( $blog_id, 'wp-json', $scheme );
+	if ( get_option( 'permalink_structure' ) ) {
+		$url = get_home_url( $blog_id, 'wp-json', $scheme );
 
-	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
-		$url .= '/' . ltrim( $path, '/' );
+		if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+			$url .= '/' . ltrim( $path, '/' );
+	}
+	else {
+		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
+
+		if ( empty( $path ) ) {
+			$path = '/';
+		}
+		else {
+			$path = '/' . ltrim( $path, '/' );
+		}
+
+		$url = add_query_arg( 'json_route', $path, $url );
+	}
 
 	return apply_filters( 'json_url', $url, $path, $blog_id );
 }
