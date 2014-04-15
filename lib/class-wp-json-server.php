@@ -255,8 +255,20 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			$this->set_status( $code );
 		}
 
-		// This is a filter rather than an action, since this is designed to be
-		// re-entrant if needed
+		/**
+		 * Allow sending the request manually
+		 *
+		 * If `$served` is true, the result will not be sent to the client.
+		 *
+		 * This is a filter rather than an action, since this is designed to be
+		 * re-entrant if needed.
+		 *
+		 * @param bool $served Whether the request has already been served
+		 * @param mixed $result Result to send to the client. JsonSerializable, or other value to pass to `json_encode`
+		 * @param string $path Route requested
+		 * @param string $method HTTP request method (HEAD/GET/POST/PUT/PATCH/DELETE)
+		 * @param WP_JSON_ResponseHandler $this ResponseHandler instance (usually WP_JSON_Server)
+		 */
 		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method, $this );
 
 		if ( ! $served ) {
