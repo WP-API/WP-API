@@ -257,7 +257,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 		// This is a filter rather than an action, since this is designed to be
 		// re-entrant if needed
-		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method );
+		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method, $this );
 
 		if ( ! $served ) {
 			if ( 'HEAD' === $this->method )
