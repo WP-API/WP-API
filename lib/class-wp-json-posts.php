@@ -632,7 +632,7 @@ class WP_JSON_Posts {
 			    unset( $custom_fields[$meta_key] );
 		}
 
-		return apply_filters( 'json_prepare_meta', $custom_fields );
+		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
 	}
 
 	protected function prepare_author( $author ) {
