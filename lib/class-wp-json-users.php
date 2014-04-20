@@ -313,7 +313,6 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 		else {
-			// "TODO: return a HTTP 202 here instead"... says the Post endpoint... really? Inappropriate (says tobych)?
 			return array( 'message' => __( 'Deleted user' ) );
 		}
 	}
