@@ -179,7 +179,7 @@ class WP_JSON_Users {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function edit_user( $id, $data, $_headers = array() ) {
+	public function edit_user( $id, $data, $_headers = array() ) {
 		$id = absint( $id );
 
 		if ( empty( $id ) ) {
