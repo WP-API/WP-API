@@ -151,12 +151,6 @@ class WP_JSON_Users {
 			'registered' => $user->user_registered,
 			'roles' => $user->roles,
 			'capabilities' => $user->allcaps,
-			'meta' => array(
-				'links' => array(
-					'self' => json_url( '/users/' . $user->ID ),
-					'archives' => json_url( '/users/' . $user->ID . '/posts' ),
-				),
-			),
 		);
 
 		if ( $context === 'edit' ) {
@@ -164,6 +158,13 @@ class WP_JSON_Users {
 			// the user, as allcaps should handle most users
 			$user_fields['extra_capabilities'] = $user->caps;
 		}
+
+		$user_fields['meta'] = array(
+			'links' => array(
+				'self' => json_url( '/users/' . $user->ID ),
+				'archives' => json_url( '/users/' . $user->ID . '/posts' ),
+			),
+		);
 		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
