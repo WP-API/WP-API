@@ -145,6 +145,8 @@ class WP_JSON_Users {
 			'username' => $user->user_login,
 			'email' => $user->user_email,
 			'registered' => $user->user_registered,
+			'roles' => $user->roles,
+			'capabilities' => $user->allcaps,
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
@@ -152,6 +154,12 @@ class WP_JSON_Users {
 				),
 			),
 		);
+
+		if ( $context === 'edit' ) {
+			// The user's specific caps should only be needed if you're editing
+			// the user, as allcaps should handle most users
+			$user_fields['extra_capabilities'] = $user->caps;
+		}
 		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
