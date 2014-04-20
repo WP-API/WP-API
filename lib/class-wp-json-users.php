@@ -70,13 +70,9 @@ class WP_JSON_Users {
 	/**
 	 * Retrieve users.
 	 *
-	 * The optional $filter parameter... TODO: Not implemented!
-	 * Accepted keys are... TODO: Not implemented!
-	 * The optional $fields parameter... TODO: Not implemented!
-	 *
-	 * @param array $filter optional
+	 * @param array $filter Extra query parameters for {@see WP_User_Query}
 	 * @param string $context optional
-	 * @param int $page optional - TODO: Not implemented!
+	 * @param int $page Page number (1-indexed)
 	 * @return array contains a collection of User entities.
 	 */
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
@@ -89,6 +85,13 @@ class WP_JSON_Users {
 			'orderby' => 'user_login',
 			'order' => 'ASC'
 		);
+		$args = array_merge( $args, $filter );
+		$args = apply_filters( 'json_user_query', $args, $filter, $context, $page );
+
+		// Pagination
+		$args['number'] = empty( $args['number'] ) ? 10 : absint( $args['number'] );
+		$page = absint( $page );
+		$args['offset'] = ( $page - 1 ) * $args['number'];
 
 		$user_query = new WP_User_Query( $args );
 		if ( empty( $user_query->results ) ) {
