@@ -91,15 +91,15 @@ class WP_JSON_Users {
 		);
 
 		$user_query = new WP_User_Query( $args );
-		$struct = array();
-		if ( ! empty( $user_query->results ) ) {
-			foreach ( $user_query->results as $user ) {
-				$struct[] = $this->prepare_user( $user, $context );
-			}
-		}
-		else {
+		if ( empty( $user_query->results ) ) {
 			return array();
 		}
+
+		$struct = array();
+		foreach ( $user_query->results as $user ) {
+			$struct[] = $this->prepare_user( $user, $context );
+		}
+
 		return $struct;
 	}
 
@@ -128,15 +128,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
-		$response = new WP_JSON_Response();
-
-		$user = $this->prepare_user( $user, $context );
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
-
-		$response->set_data( $user );
-		return $response;
+		return $this->prepare_user( $user, $context );
 	}
 
 	/**
@@ -280,12 +272,12 @@ class WP_JSON_Users {
 
 		// Pre-insert hook
 		// TODO: Or json_pre_insert_user? Or insert rather than create? "Insert" seems to mean create or edit in WP...?
-		$can_insert = apply_filters( 'pre_wp_json_create_user', $userdata, $data );
+		$can_insert = apply_filters( 'json_pre_create_user', $userdata, $data );
 		if ( is_wp_error( $can_insert ) ) {
 			return $can_insert;
 		}
 
-		$result = wp_insert_user( $userdata );
+		$user_id = wp_insert_user( $userdata );
 		// TODO: Send appropriate HTTP error codes along with the JSON rendering of the WP_Error we send back
 		// TODO: I guess we can just add/overwrite the 'status' code in there ourselves... nested WP_Error?
 		// These are the errors wp_insert_user() might return (from the wp_create_user documentation)
@@ -295,10 +287,8 @@ class WP_JSON_Users {
 		// http://stackoverflow.com/questions/942951/rest-api-error-return-good-practices
 		// http://stackoverflow.com/questions/3825990/http-response-code-for-post-when-resource-already-exists
 		// http://soabits.blogspot.com/2013/05/error-handling-considerations-and-best.html
-		if ( $result instanceof WP_Error ) {
-			return $result;
-		} else {
-			$user_id = $result;
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
 		}
 
 		$response = $this->get_user( $user_id );
