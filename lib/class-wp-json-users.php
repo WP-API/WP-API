@@ -165,7 +165,7 @@ class WP_JSON_Users {
 				),
 			),
 		);
-		return $user_fields;
+		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
 	/**
