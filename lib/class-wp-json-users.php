@@ -121,7 +121,6 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
-		// http://codex.wordpress.org/Function_Reference/get_userdata
 		$user = get_userdata( $id );
 
 		if ( empty( $user->ID ) ) {
@@ -215,7 +214,6 @@ class WP_JSON_Users {
 			return $retval;
 		}
 
-		// http://codex.wordpress.org/Function_Reference/do_action
 		do_action( 'json_insert_user', $user, $data, true ); // $update is always true
 
 		return $this->get_user( $id );
