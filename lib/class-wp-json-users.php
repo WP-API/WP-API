@@ -246,6 +246,10 @@ class WP_JSON_Users {
 		# https://codex.wordpress.org/Class_Reference/WP_User
 		# http://tommcfarlin.com/create-a-user-in-wordpress/
 
+		if ( ! current_user_can( 'create_users' ) ) {
+			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+		}
+
 		if ( empty( $data['username'] ) ) {
 			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
