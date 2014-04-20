@@ -205,7 +205,7 @@ class WP_JSON_Users {
 		}
 
 		// Pre-update hook
-		$user = apply_filters( 'pre_wp_json_update_user', $user, $id, $data, $_headers );
+		$user = apply_filters( 'json_pre_update_user', $user, $id, $data, $_headers );
 
 		// Update the user in the database
 		// http://codex.wordpress.org/Function_Reference/wp_update_user
