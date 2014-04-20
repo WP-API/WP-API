@@ -138,11 +138,14 @@ class WP_JSON_Users {
 	protected function prepare_user( $user, $context = 'view' ) {
 		$user_fields = array(
 			'ID' => $user->ID,
+			'username' => $user->user_login,
 			'name' => $user->display_name,
+			'first_name' => $user->first_name,
+			'last_name' => $user->last_name,
+			'nickname' => $user->nickname,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
 			'avatar' => $this->server->get_avatar_url( $user->user_email ),
-			'username' => $user->user_login,
 			'email' => $user->user_email,
 			'registered' => $user->user_registered,
 			'roles' => $user->roles,
