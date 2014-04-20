@@ -270,9 +270,9 @@ class WP_JSON_Users {
 
 		// Pre-insert hook
 		// TODO: Or json_pre_insert_user? Or insert rather than create? "Insert" seems to mean create or edit in WP...?
-		$can_insert = apply_filters( 'json_pre_create_user', $userdata, $data );
-		if ( is_wp_error( $can_insert ) ) {
-			return $can_insert;
+		$userdata = apply_filters( 'json_pre_create_user', $userdata, $data );
+		if ( is_wp_error( $userdata ) ) {
+			return $userdata;
 		}
 
 		$user_id = wp_insert_user( $userdata );
