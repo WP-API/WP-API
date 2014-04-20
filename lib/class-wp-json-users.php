@@ -82,18 +82,22 @@ class WP_JSON_Users {
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
 
 		if ( ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
-		$args = array( 'orderby' => 'user_login', 'order' => 'ASC' );
+		$args = array(
+			'orderby' => 'user_login',
+			'order' => 'ASC'
+		);
+
 		$user_query = new WP_User_Query( $args );
 		$struct = array();
 		if ( ! empty( $user_query->results ) ) {
 			foreach ( $user_query->results as $user ) {
 				$struct[] = $this->prepare_user( $user, $context );
 			}
-		} else {
+		}
+		else {
 			return array();
 		}
 		return $struct;
@@ -114,22 +118,23 @@ class WP_JSON_Users {
 				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
-		if ( empty( $id ) )
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		// http://codex.wordpress.org/Function_Reference/get_userdata
 		$user = get_userdata( $id );
 
-		if ( empty( $user->ID ) )
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $user->ID ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		$response = new WP_JSON_Response();
 
 		$user = $this->prepare_user( $user, $context );
-		if ( is_wp_error( $user ) )
+		if ( is_wp_error( $user ) ) {
 			return $user;
+		}
 
 		$response->set_data( $user );
 		return $response;
@@ -187,21 +192,20 @@ class WP_JSON_Users {
 	function edit_user( $id, $data, $_headers = array() ) {
 		$id = absint( $id );
 
-		if ( empty( $id ) )
-			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		// http://codex.wordpress.org/Function_Reference/get_userdata
 		$user = get_userdata( $id ); // returns False on failure
 
-		if ( ! $user )
-			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be an integer.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( ! $user ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be an integer.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		// Permissions check
 		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'You need edit_user(s) capability to do this.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_cannot_edit', __( 'You need edit_user(s) capability to do this.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		// Update attributes of the user from $data
@@ -243,17 +247,14 @@ class WP_JSON_Users {
 		# https://codex.wordpress.org/Class_Reference/WP_User
 		# http://tommcfarlin.com/create-a-user-in-wordpress/
 
-		if ( empty( $data['username'] )) {
-			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $data['username'] ) ) {
+			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
-		if ( empty( $data['password'] )) {
-			return new WP_Error( 'json_user_password_missing', __( 'No password supplied.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $data['password'] ) ) {
+			return new WP_Error( 'json_user_password_missing', __( 'No password supplied.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
-		if ( empty( $data['email'] )) {
-			return new WP_Error( 'json_user_email_missing', __( 'No email supplied.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $data['email'] ) ) {
+			return new WP_Error( 'json_user_email_missing', __( 'No email supplied.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
 		$userdata = array(
@@ -313,30 +314,29 @@ class WP_JSON_Users {
 	public function delete_user( $id, $force = false ) {
 		$id = absint( $id );
 
-		if ( empty( $id ) )
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		// Permissions check
 		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'You need delete_user(s) capability to do this' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_cannot_edit', __( 'You need delete_user(s) capability to do this' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		$user = get_userdata( $id );
 
-		if ( ! $user )
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		if ( ! $user ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
+		}
 
 		// https://codex.wordpress.org/Function_Reference/wp_delete_user
 		// TODO: Allow posts to be reassigned (see the docs for wp_delete_user) - use a HTTP parameter?
 		$result = wp_delete_user( $id );
 
 		if ( ! $result ) {
-			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_INTERNAL_SERVER_ERROR ) );
-		} else {
+			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_INTERNAL_SERVER_ERROR ) );
+		}
+		else {
 			// "TODO: return a HTTP 202 here instead"... says the Post endpoint... really? Inappropriate (says tobych)?
 			return array( 'message' => __( 'Deleted user' ) );
 		}
@@ -380,6 +380,6 @@ class WP_JSON_Users {
 		}
 		// ignore registered - probably no need
 
-		}
+	}
 
 }
