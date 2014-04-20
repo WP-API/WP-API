@@ -186,16 +186,14 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
-		// http://codex.wordpress.org/Function_Reference/get_userdata
-		$user = get_userdata( $id ); // returns False on failure
-
-		if ( ! $user ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be an integer.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
-		}
-
 		// Permissions check
 		if ( ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+		}
+
+		$user = get_userdata( $id );
+		if ( ! $user ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_BAD_REQUEST ) );
 		}
 
 		// Update attributes of the user from $data
