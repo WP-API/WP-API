@@ -52,7 +52,7 @@ function json_api_default_filters($server) {
 
 	// Users
 	$wp_json_users = new WP_JSON_Users($server);
-	add_filter( 'json_endpoints', array( $wp_json_users, 'registerRoutes' ), 0 );
+	add_filter( 'json_endpoints', array( $wp_json_users, 'register_routes' ), 0 );
 
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages($server);

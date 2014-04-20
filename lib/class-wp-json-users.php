@@ -51,7 +51,7 @@ class WP_JSON_Users {
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
 	 */
-	public function registerRoutes( $routes ) {
+	public function register_routes( $routes ) {
 		$user_routes = array(
 			// User endpoints
 			'/users' => array(
