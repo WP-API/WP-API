@@ -136,25 +136,15 @@ class WP_JSON_Users {
 	 * @return array
 	 */
 	protected function prepare_user( $user, $context = 'view' ) {
-		// We're ignoring $fields for now, so you get all these fields
-		// http://codex.wordpress.org/Function_Reference/get_metadata
-		// http://code.tutsplus.com/articles/mastering-wordpress-meta-data-understanding-and-using-arrays--wp-34596
 		$user_fields = array(
-
-			// As per https://github.com/WP-API/WP-API/blob/master/docs/schema.md#user
 			'ID' => $user->ID,
 			'name' => $user->display_name,
 			'slug' => $user->user_nicename,
-			'URL' => $user->user_url,  // TODO: this is called 'Website' in the Wordpress users page. Use that?
-			// Read-only/derived
+			'URL' => $user->user_url,
 			'avatar' => $this->server->get_avatar_url( $user->user_email ),
-
-			// Extra stuff that seems important and isn't in user_meta
 			'username' => $user->user_login,
 			'email' => $user->user_email,
 			'registered' => $user->user_registered,
-
-			// TODO: There's also user_activation_key, user_status, password... roles
 			'meta' => array(
 				'links' => array(
 					'self' => json_url( '/users/' . $user->ID ),
