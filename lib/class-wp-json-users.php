@@ -82,7 +82,7 @@ class WP_JSON_Users {
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
 
 		if ( ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		$args = array(
@@ -114,8 +114,7 @@ class WP_JSON_Users {
 		$id = absint( $id );
 
 		if ( ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_cannot_get', __( 'You need list_users capability to do this.' ),
-				array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		if ( empty( $id ) ) {
@@ -205,7 +204,7 @@ class WP_JSON_Users {
 
 		// Permissions check
 		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'You need edit_user(s) capability to do this.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		// Update attributes of the user from $data
@@ -320,7 +319,7 @@ class WP_JSON_Users {
 
 		// Permissions check
 		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'You need delete_user(s) capability to do this' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
+			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => HttpStatusCode::HTTP_STATUS_FORBIDDEN ) );
 		}
 
 		$user = get_userdata( $id );
