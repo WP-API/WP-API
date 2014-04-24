@@ -7,6 +7,17 @@
  * Version: 0.9
  * Plugin URI: https://github.com/rmccue/WP-API
  */
+
+/**
+ * Version number for our API
+ *
+ * @var string
+ */
+define('JSON_API_VERSION', '0.9');
+
+/**
+ * Include our files for the API
+ */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
@@ -36,6 +47,20 @@ function json_api_register_rewrites() {
 	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
 	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
 }
+
+/**
+ * Determine if the rewrite rules should be flushed.
+ */
+function json_api_maybe_flush_rewrites() {
+	$version = get_option( 'json_api_plugin_version', NULL );
+
+	if ( empty( $version ) ||  $version !== JSON_API_VERSION ) {
+		flush_rewrite_rules();
+		update_option( 'json_api_plugin_version', JSON_API_VERSION );
+	}
+
+}
+add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
 
 /**
  * Register the default JSON API filters
@@ -135,7 +160,7 @@ function json_api_activation( $network_wide ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
 			json_api_register_rewrites();
-			flush_rewrite_rules();
+			update_option( 'json_api_plugin_version', NULL );
 		}
 
 		restore_current_blog();
@@ -143,7 +168,7 @@ function json_api_activation( $network_wide ) {
 	} else {
 
 		json_api_register_rewrites();
-		flush_rewrite_rules();
+		update_option( 'json_api_plugin_version', NULL );
 	}
 }
 register_activation_hook( __FILE__, 'json_api_activation' );
@@ -159,14 +184,14 @@ function json_api_deactivation( $network_wide ) {
 		foreach ( $mu_blogs as $mu_blog ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
-			flush_rewrite_rules();
+			update_option( 'json_api_plugin_version', NULL );
 		}
 
 		restore_current_blog();
 
 	} else {
 
-		flush_rewrite_rules();
+		update_option( 'json_api_plugin_version', NULL );
 	}
 }
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
