@@ -155,6 +155,99 @@ class WP_JSON_Users {
 		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
+	protected function insert_user( $data ) {
+		if ( ! empty( $data['ID'] ) ) {
+			$user = get_userdata( $data['ID'] );
+			if ( ! $user ) {
+				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
+			}
+
+			if ( ! current_user_can( 'edit_user', $data['ID'] ) ) {
+				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
+			}
+
+			$required = array( 'username', 'password', 'email' );
+			foreach ( $required as $arg ) {
+				if ( empty( $data[ $arg ] ) ) {
+					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+				}
+			}
+
+			$update = true;
+		}
+		else {
+			$user = new WP_User();
+
+			if ( ! current_user_can( 'create_users' ) ) {
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
+			}
+
+			$update = false;
+		}
+
+		// Basic authentication details
+		if ( isset( $data['username'] ) ) {
+			$user->user_login = $data['username'];
+		}
+		if ( isset( $data['password'] ) ) {
+			$user->user_pass = $data['password'];
+		}
+
+		// Names
+		if ( isset( $data['name'] ) ) {
+			$user->display_name = $data['name'];
+		}
+		if ( isset( $data['first_name'] ) ) {
+			$user->first_name = $data['first_name'];
+		}
+		if ( isset( $data['last_name'] ) ) {
+			$user->last_name = $data['last_name'];
+		}
+		if ( isset( $data['nickname'] ) ) {
+			$user->nickname = $data['nickname'];
+		}
+		if ( ! empty( $data['slug'] ) ) {
+			$user->user_nicename = $data['slug'];
+		}
+
+		// URL
+		if ( ! empty( $data['URL'] ) ) {
+			$escaped = esc_url_raw( $user->user_url );
+			if ( $escaped !== $user->user_url ) {
+				return new WP_Error( 'json_invalid_url', __( 'Invalid user URL.' ), array( 'status' => 400 ) );
+			}
+
+			$user->user_url = $data['URL'];
+		}
+
+		// Description
+		if ( ! empty( $data['description'] ) ) {
+			$user->description = $data['description'];
+		}
+
+		// Email
+		if ( ! empty( $data['email'] ) ) {
+			$user->user_email = $data['email'];
+		}
+
+		// Pre-flight check
+		$user = apply_filters( 'json_pre_insert_user', $user, $data );
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$user_id = $update ? wp_update_user( $user ) : wp_insert_user( $user );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		$user->ID = $user_id;
+
+		do_action( 'json_insert_user', $user, $data, $update );
+
+		return $user_id;
+	}
+
 	/**
 	 * Edit a user.
 	 *
@@ -183,23 +276,13 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		$data['ID'] = $user->ID;
+
 		// Update attributes of the user from $data
-		$retval = $this->update_user( $user, $data );
+		$retval = $this->insert_user( $data );
 		if ( is_wp_error( $retval ) ) {
 			return $retval;
 		}
-
-		// Pre-update hook
-		$user = apply_filters( 'json_pre_update_user', $user, $id, $data, $_headers );
-
-		// Update the user in the database
-		// http://codex.wordpress.org/Function_Reference/wp_update_user
-		$retval = wp_update_user( $user );
-		if ( is_wp_error( $retval ) ) {
-			return $retval;
-		}
-
-		do_action( 'json_insert_user', $user, $data, true ); // $update is always true
 
 		return $this->get_user( $id );
 	}
@@ -211,56 +294,15 @@ class WP_JSON_Users {
 	 * @return mixed
 	 */
 	public function new_user( $data ) {
-		# TODO: Use WP_User here, and refactor so we're sharing code with edit_user
-		# You can provide a WP_User to wp_insert_user. But the semantics of using WP_User to create a new
-		# user aren't defined well in the documentation: it doesn't even tell you how to create a WP_User without
-		# using an ID. So we won't try to do that.
-		#
-		# https://codex.wordpress.org/Function_Reference/wp_insert_user - provide complete user_data
-		# https://codex.wordpress.org/Function_Reference/wp_create_user - just takes username, password, email
-		# https://codex.wordpress.org/Class_Reference/WP_User
-		# http://tommcfarlin.com/create-a-user-in-wordpress/
-
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
 
-		if ( empty( $data['username'] ) ) {
-			return new WP_Error( 'json_user_username_missing', __( 'No username supplied.'), array( 'status' => 400 ) );
-		}
-		if ( empty( $data['password'] ) ) {
-			return new WP_Error( 'json_user_password_missing', __( 'No password supplied.' ), array( 'status' => 400 ) );
-		}
-		if ( empty( $data['email'] ) ) {
-			return new WP_Error( 'json_user_email_missing', __( 'No email supplied.' ), array( 'status' => 400 ) );
+		if ( ! empty( $data['ID'] ) ) {
+			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
 
-		$userdata = array(
-			// These are the required fields for wp_insert_user
-			'user_login' => $data['username'], // must be unique
-			'user_pass' => $data['password'], // we're sending this in plain text
-			'user_email' => $data['email'], // must be unique
-		);
-
-		if ( ! empty( $data['slug'] ) ) {
-			$userdata['user_nicename'] = $data['slug']; // TODO: This is made unique eg to Fred-3 - what to do?
-		}
-		if ( ! empty( $data['name'] ) ) {
-			$userdata['display_name'] = $data['name'];
-		}
-		if ( ! empty( $data['URL'] ) ) {
-			$userdata['user_url'] = $data['URL'];
-		}
-
-
-		// Pre-insert hook
-		// TODO: Or json_pre_insert_user? Or insert rather than create? "Insert" seems to mean create or edit in WP...?
-		$userdata = apply_filters( 'json_pre_create_user', $userdata, $data );
-		if ( is_wp_error( $userdata ) ) {
-			return $userdata;
-		}
-
-		$user_id = wp_insert_user( $userdata );
+		$user_id = $this->insert_user( $data );
 		// TODO: Send appropriate HTTP error codes along with the JSON rendering of the WP_Error we send back
 		// TODO: I guess we can just add/overwrite the 'status' code in there ourselves... nested WP_Error?
 		// These are the errors wp_insert_user() might return (from the wp_create_user documentation)
@@ -316,45 +358,4 @@ class WP_JSON_Users {
 			return array( 'message' => __( 'Deleted user' ) );
 		}
 	}
-
-	/**
-	 *
-	 * Update a WP_User instance from a User entity.
-	 *
-	 * @param WP_User $user
-	 * @param $data
-	 */
-	protected function update_user( $user, $data ) {
-
-		// Won't let them update these fields: ID, login, pass, registered (silently ignored)
-		// TODO: Raise an exception if they try to update those? Always ignore ID though.
-
-		// Note that you can pass wp_update_user() an array of fields to
-		// update; we won't bother using it as they don't match the User entity
-		// and it's just one more level of indirection to maintain.
-
-		// https://github.com/WP-API/WP-API/blob/master/docs/schema.md#user
-		// http://codex.wordpress.org/Class_Reference/WP_User
-		// http://wpsmith.net/2012/wp/an-introduction-to-wp_user-class/
-
-		// There are more fields in WP_User we might
-
-		if ( ! empty( $data['name'] ) ) {
-			$user->display_name = $data[ 'name' ];
-		}
-		if ( ! empty( $data['slug'] ) ) {
-			$user->user_nicename = $data[ 'slug' ];
-		}
-		if ( ! empty( $data['URL'] ) ) {
-			$user->user_url = $data[ 'URL' ];
-		}
-		// ignore avatar - read-only
-		// ignore username - can't change this
-		if ( ! empty( $data['email'] ) ) {
-			$user->user_email = $data['email'];
-		}
-		// ignore registered - probably no need
-
-	}
-
 }
