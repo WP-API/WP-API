@@ -101,7 +101,8 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
-		if ( ! current_user_can( 'list_users' ) ) {
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
