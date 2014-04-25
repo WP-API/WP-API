@@ -179,6 +179,9 @@ class WP_JSON_Users {
 		else {
 			$user = new WP_User();
 
+			// Workaround for https://core.trac.wordpress.org/ticket/28019
+			$user->data = new stdClass;
+
 			if ( ! current_user_can( 'create_users' ) ) {
 				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 			}
