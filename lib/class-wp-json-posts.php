@@ -873,6 +873,10 @@ class WP_JSON_Posts {
 			else
 				unstick_post( $data['ID'] );
 		}
+		
+		// ensure that action handlers get the post ID
+		// even if it's a new post.
+		$post['ID'] = $post_ID;
 
 		do_action( 'json_insert_post', $post, $data, $update );
 

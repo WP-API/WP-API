@@ -186,7 +186,7 @@ class WP_JSON_Taxonomies {
 	protected function prepare_term( $term, $type, $context = 'view' ) {
 		$base_url = '/posts/types/' . $type . '/taxonomies/' . $term->taxonomy . '/terms';
 		$data = array(
-			'ID'     => (int) $term->term_taxonomy_id,
+			'ID'     => (int) $term->term_id,
 			'name'   => $term->name,
 			'slug'   => $term->slug,
 			'parent' => (int) $term->parent,
