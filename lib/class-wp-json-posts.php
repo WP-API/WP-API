@@ -314,7 +314,7 @@ class WP_JSON_Posts {
 			return $retval;
 		}
 
-		return $this->getPost( $id );
+		return $this->get_post( $id );
 	}
 
 	/**
