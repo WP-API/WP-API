@@ -160,7 +160,7 @@ function json_api_activation( $network_wide ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
 			json_api_register_rewrites();
-			update_option( 'json_api_plugin_version', NULL );
+			update_option( 'json_api_plugin_version', null );
 		}
 
 		restore_current_blog();
@@ -168,7 +168,7 @@ function json_api_activation( $network_wide ) {
 	} else {
 
 		json_api_register_rewrites();
-		update_option( 'json_api_plugin_version', NULL );
+		update_option( 'json_api_plugin_version', null );
 	}
 }
 register_activation_hook( __FILE__, 'json_api_activation' );
@@ -184,14 +184,14 @@ function json_api_deactivation( $network_wide ) {
 		foreach ( $mu_blogs as $mu_blog ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
-			update_option( 'json_api_plugin_version', NULL );
+			delete_option( 'json_api_plugin_version' );
 		}
 
 		restore_current_blog();
 
 	} else {
 
-		update_option( 'json_api_plugin_version', NULL );
+		delete_option( 'json_api_plugin_version' );
 	}
 }
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
