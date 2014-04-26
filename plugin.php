@@ -52,7 +52,7 @@ function json_api_register_rewrites() {
  * Determine if the rewrite rules should be flushed.
  */
 function json_api_maybe_flush_rewrites() {
-	$version = get_option( 'json_api_plugin_version', NULL );
+	$version = get_option( 'json_api_plugin_version', null );
 
 	if ( empty( $version ) ||  $version !== JSON_API_VERSION ) {
 		flush_rewrite_rules();
