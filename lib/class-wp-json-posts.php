@@ -861,6 +861,11 @@ class WP_JSON_Posts {
 			return $post_ID;
 		}
 
+		// If this is a new post, add the post ID to $post
+		if ( ! $update ) {
+			$post['ID'] = $post_ID;
+		}
+
 		// Sticky
 		if ( isset( $post['sticky'] ) )  {
 			if ( $post['sticky'] )
