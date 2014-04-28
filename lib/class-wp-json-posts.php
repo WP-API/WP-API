@@ -629,10 +629,58 @@ class WP_JSON_Posts {
 		foreach ( $custom_fields as $meta_key => $meta_value ) {
 			// Don't expose protected fields.
 			if ( is_protected_meta( $meta_key ) )
-			    unset( $custom_fields[$meta_key] );
+				unset( $custom_fields[$meta_key] );
 		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields );
+	}
+
+	/**
+	 * Update/add post meta for a post. This method relies on the user to provide sanitization callbacks.
+	 * If none are provided, post meta will go unsanitized unless the require sanitization filter returns
+	 * true. Post meta is expected to be sent like so:
+	 * {
+	 * 	post_meta : [
+	 * 		{
+	 * 			key : 'meta_key',
+	 * 			value : 'meta_value', (OPTIONAL)
+	 * 			action : (update|add|delete) (OPTIONAL, default=update)
+	 * 		}
+	 * 	]
+	 * }
+	 *
+	 * @uses update_post_meta, apply_filters, add_post_meta, wp_parse_args, delete_post_meta
+	 * @param array $data
+	 * @param int $post_ID
+	 * @return bool|WP_Error
+	 */
+	protected function insert_post_meta( $data, $post_ID ) {
+		if ( empty( $post_ID ) || empty( $data['post_meta'] ) || ! is_array( $data['post_meta'] ) ) {
+			return false;
+		}
+
+		$meta_array_defaults = array(
+			'action' => 'update',
+			'value' => null,
+		);
+
+		foreach ( $data['post_meta'] as $meta_array ) {
+
+			$meta_array = wp_parse_args( $meta_array, $meta_array_defaults );
+
+			if ( 'update' == $meta_array['action'] ) {
+				update_post_meta( $post_ID, $meta_array['key'], $meta_array['value'] );
+			} elseif ( 'add' == $meta_array['action'] ) {
+				add_post_meta( $post_ID, $meta_array['key'], $meta_array['value'] );
+			} elseif ( 'delete' == $meta_array['action'] ) {
+				delete_post_meta( $post_ID, $meta_array['key'] );
+			} else {
+				// Return a WP_Error here?
+				continue;
+			}
+		}
+
+		return true;
 	}
 
 	protected function prepare_author( $author ) {
@@ -747,7 +795,7 @@ class WP_JSON_Posts {
 				default:
 					if ( ! get_post_status_object( $post['post_status'] ) )
 						$post['post_status'] = 'draft';
-				break;
+					break;
 			}
 		}
 
@@ -862,6 +910,9 @@ class WP_JSON_Posts {
 		if ( is_wp_error( $post_ID ) ) {
 			return $post_ID;
 		}
+
+		// Post meta
+		$this->insert_post_meta( $data, $post_ID );
 
 		// Sticky
 		if ( isset( $post['sticky'] ) )  {
