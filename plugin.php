@@ -234,10 +234,6 @@ function json_register_post_type( $post_type, $args ) {
 
 	$type = &$wp_post_types[ $post_type ];
 
-	if ( $post_type === 'post' ) {
-		$type->show_in_json = false;
-	}
-
 	// Exception for pages
 	if ( $post_type === 'page' ) {
 		$type->show_in_json = true;
