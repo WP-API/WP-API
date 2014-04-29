@@ -7,6 +7,17 @@
  * Version: 0.9
  * Plugin URI: https://github.com/rmccue/WP-API
  */
+
+/**
+ * Version number for our API
+ *
+ * @var string
+ */
+define('JSON_API_VERSION', '0.9');
+
+/**
+ * Include our files for the API
+ */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
@@ -37,6 +48,20 @@ function json_api_register_rewrites() {
 	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
 	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
 }
+
+/**
+ * Determine if the rewrite rules should be flushed.
+ */
+function json_api_maybe_flush_rewrites() {
+	$version = get_option( 'json_api_plugin_version', null );
+
+	if ( empty( $version ) ||  $version !== JSON_API_VERSION ) {
+		flush_rewrite_rules();
+		update_option( 'json_api_plugin_version', JSON_API_VERSION );
+	}
+
+}
+add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
 
 /**
  * Register the default JSON API filters
@@ -140,7 +165,7 @@ function json_api_activation( $network_wide ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
 			json_api_register_rewrites();
-			flush_rewrite_rules();
+			update_option( 'json_api_plugin_version', null );
 		}
 
 		restore_current_blog();
@@ -148,7 +173,7 @@ function json_api_activation( $network_wide ) {
 	} else {
 
 		json_api_register_rewrites();
-		flush_rewrite_rules();
+		update_option( 'json_api_plugin_version', null );
 	}
 }
 register_activation_hook( __FILE__, 'json_api_activation' );
@@ -164,14 +189,14 @@ function json_api_deactivation( $network_wide ) {
 		foreach ( $mu_blogs as $mu_blog ) {
 
 			switch_to_blog( $mu_blog['blog_id'] );
-			flush_rewrite_rules();
+			delete_option( 'json_api_plugin_version' );
 		}
 
 		restore_current_blog();
 
 	} else {
 
-		flush_rewrite_rules();
+		delete_option( 'json_api_plugin_version' );
 	}
 }
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
@@ -234,10 +259,24 @@ add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
  * @return string Full URL to the endpoint
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
-	$url = get_home_url( $blog_id, 'wp-json', $scheme );
+	if ( get_option( 'permalink_structure' ) ) {
+		$url = get_home_url( $blog_id, 'wp-json', $scheme );
 
-	if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
-		$url .= '/' . ltrim( $path, '/' );
+		if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+			$url .= '/' . ltrim( $path, '/' );
+	}
+	else {
+		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
+
+		if ( empty( $path ) ) {
+			$path = '/';
+		}
+		else {
+			$path = '/' . ltrim( $path, '/' );
+		}
+
+		$url = add_query_arg( 'json_route', $path, $url );
+	}
 
 	return apply_filters( 'json_url', $url, $path, $blog_id );
 }

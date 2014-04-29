@@ -314,7 +314,7 @@ class WP_JSON_Posts {
 			return $retval;
 		}
 
-		return $this->getPost( $id );
+		return $this->get_post( $id );
 	}
 
 	/**
@@ -524,6 +524,7 @@ class WP_JSON_Posts {
 			'title_raw'   => $post['post_title'],
 			'content_raw' => $post['post_content'],
 			'guid_raw'    => $post['guid'],
+			'post_meta'   => $this->prepare_meta( $post['ID'] ),
 		);
 
 		// Dates
@@ -575,9 +576,6 @@ class WP_JSON_Posts {
 			$_post = array_merge( $_post, $post_fields_raw );
 		elseif ( 'edit' === $context )
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
-
-		// Post meta
-		$_post['post_meta'] = $this->prepare_meta( $post['ID'] );
 
 		// Entity meta
 		$_post['meta'] = array(
@@ -632,7 +630,7 @@ class WP_JSON_Posts {
 			    unset( $custom_fields[$meta_key] );
 		}
 
-		return apply_filters( 'json_prepare_meta', $custom_fields );
+		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
 	}
 
 	protected function prepare_author( $author ) {
@@ -861,6 +859,11 @@ class WP_JSON_Posts {
 
 		if ( is_wp_error( $post_ID ) ) {
 			return $post_ID;
+		}
+
+		// If this is a new post, add the post ID to $post
+		if ( ! $update ) {
+			$post['ID'] = $post_ID;
 		}
 
 		// Sticky

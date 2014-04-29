@@ -55,12 +55,12 @@ That is, the following are equivalent:
 
 Content-Type: application/x-www-form-urlencoded
 
-	data[post_title]=Hello%20World!&data[post_content]=Content
+	data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
 
 
 Content-Type: application/json
 
-	{"post_title":"Hello World!","post_content":"Content"}
+	{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
 
 ### Response
 On a successful creation, a 201 Created status is given, indicating that the

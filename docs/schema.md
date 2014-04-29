@@ -8,7 +8,7 @@ This document is for clients and providers wanting to ensure full compliance
 with the specification.
 
 
-Defintions
+Definitions
 ==========
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
