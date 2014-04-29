@@ -1024,7 +1024,7 @@ class WP_JSON_Posts {
 		if ( in_array( 'meta', $requested_fields ) )
 			$data['meta'] = $meta;
 
-		return $data;
+		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
 	}
 
 	/**
