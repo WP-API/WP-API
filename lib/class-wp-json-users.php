@@ -137,7 +137,7 @@ class WP_JSON_Users {
 	 * Prepare a User entity from a WP_User instance.
 	 *
 	 * @param WP_User $user
-	 * @param string $context
+	 * @param string $context One of 'view', 'edit', 'embed'
 	 * @return array
 	 */
 	protected function prepare_user( $user, $context = 'view' ) {
@@ -154,9 +154,12 @@ class WP_JSON_Users {
 			'description' => $user->description,
 			'email' => $user->user_email,
 			'registered' => $user->user_registered,
-			'roles' => $user->roles,
-			'capabilities' => $user->allcaps,
 		);
+
+		if ( $context === 'view' || $context === 'edit' ) {
+			$user_fields['roles'] = $user->roles;
+			$user_fields['capabilities'] = $user->allcaps;
+		}
 
 		if ( $context === 'edit' ) {
 			// The user's specific caps should only be needed if you're editing
