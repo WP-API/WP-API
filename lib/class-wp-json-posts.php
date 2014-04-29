@@ -81,7 +81,7 @@ class WP_JSON_Posts {
 		$query = array();
 
 		$post_type = get_post_type_object( $type );
-		if ( ! ( (bool) $post_type ) )
+		if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
 			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
 
 		$query['post_type'] = $post_type->name;
@@ -159,8 +159,14 @@ class WP_JSON_Posts {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $post ) {
-		// Can we read the post?
 		$post_type = get_post_type_object( $post['post_type'] );
+
+		// Ensure the post type can be read
+		if ( ! $post_type->show_in_json ) {
+			return false;
+		}
+
+		// Can we read the post?
 		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
 			return true;
 		}
@@ -243,7 +249,6 @@ class WP_JSON_Posts {
 		if ( empty( $post['ID'] ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
-		$post_type = get_post_type_object( $post['post_type'] );
 		if ( ! $this->check_read_permission( $post ) )
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 
@@ -363,6 +368,16 @@ class WP_JSON_Posts {
 		//$args = array('status' => $status, 'post_id' => $id, 'offset' => $offset, 'number' => $number )l
 		$comments = get_comments( array('post_id' => $id) );
 
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_read_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+		}
+
 		$struct = array();
 		foreach ( $comments as $comment ) {
 			$struct[] = $this->prepare_comment( $comment, array( 'comment', 'meta' ), 'collection' );
@@ -414,8 +429,9 @@ class WP_JSON_Posts {
 		if ( ! is_object( $type ) )
 			$type = get_post_type_object($type);
 
-		if ( $type->public === false )
+		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+		}
 
 		$data = array(
 			'name' => $type->label,

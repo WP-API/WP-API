@@ -245,6 +245,32 @@ function json_output_link_header() {
 add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
 
 /**
+ * Add `show_in_json` {@see register_post_type} argument
+ *
+ * Adds the `show_in_json` post type argument to {@see register_post_type}. This
+ * value controls whether the post type is available via API endpoints, and
+ * defaults to the value of `publicly_queryable`
+ *
+ * @param string $post_type Post type being registered
+ * @param stdClass $args Post type arguments
+ */
+function json_register_post_type( $post_type, $args ) {
+	global $wp_post_types;
+
+	$type = &$wp_post_types[ $post_type ];
+
+	// Exception for pages
+	if ( $post_type === 'page' ) {
+		$type->show_in_json = true;
+	}
+
+	if ( ! isset( $type->show_in_json ) ) {
+		$type->show_in_json = $type->publicly_queryable;
+	}
+}
+add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
+
+/**
  * Get URL to a JSON endpoint on a site
  *
  * @todo Check if this is even necessary
