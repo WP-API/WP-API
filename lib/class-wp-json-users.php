@@ -370,7 +370,7 @@ class WP_JSON_Users {
 	 * @param bool force
 	 * @return true on success
 	 */
-	public function delete_user( $id, $force = false ) {
+	public function delete_user( $id, $force = false, $reassign = null ) {
 		$id = absint( $id );
 
 		if ( empty( $id ) ) {
@@ -388,9 +388,19 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 		}
 
-		// https://codex.wordpress.org/Function_Reference/wp_delete_user
-		// TODO: Allow posts to be reassigned (see the docs for wp_delete_user) - use a HTTP parameter?
-		$result = wp_delete_user( $id );
+		if ( ! empty( $reassign ) ) {
+			$reassign = absint( $reassign );
+
+			// Check that reassign is valid
+			if ( empty( $reassign ) || $reassign === $id || ! get_userdata( $reassign ) ) {
+				return new WP_Error( 'json_user_invalid_reassign', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+			}
+		}
+		else {
+			$reassign = null;
+		}
+
+		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
