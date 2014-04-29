@@ -153,8 +153,9 @@ class WP_JSON_Users {
 			'avatar' => $this->server->get_avatar_url( $user->user_email ),
 			'description' => $user->description,
 			'email' => $user->user_email,
-			'registered' => $user->user_registered,
 		);
+
+		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
 
 		if ( $context === 'view' || $context === 'edit' ) {
 			$user_fields['roles'] = $user->roles;
