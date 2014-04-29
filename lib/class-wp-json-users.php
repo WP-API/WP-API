@@ -173,6 +173,24 @@ class WP_JSON_Users {
 		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
+	/**
+	 * Add author data to post data
+	 *
+	 * @param array $data Post data
+	 * @param array $post Internal post data
+	 * @param string $context Post context
+	 * @return array Filtered data
+	 */
+	public function add_post_author_data( $data, $post, $context ) {
+		$author = get_userdata( $post['post_author'] );
+
+		if ( ! empty( $author ) ) {
+			$data['author'] = $this->prepare_user( $author, 'embed' );
+		}
+
+		return $data;
+	}
+
 	protected function insert_user( $data ) {
 		if ( ! empty( $data['ID'] ) ) {
 			$user = get_userdata( $data['ID'] );

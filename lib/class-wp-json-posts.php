@@ -556,8 +556,6 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) )
 			$post_fields['format'] = 'standard';
 
-		$post_fields['author'] = $this->prepare_author( $post['post_author'] );
-
 		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
