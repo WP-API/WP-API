@@ -218,7 +218,7 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = $this->get_post( $result );
+		$response = json_ensure_response( $this->get_post( $result ) );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 		return $response;
