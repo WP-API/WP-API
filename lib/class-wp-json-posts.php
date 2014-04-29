@@ -984,7 +984,7 @@ class WP_JSON_Posts {
 
 		// Author
 		if ( (int) $comment->user_id !== 0 ) {
-			$fields['author'] = $this->prepare_author( (int) $comment->user_id );
+			$fields['author'] = (int) $comment->user_id;
 		}
 		else {
 			$fields['author'] = array(

@@ -191,6 +191,26 @@ class WP_JSON_Users {
 		return $data;
 	}
 
+	/**
+	 * Add author data to comment data
+	 *
+	 * @param array $data Comment data
+	 * @param array $comment Internal comment data
+	 * @param string $context Data context
+	 * @return array Filtered data
+	 */
+	public function add_comment_author_data( $data, $comment, $context ) {
+		if ( (int) $comment->user_id !== 0 ) {
+			$author = get_userdata( $comment->user_id );
+
+			if ( ! empty( $author ) ) {
+				$data['author'] = $this->prepare_user( $author, 'embed' );
+			}
+		}
+
+		return $data;
+	}
+
 	protected function insert_user( $data ) {
 		if ( ! empty( $data['ID'] ) ) {
 			$user = get_userdata( $data['ID'] );
