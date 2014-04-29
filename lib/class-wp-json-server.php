@@ -390,6 +390,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				}
 				elseif ( $supported & self::ACCEPT_RAW ) {
 					$data = $this->get_raw_data();
+					if ( ! empty( $data ) ) {
+						$args = array_merge( $args, array( 'data' => $data ) );
+					}
 				}
 
 				$args['_method']  = $method;
