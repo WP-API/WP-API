@@ -49,7 +49,11 @@ class WP_JSON_Users {
 				array( array( $this, 'get_user' ), WP_JSON_Server::READABLE ),
 				array( array( $this, 'edit_user' ), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_user' ), WP_JSON_Server::DELETABLE ),
-			)
+			),
+			// /users/me is an alias, and simply redirects to /users/<id>
+			'/users/me' => array(
+				array( array( $this, 'get_current_user' ), WP_JSON_Server::READABLE ),
+			),
 		);
 		return array_merge( $routes, $user_routes );
 	}
@@ -91,6 +95,35 @@ class WP_JSON_Users {
 		}
 
 		return $struct;
+	}
+
+	/**
+	 * Retrieve the current user
+	 *
+	 * @param string $context
+	 * @return mixed See
+	 */
+	public function get_current_user( $context = 'view' ) {
+		$current_user_id = get_current_user_id();
+		if ( empty( $current_user_id ) ) {
+			return new WP_Error( 'json_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
+		}
+
+		$response = $this->get_user( $current_user_id, $context );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		if ( ! ( $response instanceof WP_JSON_ResponseInterface ) ) {
+			$response = new WP_JSON_Response( $response );
+		}
+
+		$data = $response->get_data();
+
+		$response->header( 'Location', $data['meta']['links']['self'] );
+		$response->set_status( 302 );
+
+		return $response;
 	}
 
 	/**
