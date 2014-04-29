@@ -93,26 +93,10 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	/**
 	 * Check the authentication headers if supplied
 	 *
-	 * @return WP_Error|WP_User|null WP_User object indicates successful login, WP_Error indicates unsuccessful login and null indicates no authentication provided
+	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
 	 */
 	public function check_authentication() {
-		$user = apply_filters( 'json_check_authentication', null );
-		if ( is_a( $user, 'WP_User' ) )
-			return $user;
-
-		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) )
-			return;
-
-		$username = $_SERVER['PHP_AUTH_USER'];
-		$password = $_SERVER['PHP_AUTH_PW'];
-
-		$user = wp_authenticate( $username, $password );
-
-		if ( is_wp_error( $user ) )
-			return $user;
-
-		wp_set_current_user( $user->ID );
-		return $user;
+		return apply_filters( 'json_authentication_errors', null );
 	}
 
 	/**
