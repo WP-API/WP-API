@@ -1,20 +1,5 @@
 <?php
 
-// These are the relevant capabilities we can use:
-// https://codex.wordpress.org/Roles_and_Capabilities
-// https://codex.wordpress.org/Function_Reference/map_meta_cap
-// edit_users - 2.0
-// edit_user (meta)
-// delete_users - 2.1
-// delete_user (meta)
-// remove_users - 3.0 (what's the difference?)
-// remove_user (meta)
-// create_users - 2.1
-// list_users - 3.0
-// add_users - 3.0
-// promote_users - 3.0 (this is about changing a users's level... not sure it's relevant to roles/caps)
-// promote_user (meta)
-
 class WP_JSON_Users {
 	/**
 	 * Server object
@@ -67,7 +52,6 @@ class WP_JSON_Users {
 	 * @return array contains a collection of User entities.
 	 */
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
-
 		if ( ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
 		}
@@ -176,7 +160,7 @@ class WP_JSON_Users {
 
 		if ( $context === 'edit' ) {
 			// The user's specific caps should only be needed if you're editing
-			// the user, as allcaps should handle most users
+			// the user, as allcaps should handle most uses
 			$user_fields['extra_capabilities'] = $user->caps;
 		}
 
@@ -340,15 +324,6 @@ class WP_JSON_Users {
 		}
 
 		$user_id = $this->insert_user( $data );
-		// TODO: Send appropriate HTTP error codes along with the JSON rendering of the WP_Error we send back
-		// TODO: I guess we can just add/overwrite the 'status' code in there ourselves... nested WP_Error?
-		// These are the errors wp_insert_user() might return (from the wp_create_user documentation)
-		// - empty_user_login, Cannot create a user with an empty login name. => BAD_REQUEST
-		// - existing_user_login, This username is already registered. => CONFLICT
-		// - existing_user_email, This email address is already registered. => CONFLICT
-		// http://stackoverflow.com/questions/942951/rest-api-error-return-good-practices
-		// http://stackoverflow.com/questions/3825990/http-response-code-for-post-when-resource-already-exists
-		// http://soabits.blogspot.com/2013/05/error-handling-considerations-and-best.html
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
 		}
