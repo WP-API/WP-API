@@ -572,8 +572,6 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) )
 			$post_fields['format'] = 'standard';
 
-		$post_fields['author'] = $this->prepare_author( $post['post_author'] );
-
 		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
@@ -1002,7 +1000,7 @@ class WP_JSON_Posts {
 
 		// Author
 		if ( (int) $comment->user_id !== 0 ) {
-			$fields['author'] = $this->prepare_author( (int) $comment->user_id );
+			$fields['author'] = (int) $comment->user_id;
 		}
 		else {
 			$fields['author'] = array(
@@ -1042,7 +1040,7 @@ class WP_JSON_Posts {
 		if ( in_array( 'meta', $requested_fields ) )
 			$data['meta'] = $meta;
 
-		return $data;
+		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
 	}
 
 	/**

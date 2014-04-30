@@ -305,18 +305,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$endpoints = array(
 			// Meta endpoints
 			'/' => array( array( $this, 'get_index' ), self::READABLE ),
-
-			// Users
-			'/users'               => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
-			// /users/me is an alias, and simply redirects to /users/<id>
-			'/users/me'            => array( '__return_null', self::ALLMETHODS ),
-			'/users/(?P<user>\d+)' => array(
-				array( '__return_null', self::READABLE ),
-				array( '__return_null', self::CREATABLE | self::ACCEPT_JSON ),
-			),
 		);
 
 		$endpoints = apply_filters( 'json_endpoints', $endpoints );
