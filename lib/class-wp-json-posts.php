@@ -867,9 +867,25 @@ class WP_JSON_Posts {
 			return $can_insert;
 		}
 
-		// Post meta
-		// TODO: implement this
+        // Create/update the post and get its ID
 		$post_ID = $update ? wp_update_post( $post, true ) : wp_insert_post( $post, true );
+
+        // Post meta
+        if( ! empty($data['custom_fields']) ) {
+            $custom_fields = $data['custom_fields'];
+            $db_custom_fields = (array) get_post_meta( $post_ID );
+
+            foreach($custom_fields as $custom_field) {
+                $meta_key = key($custom_field);
+                $meta_value = $custom_field[$meta_key];
+                // Check if that field exists in current database fields
+                if( array_key_exists($meta_key, $db_custom_fields) ) {
+                    update_post_meta($post_ID, $meta_key, $meta_value, $db_custom_fields[$meta_key]);
+                }else {
+                    add_post_meta($post_ID, $meta_key, $meta_value, true);
+                }
+            }
+        }
 
 		if ( is_wp_error( $post_ID ) ) {
 			return $post_ID;
