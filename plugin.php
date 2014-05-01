@@ -319,3 +319,27 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 function json_url( $path = '', $scheme = 'json' ) {
 	return get_json_url( null, $path, $scheme );
 }
+
+/**
+ * Ensure a JSON response is a response object
+ *
+ * This ensures that the response is consistent, and implements
+ * {@see WP_JSON_ResponseInterface}, allowing usage of
+ * `set_status`/`header`/etc without needing to double-check the object. Will
+ * also allow {@see WP_Error} to indicate error responses, so users should
+ * immediately check for this value.
+ *
+ * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check
+ * @return WP_Error|WP_JSON_ResponseInterface
+ */
+function json_ensure_response( $response ) {
+	if ( is_wp_error( $response ) ) {
+		return $response;
+	}
+
+	if ( $response instanceof WP_JSON_ResponseInterface ) {
+		return $response;
+	}
+
+	return new WP_JSON_Response( $response );
+}
