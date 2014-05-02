@@ -572,6 +572,8 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) )
 			$post_fields['format'] = 'standard';
 
+		$post_fields['author'] = $this->prepare_author( $post['post_author'] );
+
 		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
@@ -1000,7 +1002,8 @@ class WP_JSON_Posts {
 
 		// Author
 		if ( (int) $comment->user_id !== 0 ) {
-			$fields['author'] = (int) $comment->user_id;
+			$fields['author'] = $this->prepare_author( (int) $comment->user_id );
+
 		}
 		else {
 			$fields['author'] = array(
