@@ -647,35 +647,6 @@ class WP_JSON_Posts {
 		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
 	}
 
-	protected function prepare_author( $author ) {
-		$user = get_user_by( 'id', $author );
-
-		if (! $author || ! is_object( $user ) ) {
-			return null;
-		}
-
-
-		$author = array(
-			'ID' => $user->ID,
-			'name' => $user->display_name,
-			'slug' => $user->user_nicename,
-			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar_url( $user->user_email ),
-			'meta' => array(
-				'links' => array(
-					'self' => json_url( '/users/' . $user->ID ),
-					'archives' => json_url( '/users/' . $user->ID . '/posts' ),
-				),
-			),
-		);
-
-		if ( current_user_can( 'edit_user', $user->ID ) ) {
-			$author['first_name'] = $user->first_name;
-			$author['last_name'] = $user->last_name;
-		}
-		return $author;
-	}
-
 	/**
 	 * Helper method for wp_newPost and wp_editPost, containing shared logic.
 	 *
