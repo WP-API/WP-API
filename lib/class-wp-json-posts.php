@@ -73,9 +73,11 @@ class WP_JSON_Posts {
 	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
-	 * @param array $filter optional
-	 * @param array $fields optional
-	 * @return array contains a collection of Post entities.
+	 * @param array $filter Parameters to pass through to `WP_Query`
+	 * @param string $context
+	 * @param string|array $type Post type slug, or array of slugs
+	 * @param int $page Page number (1-indexed)
+	 * @return stdClass[] Collection of Post entities
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
