@@ -17,12 +17,9 @@ class WP_JSON_Taxonomies {
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
 				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
 				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
 			),
 		);
 		return array_merge( $routes, $tax_routes );

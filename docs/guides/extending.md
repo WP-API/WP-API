@@ -279,7 +279,6 @@ hooking and more for you:
 
 		public function register_routes( $routes ) {
 			$routes = parent::register_routes( $routes );
-			// $routes = parent::register_revision_routes( $routes );
 			// $routes = parent::register_comment_routes( $routes );
 
 			// Add more custom routes here

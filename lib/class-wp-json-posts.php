@@ -36,17 +36,13 @@ class WP_JSON_Posts {
 				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
 			),
-			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
 				array( array( $this, 'get_comments' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
 			),
 
 			// Meta-post endpoints
