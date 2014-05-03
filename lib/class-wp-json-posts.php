@@ -80,11 +80,15 @@ class WP_JSON_Posts {
 	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
-		$post_type = get_post_type_object( $type );
-		if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
-			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
+		// Validate post types and permissions
+		$query['post_type'] = array();
+		foreach ( (array) $type as $post_type ) {
+			$post_type = get_post_type_object( $post_type );
+			if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
+				return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
 
-		$query['post_type'] = $post_type->name;
+			$query['post_type'][] = $post_type->name;
+		}
 
 		global $wp;
 		// Allow the same as normal WP
