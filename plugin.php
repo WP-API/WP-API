@@ -271,6 +271,11 @@ function json_register_post_type( $post_type, $args ) {
 		$type->show_in_json = true;
 	}
 
+	// Exception for revisions
+	if ( $post_type === 'revision' ) {
+		$type->show_in_json = true;
+	}
+
 	if ( ! isset( $type->show_in_json ) ) {
 		$type->show_in_json = $type->publicly_queryable;
 	}

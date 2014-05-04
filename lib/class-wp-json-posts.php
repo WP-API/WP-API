@@ -36,7 +36,7 @@ class WP_JSON_Posts {
 				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
 			),
-			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
+			'/posts/(?P<id>\d+)/revisions' => array( array( $this, 'get_revisions' ), WP_JSON_Server::READABLE ),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
@@ -55,6 +55,38 @@ class WP_JSON_Posts {
 			'/posts/statuses'            => array( array( $this, 'get_post_statuses' ), WP_JSON_Server::READABLE ),
 		);
 		return array_merge( $routes, $post_routes );
+	}
+
+	/**
+	 * Get revisions for a specific post.
+	 *
+	 * @param int $id Post ID
+	 * @uses wp_get_post_revisions
+	 * @return WP_JSON_Response
+	 */
+	public function get_revisions( $id ) {
+		$id = (int) $id;
+
+		// Todo: Should everyone be able to read post revisions?
+
+		if ( empty( $id ) )
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+
+		// Todo: Query args filter for wp_get_post_revisions
+		$revisions = wp_get_post_revisions( $id );
+
+		$response = new WP_JSON_Response();
+		$struct = array();
+
+		foreach ( $revisions as $revision ) {
+			$post = get_object_vars( $revision );
+
+			$struct[] = $this->prepare_post( $post );
+		}
+
+		$response->set_data( $struct );
+
+		return $response;
 	}
 
 	/**
