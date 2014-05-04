@@ -41,7 +41,6 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 */
 	public function register_routes( $routes ) {
 		$routes = parent::register_routes( $routes );
-		$routes = parent::register_revision_routes( $routes );
 		$routes = parent::register_comment_routes( $routes );
 
 		// Add post-by-path routes
