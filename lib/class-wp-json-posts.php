@@ -642,31 +642,29 @@ class WP_JSON_Posts {
 			// Don't expose protected fields.
 			if ( is_protected_meta( $meta_key ) )
 				unset( $custom_fields[$meta_key] );
+		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
 	}
 
 	/**
-	 * Update/add post meta for a post. This method relies on the user to provide sanitization callbacks.
-	 * If none are provided, post meta will go unsanitized unless the require sanitization filter returns
-	 * true. Post meta is expected to be sent like so:
+	 * Update/add/delete post meta for a post. Post meta is expected to be sent like so:
 	 * {
 	 * 	post_meta : [
 	 * 		{
-	 * 			key : 'meta_key',
-	 * 			value : 'meta_value', (OPTIONAL)
-	 * 			action : (update|add|delete) (OPTIONAL, default=update)
+	 * 			"key" : "meta_key",
+	 * 			"value" : "meta_value", (OPTIONAL)
+	 * 			"action" : "meta_action" (OPTIONAL, add|update|delete, default=update)
 	 * 		}
 	 * 	]
 	 * }
 	 *
-	 * @uses update_post_meta, apply_filters, add_post_meta, wp_parse_args, delete_post_meta
 	 * @param array $data
-	 * @param int $post_ID
+	 * @param int $post_id
 	 * @return bool|WP_Error
 	 */
-	protected function insert_post_meta( $data, $post_ID ) {
-		if ( empty( $post_ID ) || empty( $data['post_meta'] ) || ! is_array( $data['post_meta'] ) ) {
+	protected function handle_post_meta_action( $post_id, $data ) {
+		if ( empty( $post_id ) || empty( $data ) || ! is_array( $data ) ) {
 			return false;
 		}
 
@@ -675,23 +673,77 @@ class WP_JSON_Posts {
 			'value' => null,
 		);
 
-		foreach ( $data['post_meta'] as $meta_array ) {
+		foreach ( $data as $meta_array ) {
+			if ( empty( $meta_array['key'] ) ) {
+				return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action. Missing meta key.' ), array( 'status' => 400 ) );
+			}
 
 			$meta_array = wp_parse_args( $meta_array, $meta_array_defaults );
 
 			if ( 'update' == $meta_array['action'] ) {
-				update_post_meta( $post_ID, $meta_array['key'], $meta_array['value'] );
+				$this->maybe_update_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
 			} elseif ( 'add' == $meta_array['action'] ) {
-				add_post_meta( $post_ID, $meta_array['key'], $meta_array['value'] );
+				$this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
 			} elseif ( 'delete' == $meta_array['action'] ) {
-				delete_post_meta( $post_ID, $meta_array['key'] );
+				delete_post_meta( $post_id, $meta_array['key'] );
 			} else {
-				// Return a WP_Error here?
-				continue;
+				return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action.' ), array( 'status' => 400 ) );
+				// continue;
 			}
 		}
 
 		return true;
+	}
+
+	/**
+	 * Determines if meta key can be updated based on meta data type.
+	 * If meta data is allowed by API, the values for the provided meta key is updated.
+	 *
+	 * @uses update_post_meta()
+	 *
+	 * @param int $post_id
+	 * @param string $meta_key
+	 * @param array $data
+	 * @return bool|WP_Error
+	 */
+	protected function maybe_update_post_meta( $post_id, $meta_key, $data ) {
+		$old_data = get_post_meta( $post_id, $meta_key );
+
+		if ( is_object( $old_data ) || is_serialized( $old_data ) ) {
+			// for now let's not allow updating of arrays, objects or serialized values.
+			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
+		}
+		if ( is_object( $data ) || is_serialized( $data ) ) {
+			// for now let's not allow updating of arrays, objects or serialized values.
+			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
+		}
+
+		return update_post_meta( $post_id, $meta_key, $data );
+	}
+
+	/**
+	 * Determines if meta key can be added based on meta data type.
+	 * If meta data is allowed by API, the values for the provided meta key is added.
+	 *
+	 * @uses add_post_meta()
+	 *
+	 * @param int $post_id
+	 * @param string $meta_key
+	 * @param array $data
+	 * @return bool|WP_Error
+	 */
+	protected function maybe_add_post_meta( $post_id, $meta_key, $data ) {
+		if ( is_object( $data ) || is_serialized( $data ) ) {
+			// for now let's not allow updating of arrays, objects or serialized values.
+			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
+		}
+
+		$old_data = get_post_meta( $post_id, $meta_key );
+		if ( ! empty( $old_data ) ) {
+			return new WP_Error( 'json_post_invalid_action', __( 'Invalid action provided for meta data.' ), array( 'status' => 400 ) );
+		}
+
+		return add_post_meta( $post_id, $meta_key, $data );
 	}
 
 	protected function prepare_author( $author ) {
@@ -928,7 +980,9 @@ class WP_JSON_Posts {
 		}
 
 		// Post meta
-		$this->insert_post_meta( $data, $post_ID );
+		if ( ! empty( $data['post_meta'] ) ) {
+			$this->handle_post_meta_action( $post_ID, $data['post_meta'] );
+		}
 
 		// Sticky
 		if ( isset( $post['sticky'] ) )  {
