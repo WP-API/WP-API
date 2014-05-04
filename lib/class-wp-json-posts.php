@@ -73,18 +73,24 @@ class WP_JSON_Posts {
 	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
-	 * @param array $filter optional
-	 * @param array $fields optional
-	 * @return array contains a collection of Post entities.
+	 * @param array $filter Parameters to pass through to `WP_Query`
+	 * @param string $context
+	 * @param string|array $type Post type slug, or array of slugs
+	 * @param int $page Page number (1-indexed)
+	 * @return stdClass[] Collection of Post entities
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
-		$post_type = get_post_type_object( $type );
-		if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
-			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
+		// Validate post types and permissions
+		$query['post_type'] = array();
+		foreach ( (array) $type as $type_name ) {
+			$post_type = get_post_type_object( $type_name );
+			if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
+				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type_name ), array( 'status' => 403 ) );
 
-		$query['post_type'] = $post_type->name;
+			$query['post_type'][] = $post_type->name;
+		}
 
 		global $wp;
 		// Allow the same as normal WP
