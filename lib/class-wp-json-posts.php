@@ -67,26 +67,19 @@ class WP_JSON_Posts {
 	public function get_revisions( $id ) {
 		$id = (int) $id;
 
-		// Todo: Should everyone be able to read post revisions?
-
 		if ( empty( $id ) )
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
-		$response = new WP_JSON_Response();
-		$struct = array();
-
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
 
-			$struct[] = $this->prepare_post( $post );
+			$struct[] = $this->prepare_post( $post, 'view-revision' );
 		}
 
-		$response->set_data( $struct );
-
-		return $response;
+		return $struct;
 	}
 
 	/**
@@ -535,7 +528,7 @@ class WP_JSON_Posts {
 	 * @access protected
 	 *
 	 * @param array $post The unprepared post data
-	 * @param array $fields The subset of post type fields to return
+	 * @param string $context The context for the prepared post. (view|view-revision|edit)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
@@ -604,7 +597,7 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) )
 			$post_fields['format'] = 'standard';
 
-		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
+		if ( ( 'view' === $context || 'view-revision' == $context ) && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
 			// post + meta for the parent and just meta for the grandparent
@@ -618,21 +611,33 @@ class WP_JSON_Posts {
 		// Include extended fields. We might come back to this.
 		$_post = array_merge( $_post, $post_fields_extended );
 
-		if ( 'edit' === $context && current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
-			$_post = array_merge( $_post, $post_fields_raw );
-		elseif ( 'edit' === $context )
-			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		if ( 'edit' === $context ) {
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				$_post = array_merge( $_post, $post_fields_raw );
+			} else {
+				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+			}
+		} elseif ( 'view-revision' == $context ) {
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				$_post = array_merge( $_post, $post_fields_raw );
+			} else {
+				return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view this revision' ), array( 'status' => 403 ) );
+			}
+		}
 
 		// Entity meta
-		$_post['meta'] = array(
-			'links' => array(
-				'self'            => json_url( '/posts/' . $post['ID'] ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/posts' ),
-				'replies'         => json_url( '/posts/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-			),
+		$links = array(
+			'self'            => json_url( '/posts/' . $post['ID'] ),
+			'author'          => json_url( '/users/' . $post['post_author'] ),
+			'collection'      => json_url( '/posts' ),
 		);
+
+		if ( 'view-revision' != $context ) {
+			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
+			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+		}
+
+		$_post['meta'] = array( 'links' => $links );
 
 		if ( ! empty( $post['post_parent'] ) )
 			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
