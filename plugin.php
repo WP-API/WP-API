@@ -278,6 +278,73 @@ function json_register_post_type( $post_type, $args ) {
 add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
 
 /**
+ * Check for errors when using cookie-based authentication
+ *
+ * WordPress' built-in cookie authentication is always active for logged in
+ * users. However, the API has to check nonces for each request to ensure users
+ * are not vulnerable to CSRF.
+ *
+ * @param WP_Error|mixed $result Error from another authentication handler, null if we should handle it, or another value if not
+ * @return WP_Error|mixed|boolean
+ */
+function json_cookie_check_errors( $result ) {
+	if ( ! empty( $result ) ) {
+		return $result;
+	}
+
+	global $wp_json_auth_cookie;
+
+	// Are we using cookie authentication?
+	// (If we get an auth error, but we're still logged in, another
+	// authentication must have been used.)
+	if ( $wp_json_auth_cookie !== true && is_user_logged_in() ) {
+		return $result;
+	}
+
+	// Do we have a nonce?
+	if ( ! isset( $_REQUEST['_wp_json_nonce'] ) ) {
+		// No nonce at all, so act as if it's an unauthenticated request
+		wp_set_current_user( 0 );
+		return true;
+	}
+
+	// Check the nonce
+	$result = wp_verify_nonce( $_REQUEST['_wp_json_nonce'], 'wp_json' );
+	if ( ! $result ) {
+		return new WP_Error( 'json_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+	}
+
+	return true;
+}
+add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
+
+/**
+ * Collect cookie authentication status
+ *
+ * Collects errors from {@see wp_validate_auth_cookie} for use by
+ * {@see json_cookie_check_errors}.
+ *
+ * @param mixed
+ */
+function json_cookie_collect_status() {
+	global $wp_json_auth_cookie;
+
+	$status_type = current_action();
+
+	if ( $status_type !== 'auth_cookie_valid' ) {
+		$wp_json_auth_cookie = substr( $status_type, 12 );
+		return;
+	}
+
+	$wp_json_auth_cookie = true;
+}
+add_action( 'auth_cookie_malformed',    'json_cookie_collect_status' );
+add_action( 'auth_cookie_expired',      'json_cookie_collect_status' );
+add_action( 'auth_cookie_bad_username', 'json_cookie_collect_status' );
+add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
+add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
+
+/**
  * Get URL to a JSON endpoint on a site
  *
  * @todo Check if this is even necessary
