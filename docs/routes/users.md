@@ -75,6 +75,8 @@ contexts are available:
   author). This is intended as a minimal subset of the user data to reduce
   response size. Excludes `roles` and `capabilities`.
 
+Default is "view". (string)
+
 ### Response
 The response is a User entity containing the requested User if available. The
 fields available on the User depend on the `context` parameter.
@@ -92,6 +94,8 @@ know the user's ID.
 #### `context`
 The `context` parameter controls the format of the data to return. See the
 Retrieve a User endpoint for available contexts.
+
+Default is "view". (string)
 
 ### Response
 If the client is currently logged in, a 302 Found status is given. The User is
