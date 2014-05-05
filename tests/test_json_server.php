@@ -32,27 +32,6 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The server should be able to authenticate users using basic auth.
-	 */
-	function test_valid_basic_auth() {
-		global $wp_json_server;
-
-		$user_id = $this->factory->user->create( array(
-			'user_login' => 'basic_auth',
-			'user_pass' => 'basic_auth'
-		) );
-
-		$_SERVER['PHP_AUTH_USER'] = 'basic_auth';
-		$_SERVER['PHP_AUTH_PW'] = 'basic_auth';
-
-		$result = $wp_json_server->check_authentication();
-		$this->assertTrue( $result instanceof WP_User );
-
-		unset( $_SERVER['PHP_AUTH_USER'] );
-		unset( $_SERVER['PHP_AUTH_PW'] );
-	}
-
-	/**
 	 * Errors should convert to arrays cleanly.
 	 */
 	function test_error_to_array() {
