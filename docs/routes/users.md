@@ -28,19 +28,6 @@ The response is a User Collection document containing the requested Users if
 available.
 
 
-Retrieve Current User
--------------
-
-	GET /users/me
-
-### Input
-#### `fields`
-...
-
-### Response
-The response is the User entity containing the current User if available.
-
-
 Create a User
 -------------
 
@@ -81,6 +68,19 @@ Retrieve a User
 
 ### Response
 The response is a User entity containing the requested User if available.
+
+
+Retrieve Current User
+-------------
+
+	GET /users/me
+
+### Input
+#### `fields`
+...
+
+### Response
+The response is the User entity containing the current User if available.
 
 
 Edit a User
