@@ -75,12 +75,21 @@ Retrieve Current User
 
 	GET /users/me
 
+This endpoint offers a permalink to get the current user, without needing to
+know the user's ID.
+
 ### Input
 #### `fields`
 ...
 
 ### Response
-The response is the User entity containing the current User if available.
+If the client is currently logged in, a 302 Found status is given. The User is
+available canonically from the URL specified in the Location header.
+
+The User entity containing the current User is also returned in the body for
+convenience.
+
+If the client is not logged in, a 401 Unauthorized status is given.
 
 
 Edit a User
