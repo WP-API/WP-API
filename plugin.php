@@ -302,14 +302,22 @@ function json_cookie_check_errors( $result ) {
 	}
 
 	// Do we have a nonce?
-	if ( ! isset( $_REQUEST['_wp_json_nonce'] ) ) {
+	$nonce = null;
+	if ( isset( $_REQUEST['_wp_json_nonce'] ) ) {
+		$nonce = $_REQUEST['_wp_json_nonce'];
+	}
+	elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
+	}
+
+	if ( $nonce === null ) {
 		// No nonce at all, so act as if it's an unauthenticated request
 		wp_set_current_user( 0 );
 		return true;
 	}
 
 	// Check the nonce
-	$result = wp_verify_nonce( $_REQUEST['_wp_json_nonce'], 'wp_json' );
+	$result = wp_verify_nonce( $nonce, 'wp_json' );
 	if ( ! $result ) {
 		return new WP_Error( 'json_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
 	}
