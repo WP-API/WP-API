@@ -35,8 +35,16 @@ Default is "view". (string)
 
 
 #### `type`
-The `type` parameter specifies the post type to retrieve. Default is "post".
-(string)
+The `type` parameter specifies the post type to retrieve. This can either be a
+string or an array of types.
+
+Note that arrays are specified using the `[]` URL syntax. e.g.
+
+```
+GET /posts?type[]=post&type[]=page
+```
+
+Default is "post". (string)
 
 
 ### Response
