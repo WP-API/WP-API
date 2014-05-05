@@ -399,6 +399,10 @@ class WP_JSON_Posts {
 	 */
 	public function get_comment( $comment ) {
 		$comment = get_comment( $comment );
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
 		$data = $this->prepare_comment( $comment );
 		return $data;
 	}
