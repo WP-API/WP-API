@@ -460,6 +460,9 @@ In general, routes follow the same pattern:
     * PUT updates the entity
     * DELETE deletes the entity
 
+Note that by convention, the plural form of `<object>` is used in the URL
+(e.g. `posts` instead of `post`, `pages` instead of `page`).
+
 Next Steps
 ----------
 You should now be able to understand the basics of accessing and creating data
