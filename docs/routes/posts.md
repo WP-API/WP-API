@@ -27,8 +27,11 @@ The parameter should be an array of the following key/value pairs:
 * `s` - Keyword to search for. (string)
 
 
-#### `fields`
-...
+#### `context`
+The `context` parameter controls the format of the data to return. See the
+Retrieve a Post endpoint for available contexts.
+
+Default is "view". (string)
 
 
 #### `type`
