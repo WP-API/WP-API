@@ -63,11 +63,21 @@ Retrieve a User
 	GET /users/<id>
 
 ### Input
-#### `fields`
-...
+#### `context`
+The `context` parameter controls the format of the data to return. The following
+contexts are available:
+
+* `view`: The default context. Gives the normal User entity.
+* `edit`: Context used for extra fields relevant to updating a user. Includes
+  the `extra_capabilities` field; this field contains the capabilities assigned
+  to the user themselves, rather than those inherited from their roles.
+* `embed`: Context used when embedding the response inside another (e.g. post
+  author). This is intended as a minimal subset of the user data to reduce
+  response size. Excludes `roles` and `capabilities`.
 
 ### Response
-The response is a User entity containing the requested User if available.
+The response is a User entity containing the requested User if available. The
+fields available on the User depend on the `context` parameter.
 
 
 Retrieve Current User
@@ -79,15 +89,16 @@ This endpoint offers a permalink to get the current user, without needing to
 know the user's ID.
 
 ### Input
-#### `fields`
-...
+#### `context`
+The `context` parameter controls the format of the data to return. See the
+Retrieve a User endpoint for available contexts.
 
 ### Response
 If the client is currently logged in, a 302 Found status is given. The User is
 available canonically from the URL specified in the Location header.
 
 The User entity containing the current User is also returned in the body for
-convenience.
+convenience. The fields available on the User depend on the `context` parameter.
 
 If the client is not logged in, a 401 Unauthorized status is given.
 
