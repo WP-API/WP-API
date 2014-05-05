@@ -138,7 +138,10 @@ set to true, the user will not be able to be restored.
 Default is false. (boolean)
 
 #### `reassign`
-The `reassign` parameter controls whether the deleted user's content is reassigned to a new User or not. By default, this is set to null, indicating that the deleted user's content will not be reassigned.
+The `reassign` parameter controls whether the deleted user's content is
+reassigned to a new User or not. If set to `null`, the deleted user's content
+will not be reassigned.
+
 Default is null. (integer)
 
 
