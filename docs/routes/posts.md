@@ -76,11 +76,22 @@ Retrieve a Post
 	GET /posts/<id>
 
 ### Input
-#### `fields`
-...
+#### `context`
+The `context` parameter controls the format of the data to return. The following
+contexts are available:
+
+* `view`: The default context. Gives the normal User entity.
+* `edit`: Context used for extra fields relevant to updating a user. Includes
+  the `title_raw`, `content_raw`, `guid_raw` and `post_meta` fields, suitable
+  for editing the post.
+* `parent`: Context used when embedding the response inside another (e.g. post
+  author). This is intended as a minimal subset of the user data to reduce
+  response size. Returns the `parent` field as an ID, rather than an embedded
+  post, to ensure we don't traverse the entire post hierarchy.
 
 ### Response
-The response is a Post entity containing the requested Post if available.
+The response is a Post entity containing the requested Post if available. The
+fields available on the Post depend on the `context` parameter.
 
 
 Edit a Post
