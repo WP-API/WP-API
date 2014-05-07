@@ -80,6 +80,7 @@ class WP_JSON_Taxonomies {
 			'name' => $taxonomy->label,
 			'slug' => $taxonomy->name,
 			'labels' => $taxonomy->labels,
+			'description' => $taxonomy->description,
 			'types' => array(),
 			'show_cloud' => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
