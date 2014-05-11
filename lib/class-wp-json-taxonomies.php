@@ -133,7 +133,7 @@ class WP_JSON_Taxonomies {
 
 		$data = array();
 		foreach ($terms as $term) {
-			$data[ $term->slug ] = $this->prepare_term( $term, $type );
+			$data[] = $this->prepare_term( $term, $type );
 		}
 		return $data;
 	}
