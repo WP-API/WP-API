@@ -43,7 +43,7 @@ class WP_JSON_Taxonomies {
 			if ( is_wp_error( $tax ) )
 				continue;
 
-			$data[ $tax_type ] = $tax;
+			$data[] = $tax;
 		}
 
 		return $data;
