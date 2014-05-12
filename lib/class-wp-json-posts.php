@@ -690,15 +690,21 @@ class WP_JSON_Posts {
 
 			$meta_array = wp_parse_args( $meta_array, $meta_array_defaults );
 
-			if ( 'update' == $meta_array['action'] ) {
-				$this->maybe_update_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
-			} elseif ( 'add' == $meta_array['action'] ) {
-				$this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
-			} elseif ( 'delete' == $meta_array['action'] ) {
-				delete_post_meta( $post_id, $meta_array['key'] );
-			} else {
-				return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action.' ), array( 'status' => 400 ) );
-				// continue;
+			switch ( $meta_array['action'] ) {
+				case 'update':
+					$this->maybe_update_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
+					break;
+
+				case 'add':
+					$this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
+					break;
+
+				case 'delete':
+					delete_post_meta( $post_id, $meta_array['key'] );
+					break;
+
+				default:
+					return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action.' ), array( 'status' => 400 ) );
 			}
 		}
 
