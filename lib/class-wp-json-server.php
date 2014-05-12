@@ -480,27 +480,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 *
 	 * @param string $key Header key
 	 * @param string $value Header value
-	 * @param boolean $replace Should we replace the existing header?
-	 */
-	public function header( $key, $value, $replace = true ) {
-		_deprecated_function( 'WP_JSON_Server::header', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		// Sanitize as per RFC2616 (Section 4.2):
-		//   Any LWS that occurs between field-content MAY be replaced with a
-		//   single SP before interpreting the field value or forwarding the
-		//   message downstream.
-		$value = preg_replace( '/\s+/', ' ', $value );
-		header( sprintf( '%s: %s', $key, $value ), $replace );
-	}
-
-	/**
-	 * Send a HTTP header
-	 *
-	 * This is set via the response object, unlike {@see self::header()}, which
-	 * was called directly before response objects were added.
-	 *
-	 * @param string $key Header key
-	 * @param string $value Header value
 	 */
 	protected function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
