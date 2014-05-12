@@ -409,6 +409,17 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return $data;
 		}
 
+		// Don't embed too deeply
+		if ( $context !== 'view' && $context !== 'edit' ) {
+			$data['featured_image'] = null;
+			$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
+			if ( $thumbnail_id ) {
+				$data['featured_image'] = absint( $thumbnail_id );
+			}
+
+			return $data;
+		}
+
 		// Thumbnail
 		$data['featured_image'] = null;
 		$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
