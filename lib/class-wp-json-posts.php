@@ -685,7 +685,7 @@ class WP_JSON_Posts {
 
 		foreach ( $data as $meta_array ) {
 			if ( empty( $meta_array['key'] ) ) {
-				return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action. Missing meta key.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
 			}
 
 			$meta_array = wp_parse_args( $meta_array, $meta_array_defaults );
