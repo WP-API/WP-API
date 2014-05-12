@@ -502,43 +502,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Send navigation-related headers for post collections
-	 *
-	 * @param WP_Query $query
-	 */
-	public function query_navigation_headers( $query ) {
-		_deprecated_function( 'WP_JSON_Server::query_navigation_headers', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		$max_page = $query->max_num_pages;
-		$paged = $query->get('paged');
-
-		if ( !$paged )
-			$paged = 1;
-
-		$nextpage = intval($paged) + 1;
-
-		if ( ! $query->is_single() ) {
-			if ( $paged > 1 ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $paged - 1, $request );
-				$this->link_header( 'prev', $request );
-			}
-
-			if ( $nextpage <= $max_page ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $nextpage, $request );
-				$this->link_header( 'next', $request );
-			}
-		}
-
-		$this->header( 'X-WP-Total', $query->found_posts );
-		$this->header( 'X-WP-TotalPages', $max_page );
-
-		do_action('json_query_navigation_headers', $this, $query);
-	}
-
-
-	/**
 	 * Retrieve the raw request entity (body)
 	 *
 	 * @return string
