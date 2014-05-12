@@ -502,31 +502,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Send a Link header
-	 *
-	 * @todo Make this safe for <>"';,
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
-	 *
-	 * @link http://tools.ietf.org/html/rfc5988
-	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
-	 *
-	 * @param string $rel Link relation. Either a registered type, or an absolute URL
-	 * @param string $link Target IRI for the link
-	 * @param array $other Other parameters to send, as an assocative array
-	 */
-	public function link_header( $rel, $link, $other = array() ) {
-		_deprecated_function( 'WP_JSON_Server::link_header', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		$header = '<' . $link . '>; rel="' . $rel . '"';
-		foreach ( $other as $key => $value ) {
-			if ( 'title' == $key )
-				$value = '"' . $value . '"';
-			$header .= '; ' . $key . '=' . $value;
-		}
-		$this->header( 'Link', $header, false );
-	}
-
-	/**
 	 * Send navigation-related headers for post collections
 	 *
 	 * @param WP_Query $query
