@@ -46,7 +46,7 @@ class WP_JSON_Posts {
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
 			),
 
 			// Meta-post endpoints
@@ -361,6 +361,43 @@ class WP_JSON_Posts {
 		else {
 			// TODO: return a HTTP 202 here instead
 			return array( 'message' => __( 'Deleted post' ) );
+		}
+	}
+
+	/**
+	 * Delete a comment.
+	 *
+	 * @uses wp_delete_comment
+	 * @param int $id Post ID
+	 * @param int $comment Comment ID
+	 * @param boolean $force Skip trash
+	 * @return array
+	 */
+	public function delete_comment( $id, $comment, $force = false ) {
+		$comment = (int) $comment;
+
+		if ( empty( $comment ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		$comment_array = get_comment( $comment, ARRAY_A );
+
+		if ( empty( $comment_array ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		if ( ! current_user_can(  'edit_comment', $comment_array['comment_ID'] ) )
+			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
+
+		$result = wp_delete_comment( $comment_array['comment_ID'], $force );
+
+		if ( ! $result )
+			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted comment' ) );
+		}
+		else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted comment' ) );
 		}
 	}
 
