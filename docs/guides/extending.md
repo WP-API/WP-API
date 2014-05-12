@@ -214,11 +214,11 @@ The data itself can be any JSON-serializable value: an integer, string, array,
 object or null. In practice, this is almost always an array (for Collections) or
 an object (for Entities).
 
-Return headers can be set via the `WP_JSON_Server::header()` function, or
-similar helper functions (`WP_JSON_Server::send_status()`,
-`WP_JSON_Server::link_header()`, `WP_JSON_Server::query_navigation_headers()`)
-called on the global `$wp_json_server` object, but should *never* be set via the
-direct `header()` or `status_header()` functions.
+Return headers can be set by returning an instance of `WP_JSON_Response`, which
+includes a `header()` method, as well as similar helper methods
+(`set_status()`, `link_header()`, `query_navigation_headers()`) called on the
+response object, but should *never* be set via the direct `header()` or
+`status_header()` functions.
 
 [http-status-codes]: http://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
