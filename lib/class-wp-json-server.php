@@ -130,23 +130,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Convert an error to an array
-	 *
-	 * This iterates over all error codes and messages to change it into a flat
-	 * array. This enables simpler client behaviour, as it is represented as a
-	 * list in JSON rather than an object/map
-	 *
-	 * @param WP_Error $error
-	 * @return array List of associative arrays with code and message keys
-	 */
-	protected function error_to_array( $error ) {
-		_deprecated_function( 'WP_JSON_Server::error_to_array', 'WPAPI-0.8', 'WP_JSON_Server::error_to_response' );
-
-		$response = $this->error_to_response( $error );
-		return $response->get_data();
-	}
-
-	/**
 	 * Get an appropriate error representation in JSON
 	 *
 	 * Note: This should only be used in {@see WP_JSON_Server::serve_request()},
