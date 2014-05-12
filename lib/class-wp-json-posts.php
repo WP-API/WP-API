@@ -798,11 +798,6 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		$old_data = get_post_meta( $post_id, $meta_key );
-		if ( ! empty( $old_data ) ) {
-			return new WP_Error( 'json_post_invalid_action', __( 'Invalid action provided for meta data.' ), array( 'status' => 400 ) );
-		}
-
 		$meta_key = wp_slash( $meta_key );
 		$data = wp_slash( $data );
 		if ( ! add_post_meta( $post_id, $meta_key, $data ) ) {
