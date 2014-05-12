@@ -642,6 +642,16 @@ class WP_JSON_Posts {
 			// Don't expose protected fields.
 			if ( is_protected_meta( $meta_key ) )
 				unset( $custom_fields[$meta_key] );
+
+			// Normalize serialized strings
+			if ( is_serialized_string( $meta_value ) ) {
+				$custom_fields[ $meta_key ] = unserialize( $meta_value );
+			}
+
+			// Don't expose serialized data
+			if ( is_serialized( $meta_value ) ) {
+				unset( $custom_fields[ $meta_key ] );
+			}
 		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
@@ -709,16 +719,32 @@ class WP_JSON_Posts {
 	protected function maybe_update_post_meta( $post_id, $meta_key, $data ) {
 		$old_data = get_post_meta( $post_id, $meta_key );
 
-		if ( is_object( $old_data ) || is_serialized( $old_data ) ) {
-			// for now let's not allow updating of arrays, objects or serialized values.
+		// for now let's not allow updating of arrays, objects or serialized values.
+		if ( ! $this->is_valid_meta_data( $old_data ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
-		if ( is_object( $data ) || is_serialized( $data ) ) {
-			// for now let's not allow updating of arrays, objects or serialized values.
+		if ( ! $this->is_valid_meta_data( $data ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		return update_post_meta( $post_id, $meta_key, $data );
+	}
+
+	/**
+	 * Check if the data provided is valid data
+	 *
+	 * Excludes serialized data from being sent via the API.
+	 *
+	 * @see https://github.com/WP-API/WP-API/pull/68
+	 * @param mixed $data Data to be checked
+	 * @return boolean Whether the data is valid or not
+	 */
+	protected function is_valid_meta_data( $data ) {
+		if ( is_array( $data ) || is_object( $data ) || is_serialized( $data ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -733,7 +759,7 @@ class WP_JSON_Posts {
 	 * @return bool|WP_Error
 	 */
 	protected function maybe_add_post_meta( $post_id, $meta_key, $data ) {
-		if ( is_object( $data ) || is_serialized( $data ) ) {
+		if ( ! $this->is_valid_meta_data( $data ) ) {
 			// for now let's not allow updating of arrays, objects or serialized values.
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
