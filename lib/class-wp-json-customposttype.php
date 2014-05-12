@@ -80,7 +80,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 */
 	public function register_revision_routes( $routes ) {
 		$routes[ $this->base . '/(?P<id>\d+)/revisions' ] = array(
-			array( '__return_null', WP_JSON_Server::READABLE ),
+			array( array( $this, 'get_revisions' ), WP_JSON_Server::READABLE ),
 		);
 		return $routes;
 	}
