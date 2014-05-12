@@ -638,23 +638,30 @@ class WP_JSON_Posts {
 
 		$custom_fields = (array) get_post_meta( $post_id );
 
+		$meta = array();
 		foreach ( $custom_fields as $meta_key => $meta_value ) {
 			// Don't expose protected fields.
-			if ( is_protected_meta( $meta_key ) )
-				unset( $custom_fields[$meta_key] );
+			if ( is_protected_meta( $meta_key ) ) {
+				continue;
+			}
 
 			// Normalize serialized strings
 			if ( is_serialized_string( $meta_value ) ) {
-				$custom_fields[ $meta_key ] = unserialize( $meta_value );
+				$meta_value = unserialize( $meta_value );
 			}
 
 			// Don't expose serialized data
 			if ( is_serialized( $meta_value ) ) {
-				unset( $custom_fields[ $meta_key ] );
+				continue;
 			}
+
+			$meta[] = array(
+				'key' => $meta_key,
+				'value' => $meta_value,
+			);
 		}
 
-		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
+		return apply_filters( 'json_prepare_meta', $meta, $post_id );
 	}
 
 	/**
