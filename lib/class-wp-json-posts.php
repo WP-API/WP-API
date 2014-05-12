@@ -634,30 +634,37 @@ class WP_JSON_Posts {
 	 * @return array Custom fields, if exist.
 	 */
 	protected function prepare_meta( $post_id ) {
+		global $wpdb;
 		$post_id = (int) $post_id;
 
-		$custom_fields = (array) get_post_meta( $post_id );
+		$table = _get_meta_table( 'post' );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE post_id = %d", $post_id ) );
 
 		$meta = array();
-		foreach ( $custom_fields as $meta_key => $meta_value ) {
+		foreach ( $results as $row ) {
+			$ID    = $row->meta_id;
+			$key   = $row->meta_key;
+			$value = $row->meta_value;
+
 			// Don't expose protected fields.
-			if ( is_protected_meta( $meta_key ) ) {
+			if ( is_protected_meta( $key ) ) {
 				continue;
 			}
 
 			// Normalize serialized strings
-			if ( is_serialized_string( $meta_value ) ) {
-				$meta_value = unserialize( $meta_value );
+			if ( is_serialized_string( $value ) ) {
+				$value = unserialize( $value );
 			}
 
 			// Don't expose serialized data
-			if ( is_serialized( $meta_value ) ) {
+			if ( is_serialized( $value ) ) {
 				continue;
 			}
 
 			$meta[] = array(
-				'key' => $meta_key,
-				'value' => $meta_value,
+				'ID' => (int) $ID,
+				'key' => $key,
+				'value' => $value,
 			);
 		}
 
@@ -669,12 +676,16 @@ class WP_JSON_Posts {
 	 * {
 	 * 	post_meta : [
 	 * 		{
+	 * 			"ID": 42,
 	 * 			"key" : "meta_key",
-	 * 			"value" : "meta_value", (OPTIONAL)
-	 * 			"action" : "meta_action" (OPTIONAL, add|update|delete, default=update)
+	 * 			"value" : "meta_value"
 	 * 		}
 	 * 	]
 	 * }
+	 *
+	 * If ID is not specified, the meta value will be created; otherwise, the
+	 * value (and key, if it differs) will be updated. If ID is specified, and
+	 * the key is set to `null`, the data will be deleted.
 	 *
 	 * @param array $data
 	 * @param int $post_id
@@ -685,33 +696,34 @@ class WP_JSON_Posts {
 			return false;
 		}
 
-		$meta_array_defaults = array(
-			'action' => 'update',
-			'value' => null,
-		);
-
 		foreach ( $data as $meta_array ) {
-			if ( empty( $meta_array['key'] ) ) {
+			if ( ! array_key_exists( 'key', $meta_array ) ) {
 				return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
 			}
+			if ( ! array_key_exists( 'value', $meta_array ) ) {
+				return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
+			}
 
-			$meta_array = wp_parse_args( $meta_array, $meta_array_defaults );
+			if ( empty( $meta_array['ID'] ) ) {
+				// Creation
+				$result = $this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
+			}
+			elseif ( empty( $meta_array['key'] ) ) {
+				// Deletion
+				$meta_array['ID'] = absint( $meta_array['ID'] );
+				$result = delete_metadata_by_mid( 'post', $meta_array['ID'] );
+				if ( ! $result ) {
+					$result = new WP_Error( 'json_meta_could_not_delete', __( 'Could not delete post meta.' ), array( 'status' => 500 ) );
+				}
+			}
+			else {
+				// Update
+				$meta_array['ID'] = absint( $meta_array['ID'] );
+				$result = $this->maybe_update_post_meta( $meta_array['ID'], $post_id, $meta_array['key'], $meta_array['value'] );
+			}
 
-			switch ( $meta_array['action'] ) {
-				case 'update':
-					$this->maybe_update_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
-					break;
-
-				case 'add':
-					$this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
-					break;
-
-				case 'delete':
-					delete_post_meta( $post_id, $meta_array['key'] );
-					break;
-
-				default:
-					return new WP_Error( 'json_post_invalid_action', __( 'Invalid meta action.' ), array( 'status' => 400 ) );
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
 		}
 
@@ -729,20 +741,27 @@ class WP_JSON_Posts {
 	 * @param array $data
 	 * @return bool|WP_Error
 	 */
-	protected function maybe_update_post_meta( $post_id, $meta_key, $data ) {
-		$old_data = get_post_meta( $post_id, $meta_key );
+	protected function maybe_update_post_meta( $meta_id, $post_id, $key, $data ) {
+		$current = get_metadata_by_mid( 'post', $meta_id );
+		if ( absint( $current->post_id ) !== $post_id ) {
+			return new WP_Error( 'json_meta_post_mismatch', __( 'Meta does not belong to this post' ), array( 'status' => 400 ) );
+		}
 
 		// for now let's not allow updating of arrays, objects or serialized values.
-		if ( ! $this->is_valid_meta_data( $old_data ) ) {
+		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 		if ( ! $this->is_valid_meta_data( $data ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		$meta_key = wp_slash( $meta_key );
-		$data = wp_slash( $meta_key );
-		return update_post_meta( $post_id, $meta_key, $data );
+		$key = wp_slash( $key );
+		$data = wp_slash( $data );
+		if ( ! update_metadata_by_mid( 'post', $meta_id, $data, $key ) ) {
+			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update post meta.' ), array( 'status' => 500 ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -786,7 +805,11 @@ class WP_JSON_Posts {
 
 		$meta_key = wp_slash( $meta_key );
 		$data = wp_slash( $data );
-		return add_post_meta( $post_id, $meta_key, $data );
+		if ( ! add_post_meta( $post_id, $meta_key, $data ) ) {
+			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add post meta.' ), array( 'status' => 400 ) );
+		}
+
+		return true;
 	}
 
 	protected function prepare_author( $author ) {
@@ -1024,7 +1047,10 @@ class WP_JSON_Posts {
 
 		// Post meta
 		if ( ! empty( $data['post_meta'] ) ) {
-			$this->handle_post_meta_action( $post_ID, $data['post_meta'] );
+			$result = $this->handle_post_meta_action( $post_ID, $data['post_meta'] );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
 
 		// Sticky
