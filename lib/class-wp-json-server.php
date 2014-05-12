@@ -96,6 +96,27 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
 	 */
 	public function check_authentication() {
+		/**
+		 * Pass an authentication error to the API
+		 *
+		 * This is used to pass a {@see WP_Error} from an authentication method
+		 * back to the API.
+		 *
+		 * Authentication methods should check first if they're being used, as
+		 * multiple authentication methods can be enabled on a site (cookies,
+		 * HTTP basic auth, OAuth). If the authentication method hooked in is
+		 * not actually being attempted, null should be returned to indicate
+		 * another authentication method should check instead. Similarly,
+		 * callbacks should ensure the value is `null` before checking for
+		 * errors.
+		 *
+		 * A {@see WP_Error} instance can be returned if an error occurs, and
+		 * this should match the format used by API methods internally (that is,
+		 * the `status` data should be used). A callback can return `true` to
+		 * indicate that the authentication method was used, and it succeeded.
+		 *
+		 * @param WP_Error|null|boolean WP_Error if authentication error, null if authentication method wasn't used, true if authentication succeeded
+		 */
 		return apply_filters( 'json_authentication_errors', null );
 	}
 
