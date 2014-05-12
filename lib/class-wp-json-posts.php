@@ -658,7 +658,7 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Helper method for wp_newPost and wp_editPost, containing shared logic.
+	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()
@@ -1022,20 +1022,5 @@ class WP_JSON_Posts {
 			$data['meta'] = $meta;
 
 		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
-	}
-
-	/**
-	 * Magic method used to temporaly deprecate camelcase functions
-	 *
-	 * @param string $name      Function name
-	 * @param array  $arguments Function arguments
-	 * @return mixed
-	 */
-	public function __call($name, $arguments) {
-		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
-		if ( method_exists( $this, $underscored ) ) {
-			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
-			return call_user_func_array( array( $this, $underscored ), $arguments );
-		}
 	}
 }
