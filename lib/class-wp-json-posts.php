@@ -575,7 +575,7 @@ class WP_JSON_Posts {
 	 * @access protected
 	 *
 	 * @param array $post The unprepared post data
-	 * @param string $context The context for the prepared post. (view|view-revision|edit)
+	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
@@ -649,7 +649,7 @@ class WP_JSON_Posts {
 			// This gives post + post-extended + meta for the main post,
 			// post + meta for the parent and just meta for the grandparent
 			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$post_fields['parent'] = $this->prepare_post( $parent, 'parent' );
+			$post_fields['parent'] = $this->prepare_post( $parent, 'embed' );
 		}
 
 		// Merge requested $post_fields fields into $_post
