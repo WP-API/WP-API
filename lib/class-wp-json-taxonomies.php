@@ -9,17 +9,17 @@ class WP_JSON_Taxonomies {
 	 */
 	public function register_routes( $routes ) {
 		$tax_routes = array(
-			'/posts/types/(?P<type>\w+)/taxonomies' => array(
+			'/posts/types/(?P<type>[\w\-]+)/taxonomies' => array(
 				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
+			'/posts/types/(?P<type>[\w\-]+)/taxonomies/(?P<taxonomy>[\w\-]+)' => array(
 				array( array( $this, 'get_taxonomy' ), WP_JSON_Server::READABLE ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
+			'/posts/types/(?P<type>[\w\-]+)/taxonomies/(?P<taxonomy>[\w\-]+)/terms' => array(
 				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+			'/posts/types/(?P<type>[\w\-]+)/taxonomies/(?P<taxonomy>[\w\-]+)/terms/(?P<term>[\w\-]+)' => array(
 				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( '__return_null', WP_JSON_Server::DELETABLE ),

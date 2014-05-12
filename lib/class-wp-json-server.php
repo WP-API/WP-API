@@ -456,7 +456,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		foreach ( $this->get_routes() as $route => $callbacks ) {
 			$data = array();
 
-			$route = preg_replace( '#\(\?P(<\w+?>).*?\)#', '$1', $route );
+			$route = preg_replace( '#\(\?P(<[\w\-]+?>).*?\)#', '$1', $route );
 			$methods = array();
 			foreach ( self::$method_map as $name => $bitmask ) {
 				foreach ( $callbacks as $callback ) {
