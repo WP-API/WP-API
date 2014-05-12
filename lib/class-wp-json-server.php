@@ -145,7 +145,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status )
-			$this->send_status( $status );
+			$this->set_status( $status );
 
 		$error = compact( 'code', 'message' );
 		return json_encode( array( $error ) );
@@ -464,17 +464,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			$available['routes'][$route] = apply_filters( 'json_endpoints_description', $data );
 		}
 		return apply_filters( 'json_index', $available );
-	}
-
-	/**
-	 * Send a HTTP status code
-	 *
-	 * @param int $code HTTP status
-	 */
-	public function send_status( $code ) {
-		_deprecated_function( 'WP_JSON_Server::send_status', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		status_header( $code );
 	}
 
 	/**
