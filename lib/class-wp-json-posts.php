@@ -46,7 +46,7 @@ class WP_JSON_Posts {
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
 				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
 			),
 
 			// Meta-post endpoints
@@ -98,18 +98,24 @@ class WP_JSON_Posts {
 	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
-	 * @param array $filter optional
-	 * @param array $fields optional
-	 * @return array contains a collection of Post entities.
+	 * @param array $filter Parameters to pass through to `WP_Query`
+	 * @param string $context
+	 * @param string|array $type Post type slug, or array of slugs
+	 * @param int $page Page number (1-indexed)
+	 * @return stdClass[] Collection of Post entities
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
-		$post_type = get_post_type_object( $type );
-		if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
-			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
+		// Validate post types and permissions
+		$query['post_type'] = array();
+		foreach ( (array) $type as $type_name ) {
+			$post_type = get_post_type_object( $type_name );
+			if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
+				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type_name ), array( 'status' => 403 ) );
 
-		$query['post_type'] = $post_type->name;
+			$query['post_type'][] = $post_type->name;
+		}
 
 		global $wp;
 		// Allow the same as normal WP
@@ -384,6 +390,43 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Delete a comment.
+	 *
+	 * @uses wp_delete_comment
+	 * @param int $id Post ID
+	 * @param int $comment Comment ID
+	 * @param boolean $force Skip trash
+	 * @return array
+	 */
+	public function delete_comment( $id, $comment, $force = false ) {
+		$comment = (int) $comment;
+
+		if ( empty( $comment ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		$comment_array = get_comment( $comment, ARRAY_A );
+
+		if ( empty( $comment_array ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		if ( ! current_user_can(  'edit_comment', $comment_array['comment_ID'] ) )
+			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
+
+		$result = wp_delete_comment( $comment_array['comment_ID'], $force );
+
+		if ( ! $result )
+			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted comment' ) );
+		}
+		else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted comment' ) );
+		}
+	}
+
+	/**
 	 * Retrieve comments
 	 *
 	 * @param int $id Post ID to retrieve comments for
@@ -418,6 +461,10 @@ class WP_JSON_Posts {
 	 */
 	public function get_comment( $comment ) {
 		$comment = get_comment( $comment );
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
 		$data = $this->prepare_comment( $comment );
 		return $data;
 	}
@@ -682,35 +729,6 @@ class WP_JSON_Posts {
 		}
 
 		return apply_filters( 'json_prepare_meta', $custom_fields, $post_id );
-	}
-
-	protected function prepare_author( $author ) {
-		$user = get_user_by( 'id', $author );
-
-		if (! $author || ! is_object( $user ) ) {
-			return null;
-		}
-
-
-		$author = array(
-			'ID' => $user->ID,
-			'name' => $user->display_name,
-			'slug' => $user->user_nicename,
-			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar_url( $user->user_email ),
-			'meta' => array(
-				'links' => array(
-					'self' => json_url( '/users/' . $user->ID ),
-					'archives' => json_url( '/users/' . $user->ID . '/posts' ),
-				),
-			),
-		);
-
-		if ( current_user_can( 'edit_user', $user->ID ) ) {
-			$author['first_name'] = $user->first_name;
-			$author['last_name'] = $user->last_name;
-		}
-		return $author;
 	}
 
 	/**

@@ -22,191 +22,228 @@ That said, it's not a bad idea to know how to read and write JSON by hand.
 
 Checking for the API
 --------------------
-As our first command, let's go ahead and check the API index. The index tells us
+Before you start using the API, it's a good idea to check that the site itself
+supports the API. WordPress is flexible enough to allow disabling the API or
+parts thereof, and plugins may add or change parts of the API, so it's always
+good to double-check this.
+
+The easiest way to check this is to send a HEAD request to any page on the site.
+Any site with the API enabled will return a `Link` header pointing to the API,
+with the link relation set to `https://github.com/WP-API/WP-API`.
+
+My test site for this documentation is set up at `http://example.com/`, so we
+can find the API by sending a HEAD request to this URL:
+
+    curl -I http://example.com/
+
+(Uppercase `-I` here sends a HEAD request rather than a GET request, since we
+only care about the headers here. I'll strip some irrelevant headers for
+this documentation.)
+
+And we get back:
+
+    HTTP/1.1 200 OK
+    X-Pingback: http://example.com/wp/xmlrpc.php
+    Link: <http://example.com/wp-json>; rel="https://github.com/WP-API/WP-API"
+
+The `Link` header tells us that the base URL for the API is
+`http://example.com/wp-json`. Any routes should be appended to this. For
+example, the API index that we'll use in a second is available at the `/` route,
+so we append this to the URL to get `http://example.com/wp-json/`
+(note the trailing slash).
+
+For sites without pretty permalinks enabled, this will return something like
+`http://example.com/?json_route=` instead; the route should again be appended
+directly as a string, giving the API index at `http://example.com/?json_route=/`
+
+(You can also "discover" the API by looking for the HTML `<link>` in the
+`<head>` with the same link relation, or in the RSD along with other WordPress
+API information.)
+
+Checking the API Index
+----------------------
+As our next command, let's go ahead and check the API index. The index tells us
 what routes are available, and a short summary about the site.
 
-The index is always available at the site's address with `/wp-json/` on the
-end. Note the trailing slash there; it indicates that we want to access the `/`
-route. My test site is set up at `http://example.com/`, so all my routes will
-start with `http://example.com/wp-json` followed by the route (which here is
-just `/`).
-
-Let's fire off the request:
+As we discovered previously, the index is available at the site's address with
+`/wp-json/` on the end. Let's fire off the request:
 
     curl -i http://example.com/wp-json/
 
-(By the way, `-i` tells cURL that we want to see the headers as well. I'll strip
-some irrelevant ones for this documentation.)
+(By the way, `-i` tells cURL that we want to see the headers as well. As before,
+I'll strip some irrelevant ones for this documentation.)
 
 And here's what we get back:
 
     HTTP/1.1 200 OK
     Content-Type: application/json; charset=UTF-8
 
-    {
-        "name": "My WordPress Site",
-        "description": "Just another WordPress site",
-        "URL": "http:\/\/example.com",
-        "routes": {
-            "\/": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/"
-                }
-            },
-            "\/posts": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/posts"
-                },
-                "accepts_json": true
-            },
-            "\/posts\/<id>": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE"
-                ],
-                "accepts_json": true
-            },
-            "\/posts\/<id>\/revisions": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ]
-            },
-            "\/posts\/<id>\/comments": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST"
-                ],
-                "accepts_json": true
-            },
-            "\/posts\/<id>\/comments\/<comment>": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE"
-                ],
-                "accepts_json": true
-            },
-            "\/posts\/types": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/posts\/types"
-                }
-            },
-            "\/posts\/types\/<type>": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ]
-            },
-            "\/posts\/statuses": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/posts\/statuses"
-                }
-            },
-            "\/taxonomies": {
-                "supports": [
-                    "HEAD",
-                    "GET"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/taxonomies"
-                }
-            },
-            "\/taxonomies\/<taxonomy>": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE"
-                ],
-                "accepts_json": true
-            },
-            "\/taxonomies\/<taxonomy>\/terms": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST"
-                ],
-                "accepts_json": true
-            },
-            "\/taxonomies\/<taxonomy>\/terms\/<term>": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE"
-                ],
-                "accepts_json": true
-            },
-            "\/users": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/users"
-                },
-                "accepts_json": true
-            },
-            "\/users\/me": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST",
-                    "PUT",
-                    "PATCH",
-                    "DELETE"
-                ],
-                "meta": {
-                    "self": "http:\/\/example.com\/wp-json\/users\/me"
-                }
-            },
-            "\/users\/<user>": {
-                "supports": [
-                    "HEAD",
-                    "GET",
-                    "POST"
-                ],
-                "accepts_json": true
+```json
+{
+    "name": "My WordPress Site",
+    "description": "Just another WordPress site",
+    "URL": "http:\/\/example.com",
+    "routes": {
+        "\/": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/"
             }
         },
-        "meta": {
-            "links": {
-                "help": "https:\/\/github.com\/rmccue\/WP-API",
-                "profile": "https:\/\/raw.github.com\/rmccue\/WP-API\/master\/docs\/schema.json"
+        "\/posts": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/posts"
+            },
+            "accepts_json": true
+        },
+        "\/posts\/<id>": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "accepts_json": true
+        },
+        "\/posts\/<id>\/revisions": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "\/posts\/<id>\/comments": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST"
+            ],
+            "accepts_json": true
+        },
+        "\/posts\/<id>\/comments\/<comment>": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "accepts_json": true
+        },
+        "\/posts\/types": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/posts\/types"
             }
+        },
+        "\/posts\/types\/<type>": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "\/posts\/statuses": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/posts\/statuses"
+            }
+        },
+        "\/taxonomies": {
+            "supports": [
+                "HEAD",
+                "GET"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/taxonomies"
+            }
+        },
+        "\/taxonomies\/<taxonomy>": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "accepts_json": true
+        },
+        "\/taxonomies\/<taxonomy>\/terms": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST"
+            ],
+            "accepts_json": true
+        },
+        "\/taxonomies\/<taxonomy>\/terms\/<term>": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "accepts_json": true
+        },
+        "\/users": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/users"
+            },
+            "accepts_json": true
+        },
+        "\/users\/me": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "meta": {
+                "self": "http:\/\/example.com\/wp-json\/users\/me"
+            }
+        },
+        "\/users\/<user>": {
+            "supports": [
+                "HEAD",
+                "GET",
+                "POST"
+            ],
+            "accepts_json": true
+        }
+    },
+    "meta": {
+        "links": {
+            "help": "https:\/\/github.com\/rmccue\/WP-API",
+            "profile": "https:\/\/raw.github.com\/rmccue\/WP-API\/master\/docs\/schema.json"
         }
     }
+}
+```
 
 Wow, that's a lot of data! Let's break it down.
 
@@ -281,58 +318,60 @@ And this time, we get (again trimming headers, you'll have more than this):
     Last-Modified: Wed, 31 Oct 2012 18:26:17 GMT
     Link: <http://example.com/wp-json/posts/1>; rel="item"; title="Hello world!"
 
-    [
-        {
+```json
+[
+    {
+        "ID": 1,
+        "title": "Hello world!",
+        "status": "publish",
+        "type": "post",
+        "author": {
             "ID": 1,
-            "title": "Hello world!",
-            "status": "publish",
-            "type": "post",
-            "author": {
-                "ID": 1,
-                "name": "admin",
-                "slug": "admin",
-                "URL": "",
-                "avatar": "http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
-                "meta": {
-                    "links": {
-                        "self": "http:\/\/example.com\/wp-json\/users\/1",
-                        "archives": "http:\/\/example.com\/wp-json\/users\/1\/posts"
-                    }
-                }
-            },
-            "content": "Welcome to WordPress. This is your first post. Edit or delete it, then start blogging!",
-            "parent": 0,
-            "link": "http:\/\/example.com\/2012\/10\/31\/hello-world\/",
-            "date": "2012-10-31T18:26:17+10:00",
-            "modified": "2012-10-31T18:26:17+10:00",
-            "format": "standard",
-            "terms": {
-                "category": {
-                    "ID": 1,
-                    "name": "Uncategorized",
-                    "slug": "uncategorized",
-                    "group": 0,
-                    "parent": 0,
-                    "count": 1,
-                    "meta": {
-                        "links": {
-                            "collection": "http:\/\/example.com\/wp-json\/taxonomy\/category",
-                            "self": "http:\/\/example.com\/wp-json\/taxonomy\/category\/terms\/1"
-                        }
-                    }
-                }
-            },
+            "name": "admin",
+            "slug": "admin",
+            "URL": "",
+            "avatar": "http:\/\/0.gravatar.com\/avatar\/c57c8945079831fa3c19caef02e44614&d=404&r=G",
             "meta": {
                 "links": {
-                    "self": "http:\/\/example.com\/wp-json\/posts\/1",
-                    "author": "http:\/\/example.com\/wp-json\/users\/1",
-                    "collection": "http:\/\/example.com\/wp-json\/posts",
-                    "replies": "http:\/\/example.com\/wp-json\/posts\/1\/comments",
-                    "version-history": "http:\/\/example.com\/wp-json\/posts\/1\/revisions"
+                    "self": "http:\/\/example.com\/wp-json\/users\/1",
+                    "archives": "http:\/\/example.com\/wp-json\/users\/1\/posts"
                 }
             }
+        },
+        "content": "Welcome to WordPress. This is your first post. Edit or delete it, then start blogging!",
+        "parent": 0,
+        "link": "http:\/\/example.com\/2012\/10\/31\/hello-world\/",
+        "date": "2012-10-31T18:26:17+10:00",
+        "modified": "2012-10-31T18:26:17+10:00",
+        "format": "standard",
+        "terms": {
+            "category": {
+                "ID": 1,
+                "name": "Uncategorized",
+                "slug": "uncategorized",
+                "group": 0,
+                "parent": 0,
+                "count": 1,
+                "meta": {
+                    "links": {
+                        "collection": "http:\/\/example.com\/wp-json\/taxonomy\/category",
+                        "self": "http:\/\/example.com\/wp-json\/taxonomy\/category\/terms\/1"
+                    }
+                }
+            }
+        },
+        "meta": {
+            "links": {
+                "self": "http:\/\/example.com\/wp-json\/posts\/1",
+                "author": "http:\/\/example.com\/wp-json\/users\/1",
+                "collection": "http:\/\/example.com\/wp-json\/posts",
+                "replies": "http:\/\/example.com\/wp-json\/posts\/1\/comments",
+                "version-history": "http:\/\/example.com\/wp-json\/posts\/1\/revisions"
+            }
         }
-    ]
+    }
+]
+```
 
 Hopefully this looks fairly self-explanatory. For a full look at all the fields
 you can get back from this, take a look at [Working with Posts][] or the
@@ -370,10 +409,12 @@ The easiest way to do this is to send a JSON body back to the server with just
 the fields you want to change. For example, to edit the title and the
 modification date:
 
-    {
-        "title": "Hello Updated World!",
-        "modified": "2013-04-01T14:00:00+10:00"
-    }
+```json
+{
+    "title": "Hello Updated World!",
+    "modified": "2013-04-01T14:00:00+10:00"
+}
+```
 
 Save the data as "updated-post.json", then we can send this to the server with
 the correct headers and authentication. The API uses HTTP Basic authentication:
@@ -418,6 +459,9 @@ In general, routes follow the same pattern:
     * GET returns an entity
     * PUT updates the entity
     * DELETE deletes the entity
+
+Note that by convention, the plural form of `<object>` is used in the URL
+(e.g. `posts` instead of `post`, `pages` instead of `page`).
 
 Next Steps
 ----------
