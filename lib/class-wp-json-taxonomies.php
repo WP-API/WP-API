@@ -207,19 +207,4 @@ class WP_JSON_Taxonomies {
 
 		return apply_filters( 'json_prepare_term', $data, $term );
 	}
-
-	/**
-	 * Magic method used to temporaly deprecate camelcase functions
-	 *
-	 * @param string $name      Function name
-	 * @param array  $arguments Function arguments
-	 * @return mixed
-	 */
-	public function __call($name, $arguments) {
-		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
-		if ( method_exists( $this, $underscored ) ) {
-			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
-			return call_user_func_array( array( $this, $underscored ), $arguments );
-		}
-	}
 }
