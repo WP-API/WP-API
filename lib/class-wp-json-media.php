@@ -88,7 +88,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	protected function prepare_post( $post, $context = 'single' ) {
 		$data = parent::prepare_post( $post, $context );
 
-		if ( is_wp_error( $data ) )
+		if ( is_wp_error( $data ) || $post['post_type'] !== 'attachment' )
 			return $data;
 
 		// $thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
@@ -406,6 +406,17 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 */
 	public function add_thumbnail_data( $data, $post, $context ) {
 		if( !post_type_supports( $post['post_type'], 'thumbnail' ) ) {
+			return $data;
+		}
+
+		// Don't embed too deeply
+		if ( $context !== 'view' && $context !== 'edit' ) {
+			$data['featured_image'] = null;
+			$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
+			if ( $thumbnail_id ) {
+				$data['featured_image'] = absint( $thumbnail_id );
+			}
+
 			return $data;
 		}
 
