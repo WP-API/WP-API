@@ -67,6 +67,7 @@
 	api.root = "";
 	if (wpApiOptions) {
 		api.root = wpApiOptions.base;
+		api.nonce = wpApiOptions.nonce;
 	}
 
 	/**
@@ -77,11 +78,33 @@
 	api.models = {};
 
 	/**
+	 * wp.api.models.Base
+	 *
+	 * Base model for API objects
+	 */
+	api.models.Base = Backbone.Model.extend({
+		sync: function (method, model, options) {
+			var options = options || {};
+
+			var beforeSend = options.beforeSend;
+			options.beforeSend = function(xhr) {
+				xhr.setRequestHeader('X-WP-Nonce', api.nonce);
+
+				if (beforeSend) {
+					return beforeSend.apply(this, arguments);
+				}
+			};
+
+			return Backbone.sync(method, model, options);
+		}
+	});
+
+	/**
 	 * wp.api.models.User
 	 *
 	 * User Entity model
 	 */
-	api.models.User = Backbone.Model.extend({
+	api.models.User = api.models.Base.extend({
 		urlRoot: api.root + "/users",
 
 		defaults: {
@@ -107,7 +130,7 @@
 	 *
 	 * Post Entity model
 	 */
-	api.models.Post = Backbone.Model.extend({
+	api.models.Post = api.models.Base.extend({
 		// Technically, these are probably not needed
 		defaults: function () {
 			return {
