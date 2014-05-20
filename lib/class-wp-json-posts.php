@@ -904,6 +904,11 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['ping_status'] ) ) {
 			$post['ping_status'] = $data['ping_status'];
 		}
+		
+		// Tags input
+		if ( ! empty( $data['tags_input'] ) ) {
+		    $post['tags_input'] = $data['tags_input'];
+		}
 
 		// Post format
 		if ( ! empty( $data['post_format'] ) ) {
