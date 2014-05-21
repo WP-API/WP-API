@@ -38,6 +38,17 @@ class WP_JSON_Posts {
 			),
 			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
 
+			// Meta
+			'/posts/(?P<id>\d+)/meta' => array(
+				array( array( $this, 'get_all_meta' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'add_meta' ),     WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			),
+			'/posts/(?P<id>\d+)/meta/(?P<mid>\d+)' => array(
+				array( array( $this, 'get_meta' ),    WP_JSON_Server::READABLE ),
+				array( array( $this, 'update_meta' ), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete_meta' ), WP_JSON_Server::DELETABLE ),
+			),
+
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
 				array( array( $this, 'get_comments' ), WP_JSON_Server::READABLE ),
@@ -540,8 +551,11 @@ class WP_JSON_Posts {
 			'title_raw'   => $post['post_title'],
 			'content_raw' => $post['post_content'],
 			'guid_raw'    => $post['guid'],
-			'post_meta'   => $this->prepare_meta( $post['ID'] ),
+			'post_meta'   => $this->get_all_meta( $post['ID'] ),
 		);
+		if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
+			return $post_fields_raw['post_meta'];
+		}
 
 		// Dates
 		$timezone = $this->server->get_timezone();
@@ -633,12 +647,27 @@ class WP_JSON_Posts {
 	 * @param int $post_id Post ID.
 	 * @return array Custom fields, if exist.
 	 */
-	protected function prepare_meta( $post_id ) {
-		global $wpdb;
-		$post_id = (int) $post_id;
+	public function get_all_meta( $id ) {
+		$id = (int) $id;
 
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post = get_post( $id, ARRAY_A );
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
+
+		global $wpdb;
 		$table = _get_meta_table( 'post' );
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE post_id = %d", $post_id ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE post_id = %d", $id ) );
 
 		$meta = array();
 		foreach ( $results as $row ) {
@@ -668,7 +697,66 @@ class WP_JSON_Posts {
 			);
 		}
 
-		return apply_filters( 'json_prepare_meta', $meta, $post_id );
+		return apply_filters( 'json_prepare_meta', $meta, $id );
+	}
+
+	public function get_meta( $id, $mid ) {
+		$id = (int) $id;
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post = get_post( $id, ARRAY_A );
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
+
+		$meta = get_metadata_by_mid( 'post', $mid );
+		if ( empty( $meta ) ) {
+			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( absint( $meta->post_id ) !== $id ) {
+			return new WP_Error( 'json_meta_post_mismatch', __( 'Meta does not belong to this post' ), array( 'status' => 400 ) );
+		}
+
+		return $this->prepare_meta( $id, $mid, $meta );
+	}
+
+	protected function prepare_meta( $post, $mid, $data ) {
+		$ID    = $data->meta_id;
+		$key   = $data->meta_key;
+		$value = $data->meta_value;
+
+		// Don't expose protected fields.
+		if ( is_protected_meta( $key ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+		}
+
+		// Normalize serialized strings
+		if ( is_serialized_string( $value ) ) {
+			$value = unserialize( $value );
+		}
+
+		// Don't expose serialized data
+		if ( is_serialized( $value ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
+		}
+
+		$meta = array(
+			'ID' => (int) $ID,
+			'key' => $key,
+			'value' => $value,
+		);
+
+		return apply_filters( 'json_prepare_meta_value', $meta, $post );
 	}
 
 	/**
@@ -706,20 +794,12 @@ class WP_JSON_Posts {
 
 			if ( empty( $meta_array['ID'] ) ) {
 				// Creation
-				$result = $this->maybe_add_post_meta( $post_id, $meta_array['key'], $meta_array['value'] );
-			}
-			elseif ( empty( $meta_array['key'] ) ) {
-				// Deletion
-				$meta_array['ID'] = absint( $meta_array['ID'] );
-				$result = delete_metadata_by_mid( 'post', $meta_array['ID'] );
-				if ( ! $result ) {
-					$result = new WP_Error( 'json_meta_could_not_delete', __( 'Could not delete post meta.' ), array( 'status' => 500 ) );
-				}
+				$result = $this->add_meta( $post_id, $meta_array['key'], $meta_array['value'] );
 			}
 			else {
 				// Update
 				$meta_array['ID'] = absint( $meta_array['ID'] );
-				$result = $this->maybe_update_post_meta( $meta_array['ID'], $post_id, $meta_array['key'], $meta_array['value'] );
+				$result = $this->update_meta( $post_id, $meta_array['ID'], $meta_array['key'], $meta_array['value'] );
 			}
 
 			if ( is_wp_error( $result ) ) {
@@ -741,27 +821,62 @@ class WP_JSON_Posts {
 	 * @param array $data
 	 * @return bool|WP_Error
 	 */
-	protected function maybe_update_post_meta( $meta_id, $post_id, $key, $data ) {
-		$current = get_metadata_by_mid( 'post', $meta_id );
-		if ( absint( $current->post_id ) !== $post_id ) {
+	public function update_meta( $id, $mid, $data ) {
+		$id = (int) $id;
+		$mid = (int) $mid;
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
+
+		$current = get_metadata_by_mid( 'post', $mid );
+		if ( empty( $current ) ) {
+			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( absint( $current->post_id ) !== $id ) {
 			return new WP_Error( 'json_meta_post_mismatch', __( 'Meta does not belong to this post' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! array_key_exists( 'key', $data ) ) {
+			return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
+		}
+		if ( ! array_key_exists( 'value', $data ) ) {
+			return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
 		}
 
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
-		if ( ! $this->is_valid_meta_data( $data ) ) {
+		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		$key = wp_slash( $key );
-		$data = wp_slash( $data );
-		if ( ! update_metadata_by_mid( 'post', $meta_id, $data, $key ) ) {
+		// update_metadata_by_mid will return false if these are equal, so check
+		// first and pass through
+		if ( $data['value'] === $current->meta_value ) {
+			return $this->get_meta( $id, $mid );
+		}
+
+		$key = wp_slash( $data['key'] );
+		$value = wp_slash( $data['value'] );
+		if ( ! update_metadata_by_mid( 'post', $mid, $value, $key ) ) {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update post meta.' ), array( 'status' => 500 ) );
 		}
 
-		return true;
+		return $this->get_meta( $id, $mid );
 	}
 
 	/**
@@ -792,19 +907,90 @@ class WP_JSON_Posts {
 	 * @param array $data
 	 * @return bool|WP_Error
 	 */
-	protected function maybe_add_post_meta( $post_id, $meta_key, $data ) {
-		if ( ! $this->is_valid_meta_data( $data ) ) {
+	public function add_meta( $id, $data ) {
+		$id = (int) $id;
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! array_key_exists( 'key', $data ) ) {
+			return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
+		}
+		if ( ! array_key_exists( 'value', $data ) ) {
+			return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
 			// for now let's not allow updating of arrays, objects or serialized values.
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		$meta_key = wp_slash( $meta_key );
-		$data = wp_slash( $data );
-		if ( ! add_post_meta( $post_id, $meta_key, $data ) ) {
+		$meta_key = wp_slash( $data['key'] );
+		$value = wp_slash( $data['value'] );
+
+		$result = add_post_meta( $id, $meta_key, $value );
+		if ( ! $result ) {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add post meta.' ), array( 'status' => 400 ) );
 		}
 
-		return true;
+		$response = json_ensure_response( $this->get_meta( $id, $result ) );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/posts/' . $id . '/meta/' . $result ) );
+		return $response;
+	}
+
+	public function delete_meta( $id, $mid ) {
+		$id = (int) $id;
+
+		if ( empty( $id ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post_type = get_post_type_object( $post['post_type'] );
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
+
+		$current = get_metadata_by_mid( 'post', $mid );
+		if ( empty( $current ) ) {
+			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( absint( $current->post_id ) !== $id ) {
+			return new WP_Error( 'json_meta_post_mismatch', __( 'Meta does not belong to this post' ), array( 'status' => 400 ) );
+		}
+
+		// for now let's not allow updating of arrays, objects or serialized values.
+		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
+			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
+			return new WP_Error( 'json_meta_could_not_add', __( 'Could not delete post meta.' ), array( 'status' => 500 ) );
+		}
+
+		return array( 'message' => __( 'Deleted meta' ) );;
 	}
 
 	protected function prepare_author( $author ) {
