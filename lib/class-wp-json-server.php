@@ -450,8 +450,8 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			'authentication' => array(),
 			'meta' => array(
 				'links' => array(
-					'help' => 'https://github.com/rmccue/WP-API',
-					'profile' => 'https://raw.github.com/rmccue/WP-API/master/docs/schema.json',
+					'help' => 'https://github.com/WP-API/WP-API',
+					'profile' => 'https://raw.github.com/WP-API/WP-API/master/docs/schema.json',
 				),
 			),
 		);
