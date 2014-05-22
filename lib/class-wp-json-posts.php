@@ -553,9 +553,6 @@ class WP_JSON_Posts {
 			'guid_raw'    => $post['guid'],
 			'post_meta'   => $this->get_all_meta( $post['ID'] ),
 		);
-		if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
-			return $post_fields_raw['post_meta'];
-		}
 
 		// Dates
 		$timezone = $this->server->get_timezone();
@@ -600,10 +597,16 @@ class WP_JSON_Posts {
 		// Include extended fields. We might come back to this.
 		$_post = array_merge( $_post, $post_fields_extended );
 
-		if ( 'edit' === $context && current_user_can( $post_type->cap->edit_post, $post['ID'] ) )
+		if ( 'edit' === $context && current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
+				return $post_fields_raw['post_meta'];
+			}
+
 			$_post = array_merge( $_post, $post_fields_raw );
-		elseif ( 'edit' === $context )
+		}
+		elseif ( 'edit' === $context ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		}
 
 		// Entity meta
 		$_post['meta'] = array(
