@@ -201,6 +201,21 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Check if we can edit a post
+	 * @param array $post Post data
+	 * @return boolean Can we edit it?
+	 */
+	protected function check_edit_permission( $post ) {
+		$post_type = get_post_type_object( $post['post_type'] );
+
+		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Create a new post for any registered post type.
 	 *
 	 * @since 3.4.0
@@ -657,12 +672,11 @@ class WP_JSON_Posts {
 
 		$post = get_post( $id, ARRAY_A );
 
-		$post_type = get_post_type_object( $post['post_type'] );
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( ! $this->check_edit_permission( $post ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
@@ -699,12 +713,11 @@ class WP_JSON_Posts {
 
 		$post = get_post( $id, ARRAY_A );
 
-		$post_type = get_post_type_object( $post['post_type'] );
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( ! $this->check_edit_permission( $post ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
@@ -831,8 +844,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$post_type = get_post_type_object( $post['post_type'] );
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( ! $this->check_edit_permission( $post ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
@@ -915,8 +927,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$post_type = get_post_type_object( $post['post_type'] );
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( ! $this->check_edit_permission( $post ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
@@ -969,8 +980,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$post_type = get_post_type_object( $post['post_type'] );
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( ! $this->check_edit_permission( $post ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
