@@ -857,6 +857,12 @@ class WP_JSON_Posts {
 		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
+		if ( is_protected_meta( $current->meta_key ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+		}
+		if ( is_protected_meta( $data['key'] ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
 		// first and pass through
@@ -926,6 +932,9 @@ class WP_JSON_Posts {
 		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
 			// for now let's not allow updating of arrays, objects or serialized values.
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
+		}
+		if ( is_protected_meta( $data['key'] ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $data['key'] );
