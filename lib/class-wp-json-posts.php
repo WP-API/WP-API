@@ -735,18 +735,17 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_meta_post_mismatch', __( 'Meta does not belong to this post' ), array( 'status' => 400 ) );
 		}
 
-		return $this->prepare_meta( $id, $mid, $meta );
+		return $this->prepare_meta( $id, $meta );
 	}
 
 	/**
 	 * Prepares meta data for return as an object
 	 *
 	 * @param int $post Post ID
-	 * @param int $mid Metadata ID
 	 * @param stdClass $data Metadata row from database
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
-	protected function prepare_meta( $post, $mid, $data ) {
+	protected function prepare_meta( $post, $data ) {
 		$ID    = $data->meta_id;
 		$key   = $data->meta_key;
 		$value = $data->meta_value;
