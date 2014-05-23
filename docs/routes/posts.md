@@ -135,7 +135,10 @@ methods. Both of these methods have the same behaviour as using PUT. It is
 recommended to use PUT if available to fit with REST convention.
 
 ### Input
-The `data` parameter consists of Post ID and the elements of the Post object to be modified.  This data can be submitted via a regular HTTP multipart body, with Post values set as values to the `data` parameter, or through a direct JSON body.  See the Create Post endpoint for an example.
+The `data` parameter consists of Post ID and the elements of the Post object
+to be modified.  This data can be submitted via a regular HTTP multipart body,
+with Post values set as values to the `data` parameter, or through a direct
+JSON body.  See the Create Post endpoint for an example.
 
 The `data` parameter should be an array containing the following key value pairs:
 
