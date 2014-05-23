@@ -21,6 +21,18 @@ class WP_JSON_Taxonomies {
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
 				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
 			),
+			'/taxonomies' => array(
+				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)' => array(
+				array( array( $this, 'get_taxonomy' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms' => array(
+				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
+			),
 		);
 		return array_merge( $routes, $tax_routes );
 	}
@@ -28,11 +40,15 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get taxonomies
 	 *
-	 * @param string $type Post type to get taxonomies for
+	 * @param string $type Post type to get taxonomies for (optional)
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomies( $type ) {
-		$taxonomies = get_object_taxonomies( $type, 'objects' );
+	public function get_taxonomies( $type = '' ) {
+		if ( $type !== '' ) {
+			$taxonomies = get_object_taxonomies( $type, 'objects' );
+		} else {
+			$taxonomies = get_taxonomies( '', 'objects' );
+		}
 
 		$data = array();
 		foreach ($taxonomies as $tax_type => $value) {
@@ -49,10 +65,11 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get taxonomies
 	 *
-	 * @param string $type Post type to get taxonomies for
+	 * @param string $taxonomy Taxonomy slug
+	 * @param string $type Post type to get taxonomies for (optional)
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomy( $type, $taxonomy ) {
+	public function get_taxonomy( $taxonomy, $type = '' ) {
 		$tax = get_taxonomy( $taxonomy );
 		if ( empty( $tax ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
@@ -64,6 +81,7 @@ class WP_JSON_Taxonomies {
 	 * Prepare a taxonomy for serialization
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
+	 * @param string $type Post type to get taxonomies for
 	 * @param boolean $_in_collection Are we in a collection?
 	 * @return array Taxonomy data
 	 */
@@ -71,7 +89,11 @@ class WP_JSON_Taxonomies {
 		if ( $taxonomy->public === false )
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 
-		$base_url = '/posts/types/' . $type . '/taxonomies/' . $taxonomy->name;
+		if ( $type !== '' ) {
+			$base_url = '/posts/types/' . $type . '/taxonomies/' . $taxonomy->name;
+		} else {
+			$base_url = '/taxonomies/' . $taxonomy->name;
+		}
 
 		$data = array(
 			'name' => $taxonomy->label,
@@ -113,11 +135,11 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get terms for a post type
 	 *
-	 * @param string $type Post type
 	 * @param string $taxonomy Taxonomy slug
+	 * @param string $type Post type (optional)
 	 * @return array Term collection
 	 */
-	public function get_terms( $type, $taxonomy ) {
+	public function get_terms( $taxonomy, $type = '' ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -138,13 +160,13 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get term for a post type
 	 *
-	 * @param string $type Post type
 	 * @param string $taxonomy Taxonomy slug
 	 * @param string $term Term slug
+	 * @param string $type Post type (optional)
 	 * @param string $context Context (view/view-parent)
 	 * @return array Term entity
 	 */
-	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
+	public function get_term( $taxonomy, $term, $type = '', $context = 'view' ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -181,7 +203,11 @@ class WP_JSON_Taxonomies {
 	 * @return array The prepared term data
 	 */
 	protected function prepare_term( $term, $type, $context = 'view' ) {
-		$base_url = '/posts/types/' . $type . '/taxonomies/' . $term->taxonomy . '/terms';
+		if ( $type !== '' ) {
+			$base_url = '/posts/types/' . $type . '/taxonomies/' . $term->taxonomy . '/terms';
+		} else {
+			$base_url = '/taxonomies/' . $term->taxonomy . '/terms';
+		}
 		$data = array(
 			'ID'          => (int) $term->term_taxonomy_id,
 			'name'        => $term->name,
