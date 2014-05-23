@@ -790,26 +790,14 @@ class WP_JSON_Posts {
 	 * @return bool|WP_Error
 	 */
 	protected function handle_post_meta_action( $post_id, $data ) {
-		if ( empty( $post_id ) || empty( $data ) || ! is_array( $data ) ) {
-			return false;
-		}
-
 		foreach ( $data as $meta_array ) {
-			if ( ! array_key_exists( 'key', $meta_array ) ) {
-				return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
-			}
-			if ( ! array_key_exists( 'value', $meta_array ) ) {
-				return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
-			}
-
 			if ( empty( $meta_array['ID'] ) ) {
 				// Creation
-				$result = $this->add_meta( $post_id, $meta_array['key'], $meta_array['value'] );
+				$result = $this->add_meta( $post_id, $meta_array );
 			}
 			else {
 				// Update
-				$meta_array['ID'] = absint( $meta_array['ID'] );
-				$result = $this->update_meta( $post_id, $meta_array['ID'], $meta_array['key'], $meta_array['value'] );
+				$result = $this->update_meta( $post_id, $meta_array['ID'], $meta_array );
 			}
 
 			if ( is_wp_error( $result ) ) {
