@@ -645,10 +645,8 @@ class WP_JSON_Posts {
 	/**
 	 * Retrieve custom fields for post.
 	 *
-	 * @since 2.5.0
-	 *
-	 * @param int $post_id Post ID.
-	 * @return array Custom fields, if exist.
+	 * @param int $id Post ID
+	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
 	 */
 	public function get_all_meta( $id ) {
 		$id = (int) $id;
@@ -703,6 +701,13 @@ class WP_JSON_Posts {
 		return apply_filters( 'json_prepare_meta', $meta, $id );
 	}
 
+	/**
+	 * Retrieve custom field object.
+	 *
+	 * @param int $id Post ID
+	 * @param int $mid Metadata ID
+	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 */
 	public function get_meta( $id, $mid ) {
 		$id = (int) $id;
 
@@ -733,6 +738,14 @@ class WP_JSON_Posts {
 		return $this->prepare_meta( $id, $mid, $meta );
 	}
 
+	/**
+	 * Prepares meta data for return as an object
+	 *
+	 * @param int $post Post ID
+	 * @param int $mid Metadata ID
+	 * @param stdClass $data Metadata row from database
+	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 */
 	protected function prepare_meta( $post, $mid, $data ) {
 		$ID    = $data->meta_id;
 		$key   = $data->meta_key;
@@ -814,14 +827,13 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Determines if meta key can be updated based on meta data type.
-	 * If meta data is allowed by API, the values for the provided meta key is updated.
+	 * Add meta to a post
 	 *
-	 * @uses update_post_meta()
-	 *
-	 * @param int $post_id
-	 * @param string $meta_key
-	 * @param array $data
+	 * @param int $id Post ID
+	 * @param array $data {
+	 *     @type string|null $key Meta key
+	 *     @type string|null $key Meta value
+	 * }
 	 * @return bool|WP_Error
 	 */
 	public function update_meta( $id, $mid, $data ) {
@@ -900,14 +912,13 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Determines if meta key can be added based on meta data type.
-	 * If meta data is allowed by API, the values for the provided meta key is added.
+	 * Add meta to a post
 	 *
-	 * @uses add_post_meta()
-	 *
-	 * @param int $post_id
-	 * @param string $meta_key
-	 * @param array $data
+	 * @param int $id Post ID
+	 * @param array $data {
+	 *     @type string|null $key Meta key
+	 *     @type string|null $key Meta value
+	 * }
 	 * @return bool|WP_Error
 	 */
 	public function add_meta( $id, $data ) {
@@ -957,6 +968,13 @@ class WP_JSON_Posts {
 		return $response;
 	}
 
+	/**
+	 * Delete meta from a post
+	 *
+	 * @param int $id Post ID
+	 * @param int $mid Metadata ID
+	 * @return array|WP_Error Message on success, WP_Error otherwise
+	 */
 	public function delete_meta( $id, $mid ) {
 		$id = (int) $id;
 
