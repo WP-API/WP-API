@@ -671,7 +671,6 @@ class WP_JSON_Posts {
 		}
 
 		$post = get_post( $id, ARRAY_A );
-
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -712,7 +711,6 @@ class WP_JSON_Posts {
 		}
 
 		$post = get_post( $id, ARRAY_A );
-
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -827,7 +825,6 @@ class WP_JSON_Posts {
 		}
 
 		$post = get_post( $id, ARRAY_A );
-
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -910,7 +907,6 @@ class WP_JSON_Posts {
 		}
 
 		$post = get_post( $id, ARRAY_A );
-
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -963,7 +959,6 @@ class WP_JSON_Posts {
 		}
 
 		$post = get_post( $id, ARRAY_A );
-
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
