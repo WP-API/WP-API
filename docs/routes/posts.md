@@ -157,3 +157,44 @@ Meta has been created.  The post meta is available canonically from the URL
 specified in the Location header.
 
 The new Meta entity is also returned in the body for convienience.
+
+
+Retrieve a Meta for a Post
+------------------------
+
+	GET /posts/<id>/meta/<mid>
+
+### Response
+The response a Meta entity containing the post_meta for the specified Meta and
+Post if available.
+
+
+Edit a Meta for a Post
+------------------------
+
+	PUT /posts/<id>/meta/<mid>
+
+### Input
+The supplied data should be a Meta object. This data can be submitted via a
+regular HTTP multipart body, with the Meta key and value set with the `data`
+parameter, or through a direct JSON body.
+
+The `data` parameter should be an array containing the following key value pairs:
+
+* `key` - The post meta key to be updated. (string) *required*
+* `value` - The post meta value for the key provided. (string) *required*
+
+### Response
+On a successful update, a 200 OK status is given, indicating the post_meta has
+been updated. The updated Meta entity is returned in the body.
+
+
+Delete a Meta for a Post
+-------------
+
+	DELETE /posts/<id>/meta/<mid>
+
+
+### Response
+On successful deletion, a 200 OK status code will be returned, indicating
+that the post_meta has been permanently deleted.
