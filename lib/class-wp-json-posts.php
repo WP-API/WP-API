@@ -672,30 +672,12 @@ class WP_JSON_Posts {
 
 		$meta = array();
 		foreach ( $results as $row ) {
-			$ID    = $row->meta_id;
-			$key   = $row->meta_key;
-			$value = $row->meta_value;
-
-			// Don't expose protected fields.
-			if ( is_protected_meta( $key ) ) {
+			$value = $this->prepare_meta( $id, $row );
+			if ( is_wp_error( $value ) ) {
 				continue;
 			}
 
-			// Normalize serialized strings
-			if ( is_serialized_string( $value ) ) {
-				$value = unserialize( $value );
-			}
-
-			// Don't expose serialized data
-			if ( is_serialized( $value ) ) {
-				continue;
-			}
-
-			$meta[] = array(
-				'ID' => (int) $ID,
-				'key' => $key,
-				'value' => $value,
-			);
+			$meta[] = $value;
 		}
 
 		return apply_filters( 'json_prepare_meta', $meta, $id );
