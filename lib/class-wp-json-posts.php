@@ -859,7 +859,7 @@ class WP_JSON_Posts {
 
 		// update_metadata_by_mid will return false if these are equal, so check
 		// first and pass through
-		if ( $data['value'] === $current->meta_value ) {
+		if ( $data['value'] === $current->meta_value && $data['key'] === $current->meta_key ) {
 			return $this->get_meta( $id, $mid );
 		}
 
