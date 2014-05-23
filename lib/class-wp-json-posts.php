@@ -865,10 +865,10 @@ class WP_JSON_Posts {
 		}
 
 		if ( ! array_key_exists( 'key', $data ) ) {
-			return new WP_Error( 'json_post_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
+			$data['key'] = $current->meta_key;
 		}
 		if ( ! array_key_exists( 'value', $data ) ) {
-			return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
+			$data['value'] = $current->meta_value;
 		}
 
 		// for now let's not allow updating of arrays, objects or serialized values.
