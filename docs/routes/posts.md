@@ -58,7 +58,10 @@ Create a Post
 	POST /posts
 
 ### Input
-The `data` parameter consists of the elements of the Post object to be created.  This data can be submitted via a regular HTTP multipart body, with Post values set as values to the `data` parameter, or through a direct JSON body.
+The `data` parameter consists of the elements of the Post object to be
+created.  This data can be submitted via a regular HTTP multipart body, with
+Post values set as values to the `data` parameter, or through a direct JSON
+body.
 
 That is, the following are equivalent:
 
@@ -81,17 +84,25 @@ The `data` parameter should be an array containing the following key value pairs
 `private`, or any custom registered status.  If providing a status of `future`,
 you must specify a `date` in order for the post to be published as expected.
 Default is `draft`. (string) *optional*
-* `type` - Post type of the post: `post`, `page`, `link`, `nav_menu_item`, or a any custom registered type.  Default is `post`. (string) *optional* * `date` - Time the post was, or should be, published.  Date should be an RFC3339
-timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014-01-01T12:20:52Z.  Default is the local date and time. (string) *optional*
-* `date_gmt` - Time the post was, or should be, published in GMT.  Date should be an [RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014-01-01T12:20:52Z.  Default is the current GMT date and time. (string) *optional*
-* `author` - Author of the post.  Author can be provided as a string of the author's ID or as the User object of the author.  Default is current user. (object \| string)
-*optional* * `password` - Password for protecting the posts.  Default is empty
-string. (string) *optional*
+* `type` - Post type of the post: `post`, `page`, `link`, `nav_menu_item`, or
+a any custom registered type.  Default is `post`. (string) *optional*
+* `date` - Time the post was, or should be, published.  Date should be an
+RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014-01-
+01T12:20:52Z.  Default is the local date and time. (string) *optional*
+* `date_gmt` - Time the post was, or should be, published in GMT.  Date should
+be an [RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014
+01-01T12:20:52Z.  Default is the current GMT date and time. (string) *optional*
+* `author` - Author of the post.  Author can be provided as a string of the
+author's ID or as the User object of the author.  Default is current user.
+(object \| string) *optional*
+* `password` - Password for protecting the posts.  Default is empty string.
+(string) *optional*
 * `post_parent` - Post ID of the post parent.  Default is 0. (integer) *optional*
 * `post_format` - Format of the post.  Default is `standard`. (string) *optional*
-* `menu_order` - The order in which posts specified as the `page` type should appear in supported menus.  Default 0. (integer) *optional*
-* `comment_status` - Comment status for the post: `open` or
-`closed`.  Default is the option 'default_comment_status', or 'closed'. (string) *optional*
+* `menu_order` - The order in which posts specified as the `page` type should
+appear in supported menus.  Default 0. (integer) *optional*
+* `comment_status` - Comment status for the post: `open` or`closed`.  Default
+is the option 'default_comment_status', or 'closed'. (string) *optional*
 
 ### Response
 On a successful creation, a 201 Created status is given, indicating that the
