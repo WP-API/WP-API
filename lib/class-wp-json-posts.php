@@ -685,7 +685,7 @@ class WP_JSON_Posts {
 
 		$meta = array();
 		foreach ( $results as $row ) {
-			$value = $this->prepare_meta( $id, $row );
+			$value = $this->prepare_meta( $id, $row, true );
 			if ( is_wp_error( $value ) ) {
 				continue;
 			}
@@ -736,9 +736,10 @@ class WP_JSON_Posts {
 	 *
 	 * @param int $post Post ID
 	 * @param stdClass $data Metadata row from database
+	 * @param boolean $is_serialized Is the value field still serialized? (False indicates the value has been unserialized)
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
-	protected function prepare_meta( $post, $data ) {
+	protected function prepare_meta( $post, $data, $is_raw = false ) {
 		$ID    = $data->meta_id;
 		$key   = $data->meta_key;
 		$value = $data->meta_value;
@@ -749,12 +750,12 @@ class WP_JSON_Posts {
 		}
 
 		// Normalize serialized strings
-		if ( is_serialized_string( $value ) ) {
+		if ( $is_raw && is_serialized_string( $value ) ) {
 			$value = unserialize( $value );
 		}
 
 		// Don't expose serialized data
-		if ( is_serialized( $value ) ) {
+		if ( is_serialized( $value ) || ! is_string( $value ) ) {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
 		}
 
