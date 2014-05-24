@@ -36,7 +36,7 @@ class WP_JSON_Posts {
 				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
 			),
-			'/posts/(?P<id>\d+)/revisions' => array( '__return_null', WP_JSON_Server::READABLE ),
+			'/posts/(?P<id>\d+)/revisions' => array( array( $this, 'get_revisions' ), WP_JSON_Server::READABLE ),
 
 			// Meta
 			'/posts/(?P<id>\d+)/meta' => array(
@@ -52,12 +52,10 @@ class WP_JSON_Posts {
 			// Comments
 			'/posts/(?P<id>\d+)/comments'                  => array(
 				array( array( $this, 'get_comments' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
-				array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( '__return_null', WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
 			),
 
 			// Meta-post endpoints
@@ -66,6 +64,31 @@ class WP_JSON_Posts {
 			'/posts/statuses'            => array( array( $this, 'get_post_statuses' ), WP_JSON_Server::READABLE ),
 		);
 		return array_merge( $routes, $post_routes );
+	}
+
+	/**
+	 * Get revisions for a specific post.
+	 *
+	 * @param int $id Post ID
+	 * @uses wp_get_post_revisions
+	 * @return WP_JSON_Response
+	 */
+	public function get_revisions( $id ) {
+		$id = (int) $id;
+
+		if ( empty( $id ) )
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+
+		// Todo: Query args filter for wp_get_post_revisions
+		$revisions = wp_get_post_revisions( $id );
+
+		foreach ( $revisions as $revision ) {
+			$post = get_object_vars( $revision );
+
+			$struct[] = $this->prepare_post( $post, 'view-revision' );
+		}
+
+		return $struct;
 	}
 
 	/**
@@ -84,18 +107,24 @@ class WP_JSON_Posts {
 	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
-	 * @param array $filter optional
-	 * @param array $fields optional
-	 * @return array contains a collection of Post entities.
+	 * @param array $filter Parameters to pass through to `WP_Query`
+	 * @param string $context
+	 * @param string|array $type Post type slug, or array of slugs
+	 * @param int $page Page number (1-indexed)
+	 * @return stdClass[] Collection of Post entities
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
-		$post_type = get_post_type_object( $type );
-		if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
-			return new WP_Error( 'json_invalid_post_type', __( 'The post type specified is not valid' ), array( 'status' => 403 ) );
+		// Validate post types and permissions
+		$query['post_type'] = array();
+		foreach ( (array) $type as $type_name ) {
+			$post_type = get_post_type_object( $type_name );
+			if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json )
+				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type_name ), array( 'status' => 403 ) );
 
-		$query['post_type'] = $post_type->name;
+			$query['post_type'][] = $post_type->name;
+		}
 
 		global $wp;
 		// Allow the same as normal WP
@@ -385,6 +414,43 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Delete a comment.
+	 *
+	 * @uses wp_delete_comment
+	 * @param int $id Post ID
+	 * @param int $comment Comment ID
+	 * @param boolean $force Skip trash
+	 * @return array
+	 */
+	public function delete_comment( $id, $comment, $force = false ) {
+		$comment = (int) $comment;
+
+		if ( empty( $comment ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		$comment_array = get_comment( $comment, ARRAY_A );
+
+		if ( empty( $comment_array ) )
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+
+		if ( ! current_user_can(  'edit_comment', $comment_array['comment_ID'] ) )
+			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
+
+		$result = wp_delete_comment( $comment_array['comment_ID'], $force );
+
+		if ( ! $result )
+			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted comment' ) );
+		}
+		else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted comment' ) );
+		}
+	}
+
+	/**
 	 * Retrieve comments
 	 *
 	 * @param int $id Post ID to retrieve comments for
@@ -419,6 +485,10 @@ class WP_JSON_Posts {
 	 */
 	public function get_comment( $comment ) {
 		$comment = get_comment( $comment );
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
 		$data = $this->prepare_comment( $comment );
 		return $data;
 	}
@@ -529,7 +599,7 @@ class WP_JSON_Posts {
 	 * @access protected
 	 *
 	 * @param array $post The unprepared post data
-	 * @param array $fields The subset of post type fields to return
+	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
@@ -598,12 +668,12 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) )
 			$post_fields['format'] = 'standard';
 
-		if ( 'view' === $context && 0 !== $post['post_parent'] ) {
+		if ( ( 'view' === $context || 'view-revision' == $context ) && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
 			// This gives post + post-extended + meta for the main post,
 			// post + meta for the parent and just meta for the grandparent
 			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$post_fields['parent'] = $this->prepare_post( $parent, 'parent' );
+			$post_fields['parent'] = $this->prepare_post( $parent, 'embed' );
 		}
 
 		// Merge requested $post_fields fields into $_post
@@ -612,27 +682,37 @@ class WP_JSON_Posts {
 		// Include extended fields. We might come back to this.
 		$_post = array_merge( $_post, $post_fields_extended );
 
-		if ( 'edit' === $context && current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
-				return $post_fields_raw['post_meta'];
-			}
+		if ( 'edit' === $context ) {
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
+					return $post_fields_raw['post_meta'];
+				}
 
-			$_post = array_merge( $_post, $post_fields_raw );
-		}
-		elseif ( 'edit' === $context ) {
-			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+				$_post = array_merge( $_post, $post_fields_raw );
+			} else {
+				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+			}
+		} elseif ( 'view-revision' == $context ) {
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				$_post = array_merge( $_post, $post_fields_raw );
+			} else {
+				return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view this revision' ), array( 'status' => 403 ) );
+			}
 		}
 
 		// Entity meta
-		$_post['meta'] = array(
-			'links' => array(
-				'self'            => json_url( '/posts/' . $post['ID'] ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/posts' ),
-				'replies'         => json_url( '/posts/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-			),
+		$links = array(
+			'self'            => json_url( '/posts/' . $post['ID'] ),
+			'author'          => json_url( '/users/' . $post['post_author'] ),
+			'collection'      => json_url( '/posts' ),
 		);
+
+		if ( 'view-revision' != $context ) {
+			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
+			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+		}
+
+		$_post['meta'] = array( 'links' => $links );
 
 		if ( ! empty( $post['post_parent'] ) )
 			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
@@ -1009,37 +1089,8 @@ class WP_JSON_Posts {
 		return array( 'message' => __( 'Deleted meta' ) );;
 	}
 
-	protected function prepare_author( $author ) {
-		$user = get_user_by( 'id', $author );
-
-		if (! $author || ! is_object( $user ) ) {
-			return null;
-		}
-
-
-		$author = array(
-			'ID' => $user->ID,
-			'name' => $user->display_name,
-			'slug' => $user->user_nicename,
-			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar_url( $user->user_email ),
-			'meta' => array(
-				'links' => array(
-					'self' => json_url( '/users/' . $user->ID ),
-					'archives' => json_url( '/users/' . $user->ID . '/posts' ),
-				),
-			),
-		);
-
-		if ( current_user_can( 'edit_user', $user->ID ) ) {
-			$author['first_name'] = $user->first_name;
-			$author['last_name'] = $user->last_name;
-		}
-		return $author;
-	}
-
 	/**
-	 * Helper method for wp_newPost and wp_editPost, containing shared logic.
+	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()
@@ -1411,20 +1462,5 @@ class WP_JSON_Posts {
 			$data['meta'] = $meta;
 
 		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
-	}
-
-	/**
-	 * Magic method used to temporaly deprecate camelcase functions
-	 *
-	 * @param string $name      Function name
-	 * @param array  $arguments Function arguments
-	 * @return mixed
-	 */
-	public function __call($name, $arguments) {
-		$underscored = strtolower(preg_replace('/(?!^)[[:upper:]][[:lower:]]/', '_$0', $name));
-		if ( method_exists( $this, $underscored ) ) {
-			_deprecated_function( __CLASS__ . '->' . $name, 'WPAPI-0.9', __CLASS__ . '->' . $underscored );
-			return call_user_func_array( array( $this, $underscored ), $arguments );
-		}
 	}
 }

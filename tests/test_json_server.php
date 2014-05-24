@@ -24,32 +24,9 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		parent::setUp();
 
-		include_once( plugin_dir_path( dirname( __FILE__ ) ) . 'lib/class-wp-json-server.php' );
-
 		// Allow for a plugin to insert a different class to handle requests.
 		$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_JSON_Server');
 		$wp_json_server = new $wp_json_server_class;
-	}
-
-	/**
-	 * The server should be able to authenticate users using basic auth.
-	 */
-	function test_valid_basic_auth() {
-		global $wp_json_server;
-
-		$user_id = $this->factory->user->create( array(
-			'user_login' => 'basic_auth',
-			'user_pass' => 'basic_auth'
-		) );
-
-		$_SERVER['PHP_AUTH_USER'] = 'basic_auth';
-		$_SERVER['PHP_AUTH_PW'] = 'basic_auth';
-
-		$result = $wp_json_server->check_authentication();
-		$this->assertTrue( $result instanceof WP_User );
-
-		unset( $_SERVER['PHP_AUTH_USER'] );
-		unset( $_SERVER['PHP_AUTH_PW'] );
 	}
 
 	/**

@@ -93,26 +93,31 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	/**
 	 * Check the authentication headers if supplied
 	 *
-	 * @return WP_Error|WP_User|null WP_User object indicates successful login, WP_Error indicates unsuccessful login and null indicates no authentication provided
+	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
 	 */
 	public function check_authentication() {
-		$user = apply_filters( 'json_check_authentication', null );
-		if ( is_a( $user, 'WP_User' ) )
-			return $user;
-
-		if ( !isset( $_SERVER['PHP_AUTH_USER'] ) )
-			return;
-
-		$username = $_SERVER['PHP_AUTH_USER'];
-		$password = $_SERVER['PHP_AUTH_PW'];
-
-		$user = wp_authenticate( $username, $password );
-
-		if ( is_wp_error( $user ) )
-			return $user;
-
-		wp_set_current_user( $user->ID );
-		return $user;
+		/**
+		 * Pass an authentication error to the API
+		 *
+		 * This is used to pass a {@see WP_Error} from an authentication method
+		 * back to the API.
+		 *
+		 * Authentication methods should check first if they're being used, as
+		 * multiple authentication methods can be enabled on a site (cookies,
+		 * HTTP basic auth, OAuth). If the authentication method hooked in is
+		 * not actually being attempted, null should be returned to indicate
+		 * another authentication method should check instead. Similarly,
+		 * callbacks should ensure the value is `null` before checking for
+		 * errors.
+		 *
+		 * A {@see WP_Error} instance can be returned if an error occurs, and
+		 * this should match the format used by API methods internally (that is,
+		 * the `status` data should be used). A callback can return `true` to
+		 * indicate that the authentication method was used, and it succeeded.
+		 *
+		 * @param WP_Error|null|boolean WP_Error if authentication error, null if authentication method wasn't used, true if authentication succeeded
+		 */
+		return apply_filters( 'json_authentication_errors', null );
 	}
 
 	/**
@@ -146,23 +151,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Convert an error to an array
-	 *
-	 * This iterates over all error codes and messages to change it into a flat
-	 * array. This enables simpler client behaviour, as it is represented as a
-	 * list in JSON rather than an object/map
-	 *
-	 * @param WP_Error $error
-	 * @return array List of associative arrays with code and message keys
-	 */
-	protected function error_to_array( $error ) {
-		_deprecated_function( 'WP_JSON_Server::error_to_array', 'WPAPI-0.8', 'WP_JSON_Server::error_to_response' );
-
-		$response = $this->error_to_response( $error );
-		return $response->get_data();
-	}
-
-	/**
 	 * Get an appropriate error representation in JSON
 	 *
 	 * Note: This should only be used in {@see WP_JSON_Server::serve_request()},
@@ -178,7 +166,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status )
-			$this->send_status( $status );
+			$this->set_status( $status );
 
 		$error = compact( 'code', 'message' );
 		return json_encode( array( $error ) );
@@ -462,8 +450,8 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			'authentication' => array(),
 			'meta' => array(
 				'links' => array(
-					'help' => 'https://github.com/rmccue/WP-API',
-					'profile' => 'https://raw.github.com/rmccue/WP-API/master/docs/schema.json',
+					'help' => 'https://github.com/WP-API/WP-API',
+					'profile' => 'https://raw.github.com/WP-API/WP-API/master/docs/schema.json',
 				),
 			),
 		);
@@ -504,44 +492,12 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 *
 	 * @param int $code HTTP status
 	 */
-	public function send_status( $code ) {
-		_deprecated_function( 'WP_JSON_Server::send_status', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		status_header( $code );
-	}
-
-	/**
-	 * Send a HTTP status code
-	 *
-	 * @param int $code HTTP status
-	 */
 	protected function set_status( $code ) {
 		status_header( $code );
 	}
 
 	/**
 	 * Send a HTTP header
-	 *
-	 * @param string $key Header key
-	 * @param string $value Header value
-	 * @param boolean $replace Should we replace the existing header?
-	 */
-	public function header( $key, $value, $replace = true ) {
-		_deprecated_function( 'WP_JSON_Server::header', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		// Sanitize as per RFC2616 (Section 4.2):
-		//   Any LWS that occurs between field-content MAY be replaced with a
-		//   single SP before interpreting the field value or forwarding the
-		//   message downstream.
-		$value = preg_replace( '/\s+/', ' ', $value );
-		header( sprintf( '%s: %s', $key, $value ), $replace );
-	}
-
-	/**
-	 * Send a HTTP header
-	 *
-	 * This is set via the response object, unlike {@see self::header()}, which
-	 * was called directly before response objects were added.
 	 *
 	 * @param string $key Header key
 	 * @param string $value Header value
@@ -565,68 +521,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			$this->send_header( $key, $value );
 		}
 	}
-
-	/**
-	 * Send a Link header
-	 *
-	 * @todo Make this safe for <>"';,
-	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
-	 *
-	 * @link http://tools.ietf.org/html/rfc5988
-	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
-	 *
-	 * @param string $rel Link relation. Either a registered type, or an absolute URL
-	 * @param string $link Target IRI for the link
-	 * @param array $other Other parameters to send, as an assocative array
-	 */
-	public function link_header( $rel, $link, $other = array() ) {
-		_deprecated_function( 'WP_JSON_Server::link_header', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		$header = '<' . $link . '>; rel="' . $rel . '"';
-		foreach ( $other as $key => $value ) {
-			if ( 'title' == $key )
-				$value = '"' . $value . '"';
-			$header .= '; ' . $key . '=' . $value;
-		}
-		$this->header( 'Link', $header, false );
-	}
-
-	/**
-	 * Send navigation-related headers for post collections
-	 *
-	 * @param WP_Query $query
-	 */
-	public function query_navigation_headers( $query ) {
-		_deprecated_function( 'WP_JSON_Server::query_navigation_headers', 'WPAPI-0.8', 'WP_JSON_Response' );
-
-		$max_page = $query->max_num_pages;
-		$paged = $query->get('paged');
-
-		if ( !$paged )
-			$paged = 1;
-
-		$nextpage = intval($paged) + 1;
-
-		if ( ! $query->is_single() ) {
-			if ( $paged > 1 ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $paged - 1, $request );
-				$this->link_header( 'prev', $request );
-			}
-
-			if ( $nextpage <= $max_page ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $nextpage, $request );
-				$this->link_header( 'next', $request );
-			}
-		}
-
-		$this->header( 'X-WP-Total', $query->found_posts );
-		$this->header( 'X-WP-TotalPages', $max_page );
-
-		do_action('json_query_navigation_headers', $this, $query);
-	}
-
 
 	/**
 	 * Retrieve the raw request entity (body)

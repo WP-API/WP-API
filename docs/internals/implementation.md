@@ -3,8 +3,8 @@ Implementation Details
 
 Method Naming
 -------------
-By convention, routing code uses underscore_case for method naming, whereas
-endpoints use partialCamelCase.
+By convention, all functions and methods use underscore_case, as per the
+[WordPress Coding Standards](http://make.wordpress.org/core/handbook/coding-standards/php/).
 
 
 Routing

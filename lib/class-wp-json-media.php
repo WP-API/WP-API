@@ -88,7 +88,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	protected function prepare_post( $post, $context = 'single' ) {
 		$data = parent::prepare_post( $post, $context );
 
-		if ( is_wp_error( $data ) )
+		if ( is_wp_error( $data ) || $post['post_type'] !== 'attachment' )
 			return $data;
 
 		// $thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
@@ -237,7 +237,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		$headers = array( 'Location' => json_url( '/media/' . $id ) );
-		return new WP_JSON_Response( $this->getPost( $id, 'edit' ), 201, $headers );
+		return new WP_JSON_Response( $this->get_post( $id, 'edit' ), 201, $headers );
 	}
 
 	/**
@@ -368,7 +368,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		// Featured image (pre-verification)
 		if ( ! empty( $data['featured_image'] ) ) {
-			$thumbnail = $this->getPost( (int) $data['featured_image'], 'child' );
+			$thumbnail = $this->get_post( (int) $data['featured_image'], 'child' );
 			if ( is_wp_error( $thumbnail ) ) {
 				return new WP_Error( 'json_invalid_featured_image', __( 'Invalid featured image.' ), array( 'status' => 400 ) );
 			}
@@ -390,7 +390,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		if ( ! empty( $data['featured_image'] ) ) {
-			// Already verified in preinsertCheck()
+			// Already verified in preinsert_check()
 			$thumbnail = $this->get_post( $data['featured_image'], 'child' );
 			set_post_thumbnail( $post['ID'], $thumbnail['ID'] );
 		}
@@ -406,6 +406,17 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 */
 	public function add_thumbnail_data( $data, $post, $context ) {
 		if( !post_type_supports( $post['post_type'], 'thumbnail' ) ) {
+			return $data;
+		}
+
+		// Don't embed too deeply
+		if ( $context !== 'view' && $context !== 'edit' ) {
+			$data['featured_image'] = null;
+			$thumbnail_id = get_post_thumbnail_id( $post['ID'] );
+			if ( $thumbnail_id ) {
+				$data['featured_image'] = absint( $thumbnail_id );
+			}
+
 			return $data;
 		}
 

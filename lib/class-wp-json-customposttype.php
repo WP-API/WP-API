@@ -80,7 +80,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 */
 	public function register_revision_routes( $routes ) {
 		$routes[ $this->base . '/(?P<id>\d+)/revisions' ] = array(
-			array( '__return_null', WP_JSON_Server::READABLE ),
+			array( array( $this, 'get_revisions' ), WP_JSON_Server::READABLE ),
 		);
 		return $routes;
 	}
@@ -94,12 +94,10 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	public function register_comment_routes( $routes ) {
 		$routes[ $this->base . '/(?P<id>\d+)/comments'] = array(
 			array( array( $this, 'get_comments' ), WP_JSON_Server::READABLE ),
-			array( '__return_null', WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 		);
 		$routes[ $this->base . '/(?P<id>\d+)/comments/(?P<comment>\d+)' ] = array(
 			array( array( $this, 'get_comment' ), WP_JSON_Server::READABLE ),
-			array( '__return_null', WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-			array( '__return_null', WP_JSON_Server::DELETABLE ),
+			array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
 		);
 		return $routes;
 	}

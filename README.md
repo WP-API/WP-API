@@ -56,14 +56,19 @@ testing environment in a few easy steps:
    vagrant up
    ```
 
-5. Browse to http://vagrant.local/wp/wp-admin/ and activate the WP API plugin
+5. Browse to http://vagrant.local/wp/wp-admin/plugins.php and activate the WP
+API plugin
 
    ```
    Username: admin
    Password: password
    ```
 
-6. Browse to http://vagrant.local/wp-json/
+6. Browse to http://vagrant.local/wp/wp-admin/options-permalink.php and set
+the permalink structure to anything other than "Default"
+
+7. Browse to http://vagrant.local/wp-json/ (or if the permalink structure is
+still "Default," to http://vagrant.local/?json_route=/)
 
 
 ### Testing
