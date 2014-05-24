@@ -959,49 +959,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Parse an RFC3339 timestamp into a DateTime
-	 *
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
-	 * @return DateTime
-	 */
-	protected function parse_date( $date, $force_utc = false ) {
-		// Default timezone to the server's current one
-		$timezone = self::get_timezone();
-		if ( $force_utc ) {
-			$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
-			$timezone = new DateTimeZone( 'UTC' );
-		}
-
-		// Strip millisecond precision (a full stop followed by one or more digits)
-		if ( strpos( $date, '.' ) !== false ) {
-			$date = preg_replace( '/\.\d+/', '', $date );
-		}
-		$datetime = WP_JSON_DateTime::createFromFormat( DateTime::RFC3339, $date );
-
-		return $datetime;
-	}
-
-	/**
-	 * Get a local date with its GMT equivalent, in MySQL datetime format
-	 *
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Should we force UTC timestamp?
-	 * @return array Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s)
-	 */
-	protected function get_date_with_gmt( $date, $force_utc = false ) {
-		$datetime = $this->server->parse_date( $date, $force_utc );
-
-		$datetime->setTimezone( self::get_timezone() );
-		$local = $datetime->format( 'Y-m-d H:i:s' );
-
-		$datetime->setTimezone( new DateTimeZone( 'UTC' ) );
-		$utc = $datetime->format('Y-m-d H:i:s');
-
-		return array( $local, $utc );
-	}
-
-	/**
 	 * Prepares comment data for returning as a JSON response.
 	 *
 	 * @param stdClass $comment Comment object
