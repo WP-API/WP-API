@@ -9,7 +9,7 @@ Create a Post
 ### Input
 The `data` parameter consists of the elements of the Post object to be
 created.  This data can be submitted via a regular HTTP multipart body, with
-Post values set as values to the `data` parameter, or through a direct JSON
+the Post keys and values set to the `data` parameter, or through a direct JSON
 body.
 
 That is, the following are equivalent:
@@ -23,35 +23,53 @@ Content-Type: application/json
 
 	{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
 
-The `data` parameter should be an array containing the following key value pairs:
+The `data` parameter should be an object containing the following key value
+pairs:
 
-* `post_title` - Title of the post. (string) *required*
-* `content_raw` - Full text of the post. (string) *required*
+* `post_title` - Title of the post. (string) __*required*__
+* `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
-*`status` - Post status of the post: `draft`, `publish`, `pending`, `future`,
-`private`, or any custom registered status.  If providing a status of `future`,
-you must specify a `date` in order for the post to be published as expected.
-Default is `draft`. (string) *optional*
+* `status` - Post status of the post: `draft`, `publish`, `pending`, `future`,
+  `private`, or any custom registered status.  If providing a status of
+  `future`, you must specify a `date` in order for the post to be published as
+  expected.  Default is `draft`. (string) *optional*
 * `type` - Post type of the post: `post`, `page`, `link`, `nav_menu_item`, or
-a any custom registered type.  Default is `post`. (string) *optional*
-* `date` - Time the post was, or should be, published.  Date should be an
-RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014-01-
-01T12:20:52Z.  Default is the local date and time. (string) *optional*
-* `date_gmt` - Time the post was, or should be, published in GMT.  Date should
-be an [RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014
-01-01T12:20:52Z.  Default is the current GMT date and time. (string) *optional*
+  a any custom registered type.  Default is `post`. (string) *optional*
+* `date` - Date and time the post was, or should be, published in local time.
+  Date should be an RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 2014-01-01T12:20:52Z.  Default is the local date and time. (string)
+  *optional*
+* `date_gmt` - Date and time the post was, or should be, published in UTC time.
+  Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
+  (string) *optional*
+* `modified` - Date and time the post was last modified in local time.  Date
+  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
+  *optional*
+* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
+  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
+  (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
-author's ID or as the User object of the author.  Default is current user.
-(object \| string) *optional*
+  author's ID or as the User object of the author.  Default is current user.
+  (object \| string) *optional*
 * `password` - Password for protecting the posts.  Default is empty string.
-(string) *optional*
-* `post_parent` - Post ID of the post parent.  Default is 0. (integer) *optional*
-* `post_format` - Format of the post.  Default is `standard`. (string) *optional*
+  (string) *optional*
+* `post_parent` - Post ID of the post parent.  Default is 0. (integer)
+  *optional*
+* `post_format` - Format of the post.  Default is `standard`. (string)
+  *optional*
 * `menu_order` - The order in which posts specified as the `page` type should
-appear in supported menus.  Default 0. (integer) *optional*
-* `comment_status` - Comment status for the post: `open` or`closed`.  Default
-is the option 'default_comment_status', or 'closed'. (string) *optional*
+  appear in supported menus.  Default 0. (integer) *optional*
+* `comment_status` - Comment status for the post: `open` or `closed`.
+  Indicates whether users can submit comments to the post.  Default is the
+  option 'default_comment_status', or 'closed'. (string) *optional*
+* `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
+  whether users can submit pingbacks or trackbacks to the post.  Default is the
+  option 'default_ping_status'. (string) *optional*
+
 
 ### Response
 On a successful creation, a 201 Created status is given, indicating that the
@@ -70,8 +88,7 @@ posts.
 
 ### Input
 #### `filter`
-The `filter` parameter controls the query parameters. It is essentially a subset
-of the parameters available to [`WP_Query`](http://codex.wordpress.org/Class_Reference/WP_Query).
+The `filter` parameter controls the query parameters.  It is essentially a subset of the parameters available to [`WP_Query`](http://codex.wordpress.org/Class_Reference/WP_Query).
 
 The parameter should be an array of the following key/value pairs:
 
@@ -81,8 +98,8 @@ The parameter should be an array of the following key/value pairs:
 * `numberposts` - Number of posts to retrieve, use `-1` for all posts. Default
   is set by the site. (integer)
 * `offset` - Number of posts to skip. Default is 0. (integer)
-* `orderby` - Parameter to search by, as per [WP Query](http://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters).
-  Default is "date". (string)
+* `orderby` - Parameter to search by, as per [WP Query](http://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters).  Default is
+  "date". (string)
 * `order` - Order to sort by. Default is "DESC". (string, "ASC" or "DESC")
 * `s` - Keyword to search for. (string)
 
@@ -119,8 +136,8 @@ Retrieve a Post
 
 ### Input
 #### `context`
-The `context` parameter controls the format of the data to return. The following
-contexts are available:
+The `context` parameter controls the format of the data to return.  The
+following contexts are available:
 
 * `view`: The default context. Gives the normal User entity.
 * `edit`: Context used for extra fields relevant to updating a user. Includes
@@ -148,39 +165,57 @@ recommended to use PUT if available to fit with REST convention.
 ### Input
 The `data` parameter consists of Post ID and the elements of the Post object
 to be modified.  This data can be submitted via a regular HTTP multipart body,
-with Post values set as values to the `data` parameter, or through a direct
+with the Post keys and values set to the `data` parameter, or through a direct
 JSON body.  See the Create Post endpoint for an example.
 
-The `data` parameter should be an array containing the following key value pairs:
+The `data` parameter should be an object containing the following key value
+pairs:
 
-* `ID` - Unique ID of the post. (integer) *required*
-* `post_title` - Title of the post. (string) *optional*
-* `content_raw` - Full text of the post. (string) *optional*
+* `ID` - Unique ID of the post. (integer) __*required*__
+* `post_title` - Title of the post. (string) __*required*__
+* `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
-*`status` - Post status of the post: `draft`, `publish`, `pending`, `future`,
-`private`, or any custom registered status.  If providing a status of `future`,
-you must specify a `date` in order for the post to be published as expected.
-Default is `draft`. (string) *optional*
+* `status` - Post status of the post: `draft`, `publish`, `pending`, `future`,
+  `private`, or any custom registered status.  If providing a status of
+  `future`, you must specify a `date` in order for the post to be published as
+  expected.  Default is `draft`. (string) *optional*
 * `type` - Post type of the post: `post`, `page`, `link`, `nav_menu_item`, or
-a any custom registered type.  Default is `post`. (string) *optional*
-* `date` - Time the post was, or should be, published.  Date should be an
-RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014-01-
-01T12:20:52Z.  Default is the local date and time. (string) *optional*
-* `date_gmt` - Time the post was, or should be, published in GMT.  Date should
-be an [RFC3339 timestamp](http://www.ietf.org/rfc/rfc3339.txt).  Example: 2014
-01-01T12:20:52Z.  Default is the current GMT date and time. (string) *optional*
+  a any custom registered type.  Default is `post`. (string) *optional*
+* `date` - Date and time the post was, or should be, published in local time.
+  Date should be an RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 2014-01-01T12:20:52Z.  Default is the local date and time. (string)
+  *optional*
+* `date_gmt` - Date and time the post was, or should be, published in UTC time.
+  Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
+  (string) *optional*
+* `modified` - Date and time the post was last modified in local time.  Date
+  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
+  *optional*
+* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
+  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
+  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
+  (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
-author's ID or as the User object of the author.  Default is current user.
-(object \| string) *optional*
+  author's ID or as the User object of the author.  Default is current user.
+  (object \| string) *optional*
 * `password` - Password for protecting the posts.  Default is empty string.
-(string) *optional*
-* `post_parent` - Post ID of the post parent.  Default is 0. (integer) *optional*
-* `post_format` - Format of the post.  Default is `standard`. (string) *optional*
+  (string) *optional*
+* `post_parent` - Post ID of the post parent.  Default is 0. (integer)
+  *optional*
+* `post_format` - Format of the post.  Default is `standard`. (string)
+  *optional*
 * `menu_order` - The order in which posts specified as the `page` type should
-appear in supported menus.  Default 0. (integer) *optional*
-* `comment_status` - Comment status for the post: `open` or`closed`.  Default
-is the option 'default_comment_status', or 'closed'. (string) *optional*
+  appear in supported menus.  Default 0. (integer) *optional*
+* `comment_status` - Comment status for the post: `open` or `closed`.
+  Indicates whether users can submit comments to the post.  Default is the
+  option 'default_comment_status', or 'closed'. (string) *optional*
+* `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
+  whether users can submit pingbacks or trackbacks to the post.  Default is the
+  option 'default_ping_status'. (string) *optional*
+
 
 ### Response
 On a successful update, a 200 OK status is given, indicating the post has been
@@ -220,7 +255,8 @@ The supplied data should be a Meta object. This data can be submitted via a
 regular HTTP multipart body, with the Meta key and value set with the `data`
 parameter, or through a direct JSON body.
 
-The `data` parameter should be an array containing the following key value pairs:
+The `data` parameter should be an object containing the following key value
+pairs:
 
 * `key` - The post meta key to be created. (string) *required*
 * `value` - The post meta value for the key provided. (string) *required*
