@@ -611,10 +611,13 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 *
 	 * @param string $date RFC3339 timestamp
 	 * @param boolean $force_utc Should we force UTC timestamp?
-	 * @return array Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s)
+	 * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s), null on failure
 	 */
 	public function get_date_with_gmt( $date, $force_utc = false ) {
 		$datetime = $this->parse_date( $date, $force_utc );
+		if ( empty( $datetime ) ) {
+			return null;
+		}
 
 		$datetime->setTimezone( self::get_timezone() );
 		$local = $datetime->format( 'Y-m-d H:i:s' );
