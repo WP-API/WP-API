@@ -850,6 +850,10 @@ class WP_JSON_Posts {
 			$data['value'] = $current->meta_value;
 		}
 
+		if ( empty( $data['key'] ) ) {
+			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
+		}
+
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
@@ -927,6 +931,10 @@ class WP_JSON_Posts {
 		}
 		if ( ! array_key_exists( 'value', $data ) ) {
 			return new WP_Error( 'json_post_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
+		}
+
+		if ( empty( $data['key'] ) ) {
+			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
