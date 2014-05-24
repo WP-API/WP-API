@@ -126,6 +126,79 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 	}
 
+	public function test_get_all_meta() {
+		$post_id = $this->factory->post->create();
+		$meta_id_basic = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id_other1 = add_post_meta( $post_id, 'testotherkey', 'testvalue1' );
+		$meta_id_other2 = add_post_meta( $post_id, 'testotherkey', 'testvalue2' );
+		$value = array( 'testvalue1', 'testvalue2' );
+		$meta_id_serialized = add_post_meta( $post_id, 'testkey', $value );
+		$value = (object) array( 'testvalue' => 'test' );
+		$meta_id_serialized_object = add_post_meta( $post_id, 'testkey', $value );
+		$value = serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) );
+		$meta_id_serialized_string = add_post_meta( $post_id, 'testkey', $value );
+		$meta_id_protected = add_post_meta( $post_id, '_testkey', 'testvalue' );
+
+		$response = $this->endpoint->get_all_meta( $post_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 3, $data );
+
+		foreach ( $data as $row ) {
+			$this->assertArrayHasKey( 'ID', $row );
+			$this->assertArrayHasKey( 'key', $row );
+			$this->assertArrayHasKey( 'value', $row );
+
+			$this->assertTrue( in_array( $row['ID'], array( $meta_id_basic, $meta_id_other1, $meta_id_other2 ) ) );
+
+			if ( $row['ID'] === $meta_id_basic ) {
+				$this->assertEquals( 'testkey', $row['key'] );
+				$this->assertEquals( 'testvalue', $row['value'] );
+			}
+			elseif ( $row['ID'] === $meta_id_other1 ) {
+				$this->assertEquals( 'testotherkey', $row['key'] );
+				$this->assertEquals( 'testvalue1', $row['value'] );
+			}
+			elseif ( $row['ID'] === $meta_id_other2 ) {
+				$this->assertEquals( 'testotherkey', $row['key'] );
+				$this->assertEquals( 'testvalue2', $row['value'] );
+			}
+			else {
+				$this->fail();
+			}
+		}
+	}
+
+	public function test_get_all_meta_no_post_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->get_all_meta( 0 );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response );
+	}
+
+	public function test_get_all_meta_invalid_post_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->get_all_meta( -1 );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response );
+	}
+
+	public function test_get_all_meta_unauthenticated() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		wp_set_current_user( 0 );
+
+		$response = $this->endpoint->get_all_meta( $post_id );
+		$this->assertErrorResponse( 'json_cannot_edit', $response );
+	}
+
 	public function test_add_meta() {
 		$post_id = $this->factory->post->create();
 		$data = array(
