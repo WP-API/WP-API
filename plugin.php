@@ -23,6 +23,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
@@ -112,8 +113,6 @@ add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 function json_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['json_route'] ) )
 		return;
-
-	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 
 	/**
 	 * Whether this is a XMLRPC Request
