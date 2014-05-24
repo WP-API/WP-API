@@ -522,4 +522,129 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 		$this->assertEmpty( get_post_meta( $post_id, '_testnewkey' ) );
 	}
+
+	public function test_delete_meta() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'message', $data );
+		$this->assertNotEmpty( $data['message'] );
+
+		$meta = get_post_meta( $post_id, 'testkey', false );
+		$this->assertEmpty( $meta );
+	}
+
+	public function test_delete_meta_no_post_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( 0, $meta_id );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
+	}
+
+	public function test_delete_meta_invalid_post_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( -1, $meta_id );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
+	}
+
+	public function test_delete_meta_no_meta_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( $post_id, 0 );
+		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
+
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
+	}
+
+	public function test_delete_meta_invalid_meta_id() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( $post_id, -1 );
+		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
+
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
+	}
+
+	public function test_delete_meta_unauthenticated() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		wp_set_current_user( 0 );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
+
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
+	}
+
+	public function test_delete_meta_wrong_post() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$post_id_two = $this->factory->post->create();
+		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( $post_id_two, $meta_id );
+		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id_two );
+		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
+	}
+
+	public function test_delete_meta_serialized_array() {
+		$post_id = $this->factory->post->create();
+		$value = array( 'testvalue1', 'testvalue2' );
+		$meta_id = add_post_meta( $post_id, 'testkey', $value );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
+		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
+	}
+
+	public function test_delete_meta_serialized_object() {
+		$post_id = $this->factory->post->create();
+		$value = (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' );
+		$meta_id = add_post_meta( $post_id, 'testkey', $value );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
+		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
+	}
+
+	public function test_delete_meta_serialized_string() {
+		$post_id = $this->factory->post->create();
+		$value = serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) );
+		$meta_id = add_post_meta( $post_id, 'testkey', $value );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
+		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
+	}
+
+	public function test_delete_meta_protected() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
+
+		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, '_testkey' ) );
+	}
 }
