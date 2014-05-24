@@ -256,6 +256,16 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		$this->assertErrorResponse( 'json_post_missing_key', $response, 400 );
 	}
 
+	public function test_add_meta_invalid_key() {
+		$post_id = $this->factory->post->create();
+		$data = array(
+			'key' => false,
+			'value' => 'testvalue',
+		);
+		$response = $this->endpoint->add_meta( $post_id, $data );
+		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
+	}
+
 	public function test_add_meta_unauthenticated() {
 		$post_id = $this->factory->post->create();
 		$data = array(
@@ -594,6 +604,19 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 		$this->assertEmpty( get_post_meta( $post_id, '_testnewkey' ) );
+	}
+
+	public function test_update_meta_invalid_key() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$data = array(
+			'key' => false,
+			'value' => 'testnewvalue',
+		);
+		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_delete_meta() {
