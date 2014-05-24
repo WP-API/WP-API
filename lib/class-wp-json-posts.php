@@ -990,6 +990,9 @@ class WP_JSON_Posts {
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
 			return new WP_Error( 'json_post_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
+		if ( is_protected_meta( $current->meta_key ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+		}
 
 		if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not delete post meta.' ), array( 'status' => 500 ) );
