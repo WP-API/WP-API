@@ -1185,13 +1185,13 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['date'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['date'] );
 			if ( ! empty( $date_data ) ) {
-				list( $post['post_date'], $post['post_date_gmt'] ) = $data;
+				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
 			}
 		}
 		elseif ( ! empty( $data['date_gmt'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['date_gmt'], true );
 			if ( ! empty( $date_data ) ) {
-				list( $post['post_date'], $post['post_date_gmt'] ) = $data;
+				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
 			}
 		}
 
@@ -1199,13 +1199,13 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['modified'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['modified'] );
 			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $data;
+				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
 			}
 		}
 		elseif ( ! empty( $data['modified_gmt'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['modified_gmt'], true );
 			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $data;
+				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
 			}
 		}
 
