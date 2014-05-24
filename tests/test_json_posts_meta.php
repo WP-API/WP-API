@@ -398,7 +398,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, 0, $data );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_invalid_meta_id() {
@@ -411,7 +411,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, -1, $data );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_unauthenticated() {
@@ -426,7 +426,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_wrong_post() {
@@ -442,11 +442,11 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id_two, $meta_id, $data );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id_two, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
 		$response = $this->endpoint->get_meta( $post_id, $meta_id_two, $data );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_serialized_array() {
@@ -458,7 +458,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_serialized_object() {
@@ -470,7 +470,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_serialized_string() {
@@ -482,7 +482,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_existing_serialized() {
@@ -494,7 +494,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, 'testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_protected() {
@@ -506,7 +506,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, '_testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, '_testkey' ) );
 	}
 
 	public function test_update_meta_protected_new() {
@@ -519,7 +519,7 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
-		$this->assertEquals( 'testvalue', get_post_meta( $post_id, '_testkey' ) );
+		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, '_testkey' ) );
 		$this->assertEmpty( get_post_meta( $post_id, '_testnewkey' ) );
 	}
 }
