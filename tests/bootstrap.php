@@ -8,7 +8,7 @@
 
 // Activates this plugin in WordPress so it can be tested.
 $GLOBALS['wp_tests_options'] = array(
-	'active_plugins' => array( 'WP-API/plugin.php' ),
+	'active_plugins' => array( basename( dirname( dirname( __FILE__ ) ) ) . '/plugin.php' ),
 );
 
 // If the develop repo location is defined (as WP_DEVELOP_DIR), use that

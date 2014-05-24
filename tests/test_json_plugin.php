@@ -15,7 +15,8 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 	 * The plugin should be installed and activated.
 	 */
 	function test_plugin_activated() {
-		$this->assertTrue( is_plugin_active( 'WP-API/plugin.php' ) );
+		$directory = basename( dirname( dirname( __FILE__ ) ) );
+		$this->assertTrue( is_plugin_active( $directory . '/plugin.php' ) );
 	}
 
 	/**
