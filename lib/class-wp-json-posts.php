@@ -861,7 +861,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
 		}
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
