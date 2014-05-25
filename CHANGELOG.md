@@ -241,6 +241,12 @@
 
 [OAuth1]: https://github.com/WP-API/OAuth1
 [Basic-Auth]: https://github.com/WP-API/Basic-Auth
+[gh-20]: https://github.com/WP-API/WP-API/issues/20
+[gh-37]: https://github.com/WP-API/WP-API/issues/37
+[gh-61]: https://github.com/WP-API/WP-API/issues/61
+[gh-68]: https://github.com/WP-API/WP-API/issues/68
+[gh-69]: https://github.com/WP-API/WP-API/issues/69
+[gh-91]: https://github.com/WP-API/WP-API/issues/91
 [gh-111]: https://github.com/WP-API/WP-API/issues/111
 [gh-127]: https://github.com/WP-API/WP-API/issues/127
 [gh-131]: https://github.com/WP-API/WP-API/issues/131
@@ -251,11 +257,14 @@
 [gh-137]: https://github.com/WP-API/WP-API/issues/137
 [gh-138]: https://github.com/WP-API/WP-API/issues/138
 [gh-139]: https://github.com/WP-API/WP-API/issues/139
+[gh-140]: https://github.com/WP-API/WP-API/issues/140
+[gh-142]: https://github.com/WP-API/WP-API/issues/142
 [gh-145]: https://github.com/WP-API/WP-API/issues/145
 [gh-146]: https://github.com/WP-API/WP-API/issues/146
 [gh-148]: https://github.com/WP-API/WP-API/issues/148
 [gh-149]: https://github.com/WP-API/WP-API/issues/149
 [gh-150]: https://github.com/WP-API/WP-API/issues/150
+[gh-151]: https://github.com/WP-API/WP-API/issues/151
 [gh-152]: https://github.com/WP-API/WP-API/issues/152
 [gh-154]: https://github.com/WP-API/WP-API/issues/154
 [gh-155]: https://github.com/WP-API/WP-API/issues/155
@@ -263,7 +272,10 @@
 [gh-161]: https://github.com/WP-API/WP-API/issues/161
 [gh-163]: https://github.com/WP-API/WP-API/issues/163
 [gh-165]: https://github.com/WP-API/WP-API/issues/165
+[gh-166]: https://github.com/WP-API/WP-API/issues/166
+[gh-168]: https://github.com/WP-API/WP-API/issues/168
 [gh-171]: https://github.com/WP-API/WP-API/issues/171
+[gh-172]: https://github.com/WP-API/WP-API/issues/172
 [gh-174]: https://github.com/WP-API/WP-API/issues/174
 [gh-175]: https://github.com/WP-API/WP-API/issues/175
 [gh-176]: https://github.com/WP-API/WP-API/issues/176
@@ -273,6 +285,7 @@
 [gh-183]: https://github.com/WP-API/WP-API/issues/183
 [gh-184]: https://github.com/WP-API/WP-API/issues/184
 [gh-187]: https://github.com/WP-API/WP-API/issues/187
+[gh-189]: https://github.com/WP-API/WP-API/issues/189
 [gh-191]: https://github.com/WP-API/WP-API/issues/191
 [gh-192]: https://github.com/WP-API/WP-API/issues/192
 [gh-193]: https://github.com/WP-API/WP-API/issues/193
