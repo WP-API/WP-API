@@ -4,7 +4,6 @@
  *
  * @package WordPress
  * @subpackage JSON API
- * @version 0.9
  */
 class WP_JSON_DateTime extends DateTime {
 	/**

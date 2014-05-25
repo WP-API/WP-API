@@ -1,5 +1,289 @@
 # Changelog
 
+## 1.0
+
+- Add user endpoints.
+
+  Creating, reading, updating and deleting users and their data is now possible
+  by using the `/users` endpoints. `/users/me` can be used to determine the
+  current user, and returns a 401 status for non-logged in users.
+
+  Note that the format of post authors has changed, as it is now an embedded
+  User entity. This should not break backwards compatibility.
+
+  Custom post types gain this ability automatically.
+
+  (props @tobych, @rmccue, [#20][gh-20], [#146][gh-146])
+
+- Add post meta endpoints.
+
+  Creating, reading, updating and deleting post meta is now possible by using
+  the `/posts/<id>/meta` endpoints. Post meta is now correctly embedded into
+  Post entities.
+
+  Meta can be updated via the Post entity (e.g. `PUT` to `/posts/<id>`) or via
+  the entity itself at `/posts/<id>/meta/<mid>`. Meta deletion must be done via
+  a `DELETE` request to the latter.
+
+  Only non-protected and non-serialized meta can be accessed or manipulated via
+  the API. This is not predicted to change in the future; clients wishing to
+  access this data should consider alternative approaches.
+
+  Custom post types do not currently gain this ability automatically.
+
+  (props @attitude, @alisspers, @rachelbaker, @rmccue, @tlovett1, @tobych,
+  @zedejose, [#68][gh-68], [#168][gh-168], [#189][gh-189], [#207][gh-207])
+
+- Add endpoint for deleting a single comment.
+
+  Clients can now send a `DELETE` request to comment routes to delete
+  the comment.
+
+  Custom post types supporting comments will gain this ability automatically.
+
+  (props @tlovett1, @rmccue, [#178][gh-178], [#191][gh-191])
+
+- Add endpoint for post revisions.
+
+  Post revisions are now available at `/posts/<id>/revisions`, and are linked in
+  the `meta.links.version-history` key of post entities.
+
+  Custom post types supporting revisions will gain this ability automatically.
+
+  (props @tlovett1, [#193][gh-193])
+
+- Respond to requests without depending on pretty permalink settings.
+
+  For sites without pretty permalinks enabled, the API is now available from
+  `?json_route=/`. Clients should check for this via the autodiscovery methods
+  (Link header or RSD).
+
+  (props @rmccue, [#69][gh-69], [#138][gh-138])
+
+- Add register post type argument.
+
+  Post types can now indicate their availability via the API using the
+  `show_in_json` argument passed to `register_post_type`. This value defaults to
+  the `publicly_queryable` argument (which itself defaults to the
+  `public` argument).
+
+  (props @iandunn, @rmccue, [#145][gh-145])
+
+- Remove basic authentication handler.
+
+  **This breaks backwards compatibility** for clients using Basic
+  authentication. Clients are encouraged to switch to using [OAuth
+  authentication][OAuth1]. The [Basic Authentication plugin][Basic-Auth] can be
+  installed for backwards compatibility and local development, however should
+  not be used in production.
+
+  (props @rmccue, [#37][gh-37], [#152][gh-152])
+
+- Require nonces for cookie-based authentication.
+
+  **This breaks backwards compatibility** and requires any clients using cookie
+  authentication to also send a nonce with the request. The built-in Javascript
+  API automatically handles this.
+
+  (props @rmccue, [#177][gh-177], [#180][gh-180])
+
+- Clean up deprecated methods/functions.
+
+  Functions and methods previously deprecated in 0.8/0.9 have now been removed.
+  Future deprecations will take place in the same manner as WordPress core.
+
+  **This breaks backwards compatibility**, however these were marked as
+  deprecated in previous releases.
+
+  (props @rmccue, [#187][gh-187])
+
+- Only expose meta on 'edit' context as a temporary workaround.
+
+  Privacy concerns around exposing meta to all users necessitate this change.
+
+  **This breaks backwards compatibility** as post meta data is no longer
+  available to all users. Clients wishing to access this data should
+  authenticate and use the `edit` context.
+
+  (props @iandunn, @rmccue, [#135][gh-135])
+
+- Add `json_ensure_response` function to ensure either a
+  `WP_JSON_ResponseInterface` or a `WP_Error` object is returned.
+
+  When extending the API, the `json_ensure_response` function can be used to
+  ensure that any raw data returned is wrapped with a `WP_JSON_Response` object.
+  This allows using `get_status`/`get_data` easily, however `WP_Error` must
+  still be checked via `is_wp_error`.
+
+  (props @rmccue, [#151][gh-151], [#154][gh-154])
+
+- Use version option to check on init if rewrite rules should be flushed.
+
+  Rewrite rules on multisite are now flushed via an init hook, rather than
+  switching to each site on activation.
+
+  (props @rachelbaker, [#149][gh-149])
+
+- Fix typo in schema docs
+
+  (props @codebykat, [#132][gh-132])
+
+- Add check for valid JSON data before using to avoid parameter overwrite.
+
+  When passing data to an endpoint that accepts JSON data, the data will now be
+  validated before passing to the endpoint.
+
+  (props @rachelbaker, @rmccue, [#133][gh-133])
+
+- Add authentication property to site index.
+
+  (props @rmccue, [#131][gh-131])
+
+- Move the test helper to a subdirectory.
+
+  The plugin will now no longer prompt for updates due to the helper.
+
+  (props @rmccue, [#127][gh-127])
+
+- Include post ID with `json_prepare_meta` filter.
+
+  (props @rmccue, [#137][gh-137])
+
+- Corrected parameter names in x-form examples in docs.
+
+  (props @rachelbaker, [#134][gh-134])
+
+- Pass `WP_JSON_Server` instance to `json_serve_request`.
+
+  (props @alisspers, @rmccue, [#61][gh-61], [#139][gh-139])
+
+- Don't use deprecated function in `WP_JSON_Posts::edit_post()`
+
+  (props @rachelbaker, [#150][gh-150])
+
+- Pass post ID to `json_insert_post` action during both insert and update.
+
+  (props @cmmarslender, [#148][gh-148])
+
+- Add descriptions to taxonomy term data.
+
+  (props @pushred, [#111][gh-111])
+
+- Ensure we handle raw data passed to the API.
+
+  (props @tlovett1, @rmccue, [#91][gh-91], [#155][gh-155])
+
+- Remove unused `prepare_author` method from `WP_JSON_Posts` class.
+
+  (props @rachelbaker, [#165][gh-165])
+
+- Add multiple post type support to get_posts method.
+
+  (props @rmccue, [#142][gh-142], [#163][gh-163])
+
+- Return `WP_Error` in `WP_JSON_Posts::get_comment` for invalid comments.
+
+  (props @tlovett1, [#166][gh-166], [#171][gh-171])
+
+- Update getting started documentation.
+
+  (props @rmccue, [#176][gh-176])
+
+- Improve and clarify "array" input syntax documentation.
+
+  (props @rmccue, [#140][gh-140], [#175][gh-175])
+
+- Update post routes documentation.
+
+  (props @rmccue, [#172][gh-172], [#174][gh-174])
+
+- Add documentation for user endpoints.
+
+  (props @rachelbaker, @rmccue, [#158][gh-158])
+
+- Add permalink settings step to Quick Setup instructions.
+
+  (props @kadamwhite, [#183][gh-183])
+
+- Update taxonomy collection to return indexed array.
+
+  (props @mattheu, [#184][gh-184])
+
+- Remove placeholder endpoints.
+
+  (props @rmccue, [#161][gh-161], [#192][gh-192])
+
+- Fix issues with embedded attachments.
+
+  Checks that the post supports attachment data before adding it, and ensures we
+  don't embed entities many layers deep.
+
+  (props @rmccue, [#194][gh-194])
+
+- Change post parent preparation context to embed.
+
+  (props @rmccue, [#195][gh-195])
+
+- Change server meta links to reference the WP-API organization GitHub repo.
+
+  (props @rachelbaker, [#208][gh-208])
+
+- Fix plugin tests
+
+  (props @rmccue, [#215][gh-215])
+
+- Check for errors with invalid dates and remove duplicate date parsing
+  methods.
+
+  (props @rachelbaker, @rmccue, [#216][gh-216], [#219][gh-219])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/0.9...1.0)
+
+[OAuth1]: https://github.com/WP-API/OAuth1
+[Basic-Auth]: https://github.com/WP-API/Basic-Auth
+[gh-111]: https://github.com/WP-API/WP-API/issues/111
+[gh-127]: https://github.com/WP-API/WP-API/issues/127
+[gh-131]: https://github.com/WP-API/WP-API/issues/131
+[gh-132]: https://github.com/WP-API/WP-API/issues/132
+[gh-133]: https://github.com/WP-API/WP-API/issues/133
+[gh-134]: https://github.com/WP-API/WP-API/issues/134
+[gh-135]: https://github.com/WP-API/WP-API/issues/135
+[gh-137]: https://github.com/WP-API/WP-API/issues/137
+[gh-138]: https://github.com/WP-API/WP-API/issues/138
+[gh-139]: https://github.com/WP-API/WP-API/issues/139
+[gh-145]: https://github.com/WP-API/WP-API/issues/145
+[gh-146]: https://github.com/WP-API/WP-API/issues/146
+[gh-148]: https://github.com/WP-API/WP-API/issues/148
+[gh-149]: https://github.com/WP-API/WP-API/issues/149
+[gh-150]: https://github.com/WP-API/WP-API/issues/150
+[gh-152]: https://github.com/WP-API/WP-API/issues/152
+[gh-154]: https://github.com/WP-API/WP-API/issues/154
+[gh-155]: https://github.com/WP-API/WP-API/issues/155
+[gh-158]: https://github.com/WP-API/WP-API/issues/158
+[gh-161]: https://github.com/WP-API/WP-API/issues/161
+[gh-163]: https://github.com/WP-API/WP-API/issues/163
+[gh-165]: https://github.com/WP-API/WP-API/issues/165
+[gh-171]: https://github.com/WP-API/WP-API/issues/171
+[gh-174]: https://github.com/WP-API/WP-API/issues/174
+[gh-175]: https://github.com/WP-API/WP-API/issues/175
+[gh-176]: https://github.com/WP-API/WP-API/issues/176
+[gh-177]: https://github.com/WP-API/WP-API/issues/177
+[gh-178]: https://github.com/WP-API/WP-API/issues/178
+[gh-180]: https://github.com/WP-API/WP-API/issues/180
+[gh-183]: https://github.com/WP-API/WP-API/issues/183
+[gh-184]: https://github.com/WP-API/WP-API/issues/184
+[gh-187]: https://github.com/WP-API/WP-API/issues/187
+[gh-191]: https://github.com/WP-API/WP-API/issues/191
+[gh-192]: https://github.com/WP-API/WP-API/issues/192
+[gh-193]: https://github.com/WP-API/WP-API/issues/193
+[gh-194]: https://github.com/WP-API/WP-API/issues/194
+[gh-195]: https://github.com/WP-API/WP-API/issues/195
+[gh-207]: https://github.com/WP-API/WP-API/issues/207
+[gh-208]: https://github.com/WP-API/WP-API/issues/208
+[gh-215]: https://github.com/WP-API/WP-API/issues/215
+[gh-216]: https://github.com/WP-API/WP-API/issues/216
+[gh-219]: https://github.com/WP-API/WP-API/issues/219
+
 ## 0.9
 
 - Move from `wp-json.php/` to `wp-json/`
