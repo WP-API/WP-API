@@ -150,7 +150,7 @@ class WP_JSON_Users {
 			'nickname' => $user->nickname,
 			'slug' => $user->user_nicename,
 			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar_url( $user->user_email ),
+			'avatar' => $this->get_avatar_url( $user->user_email ),
 			'description' => $user->description,
 			'email' => $user->user_email,
 		);
@@ -425,5 +425,27 @@ class WP_JSON_Users {
 		else {
 			return array( 'message' => __( 'Deleted user' ) );
 		}
+	}
+
+
+	/**
+	 * Retrieve the avatar url for a user who provided a user ID or email address.
+	 *
+	 * {@see get_avatar()} doesn't return just the URL, so we have to
+	 * extract it here.
+	 *
+	 * @param string $email Email address
+	 * @return string url for the user's avatar
+	*/
+	public function get_avatar_url( $email ) {
+		$avatar_html = get_avatar( $email );
+		// strip the avatar url from the get_avatar img tag.
+		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
+
+		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+			return esc_url_raw( $matches[1] );
+		}
+
+		return '';
 	}
 }
