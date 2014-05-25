@@ -628,28 +628,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Retrieve the avatar url for a user who provided a user ID or email address.
-	 *
-	 * {@see get_avatar()} doesn't return just the URL, so we have to
-	 * extract it here.
-	 *
-	 * @param string $email Email address
-	 * @return string url for the user's avatar
-	*/
-	public function get_avatar_url( $email ) {
-		$avatar_html = get_avatar( $email );
-		// strip the avatar url from the get_avatar img tag.
-		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
-
-		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
-
-			return esc_url_raw( $matches[1] );
-		}
-
-		return '';
-	}
-
-	/**
 	 * Get the timezone object for the site
 	 *
 	 * @return DateTimeZone
