@@ -123,6 +123,8 @@ class WP_Test_JSON_Posts extends WP_UnitTestCase {
 		$this->assertEquals( $data['name'], $edited_post->post_name );
 		$this->assertEquals( $data['status'], $edited_post->post_status );
 		$this->assertEquals( $data['author'], $edited_post->post_author );
+
+		$this->check_get_post_response( $response, $this->post_obj, 'edit' );
 	}
 
 
