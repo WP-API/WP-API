@@ -45,7 +45,28 @@ class WP_Test_JSON_Posts extends WP_UnitTestCase {
 		$this->assertEquals( $response_data['menu_order'], $post_obj->menu_order );
 		$this->assertEquals( $response_data['comment_status'], $post_obj->comment_status );
 		$this->assertEquals( $response_data['ping_status'], $post_obj->ping_status );
+		$this->assertEquals( $response_data['password'], $post_obj->post_password );
 		$this->assertEquals( $response_data['sticky'], is_sticky( $post_obj->ID ) );
+
+		// Check post format.
+		$post_format = get_post_format( $post_obj->ID );
+		if ( empty( $post_format ) ) {
+			$this->assertEquals( $response_data['format'], 'standard' );
+		} else {
+			$this->assertEquals( $response_data['format'], get_post_format( $post_obj->ID ) );
+		}
+
+		// Check post dates.
+		$timezone = $this->fake_server->get_timezone();
+		$post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date, $timezone );
+		$post_date_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date_gmt );
+		$post_modified = $post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
+		$post_modified_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified_gmt );
+		$this->assertEquals( $response_data['date'], $post_date->format( 'c' ) );
+		$this->assertEquals( $response_data['date_gmt'], $post_date_gmt->format( 'c' ) );
+		$this->assertEquals( $response_data['modified'], $post_modified->format( 'c' ) );
+		$this->assertEquals( $response_data['modified_gmt'], $post_modified_gmt->format( 'c' ) );
+
 
 		// Check filtered values.
 		$this->assertEquals( $response_data['title'], get_the_title( $post_obj->ID ) );
@@ -55,13 +76,6 @@ class WP_Test_JSON_Posts extends WP_UnitTestCase {
 		$this->assertEquals( $response_data['excerpt'], wpautop( $post_obj->post_excerpt ) );
 		$this->assertEquals( $response_data['guid'], $post_obj->guid );
 
-		// Check raw values when applicable.
-		if ( $context == 'view-revision' || $context == 'edit' ) {
-			$this->assertEquals( $response_data['title_raw'], $post_obj->post_title );
-			$this->assertEquals( $response_data['content_raw'], $post_obj->post_content );
-			$this->assertEquals( $response_data['guid_raw'], $post_obj->guid );
-			// TODO: add test for post_meta values.
-		}
 	}
 
 	function test_create_post() {
@@ -86,6 +100,8 @@ class WP_Test_JSON_Posts extends WP_UnitTestCase {
 		$this->assertEquals( $data['name'], $new_post->post_name );
 		$this->assertEquals( $data['status'], $new_post->post_status );
 		$this->assertEquals( $data['author'], $new_post->post_author );
+
+		$this->check_get_post_response( $response, $new_post );
 	}
 
 	function test_get_post() {
@@ -124,7 +140,7 @@ class WP_Test_JSON_Posts extends WP_UnitTestCase {
 		$this->assertEquals( $data['status'], $edited_post->post_status );
 		$this->assertEquals( $data['author'], $edited_post->post_author );
 
-		$this->check_get_post_response( $response, $this->post_obj, 'edit' );
+		$this->check_get_post_response( $response, $edited_post, 'edit' );
 	}
 
 
