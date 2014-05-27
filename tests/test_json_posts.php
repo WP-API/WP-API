@@ -34,19 +34,34 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	protected function check_get_post_response( $response, $post_obj, $context = 'view' ) {
+		$response = json_ensure_response( $response );
 		$response_data = $response->get_data();
 
 		$this->assertEquals( $response_data['ID'], $post_obj->ID );
 		$this->assertEquals( $response_data['slug'], $post_obj->post_name );
 		$this->assertEquals( $response_data['status'], $post_obj->post_status );
 		$this->assertEquals( $response_data['author'], $post_obj->post_author );
-		$this->assertEquals( $response_data['parent'], $post_obj->post_parent );
+		$this->assertArrayHasKey( 'parent', $response_data );
 		$this->assertEquals( $response_data['link'], get_permalink( $post_obj->ID ) );
 		$this->assertEquals( $response_data['menu_order'], $post_obj->menu_order );
 		$this->assertEquals( $response_data['comment_status'], $post_obj->comment_status );
 		$this->assertEquals( $response_data['ping_status'], $post_obj->ping_status );
 		$this->assertEquals( $response_data['password'], $post_obj->post_password );
 		$this->assertEquals( $response_data['sticky'], is_sticky( $post_obj->ID ) );
+
+		// Check post parent.
+		if ( $post_obj->post_parent ) {
+			if ( is_int( $response_data['parent'] ) ) {
+				$this->assertEquals( $response_data['parent'], $post_obj->post_parent );
+			}
+			else {
+				$this->assertEquals( $response_data['parent']['ID'], $post_obj->post_parent );
+				$this->check_get_post_response( $response_data['parent'], get_post( $response_data['parent']['ID'] ), 'view-parent' );
+			}
+		}
+		else {
+			$this->assertEmpty( $response_data['parent'] );
+		}
 
 		// Check post format.
 		$post_format = get_post_format( $post_obj->ID );
@@ -324,10 +339,22 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$response_data = $response->get_data();
 		$new_post = get_post( $response_data['ID'] );
 
-		$this->assertInstanceOf( 'stdClass', $data['parent'] );
-		$this->assertEquals( $data['parent']->ID, $new_post->post_parent );
+		$this->assertEquals( $parent, $new_post->post_parent );
+	}
 
-		$this->check_get_post_response( $data['parent'], get_post( $parent ) );
+	function test_create_page_with_invalid_parent() {
+		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/228');
+
+		$parent = $this->factory->post->create(array(
+			'type' => 'page',
+		));
+		$data = $this->set_data(array(
+			'type' => 'page',
+			'parent' => -1,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 400 );
 	}
 
 	function test_get_post() {
