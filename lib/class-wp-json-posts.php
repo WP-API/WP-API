@@ -1144,13 +1144,16 @@ class WP_JSON_Posts {
 
 		// Permissions check
 		if ( $update ) {
-			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) )
+			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
-			if ( $post_type->name != get_post_type( $data['ID'] ) )
+			}
+			if ( $post_type->name != get_post_type( $data['ID'] ) ) {
 				return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
+			}
 		} else {
-			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) )
+			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
 				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		// Post status
