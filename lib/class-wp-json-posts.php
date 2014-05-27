@@ -640,6 +640,7 @@ class WP_JSON_Posts {
 		$post_fields_raw = array(
 			'title_raw'   => $post['post_title'],
 			'content_raw' => $post['post_content'],
+			'excerpt_raw' => $post['post_excerpt'],
 			'guid_raw'    => $post['guid'],
 			'post_meta'   => $this->get_all_meta( $post['ID'] ),
 		);
