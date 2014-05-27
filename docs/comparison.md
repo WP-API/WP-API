@@ -3,85 +3,86 @@
 The purpose of this document is to compare the WordPress JSON REST API (WP
 API) to the other WordPress JSON API projects.  Included in this comparison
 are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/),
-and...
+and the built-in XML-RPC API.
 
 ## Authentication
 
-| Feature                  | WP API | WP.com JSON API  |
-|:-------------------------|:-------|:----------------:|
-| Cookie-based             | X      |                  |
-| OAuth1                   | X      |                  |
-| OAuth2                   |        | X                |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Cookie-based             | X      |                 |             |
+| Basic authentication     | P      |                 | X           |
+| OAuth1                   | X      |                 |             |
+| OAuth2                   |        | X               |             |
 
 ## Site
 
-| Feature                  | WP API | WP.com JSON API |
-|:-------------------------|:-------|:---------------:|
-| Basic Site Information   | X      | X               |
-| Retrieve options data    |        | X               |
-| Update options data      |        |                 |
-| Retrieve post count      | X      | X               |
-| List available routes    | X      | ?               |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Basic Site Information   | X      | X               | M           |
+| Retrieve options data    |        | X               | X           |
+| Update options data      |        |                 | X           |
+| Retrieve post count      | X      | X               |             |
+| List available routes    | X      | -               | X           |
 
 
 ## Users
 
-| Feature                  | WP API  | WP.com JSON API |
-|:-------------------------|:--------|:---------------:|
-| Create a user            | X       |                 |
-| List all users           | X       | X               |
-| Retrieve a user          | X       |                 |
-| Retrieve current user    | X       | X               |
-| Edit a user              | X       |                 |
-| Delete a user            | X       |                 |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Create a user            | X      |                 |             |
+| List all users           | X      | X               | X           |
+| Retrieve a user          | X      |                 | X           |
+| Retrieve current user    | X      | X               | X           |
+| Edit a user              | X      |                 | X           |
+| Delete a user            | X      |                 |             |
 
 ## Posts
 
-| Feature                  | WP API | WP.com JSON API |
-|:-------------------------|:-------|:---------------:|
-| Create a post            | X      | X               |
-| List all posts           | X      | X               |
-| Retrieve a post          | X      | X               |
-| Edit a post              | X      | X               |
-| Delete a post            | X      | X               |
-| Create meta for a post   | X      | X               |
-| Retrieve meta for a post | X      | X               |
-| Edit meta for a post     | X      | X               |
-| Delete meta for a post   | X      | X               |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Create a post            | X      | X               | X           |
+| List all posts           | X      | X               | X           |
+| Retrieve a post          | X      | X               | X           |
+| Edit a post              | X      | X               | X           |
+| Delete a post            | X      | X               | X           |
+| Create meta for a post   | X      | X               | X           |
+| Retrieve meta for a post | X      | X               | X           |
+| Edit meta for a post     | X      | X               | X           |
+| Delete meta for a post   | X      | X               | X           |
 
 ## Comments
 
-| Feature                  | WP API | WP.com JSON API |
-|:-------------------------|:-------|:---------------:|
-| Create a comment         |        | X               |
-| Create a reply           |        | X               |
-| List all comments        |        | X               |
-| List comments for a post | X      | X               |
-| Retrieve a comment       | X      | X               |
-| Edit a comment           |        | X               |
-| Delete a comment         | X      | X               |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Create a comment         |        | X               | X           |
+| Create a reply           |        | X               | X           |
+| List all comments        |        | X               | X           |
+| List comments for a post | X      | X               | X           |
+| Retrieve a comment       | X      | X               | X           |
+| Edit a comment           |        | X               | X           |
+| Delete a comment         | X      | X               | X           |
 
 ## Taxonomies
 
-| Feature                  | WP API | WP.com JSON API |
-|:-------------------------|:-------|:---------------:|
-| Create a term            |        | X               |
-| List all terms           | X      | X               |
-| Retrieve a term          | X      | X               |
-| Edit a term              |        | X               |
-| Delete a term            |        | X               |
-| Create a taxonomy        |        |                 |
-| List all taxonomies      | X      |                 |
-| Retrieve a taxonomy      | X      |                 |
-| Edit a taxonomy          |        |                 |
-| Delete a taxonomy        |        |                 |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:---------------:|:-----------:|
+| Create a term            |        | X               | X           |
+| List all terms           | X      | X               | X           |
+| Retrieve a term          | X      | X               | X           |
+| Edit a term              |        | X               | X           |
+| Delete a term            |        | X               | X           |
+| Create a taxonomy        |        |                 |             |
+| List all taxonomies      | X      |                 | X           |
+| Retrieve a taxonomy      | X      |                 | X           |
+| Edit a taxonomy          |        |                 |             |
+| Delete a taxonomy        |        |                 |             |
 
 ## Media
 
-| Feature                  | WP API | WP.com JSON API |
-|:-------------------------|:-------|:---------------:|
-| Create an attachment     | X      | X               |
-| List all attachments     | X      | X               |
-| Retrieve an attachment   | X      | X               |
-| Edit an attachment       | X      | X               |
-| Delete an attachment     | X      | X               |
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:---------------:|:-----------:|
+| Create an attachment     | X      | X               | X           |
+| List all attachments     | X      | X               | X           |
+| Retrieve an attachment   | X      | X               | X           |
+| Edit an attachment       | X      | X               | X           |
+| Delete an attachment     | X      | X               | X           |
