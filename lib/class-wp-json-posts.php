@@ -642,15 +642,30 @@ class WP_JSON_Posts {
 		// Dates
 		$timezone = $this->server->get_timezone();
 
-		$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
-		$post_fields['date'] = $date->format( 'c' );
-		$post_fields_extended['date_tz'] = $date->format( 'e' );
-		$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
 
-		$modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
-		$post_fields['modified'] = $modified->format( 'c' );
-		$post_fields_extended['modified_tz'] = $modified->format( 'e' );
-		$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
+		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
+			$post_fields['date'] = null;
+			$post_fields_extended['date_tz'] = null;
+			$post_fields_extended['date_gmt'] = null;
+		}
+		else {
+			$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
+			$post_fields['date'] = $date->format( 'c' );
+			$post_fields_extended['date_tz'] = $date->format( 'e' );
+			$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
+		}
+
+		if ( $post['post_modified_gmt'] === '0000-00-00 00:00:00' ) {
+			$post_fields['modified'] = null;
+			$post_fields_extended['modified_tz'] = null;
+			$post_fields_extended['modified_gmt'] = null;
+		}
+		else {
+			$modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
+			$post_fields['modified'] = $modified->format( 'c' );
+			$post_fields_extended['modified_tz'] = $modified->format( 'e' );
+			$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
+		}
 
 		// Authorized fields
 		// TODO: Send `Vary: Authorization` to clarify that the data can be

@@ -58,14 +58,28 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		// Check post dates.
 		$timezone = $this->fake_server->get_timezone();
-		$post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date, $timezone );
-		$post_date_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date_gmt );
-		$post_modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
-		$post_modified_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified_gmt );
-		$this->assertEquals( $response_data['date'], $post_date->format( 'c' ) );
-		$this->assertEquals( $response_data['date_gmt'], $post_date_gmt->format( 'c' ) );
-		$this->assertEquals( $response_data['modified'], $post_modified->format( 'c' ) );
-		$this->assertEquals( $response_data['modified_gmt'], $post_modified_gmt->format( 'c' ) );
+
+		if ( $post_obj->post_date_gmt === '0000-00-00 00:00:00' ) {
+			$this->assertNull( $response_data['date'] );
+			$this->assertNull( $response_data['date_gmt'] );
+		}
+		else {
+			$post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date, $timezone );
+			$post_date_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date_gmt );
+			$this->assertEquals( $response_data['date'], $post_date->format( 'c' ) );
+			$this->assertEquals( $response_data['date_gmt'], $post_date_gmt->format( 'c' ) );
+		}
+
+		if ( $post_obj->post_modified_gmt === '0000-00-00 00:00:00' ) {
+			$this->assertNull( $response_data['modified'] );
+			$this->assertNull( $response_data['modified_gmt'] );
+		}
+		else {
+			$post_modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
+			$post_modified_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified_gmt );
+			$this->assertEquals( $response_data['modified_gmt'], $post_modified_gmt->format( 'c' ) );
+			$this->assertEquals( $response_data['modified'], $post_modified->format( 'c' ) );
+		}
 
 
 		// Check filtered values.
