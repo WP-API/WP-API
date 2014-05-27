@@ -5,6 +5,11 @@ API) to the other WordPress JSON API projects.  Included in this comparison
 are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/),
 and the built-in XML-RPC API.
 
+## Key
+* **M**: Multisite only
+* **P**: Available via (official) plugin
+* **~**: Partially available
+
 ## Authentication
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
@@ -22,7 +27,7 @@ and the built-in XML-RPC API.
 | Retrieve options data    |        | X               | X           |
 | Update options data      |        |                 | X           |
 | Retrieve post count      | X      | X               |             |
-| List available routes    | X      | -               | X           |
+| List available routes    | X      | ~               | X           |
 
 
 ## Users
