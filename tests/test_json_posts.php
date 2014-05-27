@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Posts extends WP_UnitTestCase {
+class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	public function setUp() {
 		parent::setUp();
 
