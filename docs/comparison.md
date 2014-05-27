@@ -91,6 +91,13 @@ and the built-in XML-RPC API.
 | Edit a taxonomy          |        |                 |             |
 | Delete a taxonomy        |        |                 |             |
 
+## Revisions
+
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:---------------:|:-----------:|
+| Get revisions for a post | X      |                 | X           |
+| Restore revision         |        |                 | X           |
+
 ## Media
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
