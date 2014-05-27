@@ -1259,7 +1259,7 @@ class WP_JSON_Posts {
 		// Parent
 		if ( ! empty( $data['parent'] ) ) {
 			$parent = get_post( $data['parent'] );
-			$post['post_parent'] = $data['post_parent'];
+			$post['post_parent'] = $parent->ID;
 		}
 
 		// Menu order
