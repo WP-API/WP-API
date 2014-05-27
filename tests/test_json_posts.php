@@ -76,12 +76,10 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $response_data['excerpt'], wpautop( $post_obj->post_excerpt ) );
 		$this->assertEquals( $response_data['guid'], $post_obj->guid );
 
+
 	}
 
-	function test_create_post() {
-		$data = $this->set_data();
-		$response = $this->endpoint->new_post( $data );
-
+	protected function check_create_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$headers = $response->get_headers();
@@ -94,14 +92,13 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$response_data = $response->get_data();
 		$new_post = get_post( $response_data['ID'] );
 
-		$this->assertEquals( $data['title'], $new_post->post_title );
-		$this->assertEquals( $data['content_raw'], $new_post->post_content );
-		$this->assertEquals( $data['excerpt_raw'], $new_post->post_excerpt );
-		$this->assertEquals( $data['name'], $new_post->post_name );
-		$this->assertEquals( $data['status'], $new_post->post_status );
-		$this->assertEquals( $data['author'], $new_post->post_author );
-
 		$this->check_get_post_response( $response, $new_post );
+	}
+
+	function test_create_post() {
+		$data = $this->set_data();
+		$response = $this->endpoint->new_post( $data );
+		$this->check_create_response( $response );
 	}
 
 	function test_create_post_other_type() {
@@ -109,28 +106,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 			'type' => 'page',
 		));
 		$response = $this->endpoint->new_post( $data );
-
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$headers = $response->get_headers();
-
-		// Check that we succeeded
-		$this->assertEquals( 201, $response->get_status() );
-		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertArrayHasKey( 'Last-Modified', $headers );
-
-		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
-
-		$this->assertEquals( $data['title'], $new_post->post_title );
-		$this->assertEquals( $data['type'], $new_post->post_type );
-		$this->assertEquals( $data['content_raw'], $new_post->post_content );
-		$this->assertEquals( $data['excerpt_raw'], $new_post->post_excerpt );
-		$this->assertEquals( $data['name'], $new_post->post_name );
-		$this->assertEquals( $data['status'], $new_post->post_status );
-		$this->assertEquals( $data['author'], $new_post->post_author );
-
-		$this->check_get_post_response( $response, $new_post );
+		$this->check_create_response( $response );
 	}
 
 	function test_create_post_invalid_type() {
@@ -139,6 +115,94 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		));
 		$response = $this->endpoint->new_post( $data );
 		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
+	}
+
+	function test_create_post_other_author() {
+		$other_user = $this->factory->user->create( array( 'role' => 'author' ) );
+		$data = $this->set_data(array(
+			'author' => $other_user,
+		));
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['author'], $new_post->post_author );
+	}
+
+	function test_create_post_other_author_object() {
+		$other_user = $this->factory->user->create( array( 'role' => 'author' ) );
+		$data = $this->set_data(array(
+			'author' => (object) array(
+				'ID' => $other_user,
+			),
+		));
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['author']->ID, $new_post->post_author );
+	}
+
+	function test_create_post_invalid_author() {
+		$data = $this->set_data(array(
+			'author' => -1,
+		));
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
+	}
+
+	function test_create_post_invalid_author_object() {
+		$data = $this->set_data(array(
+			'author' => (object) array(
+				'ID' => -1,
+			),
+		));
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
+	}
+
+	function test_create_post_invalid_author_without_permission() {
+		$data = $this->set_data();
+		$other_user = $this->factory->user->create( array( 'role' => 'author' ) );
+
+		wp_set_current_user( $other_user );
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
+	}
+
+	function test_create_post_private_without_permission() {
+		$data = $this->set_data(array(
+			'status' => 'private',
+		));
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_cannot_create_private', $response, 403 );
+	}
+
+	function test_create_post_publish_without_permission() {
+		$data = $this->set_data(array(
+			'status' => 'publish',
+		));
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
 	function test_get_post() {
@@ -169,15 +233,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		$edited_post = get_post( $this->post_id );
 
-		// Check that the data has been updated
-		$this->assertEquals( $data['title'], $edited_post->post_title );
-		$this->assertEquals( $data['content_raw'], $edited_post->post_content );
-		$this->assertEquals( $data['excerpt_raw'], $edited_post->post_excerpt );
-		$this->assertEquals( $data['name'], $edited_post->post_name );
-		$this->assertEquals( $data['status'], $edited_post->post_status );
-		$this->assertEquals( $data['author'], $edited_post->post_author );
-
-		$this->check_get_post_response( $response, $edited_post, 'edit' );
+		$this->check_get_post_response( $response, $edited_post );
 	}
 
 
