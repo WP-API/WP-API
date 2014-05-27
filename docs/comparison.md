@@ -44,3 +44,18 @@ and...
 | Retrieve meta for a post | X      | X               |
 | Edit meta for a post     | X      | X               |
 | Delete meta for a post   | X      | X               |
+
+## Taxonomies
+
+| Feature                  | WP API | WP.com JSON API |
+|:-------------------------|:-------|:---------------:|
+| Create a term            |        | X               |
+| List all terms           | X      | X               |
+| Retrieve a term          | X      | X               |
+| Edit a term              |        | X               |
+| Delete a term            |        | X               |
+| Create a taxonomy        |        |                 |
+| List all taxonomies      | X      |                 |
+| Retrieve a taxonomy      | X      |                 |
+| Edit a taxonomy          |        |                 |
+| Delete a taxonomy        |        |                 |
