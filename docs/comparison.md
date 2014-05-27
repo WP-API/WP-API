@@ -29,13 +29,13 @@ subclassing.
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
 | Basic Site Information   | X      | X               | M           |
-| Retrieve options data    |        | X               | X           |
-| Update options data      |        |                 | X           |
+| Retrieve options data    |        | X               | ~           |
+| Update options data      |        |                 | ~           |
 | Retrieve post count      | X      | X               |             |
 | List available routes    | X      | X               | X           |
 
-WordPress.com only shows some of the available routes on a request to the site's
-index. These are available via a separate `help` endpoint instead.
+The XML-RPC API only exposes a limited subset of the available options in
+WordPress.
 
 ## Users
 
