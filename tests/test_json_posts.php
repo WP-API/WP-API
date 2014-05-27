@@ -179,6 +179,19 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
 	}
 
+	function test_create_post_without_permission() {
+		$data = $this->set_data(array());
+		$user = wp_get_current_user();
+		$user->add_cap( 'edit_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
+	}
+
 	function test_create_post_private_without_permission() {
 		$data = $this->set_data(array(
 			'status' => 'private',
