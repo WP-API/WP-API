@@ -10,11 +10,11 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->post_id = $this->factory->post->create();
-		$this->post_obj = get_post( $this->post_id );
-
 		$this->author_id = $this->factory->user->create( array( 'role' => 'editor' ) );
 		wp_set_current_user( $this->author_id );
+
+		$this->post_id = $this->factory->post->create();
+		$this->post_obj = get_post( $this->post_id );
 
 		$this->fake_server = $this->getMock('WP_JSON_Server');
 		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
