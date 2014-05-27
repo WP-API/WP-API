@@ -13,13 +13,13 @@ class WP_JSON_Taxonomies {
 				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
-				array( array( $this, 'get_taxonomy' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
-				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE ),
 			),
 		);
 		return array_merge( $routes, $tax_routes );
@@ -35,10 +35,12 @@ class WP_JSON_Taxonomies {
 		$taxonomies = get_object_taxonomies( $type, 'objects' );
 
 		$data = array();
+
 		foreach ($taxonomies as $tax_type => $value) {
 			$tax = $this->prepare_taxonomy( $value, $type, true );
-			if ( is_wp_error( $tax ) )
+			if ( is_wp_error( $tax ) ) {
 				continue;
+			}
 
 			$data[] = $tax;
 		}
@@ -54,8 +56,10 @@ class WP_JSON_Taxonomies {
 	 */
 	public function get_taxonomy( $type, $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
-		if ( empty( $tax ) )
+
+		if ( empty( $tax ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->prepare_taxonomy( $tax, $type );
 	}
@@ -68,19 +72,20 @@ class WP_JSON_Taxonomies {
 	 * @return array Taxonomy data
 	 */
 	protected function prepare_taxonomy( $taxonomy, $type, $_in_collection = false ) {
-		if ( $taxonomy->public === false )
+		if ( $taxonomy->public === false ) {
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
+		}
 
 		$base_url = '/posts/types/' . $type . '/taxonomies/' . $taxonomy->name;
 
 		$data = array(
-			'name' => $taxonomy->label,
-			'slug' => $taxonomy->name,
-			'labels' => $taxonomy->labels,
-			'types' => array(),
-			'show_cloud' => $taxonomy->show_tagcloud,
+			'name'         => $taxonomy->label,
+			'slug'         => $taxonomy->name,
+			'labels'       => $taxonomy->labels,
+			'types'        => array(),
+			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
-			'meta' => array(
+			'meta'         => array(
 				'links' => array(
 					'archives' => json_url( $base_url . '/terms' )
 				)
@@ -89,8 +94,7 @@ class WP_JSON_Taxonomies {
 
 		if ( $_in_collection ) {
 			$data['meta']['links']['self'] = json_url( $base_url );
-		}
-		else {
+		} else {
 			$data['meta']['links']['collection'] = json_url( $base_url );
 		}
 
@@ -118,18 +122,23 @@ class WP_JSON_Taxonomies {
 	 * @return array Term collection
 	 */
 	public function get_terms( $type, $taxonomy ) {
-		if ( ! taxonomy_exists( $taxonomy ) )
+		if ( ! taxonomy_exists( $taxonomy ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
+		}
 
 		$args = array(
 			'hide_empty' => false,
 		);
+
 		$terms = get_terms( $taxonomy, $args );
-		if ( is_wp_error( $terms ) )
+
+		if ( is_wp_error( $terms ) ) {
 			return $terms;
+		}
 
 		$data = array();
-		foreach ($terms as $term) {
+
+		foreach ( $terms as $term ) {
 			$data[] = $this->prepare_term( $term, $type );
 		}
 		return $data;
@@ -145,12 +154,15 @@ class WP_JSON_Taxonomies {
 	 * @return array Term entity
 	 */
 	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
-		if ( ! taxonomy_exists( $taxonomy ) )
+		if ( ! taxonomy_exists( $taxonomy ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
+		}
 
 		$data = get_term( $term, $taxonomy );
-		if ( empty( $data ) )
+
+		if ( empty( $data ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_term', __( 'Invalid term ID.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->prepare_term( $data, $type, $context );
 	}
@@ -167,6 +179,7 @@ class WP_JSON_Taxonomies {
 		$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
 		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
 		$data['terms'] = array();
+
 		foreach ( $terms as $term ) {
 			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term, $post['post_type'] );
 		}
@@ -193,15 +206,14 @@ class WP_JSON_Taxonomies {
 			'meta'        => array(
 				'links' => array(
 					'collection' => json_url( $base_url ),
-					'self' => json_url( $base_url . '/' . $term->term_id ),
+					'self'       => json_url( $base_url . '/' . $term->term_id ),
 				),
 			),
 		);
 
 		if ( ! empty( $data['parent'] ) && $context === 'view' ) {
 			$data['parent'] = $this->get_term( $type, $term->taxonomy, $data['parent'], 'view-parent' );
-		}
-		elseif ( empty( $data['parent'] ) ) {
+		} elseif ( empty( $data['parent'] ) ) {
 			$data['parent'] = null;
 		}
 
