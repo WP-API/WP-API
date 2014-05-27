@@ -202,6 +202,34 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
 	}
 
+	function test_create_post_draft() {
+		$data = $this->set_data(array(
+			'status' => 'draft',
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['status'], $new_post->post_status );
+	}
+
+	function test_create_post_private() {
+		$data = $this->set_data(array(
+			'status' => 'private',
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['status'], $new_post->post_status );
+	}
+
 	function test_create_post_private_without_permission() {
 		$data = $this->set_data(array(
 			'status' => 'private',
