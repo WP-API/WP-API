@@ -67,6 +67,15 @@ and the built-in XML-RPC API.
 | Edit a comment           |        | X               | X           |
 | Delete a comment         | X      | X               | X           |
 
+# Post-Related Data
+
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| List all post types      | X      |                 | X           |
+| Retrieve post type       | X      |                 | X           |
+| List all post statuses   | X      |                 | X           |
+| Retrieve post status     |        |                 |             |
+
 ## Taxonomies
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
