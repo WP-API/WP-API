@@ -1221,10 +1221,10 @@ class WP_JSON_Posts {
 				if ( empty( $data['author']->ID ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = absint( $data['author']->ID );
+				$data['author'] = (int) $data['author']->ID;
 			}
 			else {
-				$data['author'] = absint( $data['author'] );
+				$data['author'] = (int) $data['author'];
 			}
 
 			// Only check edit others' posts if we are another user
