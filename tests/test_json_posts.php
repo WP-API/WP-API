@@ -274,6 +274,36 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
+	function test_create_post_with_password() {
+		$data = $this->set_data(array(
+			'password' => 'testing',
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['password'], $new_post->post_password );
+	}
+
+	function test_create_post_with_password_without_permission() {
+		$data = $this->set_data(array(
+			'password' => 'testing',
+		));
+
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
