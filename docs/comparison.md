@@ -32,10 +32,10 @@ subclassing.
 | Retrieve options data    |        | X               | X           |
 | Update options data      |        |                 | X           |
 | Retrieve post count      | X      | X               |             |
-| List available routes    | X      | ~               | X           |
+| List available routes    | X      | X               | X           |
 
 WordPress.com only shows some of the available routes on a request to the site's
-index.
+index. These are available via a separate `help` endpoint instead.
 
 ## Users
 
