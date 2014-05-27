@@ -18,6 +18,11 @@ and the built-in XML-RPC API.
 | Basic authentication     | P      |                 | X           |
 | OAuth1                   | X      |                 |             |
 | OAuth2                   |        | X               |             |
+| Custom authentication    | X      |                 | ~           |
+
+Custom authentication can be used with WP API via the `determine_current_user`
+filter. With the XML-RPC API, only one custom handler can be added at a time via
+subclassing.
 
 ## Site
 
