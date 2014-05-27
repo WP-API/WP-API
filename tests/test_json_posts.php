@@ -304,6 +304,30 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
+	function test_create_page_with_parent() {
+		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/228');
+
+		$parent = $this->factory->post->create(array(
+			'type' => 'page',
+		));
+		$data = $this->set_data(array(
+			'type' => 'page',
+			'parent' => $parent,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+
+		$this->assertInstanceOf( 'stdClass', $data['parent'] );
+		$this->assertEquals( $data['parent']->ID, $new_post->post_parent );
+
+		$this->check_get_post_response( $data['parent'], get_post( $parent ) );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
