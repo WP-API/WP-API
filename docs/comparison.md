@@ -43,4 +43,4 @@ and...
 | Edit a post              | X      | X               |
 | Edit meta for a post     | X      | X               |
 | Delete a post            | X      | X               |
-| Delete meta for a post   | X      | ?               |
+| Delete meta for a post   | X      | X               |
