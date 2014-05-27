@@ -36,11 +36,11 @@ and...
 | Feature                  | WP API | WP.com JSON API |
 |:-------------------------|:-------|:---------------:|
 | Create a post            | X      | X               |
-| Create meta for a post   | X      | X               |
 | List all posts           | X      | X               |
 | Retrieve a post          | X      | X               |
-| Retrieve meta for a post | X      | X               |
 | Edit a post              | X      | X               |
-| Edit meta for a post     | X      | X               |
 | Delete a post            | X      | X               |
+| Create meta for a post   | X      | X               |
+| Retrieve meta for a post | X      | X               |
+| Edit meta for a post     | X      | X               |
 | Delete meta for a post   | X      | X               |
