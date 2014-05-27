@@ -18,6 +18,10 @@ and...
 | Feature                  | WP API | WP.com JSON API |
 |:-------------------------|:-------|:---------------:|
 | Basic Site Information   | X      | X               |
+| Retrieve options data    |        | X               |
+| Update options data      |        |                 |
+| Retrieve post count      | X      | X               |
+| List available routes    | X      | ?               |
 
 
 ## Users
