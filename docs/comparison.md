@@ -45,6 +45,18 @@ and...
 | Edit meta for a post     | X      | X               |
 | Delete meta for a post   | X      | X               |
 
+## Comments
+
+| Feature                  | WP API | WP.com JSON API |
+|:-------------------------|:-------|:---------------:|
+| Create a comment         |        | X               |
+| Create a reply           |        | X               |
+| List all comments        |        | X               |
+| List comments for a post | X      | X               |
+| Retrieve a comment       | X      | X               |
+| Edit a comment           |        | X               |
+| Delete a comment         | X      | X               |
+
 ## Taxonomies
 
 | Feature                  | WP API | WP.com JSON API |
