@@ -217,6 +217,8 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_create_post_draft() {
+		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/229');
+
 		$data = $this->set_data(array(
 			'status' => 'draft',
 		));
