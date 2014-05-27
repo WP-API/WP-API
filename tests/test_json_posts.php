@@ -240,8 +240,58 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_get_post_response( $response, $edited_post );
 	}
 
+	function test_edit_post_without_permission() {
+		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
 
+		$user = wp_get_current_user();
+		$user->add_cap( 'edit_published_posts', false );
 
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
 
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$this->assertErrorResponse( 'json_cannot_edit', $response, 401 );
+	}
+
+	function test_edit_post_draft_without_permission() {
+		// Set post to draft status
+		wp_update_post(array(
+			'ID' => $this->post_id,
+			'post_status' => 'draft',
+		));
+
+		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
+
+		$user = wp_get_current_user();
+		$user->add_cap( 'edit_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$this->assertErrorResponse( 'json_cannot_edit', $response, 401 );
+	}
+
+	function test_edit_post_change_type() {
+		$data = $this->set_data( array(
+			'ID' => $this->post_id,
+			'type' => 'page',
+		) ) ;
+
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$this->assertErrorResponse( 'json_cannot_change_post_type', $response, 400 );
+	}
+
+	function test_edit_post_change_type_invalid() {
+		$data = $this->set_data( array(
+			'ID' => $this->post_id,
+			'type' => 'testposttype',
+		) ) ;
+
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
+	}
 
 }
