@@ -34,6 +34,8 @@ subclassing.
 | Retrieve post count      | X      | X               |             |
 | List available routes    | X      | ~               | X           |
 
+WordPress.com only shows some of the available routes on a request to the site's
+index.
 
 ## Users
 
@@ -96,6 +98,9 @@ subclassing.
 | Retrieve a taxonomy      | X      |                 | X           |
 | Edit a taxonomy          |        |                 |             |
 | Delete a taxonomy        |        |                 |             |
+
+Taxonomies are defined in code, so no APIs can create, modify, or delete
+taxonomies.
 
 ## Revisions
 
