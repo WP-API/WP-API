@@ -55,13 +55,18 @@ WordPress.
 | Create a post            | X      | X               | X           |
 | List all posts           | X      | X               | X           |
 | Retrieve a post          | X      | X               | X           |
-| Retrieve a post by slug  |        | X               |             |
+| Retrieve a post by slug  | ~      | X               |             |
 | Edit a post              | X      | X               | X           |
 | Delete a post            | X      | X               | X           |
 | Create meta for a post   | X      | X               | X           |
 | Retrieve meta for a post | X      | X               | X           |
 | Edit meta for a post     | X      | X               | X           |
 | Delete meta for a post   | X      | X               | X           |
+
+WP API does not provide a specialised page-by-slug retrieval method, but allows
+accessing via WP Query:
+
+    GET /wp-json/posts?filter[name]=my-post-slug
 
 ## Comments
 
