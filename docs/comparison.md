@@ -53,6 +53,7 @@ subclassing.
 | Create a post            | X      | X               | X           |
 | List all posts           | X      | X               | X           |
 | Retrieve a post          | X      | X               | X           |
+| Retrieve a post by slug  |        | X               |             |
 | Edit a post              | X      | X               | X           |
 | Delete a post            | X      | X               | X           |
 | Create meta for a post   | X      | X               | X           |
