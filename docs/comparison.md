@@ -2,7 +2,7 @@
 
 The purpose of this document is to compare the WordPress JSON REST API (WP
 API) to the other WordPress JSON API projects.  Included in this comparison
-are the (WordPress.com JSON REST API)[http://developer.wordpress.com/docs/api/],
+are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/),
 and...
 
 ## Authentication
