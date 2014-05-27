@@ -76,6 +76,10 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $response_data['excerpt'], wpautop( $post_obj->post_excerpt ) );
 		$this->assertEquals( $response_data['guid'], $post_obj->guid );
 
+		if ( $context === 'edit' ) {
+			$this->assertEquals( $response_data['content_raw'], $post_obj->post_content );
+			$this->assertEquals( $response_data['excerpt_raw'], $post_obj->post_excerpt );
+		}
 
 	}
 
