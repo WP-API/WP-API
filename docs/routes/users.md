@@ -1,32 +1,6 @@
 Users
 =====
 
-Retrieve Users
---------------
-The Users endpoint returns a User Collection containing a subset of the site's
-users.
-
-	GET /users
-
-### Input
-#### `filter`
-The `filter` parameter controls the query parameters. It is essentially a subset
-of the parameters available to [`WP_User_Query`](http://codex.wordpress.org/Class_Reference/WP_User_Query).
-
-The parameter should be an array of the following key/value pairs:
-
-* `number` - Number of users to retrieve, use `-1` for all users. Default
-  is set by the site. (integer)
-* `offset` - Number of posts to skip. Default is 0. (integer)
-* `orderby` - Parameter to search by, as per [`WP_User_Query`](https://codex.wordpress.org/Class_Reference/WP_User_Query#Order_.26_Orderby_Parameters).
-  Default is "user_login". (string)
-* `order` - Order to sort by. Default is "ASC". (string, "ASC" or "DESC")
-* `s` - Keyword to search for. (string)
-
-### Response
-The response is a User Collection document containing the requested Users if
-available.
-
 
 Create a User
 -------------
@@ -55,6 +29,33 @@ user has been created. The user is available canonically from the URL specified
 in the Location header.
 
 The new User entity is also returned in the body for convienience.
+
+
+Retrieve Users
+--------------
+The Users endpoint returns a User Collection containing a subset of the site's
+users.
+
+	GET /users
+
+### Input
+#### `filter`
+The `filter` parameter controls the query parameters. It is essentially a subset
+of the parameters available to [`WP_User_Query`](http://codex.wordpress.org/Class_Reference/WP_User_Query).
+
+The parameter should be an array of the following key/value pairs:
+
+* `number` - Number of users to retrieve, use `-1` for all users. Default
+  is set by the site. (integer)
+* `offset` - Number of posts to skip. Default is 0. (integer)
+* `orderby` - Parameter to search by, as per [`WP_User_Query`](https://codex.wordpress.org/Class_Reference/WP_User_Query#Order_.26_Orderby_Parameters).
+  Default is "user_login". (string)
+* `order` - Order to sort by. Default is "ASC". (string, "ASC" or "DESC")
+* `s` - Keyword to search for. (string)
+
+### Response
+The response is a User Collection document containing the requested Users if
+available.
 
 
 Retrieve a User
@@ -156,4 +157,3 @@ later date.
 
 If force was set to true, a 200 OK status code will be returned instead,
 indicating that the user has been permanently deleted.
-

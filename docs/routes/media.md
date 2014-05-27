@@ -1,23 +1,6 @@
 Media
 =====
 
-Get Attachments
----------------
-The Attachments endpoint returns an Attachment collection containing a subset of
-the site's attachments.
-
-This endpoint is an extended version of the Post retrieval endpoint.
-
-	GET /media
-
-### Input
-#### `fields`
-...
-
-### Response
-The response is an Attachment entity containing the requested Attachment if
-available.
-
 
 Create an Attachment
 --------------------
@@ -50,3 +33,21 @@ attachment has been created. The attachment is available canonically from the
 URL specified in the Location header.
 
 The new Attachment entity is also returned in the body for convienience.
+
+
+Get Attachments
+---------------
+The Attachments endpoint returns an Attachment collection containing a subset of
+the site's attachments.
+
+This endpoint is an extended version of the Post retrieval endpoint.
+
+	GET /media
+
+### Input
+#### `fields`
+...
+
+### Response
+The response is an Attachment entity containing the requested Attachment if
+available.
