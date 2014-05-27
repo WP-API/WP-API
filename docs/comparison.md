@@ -59,3 +59,13 @@ and...
 | Retrieve a taxonomy      | X      |                 |
 | Edit a taxonomy          |        |                 |
 | Delete a taxonomy        |        |                 |
+
+## Media
+
+| Feature                  | WP API | WP.com JSON API |
+|:-------------------------|:-------|:---------------:|
+| Create an attachment     | X      | X               |
+| List all attachments     | X      | X               |
+| Retrieve an attachment   | X      | X               |
+| Edit an attachment       | X      | X               |
+| Delete an attachment     | X      | X               |
