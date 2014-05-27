@@ -93,11 +93,8 @@ WordPress.
 | Retrieve a term          | X      | X               | X           |
 | Edit a term              |        | X               | X           |
 | Delete a term            |        | X               | X           |
-| Create a taxonomy        |        |                 |             |
 | List all taxonomies      | X      |                 | X           |
 | Retrieve a taxonomy      | X      |                 | X           |
-| Edit a taxonomy          |        |                 |             |
-| Delete a taxonomy        |        |                 |             |
 
 Taxonomies are defined in code, so no APIs can create, modify, or delete
 taxonomies.
