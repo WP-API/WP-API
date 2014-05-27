@@ -60,7 +60,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$timezone = $this->fake_server->get_timezone();
 		$post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date, $timezone );
 		$post_date_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date_gmt );
-		$post_modified = $post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
+		$post_modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
 		$post_modified_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified_gmt );
 		$this->assertEquals( $response_data['date'], $post_date->format( 'c' ) );
 		$this->assertEquals( $response_data['date_gmt'], $post_date_gmt->format( 'c' ) );
