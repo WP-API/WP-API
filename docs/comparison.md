@@ -112,3 +112,14 @@ subclassing.
 | Retrieve an attachment   | X      | X               | X           |
 | Edit an attachment       | X      | X               | X           |
 | Delete an attachment     | X      | X               | X           |
+
+## Pages
+
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:---------------:|:-----------:|
+| Create a page            | X      | X               | X           |
+| List all pages           | X      | X               | X           |
+| Retrieve a page          | X      | X               | X           |
+| Retrieve a page by slug  | X      | X               |             |
+| Edit a page              | X      | X               | X           |
+| Delete a page            | X      | X               | X           |
