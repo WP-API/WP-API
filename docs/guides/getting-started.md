@@ -176,32 +176,20 @@ And here's what we get back:
         "\/taxonomies\/<taxonomy>": {
             "supports": [
                 "HEAD",
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE"
-            ],
-            "accepts_json": true
+                "GET"
+            ]
         },
         "\/taxonomies\/<taxonomy>\/terms": {
             "supports": [
                 "HEAD",
-                "GET",
-                "POST"
-            ],
-            "accepts_json": true
+                "GET"
+            ]
         },
         "\/taxonomies\/<taxonomy>\/terms\/<term>": {
             "supports": [
                 "HEAD",
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE"
-            ],
-            "accepts_json": true
+                "GET"
+            ]
         },
         "\/users": {
             "supports": [

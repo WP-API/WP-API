@@ -411,8 +411,8 @@ representation.
 				"count": 7,
 				"meta": {
 					"links": {
-						"collection": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms",
-						"self": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms\/1"
+						"collection": "http:\/\/example.com\/wp-json\/taxonomies\/category\/terms",
+						"self": "http:\/\/example.com\/wp-json\/taxonomies\/category\/terms\/1"
 					}
 				}
 			}
