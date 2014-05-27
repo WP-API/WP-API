@@ -104,6 +104,43 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_get_post_response( $response, $new_post );
 	}
 
+	function test_create_post_other_type() {
+		$data = $this->set_data(array(
+			'type' => 'page',
+		));
+		$response = $this->endpoint->new_post( $data );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$headers = $response->get_headers();
+
+		// Check that we succeeded
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertArrayHasKey( 'Location', $headers );
+		$this->assertArrayHasKey( 'Last-Modified', $headers );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+
+		$this->assertEquals( $data['title'], $new_post->post_title );
+		$this->assertEquals( $data['type'], $new_post->post_type );
+		$this->assertEquals( $data['content_raw'], $new_post->post_content );
+		$this->assertEquals( $data['excerpt_raw'], $new_post->post_excerpt );
+		$this->assertEquals( $data['name'], $new_post->post_name );
+		$this->assertEquals( $data['status'], $new_post->post_status );
+		$this->assertEquals( $data['author'], $new_post->post_author );
+
+		$this->check_get_post_response( $response, $new_post );
+	}
+
+	function test_create_post_invalid_type() {
+		$data = $this->set_data(array(
+			'type' => 'testposttype',
+		));
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
