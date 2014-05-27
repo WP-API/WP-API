@@ -169,6 +169,16 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
 	}
 
+	function test_create_post_invalid_author_object_id() {
+		$data = $this->set_data(array(
+			'author' => (object) array(
+				'testfield' => 'testvalue',
+			),
+		));
+		$response = $this->endpoint->new_post( $data );
+		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
+	}
+
 	function test_create_post_invalid_author_without_permission() {
 		$data = $this->set_data();
 		$other_user = $this->factory->user->create( array( 'role' => 'author' ) );
