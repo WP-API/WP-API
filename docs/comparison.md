@@ -5,12 +5,14 @@ API) to the other WordPress JSON API projects.  Included in this comparison
 are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/),
 and the built-in XML-RPC API.
 
-## Key
+## Functionality
+
+### Key
 * **M**: Multisite only
 * **P**: Available via (official) plugin
 * **~**: Partially available
 
-## Authentication
+### Authentication
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -24,7 +26,7 @@ Custom authentication can be used with WP API via the `determine_current_user`
 filter. With the XML-RPC API, only one custom handler can be added at a time via
 subclassing.
 
-## Site
+### Site
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -37,7 +39,7 @@ subclassing.
 The XML-RPC API only exposes a limited subset of the available options in
 WordPress.
 
-## Users
+### Users
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -48,7 +50,7 @@ WordPress.
 | Edit a user              | X      |                 | X           |
 | Delete a user            | X      |                 |             |
 
-## Posts
+### Posts
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -68,7 +70,7 @@ accessing via WP Query:
 
     GET /wp-json/posts?filter[name]=my-post-slug
 
-## Comments
+### Comments
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -80,7 +82,7 @@ accessing via WP Query:
 | Edit a comment           |        | X               | X           |
 | Delete a comment         | X      | X               | X           |
 
-# Post-Related Data
+### Post-Related Data
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:----------------|:-----------:|
@@ -89,7 +91,7 @@ accessing via WP Query:
 | List all post statuses   | X      |                 | X           |
 | Retrieve post status     |        |                 |             |
 
-## Taxonomies
+### Taxonomies
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:---------------:|:-----------:|
@@ -104,14 +106,14 @@ accessing via WP Query:
 Taxonomies are defined in code, so no APIs can create, modify, or delete
 taxonomies.
 
-## Revisions
+### Revisions
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:---------------:|:-----------:|
 | Get revisions for a post | X      |                 | X           |
 | Restore revision         |        |                 | X           |
 
-## Media
+### Media
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:---------------:|:-----------:|
@@ -121,7 +123,7 @@ taxonomies.
 | Edit an attachment       | X      | X               | X           |
 | Delete an attachment     | X      | X               | X           |
 
-## Pages
+### Pages
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
 |:-------------------------|:-------|:---------------:|:-----------:|
