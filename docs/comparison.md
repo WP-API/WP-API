@@ -131,3 +131,55 @@ taxonomies.
 | Retrieve a page by slug  | X      | X               |             |
 | Edit a page              | X      | X               | X           |
 | Delete a page            | X      | X               | X           |
+
+## Formats
+
+### Posts
+
+See [read format](http://wp-api.github.io/comparison/post.html) vs
+[edit format](http://wp-api.github.io/comparison/post-edit.html). The edit
+format is triggered in both by appending `?context=edit` to the resource.
+
+**Key differences:**
+
+* WP.com API changes the format of the `content`/`excerpt` fields if in edit
+  mode. WP API separates the fields into `content`/`content_raw` and
+  `excerpt`/`excerpt_raw` respectively.
+
+  With combined fields, clients cannot display the existing content and also
+  allow editing without sending multiple requests.
+
+* WP API links to all resources related to the current one, including the
+  author endpoint and the related collection (e.g. `/posts` or `/media`). WP.com
+  API contains a limited subset of links, and does not include author or
+  collection links.
+
+* WP.com API embeds all attachments in the post. WP API does not currently do
+  this. Attachments belonging to the post can still be queried via
+  `/media?filter[post_parent]=<id>`.
+
+## Media
+
+See [read format](http://wp-api.github.io/comparison/media.html) vs
+[edit format](http://wp-api.github.io/comparison/media-edit.html). The edit
+format is triggered in both by appending `?context=edit` to the resource.
+
+**Key differences:**
+
+* WP API does not expose the caption. This is a bug, and will be fixed in 1.1.
+
+* WP API treats media as a full custom post type, and includes all post-related
+  data. WP.com API treats media as a different type, and only gives a limited
+  subset of all data back.
+
+* WP.com API does not expose intermediate size URLs, as Photon is used for
+  WP.com and Jetpack image resizing. WP API exposes all intermediate size URLs
+  where possible.
+
+* WP.com API does not link to any related resources. WP API links to all related
+  resources, such as the parent, the collection and the author.
+
+* WP.com API does not expose any authorship data, instead relying on clients to
+  query for the post parent, and work out the authorship of the parent post.
+  WP API treats this as normal post data, with its own author, and embeds the
+  entire user object for the view context (as with normal posts).
