@@ -40,10 +40,15 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get taxonomies
 	 *
+	 * @param string $type A specific type for which to retrieve taxonomies
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomies() {
-		$taxonomies = get_taxonomies( '', 'objects' );
+	public function get_taxonomies( $type = '' ) {
+		if ( '' === $type ) {
+			$taxonomies = get_taxonomies( '', 'objects' );
+		} else {
+			$taxonomies = get_object_taxonomies( $type, 'objects' );
+		}
 
 		$data = array();
 		foreach ($taxonomies as $tax_type => $value) {
