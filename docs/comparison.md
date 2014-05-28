@@ -26,6 +26,26 @@ Custom authentication can be used with WP API via the `determine_current_user`
 filter. With the XML-RPC API, only one custom handler can be added at a time via
 subclassing.
 
+### General
+
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:----------------|:-----------:|
+| Add custom routes        | X      |                 | X           |
+| Modify responses         | X      |                 | X           |
+| Support for other formats| X      |                 |             |
+| Internally usable        | X      |                 |             |
+| Plugin/theme support     | X      | ~               |             |
+| Usable while offline     | X      |                 | X           |
+
+WP API supports fully replacing JSON responses with an alternative format, such
+as MsgPack, as well as replacing the HTTP layers with others. The API can also
+be called internally as normal functions, without causing side effects (HTTP
+headers, premature exit, etc).
+
+WP API supports use in the browser by themes/plugins simply by enqueuing the
+JS client. WP.com API requires writing custom code to communicate with the API.
+
+
 ### Site
 
 | Feature                  | WP API | WP.com JSON API | XML-RPC API |
