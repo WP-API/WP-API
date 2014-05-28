@@ -13,7 +13,7 @@
  *
  * @var string
  */
-define('JSON_API_VERSION', '1.0');
+define( 'JSON_API_VERSION', '1.0' );
 
 /**
  * Include our files for the API
@@ -41,7 +41,7 @@ function json_api_init() {
 	json_api_register_rewrites();
 
 	global $wp;
-	$wp->add_query_var('json_route');
+	$wp->add_query_var( 'json_route' );
 }
 add_action( 'init', 'json_api_init' );
 
@@ -69,36 +69,36 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  *
  * @internal This will live in default-filters.php
  */
-function json_api_default_filters($server) {
+function json_api_default_filters( $server ) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
 
 	// Posts
-	$wp_json_posts = new WP_JSON_Posts($server);
+	$wp_json_posts = new WP_JSON_Posts( $server );
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 
 	// Users
 	$wp_json_users = new WP_JSON_Users($server);
-	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes' ), 0 );
-	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data' ), 10, 3 );
+	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
+	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
 
 	// Pages
-	$wp_json_pages = new WP_JSON_Pages($server);
+	$wp_json_pages = new WP_JSON_Pages( $server );
 	$wp_json_pages->register_filters();
 
 	// Media
-	$wp_json_media = new WP_JSON_Media($server);
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes' ), 1 );
+	$wp_json_media = new WP_JSON_Media( $server );
+	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
-	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check' ),   10, 3 );
-	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail' ),  10, 3 );
-	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link' ), 10, 2 );
+	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check'    ), 10, 3 );
+	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
+	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
 	// Posts
 	$wp_json_taxonomies = new WP_JSON_Taxonomies($server);
-	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes' ), 2 );
+	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'   ), 2     );
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
-	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data' ), 10, 3 );
+	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -120,19 +120,19 @@ function json_api_loaded() {
 	 * @var bool
 	 * @todo Remove me in favour of JSON_REQUEST
 	 */
-	define('XMLRPC_REQUEST', true);
+	define( 'XMLRPC_REQUEST', true );
 
 	/**
 	 * Whether this is a JSON Request
 	 *
 	 * @var bool
 	 */
-	define('JSON_REQUEST', true);
+	define( 'JSON_REQUEST', true );
 
 	global $wp_json_server;
 
 	// Allow for a plugin to insert a different class to handle requests.
-	$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_JSON_Server');
+	$wp_json_server_class = apply_filters( 'wp_json_server_class', 'WP_JSON_Server' );
 	$wp_json_server = new $wp_json_server_class;
 
 	/**
@@ -144,7 +144,7 @@ function json_api_loaded() {
 	 *
 	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object
 	 */
-	do_action('wp_json_server_before_serve', $wp_json_server);
+	do_action( 'wp_json_server_before_serve', $wp_json_server );
 
 	// Fire off the request
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
@@ -159,20 +159,17 @@ add_action( 'template_redirect', 'json_api_loaded', -100 );
  */
 function json_api_activation( $network_wide ) {
 	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
-
 		$mu_blogs = wp_get_sites();
 
 		foreach ( $mu_blogs as $mu_blog ) {
-
 			switch_to_blog( $mu_blog['blog_id'] );
+
 			json_api_register_rewrites();
 			update_option( 'json_api_plugin_version', null );
 		}
 
 		restore_current_blog();
-
 	} else {
-
 		json_api_register_rewrites();
 		update_option( 'json_api_plugin_version', null );
 	}
@@ -188,15 +185,12 @@ function json_api_deactivation( $network_wide ) {
 		$mu_blogs = wp_get_sites();
 
 		foreach ( $mu_blogs as $mu_blog ) {
-
 			switch_to_blog( $mu_blog['blog_id'] );
 			delete_option( 'json_api_plugin_version' );
 		}
 
 		restore_current_blog();
-
 	} else {
-
 		delete_option( 'json_api_plugin_version' );
 	}
 }
@@ -215,9 +209,9 @@ add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
  * Add the API URL to the WP RSD endpoint
  */
 function json_output_rsd() {
-?>
+	?>
 	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo get_json_url() ?>" />
-<?php
+	<?php
 }
 add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
 
@@ -227,8 +221,9 @@ add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
 function json_output_link_wp_head() {
 	$api_root = get_json_url();
 
-	if ( empty( $api_root ) )
+	if ( empty( $api_root ) ) {
 		return;
+	}
 
 	echo "<link rel='https://github.com/WP-API/WP-API' href='" . esc_url( $api_root ) . "' />\n";
 }
@@ -238,15 +233,17 @@ add_action( 'wp_head', 'json_output_link_wp_head', 10, 0 );
  * Send a Link header for the API
  */
 function json_output_link_header() {
-	if ( headers_sent() )
+	if ( headers_sent() ) {
 		return;
+	}
 
 	$api_root = get_json_url();
 
-	if ( empty($api_root) )
+	if ( empty($api_root) ) {
 		return;
+	}
 
-	header('Link: <' . $api_root . '>; rel="https://github.com/WP-API/WP-API"', false);
+	header( 'Link: <' . $api_root . '>; rel="https://github.com/WP-API/WP-API"', false );
 }
 add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
 
@@ -309,8 +306,7 @@ function json_cookie_check_errors( $result ) {
 	$nonce = null;
 	if ( isset( $_REQUEST['_wp_json_nonce'] ) ) {
 		$nonce = $_REQUEST['_wp_json_nonce'];
-	}
-	elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+	} elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
 		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
 	}
 
@@ -369,16 +365,14 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, 'wp-json', $scheme );
 
-		if ( !empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 			$url .= '/' . ltrim( $path, '/' );
-	}
-	else {
+	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
 		if ( empty( $path ) ) {
 			$path = '/';
-		}
-		else {
+		} else {
 			$path = '/' . ltrim( $path, '/' );
 		}
 

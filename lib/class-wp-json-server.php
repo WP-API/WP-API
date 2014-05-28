@@ -7,7 +7,7 @@
  * @package WordPress
  */
 
-require_once ABSPATH . 'wp-admin/includes/admin.php';
+require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
 
 /**
  * WordPress JSON API server handler
@@ -133,8 +133,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$error_data = $error->get_error_data();
 		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
 			$status = $error_data['status'];
-		}
-		else {
+		} else {
 			$status = 500;
 		}
 
@@ -164,10 +163,11 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @return string JSON representation of the error
 	 */
 	protected function json_error( $code, $message, $status = null ) {
-		if ( $status )
+		if ( $status ) {
 			$this->set_status( $status );
-
+		}
 		$error = compact( 'code', 'message' );
+
 		return json_encode( array( $error ) );
 	}
 
@@ -184,13 +184,14 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
+
 		$jsonp_enabled = apply_filters( 'json_jsonp_enabled', true );
 
 		if ( ! $enabled ) {
 			echo $this->json_error( 'json_disabled', __( 'The JSON API is disabled on this site.' ), 404 );
 			return false;
 		}
-		if ( isset($_GET['_jsonp']) ) {
+		if ( isset( $_GET['_jsonp'] ) ) {
 			if ( ! $jsonp_enabled ) {
 				echo $this->json_error( 'json_callback_disabled', __( 'JSONP support is disabled on this site.' ), 400 );
 				return false;
@@ -204,18 +205,19 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		}
 
 		if ( empty( $path ) ) {
-			if ( isset( $_SERVER['PATH_INFO'] ) )
+			if ( isset( $_SERVER['PATH_INFO'] ) ) {
 				$path = $_SERVER['PATH_INFO'];
-			else
+			} else {
 				$path = '/';
+			}
 		}
 
-		$this->path = $path;
-		$this->method = $_SERVER['REQUEST_METHOD'];
-		$this->params['GET'] = $_GET;
+		$this->path           = $path;
+		$this->method         = $_SERVER['REQUEST_METHOD'];
+		$this->params['GET']  = $_GET;
 		$this->params['POST'] = $_POST;
-		$this->headers = $this->get_headers( $_SERVER );
-		$this->files = $_FILES;
+		$this->headers        = $this->get_headers( $_SERVER );
+		$this->files          = $_FILES;
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
@@ -259,15 +261,17 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method, $this );
 
 		if ( ! $served ) {
-			if ( 'HEAD' === $this->method )
+			if ( 'HEAD' === $this->method ) {
 				return;
+			}
 
 			$result = json_encode( $this->prepare_response( $result ) );
 
-			if ( isset($_GET['_jsonp']) )
+			if ( isset( $_GET['_jsonp'] ) ) {
 				echo $_GET['_jsonp'] . '(' . $result . ')';
-			else
+			} else {
 				echo $result;
+			}
 		}
 	}
 
@@ -337,34 +341,41 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			default:
 				return new WP_Error( 'json_unsupported_method', __( 'Unsupported request method' ), array( 'status' => 400 ) );
 		}
+
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
 				$callback = $handler[0];
 				$supported = isset( $handler[1] ) ? $handler[1] : self::METHOD_GET;
 
-				if ( !( $supported & $method ) )
+				if ( ! ( $supported & $method ) ) {
 					continue;
+				}
 
 				$match = preg_match( '@^' . $route . '$@i', $this->path, $args );
 
-				if ( !$match )
+				if ( ! $match ) {
 					continue;
+				}
 
-				if ( ! is_callable( $callback ) )
+				if ( ! is_callable( $callback ) ) {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
+				}
 
 				$args = array_merge( $args, $this->params['GET'] );
+
 				if ( $method & self::METHOD_POST ) {
 					$args = array_merge( $args, $this->params['POST'] );
 				}
+
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
+
 					if ( $data !== null ) {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
-				}
-				elseif ( $supported & self::ACCEPT_RAW ) {
+				} elseif ( $supported & self::ACCEPT_RAW ) {
 					$data = $this->get_raw_data();
+
 					if ( ! empty( $data ) ) {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
@@ -384,8 +395,10 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				}
 
 				$params = $this->sort_callback_params( $callback, $args );
-				if ( is_wp_error( $params ) )
+
+				if ( is_wp_error( $params ) ) {
 					return $params;
+				}
 
 				return call_user_func_array( $callback, $params );
 			}
@@ -405,10 +418,11 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @return array
 	 */
 	protected function sort_callback_params( $callback, $provided ) {
-		if ( is_array( $callback ) )
+		if ( is_array( $callback ) ) {
 			$ref_func = new ReflectionMethod( $callback[0], $callback[1] );
-		else
+		} else {
 			$ref_func = new ReflectionFunction( $callback );
+		}
 
 		$wanted = $ref_func->getParameters();
 		$ordered_parameters = array();
@@ -417,12 +431,10 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			if ( isset( $provided[ $param->getName() ] ) ) {
 				// We have this parameters in the list to choose from
 				$ordered_parameters[] = $provided[ $param->getName() ];
-			}
-			elseif ( $param->isDefaultValueAvailable() ) {
+			} elseif ( $param->isDefaultValueAvailable() ) {
 				// We don't have this parameter, but it's optional
 				$ordered_parameters[] = $param->getDefaultValue();
-			}
-			else {
+			} else {
 				// We don't have this parameter and it wasn't optional, abort!
 				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $param->getName() ), array( 'status' => 400 ) );
 			}
@@ -442,14 +454,14 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	public function get_index() {
 		// General site data
 		$available = array(
-			'name' => get_option( 'blogname' ),
-			'description' => get_option( 'blogdescription' ),
-			'URL' => get_option( 'siteurl' ),
-			'routes' => array(),
+			'name'           => get_option( 'blogname' ),
+			'description'    => get_option( 'blogdescription' ),
+			'URL'            => get_option( 'siteurl' ),
+			'routes'         => array(),
 			'authentication' => array(),
-			'meta' => array(
+			'meta'           => array(
 				'links' => array(
-					'help' => 'https://github.com/WP-API/WP-API',
+					'help'    => 'https://github.com/WP-API/WP-API',
 					'profile' => 'https://raw.github.com/WP-API/WP-API/master/docs/schema.json',
 				),
 			),
@@ -461,17 +473,21 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 			$route = preg_replace( '#\(\?P(<\w+?>).*?\)#', '$1', $route );
 			$methods = array();
+
 			foreach ( self::$method_map as $name => $bitmask ) {
 				foreach ( $callbacks as $callback ) {
 					// Skip to the next route if any callback is hidden
-					if ( $callback[1] & self::HIDDEN_ENDPOINT )
+					if ( $callback[1] & self::HIDDEN_ENDPOINT ) {
 						continue 3;
+					}
 
-					if ( $callback[1] & $bitmask )
+					if ( $callback[1] & $bitmask ) {
 						$data['supports'][] = $name;
+					}
 
-					if ( $callback[1] & self::ACCEPT_JSON )
+					if ( $callback[1] & self::ACCEPT_JSON ) {
 						$data['accepts_json'] = true;
+					}
 
 					// For non-variable routes, generate links
 					if ( strpos( $route, '<' ) === false ) {
@@ -481,7 +497,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 					}
 				}
 			}
-			$available['routes'][$route] = apply_filters( 'json_endpoints_description', $data );
+			$available['routes'][ $route ] = apply_filters( 'json_endpoints_description', $data );
 		}
 		return apply_filters( 'json_index', $available );
 	}
@@ -546,7 +562,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @param mixed $data Native representation
 	 * @return array|string Data ready for `json_encode()`
 	 */
-	public function prepare_response($data) {
+	public function prepare_response( $data ) {
 		if ( ! defined( 'WP_JSON_SERIALIZE_COMPATIBLE' ) || WP_JSON_SERIALIZE_COMPATIBLE === false ) {
 			return $data;
 		}
@@ -567,8 +583,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			case 'object':
 				if ( $data instanceof JsonSerializable ) {
 					$data = $data->jsonSerialize();
-				}
-				else {
+				} else {
 					$data = get_object_vars( $data );
 				}
 
@@ -591,6 +606,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	public function parse_date( $date, $force_utc = false ) {
 		// Default timezone to the server's current one
 		$timezone = self::get_timezone();
+
 		if ( $force_utc ) {
 			$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
 			$timezone = new DateTimeZone( 'UTC' );
@@ -614,6 +630,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	public function get_date_with_gmt( $date, $force_utc = false ) {
 		$datetime = $this->parse_date( $date, $force_utc );
+
 		if ( empty( $datetime ) ) {
 			return null;
 		}
@@ -642,7 +659,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
 
 		if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
-
 			return esc_url_raw( $matches[1] );
 		}
 
@@ -656,21 +672,26 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	public function get_timezone() {
 		static $zone = null;
-		if ($zone !== null)
+
+		if ( $zone !== null ) {
 			return $zone;
+		}
 
 		$tzstring = get_option( 'timezone_string' );
+
 		if ( ! $tzstring ) {
 			// Create a UTC+- zone if no timezone string exists
 			$current_offset = get_option( 'gmt_offset' );
-			if ( 0 == $current_offset )
+			if ( 0 == $current_offset ) {
 				$tzstring = 'UTC';
-			elseif ($current_offset < 0)
+			} elseif ( $current_offset < 0 ) {
 				$tzstring = 'Etc/GMT' . $current_offset;
-			else
+			} else {
 				$tzstring = 'Etc/GMT+' . $current_offset;
+			}
 		}
 		$zone = new DateTimeZone( $tzstring );
+
 		return $zone;
 	}
 
@@ -680,16 +701,16 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @param array $server Associative array similar to $_SERVER
 	 * @return array Headers extracted from the input
 	 */
-	public function get_headers($server) {
+	public function get_headers( $server ) {
 		$headers = array();
-		// CONTENT_* headers are not prefixed with HTTP_
-		$additional = array('CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true);
 
-		foreach ($server as $key => $value) {
-			if ( strpos( $key, 'HTTP_' ) === 0) {
+		// CONTENT_* headers are not prefixed with HTTP_
+		$additional = array( 'CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true );
+
+		foreach ( $server as $key => $value ) {
+			if ( strpos( $key, 'HTTP_' ) === 0 ) {
 				$headers[ substr( $key, 5 ) ] = $value;
-			}
-			elseif ( isset( $additional[ $key ] ) ) {
+			} elseif ( isset( $additional[ $key ] ) ) {
 				$headers[ $key ] = $value;
 			}
 		}
