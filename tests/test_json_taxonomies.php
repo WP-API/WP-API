@@ -20,6 +20,21 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->endpoint = new WP_JSON_Taxonomies( $this->fake_server );
 	}
 
+	/**
+	 * Utility function for use in get_public_taxonomies
+	 */
+	private function is_public( $taxonomy ) {
+		return $taxonomy->public !== false;
+	}
+
+	/**
+	 * Utility function to filter down to only public taxonomies
+	 */
+	private function get_public_taxonomies( $taxonomies ) {
+		// Pass through array_values to re-index after filtering
+		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
+	}
+
 	public function test_get_taxonomies() {
 		$response = $this->endpoint->get_taxonomies();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -28,22 +43,31 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$taxonomies = get_taxonomies( '', 'objects' );
+		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
+		$this->assertEquals( count( $taxonomies ), count( $data ) );
 
-
-		// All public taxonomies should be represented
-		function is_public( $taxonomy ) {
-			return $taxonomy->public !== false;
-		}
-		$public_taxonomies = array_values( array_filter( $taxonomies, 'is_public' ) );
-		$this->assertEquals( count( $public_taxonomies ), count( $data ) );
-
-		// Check each key in $data against those in $public_taxonomies
+		// Check each key in $data against those in $taxonomies
 		foreach ( array_keys( $data ) as $key ) {
-			$this->assertEquals( $public_taxonomies[$key]->label, $data[$key]['name'] );
-			$this->assertEquals( $public_taxonomies[$key]->name, $data[$key]['slug'] );
-			$this->assertEquals( $public_taxonomies[$key]->hierarchical, $data[$key]['hierarchical'] );
-			$this->assertEquals( $public_taxonomies[$key]->show_tagcloud, $data[$key]['show_cloud'] );
+			$this->assertEquals( $taxonomies[$key]->label, $data[$key]['name'] );
+			$this->assertEquals( $taxonomies[$key]->name, $data[$key]['slug'] );
+			$this->assertEquals( $taxonomies[$key]->hierarchical, $data[$key]['hierarchical'] );
+			$this->assertEquals( $taxonomies[$key]->show_tagcloud, $data[$key]['show_cloud'] );
+		}
+	}
+
+	public function test_get_taxonomies_with_types() {
+		foreach ( get_post_types() as $type ) {
+			$response = $this->endpoint->get_taxonomies( $type );
+			$this->assertNotInstanceOf( 'WP_Error', $response );
+			$response = json_ensure_response( $response );
+
+			$this->assertEquals( 200, $response->get_status() );
+
+			$data = $response->get_data();
+
+			$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
+
+			$this->assertEquals( count( $taxonomies ), count( $data ) );
 		}
 	}
 
