@@ -40,11 +40,11 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get taxonomies
 	 *
-	 * @param string $type A specific type for which to retrieve taxonomies
+	 * @param string|null $type A specific post type for which to retrieve taxonomies (optional)
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomies( $type = '' ) {
-		if ( '' === $type ) {
+	public function get_taxonomies( $type = null ) {
+		if ( null === $type ) {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		} else {
 			$taxonomies = get_object_taxonomies( $type, 'objects' );
@@ -52,7 +52,7 @@ class WP_JSON_Taxonomies {
 
 		$data = array();
 		foreach ($taxonomies as $tax_type => $value) {
-			$tax = $this->prepare_taxonomy( $value, true );
+			$tax = $this->prepare_taxonomy( $value, null, true );
 			if ( is_wp_error( $tax ) )
 				continue;
 
@@ -65,10 +65,11 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get taxonomies
 	 *
+	 * @param string $type Post type to get taxonomies for (deprecated)
 	 * @param string $taxonomy Taxonomy slug
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomy( $taxonomy ) {
+	public function get_taxonomy( $type, $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
 		if ( empty( $tax ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
@@ -80,10 +81,11 @@ class WP_JSON_Taxonomies {
 	 * Prepare a taxonomy for serialization
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
+	 * @param string|null $type Post type to get taxonomies for (deprecated)
 	 * @param boolean $_in_collection Are we in a collection?
 	 * @return array Taxonomy data
 	 */
-	protected function prepare_taxonomy( $taxonomy, $_in_collection = false ) {
+	protected function prepare_taxonomy( $taxonomy, $type = null, $_in_collection = false ) {
 		if ( $taxonomy->public === false )
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 
@@ -98,17 +100,12 @@ class WP_JSON_Taxonomies {
 			'hierarchical' => $taxonomy->hierarchical,
 			'meta' => array(
 				'links' => array(
-					'archives' => json_url( $base_url . '/terms' )
+					'archives' => json_url( $base_url . '/terms' ),
+					'collection' => json_url( '/taxonomies' ),
+					'self' => json_url( $base_url )
 				)
 			),
 		);
-
-		if ( $_in_collection ) {
-			$data['meta']['links']['self'] = json_url( $base_url );
-		}
-		else {
-			$data['meta']['links']['collection'] = json_url( $base_url );
-		}
 
 		return apply_filters( 'json_prepare_taxonomy', $data );
 	}
@@ -132,7 +129,7 @@ class WP_JSON_Taxonomies {
 	 * @param string $taxonomy Taxonomy slug
 	 * @return array Term collection
 	 */
-	public function get_terms( $taxonomy ) {
+	public function get_terms( $type, $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -153,12 +150,13 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Get term for a post type
 	 *
+	 * @param string $type Post type (deprecated)
 	 * @param string $taxonomy Taxonomy slug
 	 * @param string $term Term slug
 	 * @param string $context Context (view/view-parent)
 	 * @return array Term entity
 	 */
-	public function get_term( $taxonomy, $term, $context = 'view' ) {
+	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
 		if ( ! taxonomy_exists( $taxonomy ) )
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 
@@ -166,7 +164,7 @@ class WP_JSON_Taxonomies {
 		if ( empty( $data ) )
 			return new WP_Error( 'json_taxonomy_invalid_term', __( 'Invalid term ID.' ), array( 'status' => 404 ) );
 
-		return $this->prepare_term( $data, $context );
+		return $this->prepare_term( $data, null, $context );
 	}
 
 	/**
@@ -182,7 +180,7 @@ class WP_JSON_Taxonomies {
 		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
 		$data['terms'] = array();
 		foreach ( $terms as $term ) {
-			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term, $post['post_type'] );
+			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term );
 		}
 
 		return $data;
@@ -192,9 +190,10 @@ class WP_JSON_Taxonomies {
 	 * Prepare term data for serialization
 	 *
 	 * @param array|object $term The unprepared term data
+	 * @param string|null $type Post type to get taxonomies for (deprecated)
 	 * @return array The prepared term data
 	 */
-	protected function prepare_term( $term, $context = 'view' ) {
+	protected function prepare_term( $term, $type = null, $context = 'view' ) {
 		$base_url = '/taxonomies/' . $term->taxonomy . '/terms';
 
 		$data = array(
@@ -214,7 +213,7 @@ class WP_JSON_Taxonomies {
 		);
 
 		if ( ! empty( $data['parent'] ) && $context === 'view' ) {
-			$data['parent'] = $this->get_term( $term, $term->taxonomy, $data['parent'], 'view-parent' );
+			$data['parent'] = $this->get_term( null, $term->taxonomy, $data['parent'], 'view-parent' );
 		}
 		elseif ( empty( $data['parent'] ) ) {
 			$data['parent'] = null;
