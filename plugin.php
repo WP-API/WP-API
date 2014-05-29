@@ -379,7 +379,7 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 		$url = add_query_arg( 'json_route', $path, $url );
 	}
 
-	return apply_filters( 'json_url', $url, $path, $blog_id );
+	return apply_filters( 'json_url', $url, $path, $blog_id, $scheme );
 }
 
 /**
