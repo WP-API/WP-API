@@ -71,8 +71,8 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_get_taxonomy() {
-		$response = $this->endpoint->get_taxonomy( 'category' );
+	public function test_get_taxonomy_object() {
+		$response = $this->endpoint->get_taxonomy_object( 'category' );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -87,8 +87,8 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->assertEquals( $category->hierarchical, $data['hierarchical'] );
 	}
 
-	public function test_get_terms() {
-		$response = $this->endpoint->get_terms( 'category' );
+	public function test_get_taxonomy_terms() {
+		$response = $this->endpoint->get_taxonomy_terms( 'category' );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -110,8 +110,8 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
-	public function test_get_term() {
-		$response = $this->endpoint->get_term( 'category', 1 );
+	public function test_get_taxonomy_term() {
+		$response = $this->endpoint->get_taxonomy_term( 'category', 1 );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
