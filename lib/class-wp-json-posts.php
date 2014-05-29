@@ -519,9 +519,10 @@ class WP_JSON_Posts {
 	 *
 	 * @param string|object $type Type name, or type object (internal use)
 	 * @param boolean $_in_collection Is this in a collection? (internal use)
+	 * @param boolean $_in_taxonomy Is this request being added to a taxonomy record? (internal use)
 	 * @return array Post type data
 	 */
-	public function get_post_type( $type, $_in_collection = false ) {
+	public function get_post_type( $type, $_in_collection = false, $_in_taxonomy = false ) {
 		if ( ! is_object( $type ) )
 			$type = get_post_type_object($type);
 
@@ -542,7 +543,7 @@ class WP_JSON_Posts {
 			),
 		);
 
-		if ( $_in_collection )
+		if ( $_in_collection || $_in_taxonomy )
 			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
 		else
 			$data['meta']['links']['collection'] = json_url( '/posts/types' );
@@ -554,7 +555,7 @@ class WP_JSON_Posts {
 				$data['meta']['links']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
 		}
 
-		return apply_filters( 'json_post_type_data', $data, $type );
+		return apply_filters( 'json_post_type_data', $data, $type, $_in_taxonomy );
 	}
 
 	/**
@@ -1087,6 +1088,22 @@ class WP_JSON_Posts {
 		}
 
 		return array( 'message' => __( 'Deleted meta' ) );;
+	}
+
+	/**
+	 * Embed post type data into taxonomy data
+	 *
+	 * @uses self::get_post_type()
+	 * @param array $data Taxonomy data
+	 * @param array $taxonomy Internal taxonomy data
+	 * @return array Filtered data
+	 */
+	public function add_post_type_data( $data, $taxonomy ) {
+		foreach( $taxonomy->object_type as $type ) {
+			$data['types'][ $type ] = $this->get_post_type( $type, false, true );
+		}
+
+		return $data;
 	}
 
 	/**

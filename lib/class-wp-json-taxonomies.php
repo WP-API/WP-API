@@ -134,7 +134,7 @@ class WP_JSON_Taxonomies {
 			),
 		);
 
-		return apply_filters( 'json_prepare_taxonomy', $data );
+		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy );
 	}
 
 	/**
@@ -142,10 +142,13 @@ class WP_JSON_Taxonomies {
 	 *
 	 * @param array $data Type data
 	 * @param array $post Internal type data
+	 * @param boolean $_in_taxonomy The record being filtered is a taxonomy object (internal use)
 	 * @return array Filtered data
 	 */
-	public function add_taxonomy_data( $data, $type ) {
-		$data['taxonomies'] = $this->get_taxonomies( $type->name );
+	public function add_taxonomy_data( $data, $type, $_in_taxonomy = false ) {
+		if ( ! $_in_taxonomy ) {
+			$data['taxonomies'] = $this->get_taxonomies( $type->name );
+		}
 
 		return $data;
 	}

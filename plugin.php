@@ -75,6 +75,7 @@ function json_api_default_filters($server) {
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts($server);
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
+	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 2 );
 
 	// Users
 	$wp_json_users = new WP_JSON_Users($server);
@@ -97,7 +98,7 @@ function json_api_default_filters($server) {
 	// Posts
 	$wp_json_taxonomies = new WP_JSON_Taxonomies($server);
 	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes' ), 2 );
-	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
+	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data' ), 10, 3 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );

@@ -126,4 +126,18 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->assertEquals( $category->description, $data['description'] );
 		$this->assertEquals( $category->count, $data['count'] );
 	}
+
+	public function test_add_taxonomy_data() {
+		// Mock type
+		$type = new stdClass;
+		$type->name = 'post';
+
+		// This record is not a taxonomy record: taxonomies should be embedded
+		$data = $this->endpoint->add_taxonomy_data( array(), $type, false );
+		$this->assertArrayHasKey( 'taxonomies', $data );
+
+		// This record is a taxonomy record: taxonomies should NOT be embedded
+		$data_within_taxonomy = $this->endpoint->add_taxonomy_data( array(), $type, true );
+		$this->assertArrayNotHasKey( 'taxonomies', $data_within_taxonomy );
+	}
 }
