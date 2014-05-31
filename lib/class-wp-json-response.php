@@ -28,7 +28,7 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	 *
 	 * @param array $headers Map of header name to header value
 	 */
-	public function set_headers($headers) {
+	public function set_headers( $headers ) {
 		$this->headers = $headers;
 	}
 
@@ -39,11 +39,10 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	 * @param string $value Header value
 	 * @param boolean $replace Replace an existing header of the same name?
 	 */
-	public function header($key, $value, $replace = true) {
+	public function header( $key, $value, $replace = true ) {
 		if ( $replace || ! isset( $this->headers[ $key ] ) ) {
 			$this->headers[ $key ] = $value;
-		}
-		else {
+		} else {
 			$this->headers[ $key ] .= ', ' . $value;
 		}
 	}
@@ -62,9 +61,11 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
+
 		foreach ( $other as $key => $value ) {
-			if ( 'title' == $key )
+			if ( 'title' == $key ) {
 				$value = '"' . $value . '"';
+			}
 			$header .= '; ' . $key . '=' . $value;
 		}
 		return $this->header( 'Link', $header, false );
@@ -77,10 +78,11 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	 */
 	public function query_navigation_headers( $query ) {
 		$max_page = $query->max_num_pages;
-		$paged = $query->get('paged');
+		$paged    = $query->get('paged');
 
-		if ( !$paged )
+		if ( ! $paged ) {
 			$paged = 1;
+		}
 
 		$nextpage = intval($paged) + 1;
 

@@ -41,7 +41,7 @@ publishing a post is an action, it's equivalent to updating a post's status.
 Keep in mind that since the REST API is opinionated, you will have to work with
 the API's structure rather than rolling your own. The API is strict about how
 you talk to the client, and you should always use the built-in handlers rather
-than rolling your own. This strict inforcement of data handling helps to make
+than rolling your own. This strict enforcement of data handling helps to make
 the API more pluggable and extensible, plus ensures that you play nice with
 other plugins.
 

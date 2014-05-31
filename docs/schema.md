@@ -181,9 +181,9 @@ Section 5.6 datetime representation.
 [RFC3339]: http://tools.ietf.org/html/rfc3339
 
 ### `modified`, `modified_gmt`
-The `date` and `date_gmt` fields are strings with the post's last modification
-date and time in the local time and UTC respectively. These fields follow the
-[RFC3339][] Section 5.6 datetime representation.
+The `modified` and `modified_gmt` fields are strings with the post's last
+modification date and time in the local time and UTC respectively. These fields
+follow the [RFC3339][] Section 5.6 datetime representation.
 
 	modified     = date-time
 	modified_gmt = date-time

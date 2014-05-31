@@ -62,8 +62,9 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	public function get_post_by_path( $path, $context = 'view' ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
-		if ( empty( $post ) )
+		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->get_post( $post['ID'], $context );
 	}
@@ -76,8 +77,9 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	public function edit_post_by_path( $path, $data, $_headers = array() ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
-		if ( empty( $post ) )
+		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->edit_post( $post['ID'], $data, $_headers );
 	}
@@ -90,8 +92,9 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	public function delete_post_by_path( $path, $force = false ) {
 		$post = get_page_by_path( $path, ARRAY_A );
 
-		if ( empty( $post ) )
+		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		return $this->delete_post( $post['ID'], $force );
 	}
@@ -109,8 +112,9 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		// Override entity meta keys with the correct links
 		$_post['meta']['links']['self'] = json_url( $this->base . '/' . get_page_uri( $post['ID'] ) );
 
-		if ( ! empty( $post['post_parent'] ) )
+		if ( ! empty( $post['post_parent'] ) ) {
 			$_post['meta']['links']['up'] = json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) );
+		}
 
 		return apply_filters( 'json_prepare_page', $_post, $post, $context );
 	}
