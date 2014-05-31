@@ -46,7 +46,7 @@ regarded as a bad API smell, as each parameter should be fully documented for
 consumers. It is possible to construct hacks around this using the
 `json_dispatch_args` filter, but this is intentionally made to feel hacky.
 
-Some parameters which give information about the context of the call. These are
+Some parameters give information about the context of the call. These are
 prefixed with an underscore, and are *always* set. This ensures that a rogue
 consumer can't pass in the internal name to override it and possibly cause a
 security issue.
