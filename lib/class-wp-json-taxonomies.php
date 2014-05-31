@@ -34,6 +34,7 @@ class WP_JSON_Taxonomies {
 				array( array( $this, 'get_taxonomy_term' ), WP_JSON_Server::READABLE ),
 			),
 		);
+
 		return array_merge( $routes, $tax_routes );
 	}
 
@@ -197,6 +198,7 @@ class WP_JSON_Taxonomies {
 		foreach ( $terms as $term ) {
 			$data[] = $this->prepare_taxonomy_term( $term );
 		}
+
 		return $data;
 	}
 
