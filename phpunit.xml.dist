@@ -1,8 +1,29 @@
-<phpunit bootstrap="tests/bootstrap.php" backupGlobals="false" colors="true">
+<phpunit
+	bootstrap="tests/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	>
     <testsuites>
         <!-- Default test suite to run all tests -->
         <testsuite>
             <directory prefix="test_" suffix=".php">tests</directory>
         </testsuite>
     </testsuites>
+
+	<logging>
+		<log type="coverage-html" target="coverage" title="PHPUnit"
+			 charset="UTF-8" yui="true" highlight="true" />
+	</logging>
+
+	<filter>
+		<blacklist>
+			<directory suffix=".php">.</directory>
+		</blacklist>
+		<whitelist>
+			<directory suffix=".php">./lib</directory>
+		</whitelist>
+	</filter>
 </phpunit>
