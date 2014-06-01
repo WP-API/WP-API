@@ -363,13 +363,9 @@ class WP_JSON_Posts {
 	function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
