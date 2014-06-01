@@ -285,7 +285,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	function new_post( $data ) {
+	public function new_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -360,7 +360,7 @@ class WP_JSON_Posts {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function edit_post( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
