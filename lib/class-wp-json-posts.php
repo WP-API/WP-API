@@ -84,15 +84,15 @@ class WP_JSON_Posts {
 	public function get_revisions( $id ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$parent = get_post( $id, ARRAY_A );
-
-		if ( ! $this->check_edit_permission( $parent ) ) {
-			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
-		}
+		if ( ! $this->check_edit_permission( $post ) ) {
+ 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+ 		}
 
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
