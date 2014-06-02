@@ -27,13 +27,13 @@ class WP_JSON_Users {
 		$user_routes = array(
 			// User endpoints
 			'/users' => array(
-				array( array( $this, 'get_users' ), WP_JSON_Server::READABLE ),
-				array( array( $this, 'new_user' ), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_users' ),        WP_JSON_Server::READABLE ),
+				array( array( $this, 'new_user' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/users/(?P<id>\d+)' => array(
-				array( array( $this, 'get_user' ), WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_user' ), WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete_user' ), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_user' ),         WP_JSON_Server::READABLE ),
+				array( array( $this, 'edit_user' ),        WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete_user' ),      WP_JSON_Server::DELETABLE ),
 			),
 			// /users/me is an alias, and simply redirects to /users/<id>
 			'/users/me' => array(
@@ -58,22 +58,25 @@ class WP_JSON_Users {
 
 		$args = array(
 			'orderby' => 'user_login',
-			'order' => 'ASC'
+			'order'   => 'ASC'
 		);
 		$args = array_merge( $args, $filter );
+
 		$args = apply_filters( 'json_user_query', $args, $filter, $context, $page );
 
 		// Pagination
 		$args['number'] = empty( $args['number'] ) ? 10 : absint( $args['number'] );
-		$page = absint( $page );
+		$page           = absint( $page );
 		$args['offset'] = ( $page - 1 ) * $args['number'];
 
 		$user_query = new WP_User_Query( $args );
+
 		if ( empty( $user_query->results ) ) {
 			return array();
 		}
 
 		$struct = array();
+
 		foreach ( $user_query->results as $user ) {
 			$struct[] = $this->prepare_user( $user, $context );
 		}
@@ -89,11 +92,13 @@ class WP_JSON_Users {
 	 */
 	public function get_current_user( $context = 'view' ) {
 		$current_user_id = get_current_user_id();
+
 		if ( empty( $current_user_id ) ) {
 			return new WP_Error( 'json_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
 		$response = $this->get_user( $current_user_id, $context );
+
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -119,6 +124,7 @@ class WP_JSON_Users {
 	 */
 	public function get_user( $id, $context = 'view' ) {
 		$current_user_id = get_current_user_id();
+
 		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
@@ -142,23 +148,23 @@ class WP_JSON_Users {
 	 */
 	protected function prepare_user( $user, $context = 'view' ) {
 		$user_fields = array(
-			'ID' => $user->ID,
-			'username' => $user->user_login,
-			'name' => $user->display_name,
-			'first_name' => $user->first_name,
-			'last_name' => $user->last_name,
-			'nickname' => $user->nickname,
-			'slug' => $user->user_nicename,
-			'URL' => $user->user_url,
-			'avatar' => $this->server->get_avatar_url( $user->user_email ),
+			'ID'          => $user->ID,
+			'username'    => $user->user_login,
+			'name'        => $user->display_name,
+			'first_name'  => $user->first_name,
+			'last_name'   => $user->last_name,
+			'nickname'    => $user->nickname,
+			'slug'        => $user->user_nicename,
+			'URL'         => $user->user_url,
+			'avatar'      => $this->server->get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'email' => $user->user_email,
+			'email'       => $user->user_email,
 		);
 
 		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
 
 		if ( $context === 'view' || $context === 'edit' ) {
-			$user_fields['roles'] = $user->roles;
+			$user_fields['roles']        = $user->roles;
 			$user_fields['capabilities'] = $user->allcaps;
 		}
 
@@ -174,6 +180,7 @@ class WP_JSON_Users {
 				'archives' => json_url( '/users/' . $user->ID . '/posts' ),
 			),
 		);
+
 		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
 	}
 
@@ -218,6 +225,7 @@ class WP_JSON_Users {
 	protected function insert_user( $data ) {
 		if ( ! empty( $data['ID'] ) ) {
 			$user = get_userdata( $data['ID'] );
+
 			if ( ! $user ) {
 				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 			}
@@ -227,6 +235,7 @@ class WP_JSON_Users {
 			}
 
 			$required = array( 'username', 'password', 'email' );
+
 			foreach ( $required as $arg ) {
 				if ( empty( $data[ $arg ] ) ) {
 					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
@@ -234,8 +243,7 @@ class WP_JSON_Users {
 			}
 
 			$update = true;
-		}
-		else {
+		} else {
 			$user = new WP_User();
 
 			// Workaround for https://core.trac.wordpress.org/ticket/28019
@@ -252,6 +260,7 @@ class WP_JSON_Users {
 		if ( isset( $data['username'] ) ) {
 			$user->user_login = $data['username'];
 		}
+
 		if ( isset( $data['password'] ) ) {
 			$user->user_pass = $data['password'];
 		}
@@ -260,15 +269,19 @@ class WP_JSON_Users {
 		if ( isset( $data['name'] ) ) {
 			$user->display_name = $data['name'];
 		}
+
 		if ( isset( $data['first_name'] ) ) {
 			$user->first_name = $data['first_name'];
 		}
+
 		if ( isset( $data['last_name'] ) ) {
 			$user->last_name = $data['last_name'];
 		}
+
 		if ( isset( $data['nickname'] ) ) {
 			$user->nickname = $data['nickname'];
 		}
+
 		if ( ! empty( $data['slug'] ) ) {
 			$user->user_nicename = $data['slug'];
 		}
@@ -276,6 +289,7 @@ class WP_JSON_Users {
 		// URL
 		if ( ! empty( $data['URL'] ) ) {
 			$escaped = esc_url_raw( $user->user_url );
+
 			if ( $escaped !== $user->user_url ) {
 				return new WP_Error( 'json_invalid_url', __( 'Invalid user URL.' ), array( 'status' => 400 ) );
 			}
@@ -295,11 +309,13 @@ class WP_JSON_Users {
 
 		// Pre-flight check
 		$user = apply_filters( 'json_pre_insert_user', $user, $data );
+
 		if ( is_wp_error( $user ) ) {
 			return $user;
 		}
 
 		$user_id = $update ? wp_update_user( $user ) : wp_insert_user( $user );
+
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
 		}
@@ -343,6 +359,7 @@ class WP_JSON_Users {
 
 		// Update attributes of the user from $data
 		$retval = $this->insert_user( $data );
+
 		if ( is_wp_error( $retval ) ) {
 			return $retval;
 		}
@@ -366,17 +383,20 @@ class WP_JSON_Users {
 		}
 
 		$user_id = $this->insert_user( $data );
+
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
 		}
 
 		$response = $this->get_user( $user_id );
+
 		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
 			$response = new WP_JSON_Response( $response );
 		}
 
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/users/' . $user_id ) );
+
 		return $response;
 	}
 
@@ -412,8 +432,7 @@ class WP_JSON_Users {
 			if ( empty( $reassign ) || $reassign === $id || ! get_userdata( $reassign ) ) {
 				return new WP_Error( 'json_user_invalid_reassign', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 			}
-		}
-		else {
+		} else {
 			$reassign = null;
 		}
 
@@ -421,8 +440,7 @@ class WP_JSON_Users {
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		}
-		else {
+		} else {
 			return array( 'message' => __( 'Deleted user' ) );
 		}
 	}

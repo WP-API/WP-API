@@ -111,8 +111,9 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 * @see WP_JSON_Posts::get_posts()
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = null, $page = 1 ) {
-		if ( !empty( $type ) && $type !== $this->type )
+		if ( ! empty( $type ) && $type !== $this->type ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
 
 		return parent::get_posts( $filter, $context, $this->type, $page );
 	}
@@ -125,13 +126,15 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) )
+		if ( empty( $id ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		$post = get_post( $id, ARRAY_A );
 
-		if ( $post['post_type'] !== $this->type )
+		if ( $post['post_type'] !== $this->type ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
 
 		return parent::get_post( $id, $context );
 	}
@@ -143,16 +146,20 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 */
 	function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
-		if ( empty( $id ) )
+
+		if ( empty( $id ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) )
+		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
-		if ( $post['post_type'] !== $this->type )
+		if ( $post['post_type'] !== $this->type ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
 
 		return parent::edit_post( $id, $data, $_headers );
 	}
@@ -165,13 +172,15 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) )
+		if ( empty( $id ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		$post = get_post( $id, ARRAY_A );
 
-		if ( $post['post_type'] !== $this->type )
+		if ( $post['post_type'] !== $this->type ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
 
 		return parent::delete_post( $id, $force );
 	}
@@ -197,10 +206,11 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			),
 		);
 
-		if ( ! empty( $post['post_parent'] ) )
+		if ( ! empty( $post['post_parent'] ) ) {
 			$_post['meta']['links']['up'] = json_url( $this->base . '/' . $post['ID'] );
+		}
 
-		return apply_filters( 'json_prepare_{$this->type}', $_post, $post, $context );
+		return apply_filters( "json_prepare_{$this->type}", $_post, $post, $context );
 	}
 
 	/**
