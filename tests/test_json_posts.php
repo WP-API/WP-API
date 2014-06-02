@@ -289,6 +289,23 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
+	/**
+	 * Invalid statuses should be defaulted to "draft" status
+	 */
+	function test_create_post_invalid_status() {
+		$data = $this->set_data(array(
+			'status' => 'teststatus',
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( 'draft', $new_post->post_status );
+	}
+
 	function test_create_post_with_password() {
 		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/286');
 		$data = $this->set_data(array(
