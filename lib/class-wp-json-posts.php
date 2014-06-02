@@ -88,6 +88,12 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		$post = get_post( $id, ARRAY_A );
+
+		if ( ! $this->check_edit_permission( $post ) ) {
+			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view revisions.' ), array( 'status' => 403 ) );
+		}
+
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
