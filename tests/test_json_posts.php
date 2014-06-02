@@ -439,6 +439,48 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );
 	}
 
+	function test_create_post_menu_order() {
+		$data = $this->set_data(array(
+			'menu_order' => 5,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['menu_order'], $new_post->menu_order );
+	}
+
+	function test_create_post_menu_order_negative() {
+		$data = $this->set_data(array(
+			'menu_order' => -5,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $data['menu_order'], $new_post->menu_order );
+	}
+
+	function test_create_post_menu_order_noninteger() {
+		$data = $this->set_data(array(
+			'menu_order' => 'test',
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( 0, $new_post->menu_order );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
