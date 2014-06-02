@@ -12,8 +12,8 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->author = $this->factory->user->create( array( 'user_role' => 'author' ) );
-		$this->contributor = $this->factory->user->create( array( 'user_role' => 'contributor' ) );
+		$this->author = $this->factory->user->create( array( 'role' => 'author' ) );
+		$this->contributor = $this->factory->user->create( array( 'role' => 'contributor' ) );
 		$this->post_id = $this->factory->post->create( array(
 			'post_author' => $this->author,
 			'post_title' => md5( wp_generate_password() ),
@@ -53,8 +53,8 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 		wp_set_current_user( $this->author );
 		$response = $this->endpoint->get_revisions( $this->post_id );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 200, $response->get_status() );
 		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 
