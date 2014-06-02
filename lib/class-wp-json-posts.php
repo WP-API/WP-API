@@ -91,7 +91,7 @@ class WP_JSON_Posts {
 		$parent = get_post( $id, ARRAY_A );
 
 		if ( ! $this->check_edit_permission( $parent ) ) {
-			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view revisions.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
 		}
 
 		// Todo: Query args filter for wp_get_post_revisions
