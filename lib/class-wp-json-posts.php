@@ -97,6 +97,7 @@ class WP_JSON_Posts {
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
+		$struct = array();
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
 
