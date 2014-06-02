@@ -1199,6 +1199,8 @@ class WP_JSON_Posts {
 		}
 
 		// Post modified
+		// See https://github.com/WP-API/WP-API/issues/285
+		// @codeCoverageIgnoreStart
 		if ( ! empty( $data['modified'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['modified'] );
 			if ( ! empty( $date_data ) ) {
@@ -1211,6 +1213,7 @@ class WP_JSON_Posts {
 				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
 			}
 		}
+		// @codeCoverageIgnoreEnd
 
 		// Post slug
 		if ( ! empty( $data['name'] ) ) {

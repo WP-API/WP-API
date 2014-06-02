@@ -420,6 +420,25 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
+	/**
+	 * Custom `modified` field values are ignored
+	 */
+	function test_create_post_custom_modified() {
+		$data = $this->set_data(array(
+			'date' => '2010-01-01T02:00:00Z',
+			'modified' => '2009-01-01T02:00:00Z',
+		));
+		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
