@@ -371,6 +371,30 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_get_post_response( $response, $this->post_obj );
 	}
 
+	function test_get_revisions() {
+		wp_update_post( array( 'post_content' => 'This content is better.', 'ID' => $this->post_id ) );
+		wp_update_post( array( 'post_content' => 'This content is marvelous.', 'ID' => $this->post_id ) );
+
+		$revisions = wp_get_post_revisions( $this->post_id );
+
+		$struct = array();
+		foreach ( $revisions as $revision ) {
+			$post = get_object_vars( $revision );
+			$struct[] = $post;
+
+			 $this->assertTrue( user_can( $this->author_id, 'edit_post', $revision->post_parent ) );
+		}
+
+		$response = $this->endpoint->get_revisions( $this->post_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$response_data = $response->get_data();
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertCount( 2, $response_data );
+	}
+
 	function test_edit_post() {
 		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
 		$response = $this->endpoint->edit_post( $this->post_id, $data );
