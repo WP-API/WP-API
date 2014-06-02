@@ -1278,7 +1278,7 @@ class WP_JSON_Posts {
 			}
 		} else {
 			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
-				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -1330,6 +1330,8 @@ class WP_JSON_Posts {
 		}
 
 		// Post modified
+		// See https://github.com/WP-API/WP-API/issues/285
+		// @codeCoverageIgnoreStart
 		if ( ! empty( $data['modified'] ) ) {
 			$date_data = $this->server->get_date_with_gmt( $data['modified'] );
 
@@ -1343,6 +1345,7 @@ class WP_JSON_Posts {
 				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
 			}
 		}
+		// @codeCoverageIgnoreEnd
 
 		// Post slug
 		if ( ! empty( $data['name'] ) ) {
@@ -1356,9 +1359,9 @@ class WP_JSON_Posts {
 				if ( empty( $data['author']->ID ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = absint( $data['author']->ID );
+				$data['author'] = (int) $data['author']->ID;
 			} else {
-				$data['author'] = absint( $data['author'] );
+				$data['author'] = (int) $data['author'];
 			}
 
 			// Only check edit others' posts if we are another user

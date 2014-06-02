@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
+class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 	public function setUp() {
 		parent::setUp();
 
@@ -17,17 +17,6 @@ class WP_Test_JSON_Posts_Meta extends WP_UnitTestCase {
 
 		$this->fake_server = $this->getMock('WP_JSON_Server');
 		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
-	}
-
-	protected function assertErrorResponse( $code, $response, $status = null ) {
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( $code, $response->get_error_code() );
-
-		if ( $status !== null ) {
-			$data = $response->get_error_data();
-			$this->assertArrayHasKey( 'status', $data );
-			$this->assertEquals( $status, $data['status'] );
-		}
 	}
 
 	public function test_get_meta() {
