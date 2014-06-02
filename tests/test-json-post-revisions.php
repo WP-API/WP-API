@@ -26,19 +26,28 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 
 	}
 
+	protected function assertErrorResponse( $code, $response, $status = null ) {
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( $code, $response->get_error_code() );
+
+		if ( $status !== null ) {
+			$data = $response->get_error_data();
+			$this->assertArrayHasKey( 'status', $data );
+			$this->assertEquals( $status, $data['status'] );
+		}
+	}
+
 	public function test_revisions_access_by_user() {
 
 		// Contributor shouldn't have access to another user's revisions
 		wp_set_current_user( $this->contributor );
 		$response = $this->endpoint->get_revisions( $this->post_id );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'json_cannot_view', $response, 403 );
 
 		// Logged out users shouldn't have access to any revisions
 		wp_set_current_user( 0 );
 		$response = $this->endpoint->get_revisions( $this->post_id );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'json_cannot_view', $response, 403 );
 
 		// Authors should have access to their own revisions
 		wp_set_current_user( $this->author );
