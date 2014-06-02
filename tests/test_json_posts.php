@@ -481,6 +481,33 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 0, $new_post->menu_order );
 	}
 
+	function test_create_post_sticky() {
+		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/218');
+		$data = $this->set_data(array(
+			'sticky' => true,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$this->assertTrue( is_sticky( $response_data['ID'] ) );
+	}
+
+	function test_create_post_sticky_false() {
+		$data = $this->set_data(array(
+			'sticky' => false,
+		));
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$this->assertFalse( is_sticky( $response_data['ID'] ) );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
@@ -588,6 +615,35 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		$response = $this->endpoint->edit_post( $this->post_id, $data );
 		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
+	}
+
+	function test_edit_post_sticky() {
+		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/218');
+		$data = $this->set_data(array(
+			'sticky' => true,
+		));
+
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$response = json_ensure_response( $response );
+
+		$edited_post = get_post( $this->post_id );
+		$this->check_get_post_response( $response, $edited_post );
+
+		$this->assertTrue( is_sticky( $this->post_id ) );
+	}
+
+	function test_edit_post_sticky_false() {
+		$data = $this->set_data(array(
+			'sticky' => false,
+		));
+
+		$response = $this->endpoint->edit_post( $this->post_id, $data );
+		$response = json_ensure_response( $response );
+
+		$edited_post = get_post( $this->post_id );
+		$this->check_get_post_response( $response, $edited_post );
+
+		$this->assertFalse( is_sticky( $this->post_id ) );
 	}
 
 }
