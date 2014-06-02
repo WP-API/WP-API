@@ -60,4 +60,22 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 
 	}
 
+	public function test_post_no_revisions() {
+
+		$no_revisions_id = $this->factory->post->create( array(
+			'post_author' => $this->author,
+			'post_title' => md5( wp_generate_password() ),
+			'post_content' => md5( wp_generate_password() )
+			) );
+
+		wp_set_current_user( $this->author );
+		$response = $this->endpoint->get_revisions( $no_revisions_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 0, count( $data ) );
+
+	}
+
 }
