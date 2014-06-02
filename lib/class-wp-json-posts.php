@@ -97,8 +97,6 @@ class WP_JSON_Posts {
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
-		$response  = new WP_JSON_Response();
-
 		$struct = array();
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
@@ -106,9 +104,7 @@ class WP_JSON_Posts {
 			$struct[] = $this->prepare_post( $post, 'view-revision' );
 		}
 
-		$response->set_data( $struct );
-
-		return $response;
+		return $struct;
 	}
 
 	/**
