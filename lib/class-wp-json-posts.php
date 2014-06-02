@@ -1463,12 +1463,13 @@ class WP_JSON_Posts {
 		}
 
 		// Sticky
-		if ( isset( $post['sticky'] ) )  {
-			if ( $post['sticky'] ) {
-				stick_post( $data['ID'] );
-			} else {
-				unstick_post( $data['ID'] );
-			}
+		if ( isset( $data['sticky'] ) ) {
+			$post['sticky'] = $data['sticky'];
+		}
+		if ( $post['sticky'] ) {
+			stick_post( $post_ID );
+		} else {
+			unstick_post( $post_ID );
 		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
