@@ -323,8 +323,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_create_page_with_parent() {
-		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/228');
-
 		$parent = $this->factory->post->create(array(
 			'type' => 'page',
 		));
@@ -344,8 +342,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_create_page_with_invalid_parent() {
-		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/228');
-
 		$parent = $this->factory->post->create(array(
 			'type' => 'page',
 		));
