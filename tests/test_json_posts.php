@@ -369,7 +369,54 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		$response_data = $response->get_data();
 		$new_post = get_post( $response_data['ID'] );
-		var_dump($new_post->post_date);
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	function test_create_post_custom_date_with_timezone() {
+		$data = $this->set_data(array(
+			'date' => '2010-01-01T02:00:00-10:00',
+		));
+		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	function test_create_post_custom_date_gmt() {
+		$data = $this->set_data(array(
+			'date_gmt' => '2010-01-01T02:00:00Z',
+		));
+		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	/**
+	 * `date_gmt` fields should always be forced to UTC
+	 */
+	function test_create_post_custom_date_gmt_with_timezone() {
+		$data = $this->set_data(array(
+			'date_gmt' => '2010-01-01T02:00:00+10:00',
+		));
+		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->new_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
