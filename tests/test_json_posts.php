@@ -16,7 +16,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->post_id = $this->factory->post->create();
 		$this->post_obj = get_post( $this->post_id );
 
-		$this->fake_server = $this->getMock('WP_JSON_Server');
+		$this->fake_server = $this->getMock( 'WP_JSON_Server', null );
 		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
 	}
 
