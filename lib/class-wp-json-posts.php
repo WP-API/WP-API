@@ -88,9 +88,16 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		$parent = get_post( $id, ARRAY_A );
+
+		if ( ! $this->check_edit_permission( $parent ) ) {
+			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+		}
+
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
+		$struct = array();
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
 
@@ -285,7 +292,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	function new_post( $data ) {
+	public function new_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -360,7 +367,7 @@ class WP_JSON_Posts {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function edit_post( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -656,6 +663,14 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
+		$previous_post = null;
+		if ( ! empty( $GLOBALS['post'] ) ) {
+			$previous_post = $GLOBALS['post'];
+		}
+		$post_obj = get_post( $post['ID'] );
+		$GLOBALS['post'] = $post_obj;
+		setup_postdata( $post_obj );
+
 		// prepare common post fields
 		$post_fields = array(
 			'title'           => get_the_title( $post['ID'] ), // $post['post_title'],
@@ -681,6 +696,7 @@ class WP_JSON_Posts {
 		$post_fields_raw = array(
 			'title_raw'   => $post['post_title'],
 			'content_raw' => $post['post_content'],
+			'excerpt_raw' => $post['post_excerpt'],
 			'guid_raw'    => $post['guid'],
 			'post_meta'   => $this->get_all_meta( $post['ID'] ),
 		);
@@ -749,17 +765,29 @@ class WP_JSON_Posts {
 		if ( 'edit' === $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
 				if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
+					$GLOBALS['post'] = $previous_post;
+					if ( $previous_post ) {
+						setup_postdata( $previous_post );
+					}
 					return $post_fields_raw['post_meta'];
 				}
 
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
+				$GLOBALS['post'] = $previous_post;
+				if ( $previous_post ) {
+					setup_postdata( $previous_post );
+				}
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 			}
 		} elseif ( 'view-revision' == $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
+				$GLOBALS['post'] = $previous_post;
+				if ( $previous_post ) {
+					setup_postdata( $previous_post );
+				}
 				return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view this revision' ), array( 'status' => 403 ) );
 			}
 		}
@@ -782,6 +810,10 @@ class WP_JSON_Posts {
 			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
 		}
 
+		$GLOBALS['post'] = $previous_post;
+		if ( $previous_post ) {
+			setup_postdata( $previous_post );
+		}
 		return apply_filters( 'json_prepare_post', $_post, $post, $context );
 	}
 
@@ -1366,7 +1398,11 @@ class WP_JSON_Posts {
 		// Parent
 		if ( ! empty( $data['parent'] ) ) {
 			$parent = get_post( $data['parent'] );
-			$post['post_parent'] = $data['post_parent'];
+			if ( empty( $parent ) ) {
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
+			}
+
+			$post['post_parent'] = $parent->ID;
 		}
 
 		// Menu order

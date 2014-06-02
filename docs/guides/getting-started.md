@@ -238,7 +238,7 @@ And here's what we get back:
     },
     "meta": {
         "links": {
-            "help": "https:\/\/github.com\/rmccue\/WP-API",
+            "help": "https:\/\/github.com\/WP-API\/WP-API",
             "profile": "https:\/\/raw.github.com\/rmccue\/WP-API\/master\/docs\/schema.json"
         }
     }
