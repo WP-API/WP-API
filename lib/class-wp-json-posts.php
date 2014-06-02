@@ -84,13 +84,13 @@ class WP_JSON_Posts {
 	public function get_revisions( $id ) {
 		$id = (int) $id;
 
-		$post = get_post( $id, ARRAY_A );
+		$parent = get_post( $id, ARRAY_A );
 
-		if ( empty( $id ) || empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $parent['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $post ) ) {
+		if ( ! $this->check_edit_permission( $parent ) ) {
  			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
  		}
 
