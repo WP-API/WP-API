@@ -464,7 +464,6 @@ function json_handle_options_request( $response, $handler ) {
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $handler->path, $args );
-		var_dump(array($route, $match));
 
 		if ( ! $match ) {
 			continue;
