@@ -223,10 +223,12 @@ class WP_JSON_Users {
 	}
 
 	protected function insert_user( $data ) {
-		if ( ! empty( $data['ID'] ) ) {
-			$user = get_userdata( $data['ID'] );
+		$user = new stdClass;
 
-			if ( ! $user ) {
+		if ( ! empty( $data['ID'] ) ) {
+			$existing = get_userdata( $data['ID'] );
+
+			if ( ! $existing ) {
 				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 			}
 
@@ -234,13 +236,9 @@ class WP_JSON_Users {
 				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 			}
 
+			$user->ID = $existing->ID;
 			$update = true;
 		} else {
-			$user = new WP_User();
-
-			// Workaround for https://core.trac.wordpress.org/ticket/28019
-			$user->data = new stdClass;
-
 			if ( ! current_user_can( 'create_users' ) ) {
 				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 			}
