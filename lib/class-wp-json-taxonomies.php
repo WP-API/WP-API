@@ -76,6 +76,8 @@ class WP_JSON_Taxonomies {
 	 * @return array Taxonomy data
 	 */
 	public function get_taxonomy( $type, $taxonomy ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_object' );
+
 		return $this->get_taxonomy_object( $taxonomy );
 	}
 
@@ -107,6 +109,8 @@ class WP_JSON_Taxonomies {
 	 * @return array Taxonomy data
 	 */
 	protected function prepare_taxonomy( $taxonomy, $type = null, $_in_collection = false ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::prepare_taxonomy_object' );
+
 		return $this->prepare_taxonomy_object( $taxonomy, $_in_collection );
 	}
 
@@ -170,6 +174,8 @@ class WP_JSON_Taxonomies {
 	 * @return array Term collection
 	 */
 	public function get_terms( $type, $taxonomy ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_terms' );
+
 		return $this->get_taxonomy_terms( $taxonomy );
 	}
 
