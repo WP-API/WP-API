@@ -9,14 +9,14 @@
  */
 
 /**
- * Version number for our API
+ * Version number for our API.
  *
  * @var string
  */
 define( 'JSON_API_VERSION', '1.0' );
 
 /**
- * Include our files for the API
+ * Include our files for the API.
  */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
@@ -45,6 +45,9 @@ function json_api_init() {
 }
 add_action( 'init', 'json_api_init' );
 
+/**
+ * Add rewrite rules.
+ */
 function json_api_register_rewrites() {
 	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
 	add_rewrite_rule( '^' . json_get_url_prefix() . '(.*)?','index.php?json_route=$matches[1]','top' );
@@ -65,28 +68,28 @@ function json_api_maybe_flush_rewrites() {
 add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
 
 /**
- * Register the default JSON API filters
+ * Register the default JSON API filters.
  *
  * @internal This will live in default-filters.php
  */
 function json_api_default_filters( $server ) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
 
-	// Posts
+	// Posts.
 	$wp_json_posts = new WP_JSON_Posts( $server );
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 
-	// Users
+	// Users.
 	$wp_json_users = new WP_JSON_Users($server);
 	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
 
-	// Pages
+	// Pages.
 	$wp_json_pages = new WP_JSON_Pages( $server );
 	$wp_json_pages->register_filters();
 
-	// Media
+	// Media.
 	$wp_json_media = new WP_JSON_Media( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
@@ -94,7 +97,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
-	// Posts
+	// Posts.
 	$wp_json_taxonomies = new WP_JSON_Taxonomies($server);
 	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'   ), 2     );
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
@@ -103,7 +106,7 @@ function json_api_default_filters( $server ) {
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
 /**
- * Load the JSON API
+ * Load the JSON API.
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_json_server_class filter and serving requests. This would also
@@ -115,7 +118,7 @@ function json_api_loaded() {
 		return;
 
 	/**
-	 * Whether this is a XMLRPC Request
+	 * Whether this is a XML-RPC Request.
 	 *
 	 * @var bool
 	 * @todo Remove me in favour of JSON_REQUEST
@@ -123,7 +126,7 @@ function json_api_loaded() {
 	define( 'XMLRPC_REQUEST', true );
 
 	/**
-	 * Whether this is a JSON Request
+	 * Whether this is a JSON Request.
 	 *
 	 * @var bool
 	 */
@@ -142,20 +145,22 @@ function json_api_loaded() {
 	 * action rather than another action to ensure they're only loaded when
 	 * needed.
 	 *
-	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object
+	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object.
 	 */
 	do_action( 'wp_json_server_before_serve', $wp_json_server );
 
 	// Fire off the request
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
 
-	// Finish off our request
+	// Finish off our request.
 	die();
 }
 add_action( 'template_redirect', 'json_api_loaded', -100 );
 
 /**
  * Register routes and flush the rewrite rules on activation.
+ *
+ * @param bool $network_wide ?
  */
 function json_api_activation( $network_wide ) {
 	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
@@ -177,7 +182,9 @@ function json_api_activation( $network_wide ) {
 register_activation_hook( __FILE__, 'json_api_activation' );
 
 /**
- * Flush the rewrite rules on deactivation
+ * Flush the rewrite rules on deactivation.
+ *
+ * @param bool $network_wide ?
  */
 function json_api_deactivation( $network_wide ) {
 	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
@@ -250,26 +257,26 @@ function json_output_link_header() {
 add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
 
 /**
- * Add `show_in_json` {@see register_post_type} argument
+ * Add `show_in_json` {@see register_post_type} argument.
  *
- * Adds the `show_in_json` post type argument to {@see register_post_type}. This
- * value controls whether the post type is available via API endpoints, and
- * defaults to the value of `publicly_queryable`
+ * Adds the `show_in_json` post type argument to {@see register_post_type}.
+ * This value controls whether the post type is available via API endpoints,
+ * and defaults to the value of `publicly_queryable`
  *
- * @param string $post_type Post type being registered
- * @param stdClass $args Post type arguments
+ * @param string   $post_type Post type to register.
+ * @param stdClass $args      Post type arguments.
  */
 function json_register_post_type( $post_type, $args ) {
 	global $wp_post_types;
 
 	$type = &$wp_post_types[ $post_type ];
 
-	// Exception for pages
+	// Exception for pages.
 	if ( $post_type === 'page' ) {
 		$type->show_in_json = true;
 	}
 
-	// Exception for revisions
+	// Exception for revisions.
 	if ( $post_type === 'revision' ) {
 		$type->show_in_json = true;
 	}
@@ -281,13 +288,15 @@ function json_register_post_type( $post_type, $args ) {
 add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
 
 /**
- * Check for errors when using cookie-based authentication
+ * Check for errors when using cookie-based authentication.
  *
- * WordPress' built-in cookie authentication is always active for logged in
- * users. However, the API has to check nonces for each request to ensure users
- * are not vulnerable to CSRF.
+ * WordPress' built-in cookie authentication is always active
+ * for logged in users. However, the API has to check nonces
+ * for each request to ensure users are not vulnerable to CSRF.
  *
- * @param WP_Error|mixed $result Error from another authentication handler, null if we should handle it, or another value if not
+ * @param WP_Error|mixed $result Error from another authentication handler,
+ *                               null if we should handle it, or another
+ *                               value if not
  * @return WP_Error|mixed|boolean
  */
 function json_cookie_check_errors( $result ) {
@@ -297,9 +306,11 @@ function json_cookie_check_errors( $result ) {
 
 	global $wp_json_auth_cookie;
 
-	// Are we using cookie authentication?
-	// (If we get an auth error, but we're still logged in, another
-	// authentication must have been used.)
+	/*
+	 * Are we using cookie authentication? (If we get an auth
+	 * error, but we're still logged in, another authentication
+	 * must have been used.)
+	 */
 	if ( $wp_json_auth_cookie !== true && is_user_logged_in() ) {
 		return $result;
 	}
@@ -313,12 +324,12 @@ function json_cookie_check_errors( $result ) {
 	}
 
 	if ( $nonce === null ) {
-		// No nonce at all, so act as if it's an unauthenticated request
+		// No nonce at all, so act as if it's an unauthenticated request.
 		wp_set_current_user( 0 );
 		return true;
 	}
 
-	// Check the nonce
+	// Check the nonce.
 	$result = wp_verify_nonce( $nonce, 'wp_json' );
 	if ( ! $result ) {
 		return new WP_Error( 'json_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
@@ -329,12 +340,10 @@ function json_cookie_check_errors( $result ) {
 add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
 
 /**
- * Collect cookie authentication status
+ * Collect cookie authentication status.
  *
- * Collects errors from {@see wp_validate_auth_cookie} for use by
- * {@see json_cookie_check_errors}.
- *
- * @param mixed
+ * Collects errors from {@see wp_validate_auth_cookie} for
+ * use by {@see json_cookie_check_errors}.
  */
 function json_cookie_collect_status() {
 	global $wp_json_auth_cookie;
@@ -360,17 +369,25 @@ add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
  * @return string Prefix.
  */
 function json_get_url_prefix() {
+	/**
+	 * Filter the JSON URL prefix.
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $prefix URL prefix.
+	 */
 	return apply_filters( 'json_url_prefix', 'wp-json' );
 }
 
 /**
- * Get URL to a JSON endpoint on a site
+ * Get URL to a JSON endpoint on a site.
  *
  * @todo Check if this is even necessary
- * @param int $blog_id Blog ID
- * @param string $path JSON route
- * @param string $scheme Sanitization scheme (usually 'json')
- * @return string Full URL to the endpoint
+ *
+ * @param int    $blog_id Blog ID.
+ * @param string $path    Optional. JSON route. Default empty.
+ * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
+ * @return string Full URL to the endpoint.
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
@@ -390,22 +407,32 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 		$url = add_query_arg( 'json_route', $path, $url );
 	}
 
+	/**
+	 * Filter the JSON URL.
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $url     JSON URL.
+	 * @param string $path    JSON route.
+	 * @param int    $blod_ig Blog ID.
+	 * @param string $scheme  Sanitization scheme.
+	 */
 	return apply_filters( 'json_url', $url, $path, $blog_id, $scheme );
 }
 
 /**
- * Get URL to a JSON endpoint
+ * Get URL to a JSON endpoint.
  *
- * @param string $path JSON route
- * @param string $scheme Sanitization scheme (usually 'json')
- * @return string Full URL to the endpoint
+ * @param string $path   Optional. JSON route. Default empty.
+ * @param string $scheme Optional. Sanitization scheme. Default 'json'.
+ * @return string Full URL to the endpoint.
  */
 function json_url( $path = '', $scheme = 'json' ) {
 	return get_json_url( null, $path, $scheme );
 }
 
 /**
- * Ensure a JSON response is a response object
+ * Ensure a JSON response is a response object.
  *
  * This ensures that the response is consistent, and implements
  * {@see WP_JSON_ResponseInterface}, allowing usage of
@@ -413,7 +440,7 @@ function json_url( $path = '', $scheme = 'json' ) {
  * also allow {@see WP_Error} to indicate error responses, so users should
  * immediately check for this value.
  *
- * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check
+ * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check.
  * @return WP_Error|WP_JSON_ResponseInterface
  */
 function json_ensure_response( $response ) {
