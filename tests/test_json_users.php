@@ -151,6 +151,8 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	}
 
 	public function test_update_user() {
+		$pw_before = $this->user_obj->user_pass;
+
 		$data = array(
 			'first_name' => 'New Name',
 		);
@@ -170,5 +172,9 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 
 		$user = get_userdata( $this->user );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
+
+		// Check that we haven't inadvertently changed the user's password,
+		// as per https://core.trac.wordpress.org/ticket/21429
+		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 }
