@@ -91,6 +91,15 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->assertTrue( wp_check_password( $data['password'], $new_user->user_pass ), 'Password check failed' );
 	}
 
+	public function test_create_user_missing_params() {
+		$this->user_obj->set_role( 'administrator' );
+		$data = array(
+			'username' => 'test_user',
+		);
+		$response = $this->endpoint->new_user( $data );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
 	public function test_delete_user() {
 		$this->user_obj->set_role( 'administrator' );
 
@@ -139,5 +148,27 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		// Check that the post has been updated correctly
 		$post = get_post( $test_post );
 		$this->assertEquals( $test_new_author, $post->post_author );
+	}
+
+	public function test_update_user() {
+		$data = array(
+			'first_name' => 'New Name',
+		);
+		$response = $this->endpoint->edit_user( $this->user, $data );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
+			$response = new WP_JSON_Response( $response );
+		}
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( $data['first_name'], $new_data['first_name'] );
+
+		$user = get_userdata( $this->user );
+		$this->assertEquals( $user->first_name, $data['first_name'] );
 	}
 }
