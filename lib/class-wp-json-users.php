@@ -234,14 +234,6 @@ class WP_JSON_Users {
 				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 			}
 
-			$required = array( 'username', 'password', 'email' );
-
-			foreach ( $required as $arg ) {
-				if ( empty( $data[ $arg ] ) ) {
-					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
-				}
-			}
-
 			$update = true;
 		} else {
 			$user = new WP_User();
@@ -251,6 +243,14 @@ class WP_JSON_Users {
 
 			if ( ! current_user_can( 'create_users' ) ) {
 				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
+			}
+
+			$required = array( 'username', 'password', 'email' );
+
+			foreach ( $required as $arg ) {
+				if ( empty( $data[ $arg ] ) ) {
+					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+				}
 			}
 
 			$update = false;
