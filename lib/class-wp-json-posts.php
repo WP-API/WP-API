@@ -1464,12 +1464,11 @@ class WP_JSON_Posts {
 
 		// Sticky
 		if ( isset( $data['sticky'] ) ) {
-			$post['sticky'] = $data['sticky'];
-		}
-		if ( $post['sticky'] ) {
-			stick_post( $post_ID );
-		} else {
-			unstick_post( $post_ID );
+			if ( $data['sticky'] ) {
+				stick_post( $post_ID );
+			} else {
+				unstick_post( $post_ID );
+			}
 		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
