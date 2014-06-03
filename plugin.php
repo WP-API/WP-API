@@ -46,8 +46,8 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 function json_api_register_rewrites() {
-	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
+	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
+	add_rewrite_rule( '^' . json_get_url_prefix() . '(.*)?','index.php?json_route=$matches[1]','top' );
 }
 
 /**
@@ -355,6 +355,15 @@ add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
 add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
 
 /**
+ * Get the URL prefix for any API resource.
+ *
+ * @return string Prefix.
+ */
+function json_get_url_prefix() {
+	return apply_filters( 'json_url_prefix', 'wp-json' );
+}
+
+/**
  * Get URL to a JSON endpoint on a site
  *
  * @todo Check if this is even necessary
@@ -365,7 +374,7 @@ add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
-		$url = get_home_url( $blog_id, 'wp-json', $scheme );
+		$url = get_home_url( $blog_id, json_get_url_prefix(), $scheme );
 
 		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 			$url .= '/' . ltrim( $path, '/' );
