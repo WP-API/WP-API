@@ -13,13 +13,13 @@ class WP_JSON_Taxonomies {
 				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
-				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
-				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/taxonomies' => array(
 				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
