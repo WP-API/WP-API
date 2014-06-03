@@ -68,11 +68,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post = get_post( $id, ARRAY_A );
+		$post = parent::get_post_data( $id );
 
 		if ( $post['post_type'] !== 'attachment' ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
@@ -137,11 +133,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post = get_post( $id, ARRAY_A );
+		$post = parent::get_post_data( $id );
 
 		if ( empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
@@ -162,11 +154,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post = get_post( $id, ARRAY_A );
+		$post = parent::get_post_data( $id );
 
 		if ( $post['post_type'] !== 'attachment' ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
