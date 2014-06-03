@@ -161,6 +161,11 @@ class WP_JSON_Users {
 			'email'       => $user->user_email,
 		);
 
+		// Make email private (false) unless the user has permissions to view all data
+		if ( ! current_user_can( 'list_users' ) ) {
+			$user_fields['email'] = false;
+		}
+
 		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
 
 		if ( $context === 'view' || $context === 'edit' ) {
