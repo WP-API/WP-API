@@ -443,6 +443,7 @@ function json_handle_deprecated_function( $function, $replacement, $version ) {
 
 	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
 }
+
 /**
  * Handle `_deprecated_function` errors
  *
