@@ -457,7 +457,11 @@ function json_handle_options_request( $response, $handler ) {
 	$response = new WP_JSON_Response();
 
 	$accept = array();
-	$map = $handler::$method_map;
+
+	$handler_class = get_class( $handler );
+	$class_vars = get_class_vars( $handler_class );
+	$map = $class_vars['method_map'];
+
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $handler->path, $args );
 		var_dump(array($route, $match));
