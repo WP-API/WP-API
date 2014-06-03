@@ -1445,11 +1445,11 @@ class WP_JSON_Posts {
 		}
 
 		// Sticky
-		if ( isset( $post['sticky'] ) )  {
-			if ( $post['sticky'] ) {
-				stick_post( $data['ID'] );
+		if ( isset( $data['sticky'] ) ) {
+			if ( $data['sticky'] ) {
+				stick_post( $post_ID );
 			} else {
-				unstick_post( $data['ID'] );
+				unstick_post( $post_ID );
 			}
 		}
 

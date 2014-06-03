@@ -494,7 +494,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_create_post_sticky() {
-		$this->markTestSkipped('https://github.com/WP-API/WP-API/issues/218');
 		$data = $this->set_data(array(
 			'sticky' => true,
 		));

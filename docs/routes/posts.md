@@ -61,6 +61,8 @@ pairs:
 * `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
   whether users can submit pingbacks or trackbacks to the post.  Default is the
   option 'default_ping_status'. (string) *optional*
+* `sticky` - Sticky status for the post: `true` or `false`.  Default is
+  `false`.  (boolean) *optional*
 
 
 ### Response
@@ -199,6 +201,8 @@ pairs:
 * `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
   whether users can submit pingbacks or trackbacks to the post.  Default is the
   option 'default_ping_status'. (string) *optional*
+* `sticky` - Sticky status for the post: `true` or `false`.  Default is
+  `false`.  (boolean) *optional*
 
 
 ### Response
