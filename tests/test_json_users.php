@@ -48,32 +48,12 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
-
 		$this->check_get_user_response( $response, $this->user_obj );
+
 	}
 
-	public function test_user_email_not_false_for_admin() {
-		$this->user_obj->set_role( 'administrator' );
-
-		$response = $this->endpoint->get_user( $this->user );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
-
-		// Check that we succeeded
-		$this->assertEquals( 200, $response->get_status() );
-
-		$this->check_get_user_response( $response, $this->user_obj );
-	}
-
-	protected function check_get_user_response( $response, $user_obj, $is_admin = false ) {
+	protected function check_get_user_response( $response, $user_obj ) {
 		$response_data = $response->get_data();
-
-		if ( ! $is_admin ) {
-			$response_data['email'] = false;
-		}
 
 		// Check basic data
 		$this->assertEquals( $user_obj->ID, $response_data['ID'] );
