@@ -44,14 +44,6 @@ pairs:
   Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
   Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
   (string) *optional*
-* `modified` - Date and time the post was last modified in local time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
-  *optional*
-* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
-  (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
   author's ID or as the User object of the author.  Default is current user.
   (object \| string) *optional*
@@ -188,14 +180,6 @@ pairs:
   *optional*
 * `date_gmt` - Date and time the post was, or should be, published in UTC time.
   Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
-  (string) *optional*
-* `modified` - Date and time the post was last modified in local time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
-  *optional*
-* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
   Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
   (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
