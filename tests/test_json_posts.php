@@ -533,6 +533,32 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_get_post_response( $response, $this->post_obj );
 	}
 
+	function test_get_post_with_author_details() {
+
+		// Create a post and author not belonging to logged in user to test public response
+		$author_id_non_current = $this->factory->user->create( array( 'role' => 'editor' ) );
+		$post_id_non_user = $this->factory->post->create( array( 'post_author' => $author_id_non_current ) );
+
+		$response = $this->endpoint->get_post( $post_id_non_user );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$headers = $response->get_headers();
+		$response_data = $response->get_data();
+
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+
+		$wp_json_users = new WP_JSON_Users( $this->fake_server );
+		$post['post_author'] = $response_data['author'];
+
+		$response = $wp_json_users->add_post_author_data( $response_data, $post, 'view' );
+
+		$this->assertFalse( $response['author']['email'] );
+
+	}
+
 	function test_get_revisions() {
 		wp_update_post( array( 'post_content' => 'This content is better.', 'ID' => $this->post_id ) );
 		wp_update_post( array( 'post_content' => 'This content is marvelous.', 'ID' => $this->post_id ) );

@@ -48,8 +48,8 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
-
 		$this->check_get_user_response( $response, $this->user_obj );
+
 	}
 
 	protected function check_get_user_response( $response, $user_obj ) {

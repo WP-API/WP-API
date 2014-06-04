@@ -147,6 +147,8 @@ class WP_JSON_Users {
 	 * @return array
 	 */
 	protected function prepare_user( $user, $context = 'view' ) {
+		$current_user_id = get_current_user_id();
+
 		$user_fields = array(
 			'ID'          => $user->ID,
 			'username'    => $user->user_login,
@@ -160,6 +162,11 @@ class WP_JSON_Users {
 			'description' => $user->description,
 			'email'       => $user->user_email,
 		);
+
+		// Make email private (false) unless the user has permissions to view all data
+		if ( ! current_user_can( 'list_users' ) && $current_user_id !== $user->ID ) {
+			$user_fields['email'] = false;
+		}
 
 		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
 
