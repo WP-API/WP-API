@@ -224,6 +224,29 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
+	public function test_get_taxonomy_terms_empty() {
+		$response = $this->endpoint->get_taxonomy_terms( '' );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	}
+
+	public function test_get_taxonomy_terms_invalid() {
+		$response = $this->endpoint->get_taxonomy_terms( 'testtaxonomy' );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	}
+
+	public function get_terms_return_error() {
+		return new WP_Error( 'test_internal_error' );
+	}
+
+	public function test_get_taxonomy_terms_internal_error() {
+		add_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
+
+		$response = $this->endpoint->get_taxonomy_terms( 'category' );
+		remove_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
+
+		$this->assertErrorResponse( 'test_internal_error', $response );
+	}
+
 	public function check_get_taxonomy_term_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
