@@ -111,8 +111,12 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->check_taxonomy_object_response( $response );
 	}
 
-	public function test_get_taxonomy_terms() {
-		$response = $this->endpoint->get_taxonomy_terms( 'category' );
+	public function test_get_taxonomy_object_empty() {
+		$response = $this->endpoint->get_taxonomy_object( '' );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	}
+
+	protected function check_get_taxonomy_terms_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -134,8 +138,20 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
-	public function test_get_taxonomy_term() {
-		$response = $this->endpoint->get_taxonomy_term( 'category', 1 );
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::get_terms
+	 */
+	public function test_get_terms() {
+		$response = $this->endpoint->get_terms( 'post', 'category' );
+		$this->check_get_taxonomy_terms_response( $response );
+	}
+
+	public function test_get_taxonomy_terms() {
+		$response = $this->endpoint->get_taxonomy_terms( 'category' );
+		$this->check_get_taxonomy_terms_response( $response );
+	}
+
+	public function check_get_taxonomy_term_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
