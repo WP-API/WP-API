@@ -334,7 +334,7 @@ indicates how some meta fields should be displayed. For example, posts with the
 "link" format may wish to display an extra link to a URL specified in a meta
 field or emphasise a link in the post content.
 
-	post-format = "standard" / "aside" / "gallery" / "image" / "link" / "status"
+	post-format = "standard" / "aside" / "gallery" / "image" / "link" / "status" / "quote" / "video" / "audio" / "chat"
 
 Providers MUST NOT use post formats not specified by this specification, unless
 specified in a subsequent version of the specification. Consumers MUST treat

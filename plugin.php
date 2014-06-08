@@ -46,8 +46,8 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 function json_api_register_rewrites() {
-	add_rewrite_rule( '^wp-json/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^wp-json(.*)?','index.php?json_route=$matches[1]','top' );
+	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
+	add_rewrite_rule( '^' . json_get_url_prefix() . '(.*)?','index.php?json_route=$matches[1]','top' );
 }
 
 /**
@@ -209,7 +209,7 @@ register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 function json_register_scripts() {
 	wp_register_script( 'wp-api', 'http://wp-api.github.io/client-js/build/js/wp-api.js', array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
 
-	$settings = array( 'root' => esc_url_raw( home_url( 'wp-json' ) ), 'nonce' => wp_create_nonce( 'wp_json' ) );
+	$settings = array( 'root' => esc_url_raw( get_json_url() ), 'nonce' => wp_create_nonce( 'wp_json' ) );
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
@@ -362,6 +362,15 @@ add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
 add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
 
 /**
+ * Get the URL prefix for any API resource.
+ *
+ * @return string Prefix.
+ */
+function json_get_url_prefix() {
+	return apply_filters( 'json_url_prefix', 'wp-json' );
+}
+
+/**
  * Get URL to a JSON endpoint on a site
  *
  * @todo Check if this is even necessary
@@ -372,7 +381,7 @@ add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
-		$url = get_home_url( $blog_id, 'wp-json', $scheme );
+		$url = get_home_url( $blog_id, json_get_url_prefix(), $scheme );
 
 		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
 			$url .= '/' . ltrim( $path, '/' );

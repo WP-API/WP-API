@@ -84,13 +84,20 @@ class WP_JSON_Posts {
 	public function get_revisions( $id ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
+		$parent = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $parent['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
+
+		if ( ! $this->check_edit_permission( $parent ) ) {
+ 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+ 		}
 
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
+		$struct = array();
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
 
@@ -285,7 +292,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	function new_post( $data ) {
+	public function new_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -360,7 +367,7 @@ class WP_JSON_Posts {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function edit_post( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -1298,7 +1305,7 @@ class WP_JSON_Posts {
 			}
 		} else {
 			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
-				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -1349,21 +1356,6 @@ class WP_JSON_Posts {
 			}
 		}
 
-		// Post modified
-		if ( ! empty( $data['modified'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['modified'] );
-
-			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
-			}
-		} elseif ( ! empty( $data['modified_gmt'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['modified_gmt'], true );
-
-			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
-			}
-		}
-
 		// Post slug
 		if ( ! empty( $data['name'] ) ) {
 			$post['post_name'] = $data['name'];
@@ -1376,9 +1368,9 @@ class WP_JSON_Posts {
 				if ( empty( $data['author']->ID ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = absint( $data['author']->ID );
+				$data['author'] = (int) $data['author']->ID;
 			} else {
-				$data['author'] = absint( $data['author'] );
+				$data['author'] = (int) $data['author'];
 			}
 
 			// Only check edit others' posts if we are another user
@@ -1480,11 +1472,11 @@ class WP_JSON_Posts {
 		}
 
 		// Sticky
-		if ( isset( $post['sticky'] ) )  {
-			if ( $post['sticky'] ) {
-				stick_post( $data['ID'] );
+		if ( isset( $data['sticky'] ) ) {
+			if ( $data['sticky'] ) {
+				stick_post( $post_ID );
 			} else {
-				unstick_post( $data['ID'] );
+				unstick_post( $post_ID );
 			}
 		}
 
