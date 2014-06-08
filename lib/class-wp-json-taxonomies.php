@@ -243,6 +243,8 @@ class WP_JSON_Taxonomies {
 	 * @return array Term entity
 	 */
 	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_term( $taxonomy, $term )' );
+
 		return $this->get_taxonomy_term( $taxonomy, $term, $context );
 	}
 
@@ -299,6 +301,8 @@ class WP_JSON_Taxonomies {
 	 * @return array The prepared term data
 	 */
 	protected function prepare_term( $term, $type = null, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::prepare_taxonomy_term( $term )' );
+
 		return $this->prepare_taxonomy_term( $term, $context );
 	}
 

@@ -263,6 +263,9 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $category->count, $data['count'] );
 	}
 
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::get_term
+	 */
 	public function test_get_term() {
 		$response = $this->endpoint->get_term( 'post', 'category', 1 );
 		$this->check_get_taxonomy_term_response( $response );
