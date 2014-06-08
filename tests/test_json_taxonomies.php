@@ -273,6 +273,16 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
+	public function test_get_taxonomy_term_invalid_taxonomy() {
+		$response = $this->endpoint->get_taxonomy_term( 'testtaxonomy', 1 );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	}
+
+	public function test_get_taxonomy_term_invalid_term() {
+		$response = $this->endpoint->get_taxonomy_term( 'category', 'testmissingcat' );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_term', $response, 404 );
+	}
+
 	public function test_add_taxonomy_data() {
 		// Mock type
 		$type = new stdClass;
