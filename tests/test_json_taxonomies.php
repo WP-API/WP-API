@@ -247,6 +247,14 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'test_internal_error', $response );
 	}
 
+	protected function check_taxonomy_term( $term, $data ) {
+		$this->assertEquals( $term->term_id, $data['ID'] );
+		$this->assertEquals( $term->name, $data['name'] );
+		$this->assertEquals( $term->slug, $data['slug'] );
+		$this->assertEquals( $term->description, $data['description'] );
+		$this->assertEquals( $term->count, $data['count'] );
+	}
+
 	public function check_get_taxonomy_term_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -255,12 +263,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 
 		$data = $response->get_data();
 		$category = get_term( 1, 'category' );
-
-		$this->assertEquals( $category->term_id, $data['ID'] );
-		$this->assertEquals( $category->name, $data['name'] );
-		$this->assertEquals( $category->slug, $data['slug'] );
-		$this->assertEquals( $category->description, $data['description'] );
-		$this->assertEquals( $category->count, $data['count'] );
+		$this->check_taxonomy_term( $category, $data );
 	}
 
 	/**
@@ -298,5 +301,35 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		// This record is a taxonomy record: taxonomies should NOT be embedded
 		$data_within_taxonomy = $this->endpoint->add_taxonomy_data( array(), $type, true );
 		$this->assertArrayNotHasKey( 'taxonomies', $data_within_taxonomy );
+	}
+
+	public function test_prepare_taxonomy_term() {
+		$term = get_term( 1, 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy_term', array( $term ) );
+		$this->check_taxonomy_term( $term, $data );
+	}
+
+	public function test_prepare_taxonomy_term_child() {
+		$child = $this->factory->category->create( array(
+			'parent' => 1,
+		) );
+
+		$term = get_term( $child, 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy_term', array( $term ) );
+		$this->check_taxonomy_term( $term, $data );
+
+		$this->assertNotEmpty( $data['parent'] );
+
+		$parent = get_term( 1, 'category' );
+		$this->check_taxonomy_term( $parent, $data['parent'] );
+	}
+
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_term
+	 */
+	public function test_prepare_term() {
+		$term = get_term( 1, 'category' );
+		$data = $this->call_protected( 'prepare_term', array( $term, 'post' ) );
+		$this->check_taxonomy_term( $term, $data );
 	}
 }
