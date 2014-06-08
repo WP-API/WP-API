@@ -1208,11 +1208,14 @@ class WP_JSON_Posts {
 	 * @uses self::get_post_type()
 	 * @param array $data Taxonomy data
 	 * @param array $taxonomy Internal taxonomy data
+	 * @param string $context Context (view|embed)
 	 * @return array Filtered data
 	 */
-	public function add_post_type_data( $data, $taxonomy ) {
-		foreach( $taxonomy->object_type as $type ) {
-			$data['types'][ $type ] = $this->get_post_type( $type, false, true );
+	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			foreach( $taxonomy->object_type as $type ) {
+				$data['types'][ $type ] = $this->get_post_type( $type, false, true );
+			}
 		}
 
 		return $data;

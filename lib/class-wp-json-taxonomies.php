@@ -167,7 +167,7 @@ class WP_JSON_Taxonomies {
 	 */
 	public function add_taxonomy_data( $data, $type, $_in_taxonomy = false ) {
 		if ( ! $_in_taxonomy ) {
-			$data['taxonomies'] = $this->get_taxonomies( $type->name );
+			$data['taxonomies'] = $this->get_taxonomies( $type->name, 'embed' );
 		}
 
 		return $data;

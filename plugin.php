@@ -75,7 +75,7 @@ function json_api_default_filters( $server ) {
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts( $server );
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
-	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 2 );
+	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
 	// Users
 	$wp_json_users = new WP_JSON_Users( $server );
