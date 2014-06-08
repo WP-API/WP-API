@@ -108,6 +108,13 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		}
 	}
 
+	protected function check_taxonomy_object( $tax_obj, $data ) {
+		$this->assertEquals( $tax_obj->label, $data['name'] );
+		$this->assertEquals( $tax_obj->name, $data['slug'] );
+		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
+		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
+	}
+
 	protected function check_taxonomy_object_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -117,10 +124,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$data = $response->get_data();
 		$category = get_taxonomy( 'category' );
 
-		$this->assertEquals( $category->label, $data['name'] );
-		$this->assertEquals( $category->name, $data['slug'] );
-		$this->assertEquals( $category->show_tagcloud, $data['show_cloud'] );
-		$this->assertEquals( $category->hierarchical, $data['hierarchical'] );
+		$this->check_taxonomy_object( $category, $data );
 	}
 
 	/**
@@ -139,6 +143,50 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 	public function test_get_taxonomy_object_empty() {
 		$response = $this->endpoint->get_taxonomy_object( '' );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	}
+
+	protected function call_protected( $method, $args ) {
+		$endpoint_class = new ReflectionClass( 'WP_JSON_Taxonomies' );
+		$method = $endpoint_class->getMethod( $method );
+		$method->setAccessible( true );
+		$endpoint = $endpoint_class->newInstance();
+
+		return $method->invokeArgs( $endpoint, $args );
+	}
+
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy
+	 */
+	public function test_prepare_taxonomy() {
+		$tax = get_taxonomy( 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy', array( $tax ) );
+		$this->check_taxonomy_object( $tax, $data );
+	}
+
+	public function test_prepare_taxonomy_object() {
+		$tax = get_taxonomy( 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax ) );
+		$this->check_taxonomy_object( $tax, $data );
+	}
+
+	/**
+	 * Check old _in_collection parameter
+	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy_object
+	 */
+	public function test_prepare_taxonomy_object_in_collection() {
+		$tax = get_taxonomy( 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax, true ) );
+		$this->check_taxonomy_object( $tax, $data );
+	}
+
+	/**
+	 * Check old _in_collection parameter
+	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy_object
+	 */
+	public function test_prepare_taxonomy_object_not_in_collection() {
+		$tax = get_taxonomy( 'category' );
+		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax, false ) );
+		$this->check_taxonomy_object( $tax, $data );
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {
