@@ -10,7 +10,7 @@ class WP_JSON_Taxonomies {
 	public function register_routes( $routes ) {
 		$tax_routes = array(
 			'/posts/types/(?P<type>\w+)/taxonomies' => array(
-				array( array( $this, 'get_taxonomies_for_type' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomies_for_type' ), WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
 				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
