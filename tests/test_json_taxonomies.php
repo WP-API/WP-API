@@ -35,6 +35,27 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
 	}
 
+	protected function check_taxonomies_for_type_response( $type, $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
+
+		$this->assertEquals( count( $taxonomies ), count( $data ) );
+	}
+
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::get_taxonomies_for_type
+	 */
+	public function test_get_taxonomies_for_type() {
+		$response = $this->endpoint->get_taxonomies_for_type( 'post' );
+		$this->check_taxonomies_for_type_response( 'post', $response );
+	}
+
 	public function test_get_taxonomies() {
 		$response = $this->endpoint->get_taxonomies();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -58,16 +79,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 	public function test_get_taxonomies_with_types() {
 		foreach ( get_post_types() as $type ) {
 			$response = $this->endpoint->get_taxonomies( $type );
-			$this->assertNotInstanceOf( 'WP_Error', $response );
-			$response = json_ensure_response( $response );
-
-			$this->assertEquals( 200, $response->get_status() );
-
-			$data = $response->get_data();
-
-			$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
-
-			$this->assertEquals( count( $taxonomies ), count( $data ) );
+			$this->check_taxonomies_for_type_response( $type, $response );
 		}
 	}
 
