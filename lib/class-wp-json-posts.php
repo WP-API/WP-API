@@ -1213,6 +1213,7 @@ class WP_JSON_Posts {
 	 */
 	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
 		if ( $context !== 'embed' ) {
+			$data['types'] = array();
 			foreach( $taxonomy->object_type as $type ) {
 				$data['types'][ $type ] = $this->get_post_type( $type, false, true );
 			}
