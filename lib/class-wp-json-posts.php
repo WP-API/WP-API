@@ -588,6 +588,12 @@ class WP_JSON_Posts {
 			$data['meta']['links']['collection'] = json_url( '/posts/types' );
 		}
 
+		// Add taxonomy link
+		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
+		$url = json_url( '/taxonomies' );
+		$url = add_query_arg( 'type', $type->name, $url );
+		$data['meta']['links'][ $relation ] = $url;
+
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
 				$data['meta']['links']['archives'] = json_url( '/posts' );
