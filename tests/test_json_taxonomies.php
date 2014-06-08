@@ -24,14 +24,25 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$routes = array();
 		$routes = $this->endpoint->register_routes( $routes );
 
-		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies', $routes );
-		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)', $routes );
-		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms', $routes );
-		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)', $routes );
 		$this->assertArrayHasKey( '/taxonomies', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)', $routes );
+
+		$deprecated = array(
+			'/posts/types/(?P<type>\w+)/taxonomies',
+			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)',
+			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms',
+			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)',
+		);
+
+		foreach ( $deprecated as $route ) {
+			$this->assertArrayHasKey( $route, $routes );
+			foreach ( $routes[$route] as $parts ) {
+				$bitmask = $parts[1];
+				$this->assertEquals( WP_JSON_Server::HIDDEN_ENDPOINT, $bitmask & WP_JSON_Server::HIDDEN_ENDPOINT, "Deprecated $route should be hidden" );
+			}
+		}
 	}
 
 	/**
