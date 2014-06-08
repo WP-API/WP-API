@@ -44,7 +44,7 @@ class WP_JSON_Taxonomies {
 	 * @param string|null $type A specific post type for which to retrieve taxonomies (optional)
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomies( $type = null ) {
+	public function get_taxonomies( $type = null, $context = 'view' ) {
 		if ( null === $type ) {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		} else {
@@ -54,7 +54,7 @@ class WP_JSON_Taxonomies {
 		$data = array();
 
 		foreach ( $taxonomies as $tax_type => $value ) {
-			$tax = $this->prepare_taxonomy_object( $value, true );
+			$tax = $this->prepare_taxonomy_object( $value, $context );
 			if ( is_wp_error( $tax ) ) {
 				continue;
 			}
@@ -105,25 +105,35 @@ class WP_JSON_Taxonomies {
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
 	 * @param string|null $type Post type to get taxonomies for (deprecated)
-	 * @param boolean $_in_collection Are we in a collection?
+	 * @param string $context Context (view|embed). True/false are allowed for backwards compatibility, and map to embed/view respectively.
 	 * @return array Taxonomy data
 	 */
-	protected function prepare_taxonomy( $taxonomy, $type = null, $_in_collection = false ) {
+	protected function prepare_taxonomy( $taxonomy, $type = null, $context = 'view' ) {
 		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::prepare_taxonomy_object' );
 
-		return $this->prepare_taxonomy_object( $taxonomy, $_in_collection );
+		return $this->prepare_taxonomy_object( $taxonomy, $context );
 	}
 
 	/**
 	 * Prepare a taxonomy object for serialization
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
-	 * @param boolean $_in_collection Are we in a collection?
+	 * @param string $context Context (view|embed). True/false are allowed for backwards compatibility, and map to embed/view respectively.
 	 * @return array Taxonomy data
 	 */
-	protected function prepare_taxonomy_object( $taxonomy, $_in_collection = false ) {
+	protected function prepare_taxonomy_object( $taxonomy, $context = 'view' ) {
 		if ( $taxonomy->public === false ) {
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
+		}
+
+		// Backwards compatibility with _in_collection parameter
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
+		}
+		elseif ( $context === false ) {
+			$context = 'view';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "view" rather than false' );
 		}
 
 		$base_url = '/taxonomies/' . $taxonomy->name;
@@ -144,7 +154,7 @@ class WP_JSON_Taxonomies {
 			),
 		);
 
-		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy );
+		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $context );
 	}
 
 	/**
