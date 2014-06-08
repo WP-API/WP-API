@@ -26,7 +26,7 @@ Content-Type: application/json
 The `data` parameter should be an object containing the following key value
 pairs:
 
-* `post_title` - Title of the post. (string) __*required*__
+* `title` - Title of the post. (string) __*required*__
 * `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
@@ -166,7 +166,7 @@ The `data` parameter should be an object containing the following key value
 pairs:
 
 * `ID` - Unique ID of the post. (integer) __*required*__
-* `post_title` - Title of the post. (string) __*required*__
+* `title` - Title of the post. (string) __*required*__
 * `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
