@@ -303,6 +303,19 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertArrayNotHasKey( 'taxonomies', $data_within_taxonomy );
 	}
 
+	public function test_add_term_data() {
+		$post = $this->factory->post->create();
+		$post_obj = get_post( $post, ARRAY_A );
+		$category = $this->factory->category->create();
+		wp_set_post_categories( $post, $category );
+
+		// This record is not a taxonomy record: taxonomies should be embedded
+		$data = $this->endpoint->add_term_data( array(), $post_obj, false );
+
+		$this->assertCount( 1, $data['terms']['category'] );
+		$this->assertEquals( $category, $data['terms']['category'][0]['ID'] );
+	}
+
 	public function test_prepare_taxonomy_term() {
 		$term = get_term( 1, 'category' );
 		$data = $this->call_protected( 'prepare_taxonomy_term', array( $term ) );
