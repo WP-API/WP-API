@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
+class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 	/**
 	 * This function is run before each method
 	 */
@@ -71,8 +71,7 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_get_taxonomy_object() {
-		$response = $this->endpoint->get_taxonomy_object( 'category' );
+	protected function check_taxonomy_object_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -85,6 +84,19 @@ class WP_Test_JSON_Taxonomies extends WP_UnitTestCase {
 		$this->assertEquals( $category->name, $data['slug'] );
 		$this->assertEquals( $category->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $category->hierarchical, $data['hierarchical'] );
+	}
+
+	/**
+	 * @expectedDeprecated WP_JSON_Taxonomies::get_taxonomy
+	 */
+	public function test_get_taxonomy() {
+		$response = $this->endpoint->get_taxonomy( 'post', 'category' );
+		$this->check_taxonomy_object_response( $response );
+	}
+
+	public function test_get_taxonomy_object() {
+		$response = $this->endpoint->get_taxonomy_object( 'category' );
+		$this->check_taxonomy_object_response( $response );
 	}
 
 	public function test_get_taxonomy_terms() {
