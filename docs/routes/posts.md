@@ -63,6 +63,9 @@ pairs:
   option 'default_ping_status'. (string) *optional*
 * `sticky` - Sticky status for the post: `true` or `false`.  Default is
   `false`.  (boolean) *optional*
+* `post_meta` - Post meta entries of the post.  Post meta should be an array
+  of one or more Meta objects for each post meta entry.  See the Create Meta
+  for a Post endpoint for the key value pairs.  (array) *optional*
 
 
 ### Response
@@ -203,6 +206,9 @@ pairs:
   option 'default_ping_status'. (string) *optional*
 * `sticky` - Sticky status for the post: `true` or `false`.  Default is
   `false`.  (boolean) *optional*
+* `post_meta` - Post meta entries of the post.  Post meta should be an array
+  of one or more Meta objects for each post meta entry.  See the Edit Meta
+  for a Post endpoint for the key value pairs.  (array) *optional*
 
 
 ### Response
