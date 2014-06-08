@@ -10,7 +10,7 @@ class WP_JSON_Taxonomies {
 	public function register_routes( $routes ) {
 		$tax_routes = array(
 			'/posts/types/(?P<type>\w+)/taxonomies' => array(
-				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomies_for_type' ), WP_JSON_Server::READABLE ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
 				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
@@ -36,6 +36,18 @@ class WP_JSON_Taxonomies {
 		);
 
 		return array_merge( $routes, $tax_routes );
+	}
+
+	/**
+	 * Get taxonomies for a post type
+	 * @param string $type Post type
+	 * @param string $context Context (view|embed)
+	 * @return array Taxonomy data
+	 */
+	public function get_taxonomies_for_type( $type, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomies( $type )' );
+
+		return $this->get_taxonomies( $type, $context );
 	}
 
 	/**
