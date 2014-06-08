@@ -181,6 +181,16 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $category->count, $data['count'] );
 	}
 
+	public function test_get_term() {
+		$response = $this->endpoint->get_term( 'post', 'category', 1 );
+		$this->check_get_taxonomy_term_response( $response );
+	}
+
+	public function test_get_taxonomy_term() {
+		$response = $this->endpoint->get_taxonomy_term( 'category', 1 );
+		$this->check_get_taxonomy_term_response( $response );
+	}
+
 	public function test_add_taxonomy_data() {
 		// Mock type
 		$type = new stdClass;
