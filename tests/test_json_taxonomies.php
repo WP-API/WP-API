@@ -146,12 +146,9 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 	}
 
 	protected function call_protected( $method, $args ) {
-		$endpoint_class = new ReflectionClass( 'WP_JSON_Taxonomies' );
-		$method = $endpoint_class->getMethod( $method );
-		$method->setAccessible( true );
-		$endpoint = $endpoint_class->newInstance();
-
-		return $method->invokeArgs( $endpoint, $args );
+		$reflection = new ReflectionMethod( 'WP_JSON_Taxonomies', $method );
+		$reflection->setAccessible( true );
+		return $reflection->invokeArgs( new WP_JSON_Taxonomies(), $args );
 	}
 
 	/**
