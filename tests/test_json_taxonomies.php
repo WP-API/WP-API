@@ -20,6 +20,20 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->endpoint = new WP_JSON_Taxonomies( $this->fake_server );
 	}
 
+	public function test_register_routes() {
+		$routes = array();
+		$routes = $this->endpoint->register_routes( $routes );
+
+		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies', $routes );
+		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)', $routes );
+		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms', $routes );
+		$this->assertArrayHasKey( '/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)', $routes );
+		$this->assertArrayHasKey( '/taxonomies', $routes );
+		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)', $routes );
+		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms', $routes );
+		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)', $routes );
+	}
+
 	/**
 	 * Utility function for use in get_public_taxonomies
 	 */
