@@ -47,7 +47,7 @@ pairs:
 * `author` - Author of the post.  Author can be provided as a string of the
   author's ID or as the User object of the author.  Default is current user.
   (object \| string) *optional*
-* `password` - Password for protecting the posts.  Default is empty string.
+* `password` - Password for protecting the post.  Default is empty string.
   (string) *optional*
 * `post_parent` - Post ID of the post parent.  Default is 0. (integer)
   *optional*
@@ -190,7 +190,7 @@ pairs:
 * `author` - Author of the post.  Author can be provided as a string of the
   author's ID or as the User object of the author.  Default is current user.
   (object \| string) *optional*
-* `password` - Password for protecting the posts.  Default is empty string.
+* `password` - Password for protecting the post.  Default is empty string.
   (string) *optional*
 * `post_parent` - Post ID of the post parent.  Default is 0. (integer)
   *optional*
