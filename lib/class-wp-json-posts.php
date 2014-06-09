@@ -563,17 +563,21 @@ class WP_JSON_Posts {
 	 * Get a post type
 	 *
 	 * @param string|object $type Type name, or type object (internal use)
-	 * @param boolean $_in_collection Is this in a collection? (internal use)
-	 * @param boolean $_in_taxonomy Is this request being added to a taxonomy record? (internal use)
+	 * @param boolean $context What context are we in?
 	 * @return array Post type data
 	 */
-	public function get_post_type( $type, $_in_collection = false, $_in_taxonomy = false ) {
+	public function get_post_type( $type, $context = 'view' ) {
 		if ( ! is_object( $type ) ) {
 			$type = get_post_type_object( $type );
 		}
 
 		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
 		}
 
 		$data = array(
@@ -606,7 +610,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		return apply_filters( 'json_post_type_data', $data, $type, $_in_taxonomy );
+		return apply_filters( 'json_post_type_data', $data, $type, $context );
 	}
 
 	/**
@@ -1225,7 +1229,7 @@ class WP_JSON_Posts {
 		if ( $context !== 'embed' ) {
 			$data['types'] = array();
 			foreach( $taxonomy->object_type as $type ) {
-				$data['types'][ $type ] = $this->get_post_type( $type, false, true );
+				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
 			}
 		}
 

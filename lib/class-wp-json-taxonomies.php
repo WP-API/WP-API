@@ -177,8 +177,8 @@ class WP_JSON_Taxonomies {
 	 * @param boolean $_in_taxonomy The record being filtered is a taxonomy object (internal use)
 	 * @return array Filtered data
 	 */
-	public function add_taxonomy_data( $data, $type, $_in_taxonomy = false ) {
-		if ( ! $_in_taxonomy ) {
+	public function add_taxonomy_data( $data, $type, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
 			$data['taxonomies'] = $this->get_taxonomies( $type->name, 'embed' );
 		}
 
