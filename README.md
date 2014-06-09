@@ -52,7 +52,6 @@ testing environment in a few easy steps:
 
    ```bash
    git clone --recursive git@github.com:sennza/Chassis.git api-tester
-   vagrant plugin install vagrant-hostsupdater
    ```
 
 3. Grab a copy of WP API:
