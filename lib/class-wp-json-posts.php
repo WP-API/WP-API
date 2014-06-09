@@ -585,15 +585,12 @@ class WP_JSON_Posts {
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
 			'meta'         => array(
-				'links' => array()
+				'links' => array(
+					'self'       => json_url( '/posts/types/' . $type->name ),
+					'collection' => json_url( '/posts/types' ),
+				),
 			),
 		);
-
-		if ( $_in_collection || $_in_taxonomy ) {
-			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
-		} else {
-			$data['meta']['links']['collection'] = json_url( '/posts/types' );
-		}
 
 		// Add taxonomy link
 		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
