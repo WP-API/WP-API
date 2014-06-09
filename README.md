@@ -1,6 +1,4 @@
 # REST API
-This is a project to create a JSON-based REST API for WordPress. This project is
-run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
