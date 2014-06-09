@@ -10,34 +10,63 @@ class WP_JSON_Taxonomies {
 	public function register_routes( $routes ) {
 		$tax_routes = array(
 			'/posts/types/(?P<type>\w+)/taxonomies' => array(
-				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomies_for_type' ), WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
-				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
-				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
-				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE ),
+				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
+			),
+			'/taxonomies' => array(
+				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)' => array(
+				array( array( $this, 'get_taxonomy_object' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms' => array(
+				array( array( $this, 'get_taxonomy_terms' ), WP_JSON_Server::READABLE ),
+			),
+			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+				array( array( $this, 'get_taxonomy_term' ), WP_JSON_Server::READABLE ),
 			),
 		);
+
 		return array_merge( $routes, $tax_routes );
+	}
+
+	/**
+	 * Get taxonomies for a post type
+	 * @param string $type Post type
+	 * @param string $context Context (view|embed)
+	 * @return array Taxonomy data
+	 */
+	public function get_taxonomies_for_type( $type, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomies( $type )' );
+
+		return $this->get_taxonomies( $type, $context );
 	}
 
 	/**
 	 * Get taxonomies
 	 *
-	 * @param string $type Post type to get taxonomies for
+	 * @param string|null $type A specific post type for which to retrieve taxonomies (optional)
 	 * @return array Taxonomy data
 	 */
-	public function get_taxonomies( $type ) {
-		$taxonomies = get_object_taxonomies( $type, 'objects' );
+	public function get_taxonomies( $type = null, $context = 'view' ) {
+		if ( null === $type ) {
+			$taxonomies = get_taxonomies( '', 'objects' );
+		} else {
+			$taxonomies = get_object_taxonomies( $type, 'objects' );
+		}
 
 		$data = array();
 
-		foreach ($taxonomies as $tax_type => $value) {
-			$tax = $this->prepare_taxonomy( $value, $type, true );
+		foreach ( $taxonomies as $tax_type => $value ) {
+			$tax = $this->prepare_taxonomy_object( $value, $context );
 			if ( is_wp_error( $tax ) ) {
 				continue;
 			}
@@ -49,56 +78,95 @@ class WP_JSON_Taxonomies {
 	}
 
 	/**
-	 * Get taxonomies
+	 * Get taxonomies (legacy route with support for passing $type)
 	 *
-	 * @param string $type Post type to get taxonomies for
+	 * @deprecated
+	 * @see get_taxonomy_object
+	 *
+	 * @param string $type Post type to get taxonomies for (deprecated)
+	 * @param string $taxonomy Taxonomy slug
 	 * @return array Taxonomy data
 	 */
 	public function get_taxonomy( $type, $taxonomy ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_object' );
+
+		return $this->get_taxonomy_object( $taxonomy );
+	}
+
+	/**
+	 * Get taxonomies
+	 *
+	 * @param string $taxonomy Taxonomy slug
+	 * @return array Taxonomy data
+	 */
+	public function get_taxonomy_object( $taxonomy ) {
 		$tax = get_taxonomy( $taxonomy );
 
 		if ( empty( $tax ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 		}
 
-		return $this->prepare_taxonomy( $tax, $type );
+		return $this->prepare_taxonomy_object( $tax );
 	}
 
 	/**
 	 * Prepare a taxonomy for serialization
 	 *
+	 * @deprecated
+	 * @see prepare_taxonomy_object
+	 *
 	 * @param stdClass $taxonomy Taxonomy data
-	 * @param boolean $_in_collection Are we in a collection?
+	 * @param string|null $type Post type to get taxonomies for (deprecated)
+	 * @param string $context Context (view|embed). True/false are allowed for backwards compatibility, and map to embed/view respectively.
 	 * @return array Taxonomy data
 	 */
-	protected function prepare_taxonomy( $taxonomy, $type, $_in_collection = false ) {
+	protected function prepare_taxonomy( $taxonomy, $type = null, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::prepare_taxonomy_object' );
+
+		return $this->prepare_taxonomy_object( $taxonomy, $context );
+	}
+
+	/**
+	 * Prepare a taxonomy object for serialization
+	 *
+	 * @param stdClass $taxonomy Taxonomy data
+	 * @param string $context Context (view|embed). True/false are allowed for backwards compatibility, and map to embed/view respectively.
+	 * @return array Taxonomy data
+	 */
+	protected function prepare_taxonomy_object( $taxonomy, $context = 'view' ) {
 		if ( $taxonomy->public === false ) {
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 		}
 
-		$base_url = '/posts/types/' . $type . '/taxonomies/' . $taxonomy->name;
+		// Backwards compatibility with _in_collection parameter
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
+		}
+		elseif ( $context === false ) {
+			$context = 'view';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "view" rather than false' );
+		}
+
+		$base_url = '/taxonomies/' . $taxonomy->name;
 
 		$data = array(
 			'name'         => $taxonomy->label,
 			'slug'         => $taxonomy->name,
 			'labels'       => $taxonomy->labels,
-			'types'        => array(),
+			'types'        => $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 			'meta'         => array(
 				'links' => array(
-					'archives' => json_url( $base_url . '/terms' )
+					'archives' => json_url( $base_url . '/terms' ),
+					'collection' => json_url( '/taxonomies' ),
+					'self' => json_url( $base_url )
 				)
 			),
 		);
 
-		if ( $_in_collection ) {
-			$data['meta']['links']['self'] = json_url( $base_url );
-		} else {
-			$data['meta']['links']['collection'] = json_url( $base_url );
-		}
-
-		return apply_filters( 'json_prepare_taxonomy', $data );
+		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $context );
 	}
 
 	/**
@@ -106,22 +174,40 @@ class WP_JSON_Taxonomies {
 	 *
 	 * @param array $data Type data
 	 * @param array $post Internal type data
+	 * @param boolean $_in_taxonomy The record being filtered is a taxonomy object (internal use)
 	 * @return array Filtered data
 	 */
-	public function add_taxonomy_data( $data, $type ) {
-		$data['taxonomies'] = $this->get_taxonomies( $type->name );
+	public function add_taxonomy_data( $data, $type, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			$data['taxonomies'] = $this->get_taxonomies( $type->name, 'embed' );
+		}
 
 		return $data;
 	}
 
 	/**
-	 * Get terms for a post type
+	 * Get terms for a post type (legacy route with support for passing $type)
 	 *
-	 * @param string $type Post type
+	 * @deprecated
+	 * @see get_taxonomy_terms
+	 *
+	 * @param string $type Post type for which to fetch taxonomies (deprecated)
 	 * @param string $taxonomy Taxonomy slug
 	 * @return array Term collection
 	 */
 	public function get_terms( $type, $taxonomy ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_terms' );
+
+		return $this->get_taxonomy_terms( $taxonomy );
+	}
+
+	/**
+	 * Get all terms for a post type
+	 *
+	 * @param string $taxonomy Taxonomy slug
+	 * @return array Term collection
+	 */
+	public function get_taxonomy_terms( $taxonomy ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 		}
@@ -137,23 +223,40 @@ class WP_JSON_Taxonomies {
 		}
 
 		$data = array();
-
 		foreach ( $terms as $term ) {
-			$data[] = $this->prepare_term( $term, $type );
+			$data[] = $this->prepare_taxonomy_term( $term );
 		}
+
 		return $data;
 	}
 
 	/**
 	 * Get term for a post type
 	 *
-	 * @param string $type Post type
+	 * @deprecated
+	 * @see get_taxonomy_term
+	 *
+	 * @param string $type Post type (deprecated)
 	 * @param string $taxonomy Taxonomy slug
 	 * @param string $term Term slug
 	 * @param string $context Context (view/view-parent)
 	 * @return array Term entity
 	 */
 	public function get_term( $type, $taxonomy, $term, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::get_taxonomy_term( $taxonomy, $term )' );
+
+		return $this->get_taxonomy_term( $taxonomy, $term, $context );
+	}
+
+	/**
+	 * Get term for a post type
+	 *
+	 * @param string $taxonomy Taxonomy slug
+	 * @param string $term Term slug
+	 * @param string $context Context (view/view-parent)
+	 * @return array Term entity
+	 */
+	public function get_taxonomy_term( $taxonomy, $term, $context = 'view' ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 		}
@@ -164,7 +267,7 @@ class WP_JSON_Taxonomies {
 			return new WP_Error( 'json_taxonomy_invalid_term', __( 'Invalid term ID.' ), array( 'status' => 404 ) );
 		}
 
-		return $this->prepare_term( $data, $type, $context );
+		return $this->prepare_taxonomy_term( $data, $context );
 	}
 
 	/**
@@ -181,7 +284,7 @@ class WP_JSON_Taxonomies {
 		$data['terms'] = array();
 
 		foreach ( $terms as $term ) {
-			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term, $post['post_type'] );
+			$data['terms'][ $term->taxonomy ][] = $this->prepare_taxonomy_term( $term );
 		}
 
 		return $data;
@@ -190,11 +293,29 @@ class WP_JSON_Taxonomies {
 	/**
 	 * Prepare term data for serialization
 	 *
+	 * @deprecated
+	 * @see prepare_taxonomy_term
+	 *
+	 * @param array|object $term The unprepared term data
+	 * @param string|null $type Post type to get taxonomies for (deprecated)
+	 * @return array The prepared term data
+	 */
+	protected function prepare_term( $term, $type = null, $context = 'view' ) {
+		_deprecated_function( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', __CLASS__ . '::prepare_taxonomy_term( $term )' );
+
+		return $this->prepare_taxonomy_term( $term, $context );
+	}
+
+
+	/**
+	 * Prepare term data for serialization
+	 *
 	 * @param array|object $term The unprepared term data
 	 * @return array The prepared term data
 	 */
-	protected function prepare_term( $term, $type, $context = 'view' ) {
-		$base_url = '/posts/types/' . $type . '/taxonomies/' . $term->taxonomy . '/terms';
+	protected function prepare_taxonomy_term( $term, $context = 'view' ) {
+		$base_url = '/taxonomies/' . $term->taxonomy . '/terms';
+
 		$data = array(
 			'ID'          => (int) $term->term_taxonomy_id,
 			'name'        => $term->name,
@@ -212,7 +333,7 @@ class WP_JSON_Taxonomies {
 		);
 
 		if ( ! empty( $data['parent'] ) && $context === 'view' ) {
-			$data['parent'] = $this->get_term( $type, $term->taxonomy, $data['parent'], 'view-parent' );
+			$data['parent'] = $this->get_taxonomy_term( $term->taxonomy, $data['parent'], 'view-parent' );
 		} elseif ( empty( $data['parent'] ) ) {
 			$data['parent'] = null;
 		}

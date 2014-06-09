@@ -563,16 +563,21 @@ class WP_JSON_Posts {
 	 * Get a post type
 	 *
 	 * @param string|object $type Type name, or type object (internal use)
-	 * @param boolean $_in_collection Is this in a collection? (internal use)
+	 * @param boolean $context What context are we in?
 	 * @return array Post type data
 	 */
-	public function get_post_type( $type, $_in_collection = false ) {
+	public function get_post_type( $type, $context = 'view' ) {
 		if ( ! is_object( $type ) ) {
 			$type = get_post_type_object( $type );
 		}
 
 		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
 		}
 
 		$data = array(
@@ -584,15 +589,18 @@ class WP_JSON_Posts {
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
 			'meta'         => array(
-				'links' => array()
+				'links' => array(
+					'self'       => json_url( '/posts/types/' . $type->name ),
+					'collection' => json_url( '/posts/types' ),
+				),
 			),
 		);
 
-		if ( $_in_collection ) {
-			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
-		} else {
-			$data['meta']['links']['collection'] = json_url( '/posts/types' );
-		}
+		// Add taxonomy link
+		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
+		$url = json_url( '/taxonomies' );
+		$url = add_query_arg( 'type', $type->name, $url );
+		$data['meta']['links'][ $relation ] = $url;
 
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
@@ -602,7 +610,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		return apply_filters( 'json_post_type_data', $data, $type );
+		return apply_filters( 'json_post_type_data', $data, $type, $context );
 	}
 
 	/**
@@ -1206,6 +1214,26 @@ class WP_JSON_Posts {
 		}
 
 		return array( 'message' => __( 'Deleted meta' ) );;
+	}
+
+	/**
+	 * Embed post type data into taxonomy data
+	 *
+	 * @uses self::get_post_type()
+	 * @param array $data Taxonomy data
+	 * @param array $taxonomy Internal taxonomy data
+	 * @param string $context Context (view|embed)
+	 * @return array Filtered data
+	 */
+	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			$data['types'] = array();
+			foreach( $taxonomy->object_type as $type ) {
+				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
+			}
+		}
+
+		return $data;
 	}
 
 	/**

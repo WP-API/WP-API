@@ -75,9 +75,10 @@ function json_api_default_filters( $server ) {
 	// Posts
 	$wp_json_posts = new WP_JSON_Posts( $server );
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
+	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
 	// Users
-	$wp_json_users = new WP_JSON_Users($server);
+	$wp_json_users = new WP_JSON_Users( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
@@ -95,10 +96,16 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
 	// Posts
-	$wp_json_taxonomies = new WP_JSON_Taxonomies($server);
-	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'   ), 2     );
-	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 2 );
+	$wp_json_taxonomies = new WP_JSON_Taxonomies( $server );
+	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'       ), 2 );
+	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
+
+	// Deprecated reporting
+	add_action( 'deprecated_function_run', 'json_handle_deprecated_function', 10, 3 );
+	add_filter( 'deprecated_function_trigger_error', '__return_false' );
+	add_action( 'deprecated_argument_run', 'json_handle_deprecated_argument', 10, 3 );
+	add_filter( 'deprecated_argument_trigger_error', '__return_false' );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -525,4 +532,40 @@ function json_get_timezone() {
 	$zone = new DateTimeZone( $tzstring );
 
 	return $zone;
+}
+
+/**
+ * Handle `_deprecated_function` errors
+ *
+ * @param string $function
+ * @param string $replacement
+ * @param string $version
+ */
+function json_handle_deprecated_function( $function, $replacement, $version ) {
+	if ( ! empty( $replacement ) ) {
+		$string = sprintf( __('%1$s (since %2$s; use %3$s instead)'), $function, $version, $replacement );
+	}
+	else {
+		$string = sprintf( __('%1$s (since %2$s; no alternative available)'), $function, $version );
+	}
+
+	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
+}
+
+/**
+ * Handle `_deprecated_function` errors
+ *
+ * @param string $function
+ * @param string $replacement
+ * @param string $version
+ */
+function json_handle_deprecated_argument( $function, $message, $version ) {
+	if ( ! empty( $message ) ) {
+		$string = sprintf( __('%1$s (since %2$s; %3$s)'), $function, $version, $message );
+	}
+	else {
+		$string = sprintf( __('%1$s (since %2$s; no alternative available)'), $function, $version );
+	}
+
+	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
 }
