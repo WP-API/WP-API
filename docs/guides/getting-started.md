@@ -406,8 +406,8 @@ Editing and Creating Posts
 --------------------------
 Just as we can use a GET request to get a post, we can use PUT to edit a post.
 The easiest way to do this is to send a JSON body back to the server with just
-the fields you want to change. For example, to edit the title and the
-modification date:
+the fields you want to change. [Authentication][auth] is **required** to edit
+posts. For example, to edit the title and the modification date:
 
 ```json
 {
@@ -417,7 +417,9 @@ modification date:
 ```
 
 Save the data as "updated-post.json", then we can send this to the server with
-the correct headers and authentication. The API uses HTTP Basic authentication:
+the correct headers and authentication. We will provide our username and
+password with HTTP Basic authentication, which requires the [Basic Auth plugin][basic-auth-plugin]
+be installed:
 
     curl --data-binary "@updated-post.json" \
         -H "Content-Type: application/javascript" \
@@ -431,8 +433,10 @@ Note that there are some fields we can't update; ID is an obvious example, but
 others like timezone fields cannot be updated either. Check the [schema][] for
 more details on this.
 
-Similarly to editing posts, you can create posts. We can use the same data from
-before, but this time, we POST it to the main posts route.
+Similarly to editing posts, you can create posts. [Authentication][auth] is
+**required** to create posts. We can use the same data from before, but this time, we POST it to the main posts route. Again, we are providing our username
+and password using HTTP Basic authentication which requires the [Basic Auth plugin][basic-auth-plugin]
+be installed:
 
     curl --data-binary "@updated-post.json" \
         -H "Content-Type: application/javascript" \
@@ -472,6 +476,9 @@ get exploring!
 
 * [Working With Posts][]: Learn more about Posts and their data
 * [Schema][schema]: View technical information on all the available data
+* [Authentication][auth] : Explore authentication options
 
 [Working with Posts]: working-with-posts.md
 [schema]: ../schema.md
+[auth]: ../authentication.md
+[basic-auth-plugin]: https://github.com/WP-API/Basic-Auth
