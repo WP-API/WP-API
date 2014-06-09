@@ -419,7 +419,7 @@ modification date:
 Save the data as "updated-post.json", then we can send this to the server with
 the correct headers and authentication. The API uses HTTP Basic authentication:
 
-    curl --data-binary="@updated-post.json" \
+    curl --data-binary "@updated-post.json" \
         -H "Content-Type: application/javascript" \
         --user admin:password \
         http://example.com/wp-json/posts/1
@@ -434,7 +434,7 @@ more details on this.
 Similarly to editing posts, you can create posts. We can use the same data from
 before, but this time, we POST it to the main posts route.
 
-    curl --data-binary="@updated-post.json" \
+    curl --data-binary "@updated-post.json" \
         -H "Content-Type: application/javascript" \
         --user admin:password \
         http://example.com/wp-json/posts
