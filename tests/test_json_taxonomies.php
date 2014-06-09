@@ -293,11 +293,11 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$type->name = 'post';
 
 		// This record is not a taxonomy record: taxonomies should be embedded
-		$data = $this->endpoint->add_taxonomy_data( array(), $type, false );
+		$data = $this->endpoint->add_taxonomy_data( array(), $type, 'view' );
 		$this->assertArrayHasKey( 'taxonomies', $data );
 
 		// This record is a taxonomy record: taxonomies should NOT be embedded
-		$data_within_taxonomy = $this->endpoint->add_taxonomy_data( array(), $type, true );
+		$data_within_taxonomy = $this->endpoint->add_taxonomy_data( array(), $type, 'embed' );
 		$this->assertArrayNotHasKey( 'taxonomies', $data_within_taxonomy );
 	}
 
