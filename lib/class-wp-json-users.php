@@ -156,7 +156,7 @@ class WP_JSON_Users {
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'URL'         => $user->user_url,
-			'avatar'      => $this->server->get_avatar_url( $user->user_email ),
+			'avatar'      => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
 			'email'       => $user->user_email,
 		);

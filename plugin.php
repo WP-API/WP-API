@@ -436,6 +436,105 @@ function json_ensure_response( $response ) {
 }
 
 /**
+ * Parse an RFC3339 timestamp into a DateTime
+ *
+ * @param string $date RFC3339 timestamp
+ * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
+ * @return DateTime
+ */
+function json_parse_date( $date, $force_utc = false ) {
+	// Default timezone to the server's current one
+	$timezone = json_get_timezone();
+
+	if ( $force_utc ) {
+		$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
+		$timezone = new DateTimeZone( 'UTC' );
+	}
+
+	// Strip millisecond precision (a full stop followed by one or more digits)
+	if ( strpos( $date, '.' ) !== false ) {
+		$date = preg_replace( '/\.\d+/', '', $date );
+	}
+	$datetime = WP_JSON_DateTime::createFromFormat( DateTime::RFC3339, $date, $timezone );
+
+	return $datetime;
+}
+
+/**
+ * Get a local date with its GMT equivalent, in MySQL datetime format
+ *
+ * @param string $date RFC3339 timestamp
+ * @param boolean $force_utc Should we force UTC timestamp?
+ * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s), null on failure
+ */
+function json_get_date_with_gmt( $date, $force_utc = false ) {
+	$datetime = json_parse_date( $date, $force_utc );
+
+	if ( empty( $datetime ) ) {
+		return null;
+	}
+
+	$datetime->setTimezone( json_get_timezone() );
+	$local = $datetime->format( 'Y-m-d H:i:s' );
+
+	$datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+	$utc = $datetime->format('Y-m-d H:i:s');
+
+	return array( $local, $utc );
+}
+
+/**
+ * Retrieve the avatar url for a user who provided a user ID or email address.
+ *
+ * {@see get_avatar()} doesn't return just the URL, so we have to
+ * extract it here.
+ *
+ * @param string $email Email address
+ * @return string url for the user's avatar
+*/
+function json_get_avatar_url( $email ) {
+	$avatar_html = get_avatar( $email );
+	// strip the avatar url from the get_avatar img tag.
+	preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
+
+	if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+		return esc_url_raw( $matches[1] );
+	}
+
+	return '';
+}
+
+/**
+ * Get the timezone object for the site
+ *
+ * @return DateTimeZone
+ */
+function json_get_timezone() {
+	static $zone = null;
+
+	if ( $zone !== null ) {
+		return $zone;
+	}
+
+	$tzstring = get_option( 'timezone_string' );
+
+	if ( ! $tzstring ) {
+		// Create a UTC+- zone if no timezone string exists
+		$current_offset = get_option( 'gmt_offset' );
+		if ( 0 == $current_offset ) {
+			$tzstring = 'UTC';
+		} elseif ( $current_offset < 0 ) {
+			$tzstring = 'Etc/GMT' . $current_offset;
+		} else {
+			$tzstring = 'Etc/GMT+' . $current_offset;
+		}
+	}
+	$zone = new DateTimeZone( $tzstring );
+
+	return $zone;
+}
+
+/**
  * Handle `_deprecated_function` errors
  *
  * @param string $function

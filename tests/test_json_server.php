@@ -105,12 +105,4 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->markTestIncomplete('Missing test implementation.');
 	}
 
-	/**
-	 * Test if local RFC3339 dates are converted to MySQL datetimes with the
-	 * appropriate GMT timezone.
-	 */
-	function test_get_date_with_gmt() {
-		$this->markTestIncomplete('Missing test implementation.');
-	}
-
 }

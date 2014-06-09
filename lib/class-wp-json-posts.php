@@ -710,7 +710,7 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
@@ -1344,13 +1344,13 @@ class WP_JSON_Posts {
 
 		// Post date
 		if ( ! empty( $data['date'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date'] );
+			$date_data = json_get_date_with_gmt( $data['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
 			}
 		} elseif ( ! empty( $data['date_gmt'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date_gmt'], true );
+			$date_data = json_get_date_with_gmt( $data['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
@@ -1561,12 +1561,12 @@ class WP_JSON_Posts {
 				'ID'     => 0,
 				'name'   => $comment->comment_author,
 				'URL'    => $comment->comment_author_url,
-				'avatar' => $this->server->get_avatar_url( $comment->comment_author_email ),
+				'avatar' => json_get_avatar_url( $comment->comment_author_email ),
 			);
 		}
 
 		// Date
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 		$date               = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date']     = $date->format( 'c' );
