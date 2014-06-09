@@ -105,25 +105,17 @@ still "Default," to http://vagrant.local/?json_route=/)
 
 For testing, you'll need a little bit more:
 
-1. SSH into your Vagrant box, and install PHPUnit:
+1. Clone the [Tester extension](https://github.com/Chassis/Tester) for Chassis:
 
    ```bash
-   vagrant ssh
-   sudo apt-get install php-pear
-   sudo pear config-set auto_discover 1
-   sudo pear install pear.phpunit.de/PHPUnit
-   ```
-
-2. Clone WordPress development (including tests):
-
-   ```bash
-   git clone git://develop.git.wordpress.org/ /tmp/wordpress
-   export WP_DEVELOP_DIR=/tmp/wordpress
+   # From your base directory, api-tester if following the steps from before
+   git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
 
 3. Run the testing suite:
 
    ```bash
+   vagrant ssh
    cd /vagrant/content/plugins/json-rest-api
    phpunit
    ```
