@@ -434,9 +434,10 @@ others like timezone fields cannot be updated either. Check the [schema][] for
 more details on this.
 
 Similarly to editing posts, you can create posts. [Authentication][auth] is
-**required** to create posts. We can use the same data from before, but this time, we POST it to the main posts route. Again, we are providing our username
-and password using HTTP Basic authentication which requires the [Basic Auth plugin][basic-auth-plugin]
-be installed:
+**required** to create posts. We can use the same data from before, but this
+time, we POST it to the main posts route. Again, we are providing our username
+and password using HTTP Basic authentication which requires the
+[Basic Auth plugin][basic-auth-plugin] be installed:
 
     curl --data-binary "@updated-post.json" \
         -H "Content-Type: application/javascript" \
@@ -476,7 +477,7 @@ get exploring!
 
 * [Working With Posts][]: Learn more about Posts and their data
 * [Schema][schema]: View technical information on all the available data
-* [Authentication][auth] : Explore authentication options
+* [Authentication][auth]: Explore authentication options
 
 [Working with Posts]: working-with-posts.md
 [schema]: ../schema.md
