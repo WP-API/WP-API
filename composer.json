@@ -1,0 +1,16 @@
+{
+  "name": "WP-API/WP-API",
+  "description":"JSON-based REST API for WordPress, developed as part of GSoC 2013.",
+  "keywords":["search"],
+  "authors":[
+	{
+	  "name":"Ryan McCue",
+	  "homepage":"http://ryanmccue.info/"
+	}
+  ],
+  "type": "wordpress-plugin",
+  "require": {
+    "composer/installers": "v1.0.6",
+    "php": ">=5.3.2"
+  }
+}
