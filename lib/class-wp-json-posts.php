@@ -205,7 +205,12 @@ class WP_JSON_Posts {
 			}
 
 			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
-			$struct[] = $this->prepare_post( $post, $context );
+			$post_data = $this->prepare_post( $post, $context );
+			if ( is_wp_error( $post_data ) ) {
+				continue;
+			}
+
+			$struct[] = $post_data;
 		}
 		$response->set_data( $struct );
 
@@ -676,6 +681,12 @@ class WP_JSON_Posts {
 			$previous_post = $GLOBALS['post'];
 		}
 		$post_obj = get_post( $post['ID'] );
+
+		// Don't allow unauthenticated users to read password-protected posts
+		if ( ! empty( $post['post_password'] ) && ! $this->check_edit_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
+		}
+
 		$GLOBALS['post'] = $post_obj;
 		setup_postdata( $post_obj );
 
