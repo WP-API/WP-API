@@ -683,8 +683,17 @@ class WP_JSON_Posts {
 		$post_obj = get_post( $post['ID'] );
 
 		// Don't allow unauthenticated users to read password-protected posts
-		if ( ! empty( $post['post_password'] ) && ! $this->check_edit_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
+		if ( ! empty( $post['post_password'] ) ) {
+			if ( ! $this->check_edit_permission( $post ) ) {
+				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
+			}
+
+			// Fake the correct cookie to fool post_password_required().
+			// Without this, get_the_content() will give a password form.
+			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			$hasher = new PasswordHash( 8, true );
+			$value = $hasher->HashPassword( $post['post_password'] );
+			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
 		}
 
 		$GLOBALS['post'] = $post_obj;
