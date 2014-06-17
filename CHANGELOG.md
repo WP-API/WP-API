@@ -1,5 +1,281 @@
 # Changelog
 
+## 1.1
+
+- Add new routes for taxonomies and terms.
+
+  Taxonomies and terms have now been moved from the `/posts/types/<type>`
+  namespace to global routes: `/taxonomies`, `/taxonomies/<tax>`,
+  `/taxonomies/<tax>/terms` and `/taxonomies/<tax>/terms/<term>`
+
+  Test coverage for taxonomy endpoints has also been increased to 100%.
+
+  **Deprecation warning**: The `/posts/types/<type>/taxonomies` endpoint (and
+  sub-endpoints with the same prefix) have been deprecated in favour of the new
+  endpoints. These deprecated endpoints will now return a
+  `X-WP-DeprecatedFunction` header indicating that the endpoint should not be
+  used for new development, but will continue to work in the future.
+
+  (props @kadamwhite, @rachelbaker, @rmccue, [#198][gh-198], [#211][gh-211])
+
+- Allow customizing the API resources prefix
+
+  The API base (typically `wp-json/`) can now be customized to a different
+  prefix using the `json_url_prefix` filter. Note that rewrites will need to be
+  flushed manually after changing this.
+
+  (props @ericandrewlewis, @rmccue, [#104][gh-104], [#244][gh-244], [#278][gh-278])
+
+- Give `null` as date for draft posts.
+
+  Draft posts would previously return "0000-00-00 00:00:00" or
+  "1970-01-01T00:00:00", as draft posts are not assigned a publish date. The API
+  now returns `null` where a date is not available.
+
+  **Compatibility warning**: Clients should be prepared to accept `null` as a
+  value for date/time fields, and treat it as if no value is set.
+
+  (props @rmccue, [#229][gh-229], [#230][gh-230])
+
+- Fix errors with excerpt.
+
+  Posts without excerpts could previously return nonsense strings, excerpts from
+  other posts, or cause internal PHP errors. Posts without excerpts will now
+  always return an excerpt, typically automatically generated from the post
+  content.
+
+  The `excerpt_raw` field was added to the edit context on posts. This field
+  contains the raw excerpt data saved for the post, including empty
+  string values.
+
+  (props @rmccue, [#222][gh-226], [#226][gh-226])
+
+- Only expose email for edit context.
+
+  User email addresses are now only exposed for `context=edit`, which requires
+  the `edit_users` permission (not required for the current user).
+
+  The email address field will now return `false` instead of a string if the
+  field is not exposed.
+
+  (props @pkevan, @rmccue, [#290][gh-290], [#296][gh-296])
+
+- Correct password-protected post handling.
+
+  Password-protected posts could previously be exposed to all users, however
+  could also have broken behaviour with excerpts. Password-protected posts are
+  now hidden to unauthenticated users, while content and excerpts are shown
+  correctly for the `edit` context.
+
+  (Note that hiding password-protected posts is intended to be a temporary
+  measure, and will likely change in the future.)
+
+  (props @rmccue, [#286][gh-286], [#313][gh-313])
+
+- Add documentation on authentication methods.
+
+  Full documentation on [authentication](https://github.com/WP-API/WP-API/blob/master/docs/authentication.md)
+  is now available. This documentation explains the difference between the
+  various available authentication methods, and notes which should be used.
+
+  (props @rmccue, [#242][gh-242])
+
+- Include new client JS from github.io
+
+  The WP-API Javascript library is now loaded dynamically from
+  `wp-api.github.io` to ensure it is always up-to-date.
+
+  (props @tlovett1, [#179][gh-179], [#240][gh-240])
+
+- Don't allow setting the modification date on post creation/update.
+
+  As it turns out, WP core doesn't allow us to set this, so this was previously
+  a no-op anyway. Discovered during test coverage phase.
+
+  (props @rachelbaker, @rmccue, [#285][gh-285], [#288][gh-288])
+
+- Check post parent correctly on insertion.
+
+  Posts could previously be added with an invalid parent ID. These IDs are now
+  checked to ensure the post exists.
+
+  (props @rmccue, [#228][gh-228], [#231][gh-231])
+
+- Make sure the type is actually evaluated for `json_prepare_${type}` filter.
+
+  This value was previously not interpolated correctly, due to the use of the
+  single-quoted string type.
+
+  (props @danielbachhuber, [#266][gh-266])
+
+- Return `WP_Error` instead of array of empty objects for a revisions
+  permissions error.
+
+  Previously, when trying to access post revisions without correct permissions,
+  a JSON list of internal error objects would be returned. This has been
+  corrected to return a standard API error instead.
+
+  (props @rachelbaker, @tlovett1, [#251][gh-251], [#276][gh-276])
+
+- Flip user parameters check for insert/update.
+
+  Previously, you could add a user without specifying username/password/email,
+  but couldn't update a user without those parameters. The logic has been
+  inverted here instead.
+
+  (props @rmccue, [#221][gh-221], [#289][gh-289])
+
+- Add revision endpoints tests
+
+  (props @danielbachhuber, @rachelbaker, @rmccue, [#275][gh-275], [#277][gh-277], [#284][gh-284], [#279][gh-279])
+
+- Add post endpoint testing
+
+  Now at >54% coverage for the whole class, and >80% for the main methods. This
+  figure will continue to rise over the next few releases.
+
+  (props @rachelbaker, @rmccue, [#99][gh-99])
+
+- Separate helper functions into global namespace.
+
+  `WP_JSON_Server::get_timezone()`, `WP_JSON_Server::get_date_with_gmt()`,
+  `WP_JSON_Server::get_avatar_url()` and ``WP_JSON_Server::parse_date()` have
+  all been moved into the global namespace to decouple them from the server
+  class.
+
+  **Deprecation warning**: These methods have been deprecated. The new
+  `json_get_timezone()`, `json_get_date_with_gmt()`, `json_get_avatar_url()` and
+  `json_parse_date()` methods should now be used instead.
+
+  (props @rmccue, [#185][gh-185], [#298][gh-298])
+
+- Re-order Users and Media routes documentation based on CRUD order
+
+  (props @rachelbaker, [#214][gh-214])
+
+- Update Post route documentation to provide more detail for data parameter
+
+  (props @rachelbaker, [#212][gh-212])
+
+- Correct documentation typo ("inforcement" -> "enforcement").
+
+  (props @ericandrewlewis, [#236][gh-236])
+
+- Coding Standards audit
+
+  (props @DrewAPicture, [#235][gh-235])
+
+- Add comparison documentation.
+
+  (props @rachelbaker, @rmccue, [#217][gh-225], [#225][gh-225])
+
+- `json_url` filter call should be passed `$scheme`
+
+  (props @ericandrewlewis, [#243][gh-243])
+
+- Set `class-jsonserializable.php` file mode to 644.
+
+  (props @jeremyfelt, [#255][gh-255])
+
+- Remove unneeded "which" in implementation doc.
+
+  (props @JDGrimes, [#254][gh-254])
+
+- Fix a copy/paste error in schema doc.
+
+  (props @JDGrimes, [#253][gh-253])
+
+- Correct reference link in example schema.
+
+  (props @danielbachhuber, [#258][gh-258])
+
+- Add missing post formats to post schema documentation.
+
+  (props @danielbachhuber, [#260][gh-260])
+
+- Ensure we always use "public" on public methods.
+
+  (props @danielbachhuber, [#268][gh-268])
+
+- Ensure we don't cause a PHP error if a post does not have revisions.
+
+  (props @rmccue, [#227][gh-227])
+
+- Add note to where upload_files cap comes from
+
+  (props @pkevan, [#282][gh-282])
+
+- Add handling of `sticky` property when creating or editing posts.
+
+  (props @rachelbaker, [#218][gh-218])
+
+- Update post route endpoint docs to include details on `post_meta` handling.
+
+  (props @rachelbaker, [#213][gh-213])
+
+- Update main readme file to better describe the project.
+
+  (props @rmccue, [#303][gh-303])
+
+- Fix `--data-binary` cURL option in documentation
+
+  (props @Pezzab, @rachelbaker, @rmccue, [#283][gh-283], [#304][gh-304])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/1.0...1.1)
+
+[gh-99]: https://github.com/WP-API/WP-API/issues/99
+[gh-104]: https://github.com/WP-API/WP-API/issues/104
+[gh-179]: https://github.com/WP-API/WP-API/issues/179
+[gh-185]: https://github.com/WP-API/WP-API/issues/185
+[gh-198]: https://github.com/WP-API/WP-API/issues/198
+[gh-211]: https://github.com/WP-API/WP-API/issues/211
+[gh-212]: https://github.com/WP-API/WP-API/issues/212
+[gh-213]: https://github.com/WP-API/WP-API/issues/213
+[gh-214]: https://github.com/WP-API/WP-API/issues/214
+[gh-218]: https://github.com/WP-API/WP-API/issues/218
+[gh-221]: https://github.com/WP-API/WP-API/issues/221
+[gh-225]: https://github.com/WP-API/WP-API/issues/225
+[gh-225]: https://github.com/WP-API/WP-API/issues/225
+[gh-226]: https://github.com/WP-API/WP-API/issues/226
+[gh-226]: https://github.com/WP-API/WP-API/issues/226
+[gh-227]: https://github.com/WP-API/WP-API/issues/227
+[gh-228]: https://github.com/WP-API/WP-API/issues/228
+[gh-229]: https://github.com/WP-API/WP-API/issues/229
+[gh-230]: https://github.com/WP-API/WP-API/issues/230
+[gh-231]: https://github.com/WP-API/WP-API/issues/231
+[gh-235]: https://github.com/WP-API/WP-API/issues/235
+[gh-236]: https://github.com/WP-API/WP-API/issues/236
+[gh-240]: https://github.com/WP-API/WP-API/issues/240
+[gh-242]: https://github.com/WP-API/WP-API/issues/242
+[gh-243]: https://github.com/WP-API/WP-API/issues/243
+[gh-244]: https://github.com/WP-API/WP-API/issues/244
+[gh-251]: https://github.com/WP-API/WP-API/issues/251
+[gh-253]: https://github.com/WP-API/WP-API/issues/253
+[gh-254]: https://github.com/WP-API/WP-API/issues/254
+[gh-255]: https://github.com/WP-API/WP-API/issues/255
+[gh-258]: https://github.com/WP-API/WP-API/issues/258
+[gh-260]: https://github.com/WP-API/WP-API/issues/260
+[gh-266]: https://github.com/WP-API/WP-API/issues/266
+[gh-268]: https://github.com/WP-API/WP-API/issues/268
+[gh-275]: https://github.com/WP-API/WP-API/issues/275
+[gh-276]: https://github.com/WP-API/WP-API/issues/276
+[gh-277]: https://github.com/WP-API/WP-API/issues/277
+[gh-278]: https://github.com/WP-API/WP-API/issues/278
+[gh-279]: https://github.com/WP-API/WP-API/issues/279
+[gh-282]: https://github.com/WP-API/WP-API/issues/282
+[gh-283]: https://github.com/WP-API/WP-API/issues/283
+[gh-284]: https://github.com/WP-API/WP-API/issues/284
+[gh-285]: https://github.com/WP-API/WP-API/issues/285
+[gh-286]: https://github.com/WP-API/WP-API/issues/286
+[gh-288]: https://github.com/WP-API/WP-API/issues/288
+[gh-289]: https://github.com/WP-API/WP-API/issues/289
+[gh-290]: https://github.com/WP-API/WP-API/issues/290
+[gh-296]: https://github.com/WP-API/WP-API/issues/296
+[gh-298]: https://github.com/WP-API/WP-API/issues/298
+[gh-303]: https://github.com/WP-API/WP-API/issues/303
+[gh-304]: https://github.com/WP-API/WP-API/issues/304
+[gh-313]: https://github.com/WP-API/WP-API/issues/313
+
 ## 1.0
 
 - Add user endpoints.
