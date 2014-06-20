@@ -400,7 +400,7 @@ posts. For example, to edit the title, content, and the date:
 ```json
 {
     "title": "Hello Updated World!",
-    "content_raw": "<p>Howdy updated content<\/p>",
+    "content_raw": "<p>Howdy updated content.<\/p>",
     "date": "2013-04-01T14:00:00+10:00"
 }
 ```
