@@ -116,11 +116,7 @@ class WP_JSON_Posts {
 	 * Accepted keys are 'post_type', 'post_status', 'number', 'offset',
 	 * 'orderby', and 'order'.
 	 *
-	 * The optional $fields parameter specifies what fields will be included
-	 * in the response array.
-	 *
 	 * @uses wp_get_recent_posts()
-	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter Parameters to pass through to `WP_Query`
@@ -317,7 +313,7 @@ class WP_JSON_Posts {
 	 *
 	 * @uses get_post()
 	 * @param int $id Post ID
-	 * @param array $fields Post fields to return (optional)
+	 * @param string $context
 	 * @return array Post entity
 	 */
 	public function get_post( $id, $context = 'view' ) {
@@ -667,7 +663,7 @@ class WP_JSON_Posts {
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
-		// holds the data for this post. built up based on $fields
+		// Holds the data for this post.
 		$_post = array( 'ID' => (int) $post['ID'] );
 
 		$post_type = get_post_type_object( $post['post_type'] );
