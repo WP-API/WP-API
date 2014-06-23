@@ -338,6 +338,6 @@ class WP_JSON_Taxonomies {
 			$data['parent'] = null;
 		}
 
-		return apply_filters( 'json_prepare_term', $data, $term );
+		return apply_filters( 'json_prepare_term', $data, $term, $context );
 	}
 }
