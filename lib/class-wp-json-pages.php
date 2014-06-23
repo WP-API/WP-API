@@ -103,7 +103,7 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 * Prepare post data
 	 *
 	 * @param array $post The unprepared post data
-	 * @param string $context
+	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
