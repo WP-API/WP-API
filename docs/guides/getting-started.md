@@ -395,12 +395,13 @@ Editing and Creating Posts
 Just as we can use a GET request to get a post, we can use PUT to edit a post.
 The easiest way to do this is to send a JSON body back to the server with just
 the fields you want to change. [Authentication][auth] is **required** to edit
-posts. For example, to edit the title and the modification date:
+posts. For example, to edit the title, content, and the date:
 
 ```json
 {
     "title": "Hello Updated World!",
-    "modified": "2013-04-01T14:00:00+10:00"
+    "content_raw": "<p>Howdy updated content.<\/p>",
+    "date": "2013-04-01T14:00:00+10:00"
 }
 ```
 
