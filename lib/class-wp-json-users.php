@@ -123,6 +123,7 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
+		$id = (int) $id;
 		$current_user_id = get_current_user_id();
 
 		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
