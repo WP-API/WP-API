@@ -33,6 +33,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-themes.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -106,6 +107,11 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_function_trigger_error', '__return_false' );
 	add_action( 'deprecated_argument_run', 'json_handle_deprecated_argument', 10, 3 );
 	add_filter( 'deprecated_argument_trigger_error', '__return_false' );
+
+	// Themes
+	$wp_json_themes = new WP_JSON_Themes( $server );
+	add_filter( 'json_endpoints', array( $wp_json_themes, 'register_routes' ) );
+
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
