@@ -84,13 +84,20 @@ class WP_JSON_Posts {
 	public function get_revisions( $id ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
+		$parent = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $parent['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
+
+		if ( ! $this->check_edit_permission( $parent ) ) {
+ 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+ 		}
 
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $id );
 
+		$struct = array();
 		foreach ( $revisions as $revision ) {
 			$post = get_object_vars( $revision );
 
@@ -198,7 +205,12 @@ class WP_JSON_Posts {
 			}
 
 			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
-			$struct[] = $this->prepare_post( $post, $context );
+			$post_data = $this->prepare_post( $post, $context );
+			if ( is_wp_error( $post_data ) ) {
+				continue;
+			}
+
+			$struct[] = $post_data;
 		}
 		$response->set_data( $struct );
 
@@ -285,7 +297,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	function new_post( $data ) {
+	public function new_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -360,7 +372,7 @@ class WP_JSON_Posts {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	function edit_post( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -556,16 +568,21 @@ class WP_JSON_Posts {
 	 * Get a post type
 	 *
 	 * @param string|object $type Type name, or type object (internal use)
-	 * @param boolean $_in_collection Is this in a collection? (internal use)
+	 * @param boolean $context What context are we in?
 	 * @return array Post type data
 	 */
-	public function get_post_type( $type, $_in_collection = false ) {
+	public function get_post_type( $type, $context = 'view' ) {
 		if ( ! is_object( $type ) ) {
 			$type = get_post_type_object( $type );
 		}
 
 		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
 		}
 
 		$data = array(
@@ -577,15 +594,18 @@ class WP_JSON_Posts {
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
 			'meta'         => array(
-				'links' => array()
+				'links' => array(
+					'self'       => json_url( '/posts/types/' . $type->name ),
+					'collection' => json_url( '/posts/types' ),
+				),
 			),
 		);
 
-		if ( $_in_collection ) {
-			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
-		} else {
-			$data['meta']['links']['collection'] = json_url( '/posts/types' );
-		}
+		// Add taxonomy link
+		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
+		$url = json_url( '/taxonomies' );
+		$url = add_query_arg( 'type', $type->name, $url );
+		$data['meta']['links'][ $relation ] = $url;
 
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
@@ -595,7 +615,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		return apply_filters( 'json_post_type_data', $data, $type );
+		return apply_filters( 'json_post_type_data', $data, $type, $context );
 	}
 
 	/**
@@ -656,6 +676,29 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
+		$previous_post = null;
+		if ( ! empty( $GLOBALS['post'] ) ) {
+			$previous_post = $GLOBALS['post'];
+		}
+		$post_obj = get_post( $post['ID'] );
+
+		// Don't allow unauthenticated users to read password-protected posts
+		if ( ! empty( $post['post_password'] ) ) {
+			if ( ! $this->check_edit_permission( $post ) ) {
+				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
+			}
+
+			// Fake the correct cookie to fool post_password_required().
+			// Without this, get_the_content() will give a password form.
+			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			$hasher = new PasswordHash( 8, true );
+			$value = $hasher->HashPassword( $post['post_password'] );
+			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
+		}
+
+		$GLOBALS['post'] = $post_obj;
+		setup_postdata( $post_obj );
+
 		// prepare common post fields
 		$post_fields = array(
 			'title'           => get_the_title( $post['ID'] ), // $post['post_title'],
@@ -681,12 +724,13 @@ class WP_JSON_Posts {
 		$post_fields_raw = array(
 			'title_raw'   => $post['post_title'],
 			'content_raw' => $post['post_content'],
+			'excerpt_raw' => $post['post_excerpt'],
 			'guid_raw'    => $post['guid'],
 			'post_meta'   => $this->get_all_meta( $post['ID'] ),
 		);
 
 		// Dates
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
@@ -749,17 +793,29 @@ class WP_JSON_Posts {
 		if ( 'edit' === $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
 				if ( is_wp_error( $post_fields_raw['post_meta'] ) ) {
+					$GLOBALS['post'] = $previous_post;
+					if ( $previous_post ) {
+						setup_postdata( $previous_post );
+					}
 					return $post_fields_raw['post_meta'];
 				}
 
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
+				$GLOBALS['post'] = $previous_post;
+				if ( $previous_post ) {
+					setup_postdata( $previous_post );
+				}
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 			}
 		} elseif ( 'view-revision' == $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
+				$GLOBALS['post'] = $previous_post;
+				if ( $previous_post ) {
+					setup_postdata( $previous_post );
+				}
 				return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view this revision' ), array( 'status' => 403 ) );
 			}
 		}
@@ -782,6 +838,10 @@ class WP_JSON_Posts {
 			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
 		}
 
+		$GLOBALS['post'] = $previous_post;
+		if ( $previous_post ) {
+			setup_postdata( $previous_post );
+		}
 		return apply_filters( 'json_prepare_post', $_post, $post, $context );
 	}
 
@@ -1177,6 +1237,26 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Embed post type data into taxonomy data
+	 *
+	 * @uses self::get_post_type()
+	 * @param array $data Taxonomy data
+	 * @param array $taxonomy Internal taxonomy data
+	 * @param string $context Context (view|embed)
+	 * @return array Filtered data
+	 */
+	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			$data['types'] = array();
+			foreach( $taxonomy->object_type as $type ) {
+				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
@@ -1246,7 +1326,7 @@ class WP_JSON_Posts {
 			}
 		} else {
 			if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
-				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -1284,31 +1364,16 @@ class WP_JSON_Posts {
 
 		// Post date
 		if ( ! empty( $data['date'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date'] );
+			$date_data = json_get_date_with_gmt( $data['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
 			}
 		} elseif ( ! empty( $data['date_gmt'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date_gmt'], true );
+			$date_data = json_get_date_with_gmt( $data['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
-			}
-		}
-
-		// Post modified
-		if ( ! empty( $data['modified'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['modified'] );
-
-			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
-			}
-		} elseif ( ! empty( $data['modified_gmt'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['modified_gmt'], true );
-
-			if ( ! empty( $date_data ) ) {
-				list( $post['post_modified'], $post['post_modified_gmt'] ) = $date_data;
 			}
 		}
 
@@ -1324,9 +1389,9 @@ class WP_JSON_Posts {
 				if ( empty( $data['author']->ID ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = absint( $data['author']->ID );
+				$data['author'] = (int) $data['author']->ID;
 			} else {
-				$data['author'] = absint( $data['author'] );
+				$data['author'] = (int) $data['author'];
 			}
 
 			// Only check edit others' posts if we are another user
@@ -1366,7 +1431,11 @@ class WP_JSON_Posts {
 		// Parent
 		if ( ! empty( $data['parent'] ) ) {
 			$parent = get_post( $data['parent'] );
-			$post['post_parent'] = $data['post_parent'];
+			if ( empty( $parent ) ) {
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
+			}
+
+			$post['post_parent'] = $parent->ID;
 		}
 
 		// Menu order
@@ -1424,11 +1493,11 @@ class WP_JSON_Posts {
 		}
 
 		// Sticky
-		if ( isset( $post['sticky'] ) )  {
-			if ( $post['sticky'] ) {
-				stick_post( $data['ID'] );
+		if ( isset( $data['sticky'] ) ) {
+			if ( $data['sticky'] ) {
+				stick_post( $post_ID );
 			} else {
-				unstick_post( $data['ID'] );
+				unstick_post( $post_ID );
 			}
 		}
 
@@ -1512,12 +1581,12 @@ class WP_JSON_Posts {
 				'ID'     => 0,
 				'name'   => $comment->comment_author,
 				'URL'    => $comment->comment_author_url,
-				'avatar' => $this->server->get_avatar_url( $comment->comment_author_email ),
+				'avatar' => json_get_avatar_url( $comment->comment_author_email ),
 			);
 		}
 
 		// Date
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 		$date               = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date']     = $date->format( 'c' );

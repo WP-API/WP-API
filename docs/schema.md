@@ -181,9 +181,9 @@ Section 5.6 datetime representation.
 [RFC3339]: http://tools.ietf.org/html/rfc3339
 
 ### `modified`, `modified_gmt`
-The `date` and `date_gmt` fields are strings with the post's last modification
-date and time in the local time and UTC respectively. These fields follow the
-[RFC3339][] Section 5.6 datetime representation.
+The `modified` and `modified_gmt` fields are strings with the post's last
+modification date and time in the local time and UTC respectively. These fields
+follow the [RFC3339][] Section 5.6 datetime representation.
 
 	modified     = date-time
 	modified_gmt = date-time
@@ -334,7 +334,7 @@ indicates how some meta fields should be displayed. For example, posts with the
 "link" format may wish to display an extra link to a URL specified in a meta
 field or emphasise a link in the post content.
 
-	post-format = "standard" / "aside" / "gallery" / "image" / "link" / "status"
+	post-format = "standard" / "aside" / "gallery" / "image" / "link" / "status" / "quote" / "video" / "audio" / "chat"
 
 Providers MUST NOT use post formats not specified by this specification, unless
 specified in a subsequent version of the specification. Consumers MUST treat
@@ -411,8 +411,8 @@ representation.
 				"count": 7,
 				"meta": {
 					"links": {
-						"collection": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms",
-						"self": "http:\/\/example.com\/wp-json\/posts\/types\/post\/taxonomies\/category\/terms\/1"
+						"collection": "http:\/\/example.com\/wp-json\/taxonomies\/category\/terms",
+						"self": "http:\/\/example.com\/wp-json\/taxonomies\/category\/terms\/1"
 					}
 				}
 			}

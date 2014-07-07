@@ -26,7 +26,7 @@ Content-Type: application/json
 The `data` parameter should be an object containing the following key value
 pairs:
 
-* `post_title` - Title of the post. (string) __*required*__
+* `title` - Title of the post. (string) __*required*__
 * `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
@@ -44,18 +44,10 @@ pairs:
   Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
   Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
   (string) *optional*
-* `modified` - Date and time the post was last modified in local time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
-  *optional*
-* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
-  (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
   author's ID or as the User object of the author.  Default is current user.
   (object \| string) *optional*
-* `password` - Password for protecting the posts.  Default is empty string.
+* `password` - Password for protecting the post.  Default is empty string.
   (string) *optional*
 * `post_parent` - Post ID of the post parent.  Default is 0. (integer)
   *optional*
@@ -69,6 +61,11 @@ pairs:
 * `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
   whether users can submit pingbacks or trackbacks to the post.  Default is the
   option 'default_ping_status'. (string) *optional*
+* `sticky` - Sticky status for the post: `true` or `false`.  Default is
+  `false`.  (boolean) *optional*
+* `post_meta` - Post meta entries of the post.  Post meta should be an array
+  of one or more Meta objects for each post meta entry.  See the Create Meta
+  for a Post endpoint for the key value pairs.  (array) *optional*
 
 
 ### Response
@@ -172,7 +169,7 @@ The `data` parameter should be an object containing the following key value
 pairs:
 
 * `ID` - Unique ID of the post. (integer) __*required*__
-* `post_title` - Title of the post. (string) __*required*__
+* `title` - Title of the post. (string) __*required*__
 * `content_raw` - Full text of the post. (string) __*required*__
 * `excerpt_raw` - Text for excerpt of the post. (string) *optional*
 * `name` - Slug of the post. (string) *optional*
@@ -190,18 +187,10 @@ pairs:
   Date should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
   Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
   (string) *optional*
-* `modified` - Date and time the post was last modified in local time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the local date and time. (string)
-  *optional*
-* `modified_gmt` - Date and time the post was last modified in UTC time.  Date
-  should be an [RFC3339 timestamp](http://tools.ietf.org/html/rfc3339).
-  Example: 201401-01T12:20:52Z.  Default is the current GMT date and time.
-  (string) *optional*
 * `author` - Author of the post.  Author can be provided as a string of the
   author's ID or as the User object of the author.  Default is current user.
   (object \| string) *optional*
-* `password` - Password for protecting the posts.  Default is empty string.
+* `password` - Password for protecting the post.  Default is empty string.
   (string) *optional*
 * `post_parent` - Post ID of the post parent.  Default is 0. (integer)
   *optional*
@@ -215,6 +204,11 @@ pairs:
 * `ping_status` - Ping status for the post: `open` or `closed`.  Indicates
   whether users can submit pingbacks or trackbacks to the post.  Default is the
   option 'default_ping_status'. (string) *optional*
+* `sticky` - Sticky status for the post: `true` or `false`.  Default is
+  `false`.  (boolean) *optional*
+* `post_meta` - Post meta entries of the post.  Post meta should be an array
+  of one or more Meta objects for each post meta entry.  See the Edit Meta
+  for a Post endpoint for the key value pairs.  (array) *optional*
 
 
 ### Response

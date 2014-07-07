@@ -123,6 +123,7 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
+		$id = (int) $id;
 		$current_user_id = get_current_user_id();
 
 		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
@@ -156,9 +157,8 @@ class WP_JSON_Users {
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'URL'         => $user->user_url,
-			'avatar'      => $this->server->get_avatar_url( $user->user_email ),
+			'avatar'      => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'email'       => $user->user_email,
 		);
 
 		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
@@ -166,11 +166,13 @@ class WP_JSON_Users {
 		if ( $context === 'view' || $context === 'edit' ) {
 			$user_fields['roles']        = $user->roles;
 			$user_fields['capabilities'] = $user->allcaps;
+			$user_fields['email']        = false;
 		}
 
 		if ( $context === 'edit' ) {
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
+			$user_fields['email']              = $user->user_email;
 			$user_fields['extra_capabilities'] = $user->caps;
 		}
 
@@ -223,15 +225,24 @@ class WP_JSON_Users {
 	}
 
 	protected function insert_user( $data ) {
-		if ( ! empty( $data['ID'] ) ) {
-			$user = get_userdata( $data['ID'] );
+		$user = new stdClass;
 
-			if ( ! $user ) {
+		if ( ! empty( $data['ID'] ) ) {
+			$existing = get_userdata( $data['ID'] );
+
+			if ( ! $existing ) {
 				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 			}
 
 			if ( ! current_user_can( 'edit_user', $data['ID'] ) ) {
 				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
+			}
+
+			$user->ID = $existing->ID;
+			$update = true;
+		} else {
+			if ( ! current_user_can( 'create_users' ) ) {
+				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 			}
 
 			$required = array( 'username', 'password', 'email' );
@@ -240,17 +251,6 @@ class WP_JSON_Users {
 				if ( empty( $data[ $arg ] ) ) {
 					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
 				}
-			}
-
-			$update = true;
-		} else {
-			$user = new WP_User();
-
-			// Workaround for https://core.trac.wordpress.org/ticket/28019
-			$user->data = new stdClass;
-
-			if ( ! current_user_can( 'create_users' ) ) {
-				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 			}
 
 			$update = false;

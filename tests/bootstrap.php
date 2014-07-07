@@ -20,3 +20,6 @@ if( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
 } else {
 	require '../../../../tests/phpunit/includes/bootstrap.php';
 }
+
+// Helper classes
+require_once dirname( __FILE__ ) . '/test_json_testcase.php';
