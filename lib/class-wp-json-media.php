@@ -189,7 +189,12 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		$post_type_post = get_post_type_object( 'post' );
+		
+		if ( $post_id == 0 ) {
+			$post_parent_type = get_post_type_object( 'post' );
+		} else {
+			$post_parent_type = get_post_type_object( get_post_type( $post_id ) );
+		}
 
 		// Make sure we have an int or 0
 		$post_id = (int) $post_id;
@@ -204,7 +209,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// If a user is trying to attach to a post make sure they have permissions. Bail early if post_id is not being passed
-		if ( $post_id !== 0 && ! current_user_can( $post_type_post->cap->edit_post, $post_id ) ) {
+		if ( $post_id !== 0 && ! current_user_can( $post_parent_type->cap->edit_post, $post_id ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 		}
 
