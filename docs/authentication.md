@@ -32,14 +32,14 @@ POST data or in the query for GET requests), or via the `X-WP-Nonce` header.
 As an example, this is how the built-in Javascript client creates the nonce:
 
 ```php
-wp_localize_script( 'wp-api', 'wpApiOptions', array( 'base' => json_url(), 'nonce' => wp_create_nonce( 'wp_json' ) ) );
+wp_localize_script( 'wp-api', 'WP_API_Settings', array( 'root' => esc_url_raw( get_json_url() ), 'nonce' => wp_create_nonce( 'wp_json' ) ) );
 ```
 
 This is then used in the base model:
 
 ```javascript
 options.beforeSend = function(xhr) {
-	xhr.setRequestHeader('X-WP-Nonce', wpApiOptions.nonce);
+	xhr.setRequestHeader('X-WP-Nonce', WP_API_Settings.nonce);
 
 	if (beforeSend) {
 		return beforeSend.apply(this, arguments);

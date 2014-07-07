@@ -123,6 +123,7 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
+		$id = (int) $id;
 		$current_user_id = get_current_user_id();
 
 		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
@@ -156,9 +157,8 @@ class WP_JSON_Users {
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'URL'         => $user->user_url,
-			'avatar'      => $this->server->get_avatar_url( $user->user_email ),
+			'avatar'      => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'email'       => $user->user_email,
 		);
 
 		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
@@ -166,11 +166,13 @@ class WP_JSON_Users {
 		if ( $context === 'view' || $context === 'edit' ) {
 			$user_fields['roles']        = $user->roles;
 			$user_fields['capabilities'] = $user->allcaps;
+			$user_fields['email']        = false;
 		}
 
 		if ( $context === 'edit' ) {
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
+			$user_fields['email']              = $user->user_email;
 			$user_fields['extra_capabilities'] = $user->caps;
 		}
 

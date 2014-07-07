@@ -116,15 +116,11 @@ class WP_JSON_Posts {
 	 * Accepted keys are 'post_type', 'post_status', 'number', 'offset',
 	 * 'orderby', and 'order'.
 	 *
-	 * The optional $fields parameter specifies what fields will be included
-	 * in the response array.
-	 *
 	 * @uses wp_get_recent_posts()
-	 * @see WP_JSON_Posts::get_post() for more on $fields
 	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter Parameters to pass through to `WP_Query`
-	 * @param string $context
+	 * @param string $context The context; 'view' (default) or 'edit'.
 	 * @param string|array $type Post type slug, or array of slugs
 	 * @param int $page Page number (1-indexed)
 	 * @return stdClass[] Collection of Post entities
@@ -205,7 +201,12 @@ class WP_JSON_Posts {
 			}
 
 			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
-			$struct[] = $this->prepare_post( $post, $context );
+			$post_data = $this->prepare_post( $post, $context );
+			if ( is_wp_error( $post_data ) ) {
+				continue;
+			}
+
+			$struct[] = $post_data;
 		}
 		$response->set_data( $struct );
 
@@ -312,7 +313,7 @@ class WP_JSON_Posts {
 	 *
 	 * @uses get_post()
 	 * @param int $id Post ID
-	 * @param array $fields Post fields to return (optional)
+	 * @param string $context The context; 'view' (default) or 'edit'.
 	 * @return array Post entity
 	 */
 	public function get_post( $id, $context = 'view' ) {
@@ -563,16 +564,21 @@ class WP_JSON_Posts {
 	 * Get a post type
 	 *
 	 * @param string|object $type Type name, or type object (internal use)
-	 * @param boolean $_in_collection Is this in a collection? (internal use)
+	 * @param boolean $context What context are we in?
 	 * @return array Post type data
 	 */
-	public function get_post_type( $type, $_in_collection = false ) {
+	public function get_post_type( $type, $context = 'view' ) {
 		if ( ! is_object( $type ) ) {
 			$type = get_post_type_object( $type );
 		}
 
 		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( $context === true ) {
+			$context = 'embed';
+			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
 		}
 
 		$data = array(
@@ -584,15 +590,18 @@ class WP_JSON_Posts {
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
 			'meta'         => array(
-				'links' => array()
+				'links' => array(
+					'self'       => json_url( '/posts/types/' . $type->name ),
+					'collection' => json_url( '/posts/types' ),
+				),
 			),
 		);
 
-		if ( $_in_collection ) {
-			$data['meta']['links']['self'] = json_url( '/posts/types/' . $type->name );
-		} else {
-			$data['meta']['links']['collection'] = json_url( '/posts/types' );
-		}
+		// Add taxonomy link
+		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
+		$url = json_url( '/taxonomies' );
+		$url = add_query_arg( 'type', $type->name, $url );
+		$data['meta']['links'][ $relation ] = $url;
 
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
@@ -602,7 +611,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		return apply_filters( 'json_post_type_data', $data, $type );
+		return apply_filters( 'json_post_type_data', $data, $type, $context );
 	}
 
 	/**
@@ -650,11 +659,11 @@ class WP_JSON_Posts {
 	 * @access protected
 	 *
 	 * @param array $post The unprepared post data
-	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed)
+	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
-		// holds the data for this post. built up based on $fields
+		// Holds the data for this post.
 		$_post = array( 'ID' => (int) $post['ID'] );
 
 		$post_type = get_post_type_object( $post['post_type'] );
@@ -668,6 +677,21 @@ class WP_JSON_Posts {
 			$previous_post = $GLOBALS['post'];
 		}
 		$post_obj = get_post( $post['ID'] );
+
+		// Don't allow unauthenticated users to read password-protected posts
+		if ( ! empty( $post['post_password'] ) ) {
+			if ( ! $this->check_edit_permission( $post ) ) {
+				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
+			}
+
+			// Fake the correct cookie to fool post_password_required().
+			// Without this, get_the_content() will give a password form.
+			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			$hasher = new PasswordHash( 8, true );
+			$value = $hasher->HashPassword( $post['post_password'] );
+			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
+		}
+
 		$GLOBALS['post'] = $post_obj;
 		setup_postdata( $post_obj );
 
@@ -702,7 +726,7 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
@@ -1209,6 +1233,26 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Embed post type data into taxonomy data
+	 *
+	 * @uses self::get_post_type()
+	 * @param array $data Taxonomy data
+	 * @param array $taxonomy Internal taxonomy data
+	 * @param string $context Context (view|embed)
+	 * @return array Filtered data
+	 */
+	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			$data['types'] = array();
+			foreach( $taxonomy->object_type as $type ) {
+				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
@@ -1316,13 +1360,13 @@ class WP_JSON_Posts {
 
 		// Post date
 		if ( ! empty( $data['date'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date'] );
+			$date_data = json_get_date_with_gmt( $data['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
 			}
 		} elseif ( ! empty( $data['date_gmt'] ) ) {
-			$date_data = $this->server->get_date_with_gmt( $data['date_gmt'], true );
+			$date_data = json_get_date_with_gmt( $data['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $post['post_date'], $post['post_date_gmt'] ) = $date_data;
@@ -1533,12 +1577,12 @@ class WP_JSON_Posts {
 				'ID'     => 0,
 				'name'   => $comment->comment_author,
 				'URL'    => $comment->comment_author_url,
-				'avatar' => $this->server->get_avatar_url( $comment->comment_author_email ),
+				'avatar' => json_get_avatar_url( $comment->comment_author_email ),
 			);
 		}
 
 		// Date
-		$timezone = $this->server->get_timezone();
+		$timezone = json_get_timezone();
 
 		$date               = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date']     = $date->format( 'c' );

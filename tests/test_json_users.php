@@ -52,16 +52,36 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->check_get_user_response( $response, $this->user_obj );
 	}
 
-	protected function check_get_user_response( $response, $user_obj ) {
+	public function test_get_user_with_edit_context() {
+		$response = $this->endpoint->get_user( $this->user, 'edit' );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
+			$response = new WP_JSON_Response( $response );
+		}
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+
+		$this->check_get_user_response( $response, $this->user_obj, 'edit' );
+	}
+
+	protected function check_get_user_response( $response, $user_obj, $context = 'view' ) {
 		$response_data = $response->get_data();
 
 		// Check basic data
 		$this->assertEquals( $user_obj->ID, $response_data['ID'] );
 		$this->assertEquals( $user_obj->user_login, $response_data['username'] );
-		$this->assertEquals( $user_obj->user_email, $response_data['email'] );
+		if ( $context === 'view' ) {
+			$this->assertEquals( false, $response_data['email'] );
 
-		// Check that we didn't get extra data
-		$this->assertArrayNotHasKey( 'extra_capabilities', $response_data );
+			// Check that we didn't get extra data
+			$this->assertArrayNotHasKey( 'extra_capabilities', $response_data );
+		}
+		else {
+			$this->assertEquals( $user_obj->user_email, $response_data['email'] );
+			$this->assertEquals( $user_obj->caps, $response_data['extra_capabilities'] );
+		}
 	}
 
 	public function test_create_user() {
@@ -85,7 +105,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->assertEquals( $data['username'], $response_data['username'] );
 		$this->assertEquals( $data['username'], $new_user->user_login );
 
-		$this->assertEquals( $data['email'], $response_data['email'] );
+		$this->assertEquals( false, $response_data['email'] );
 		$this->assertEquals( $data['email'], $new_user->user_email );
 
 		$this->assertTrue( wp_check_password( $data['password'], $new_user->user_pass ), 'Password check failed' );

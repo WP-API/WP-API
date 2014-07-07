@@ -72,7 +72,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		}
 
 		// Check post dates.
-		$timezone = $this->fake_server->get_timezone();
+		$timezone = json_get_timezone();
 
 		if ( $post_obj->post_date_gmt === '0000-00-00 00:00:00' ) {
 			$this->assertNull( $response_data['date'] );
