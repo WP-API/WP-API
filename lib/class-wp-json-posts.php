@@ -833,6 +833,8 @@ class WP_JSON_Posts {
 		if ( 'view-revision' != $context ) {
 			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
 			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+		} else {
+			$links['self'] = json_url( '/posts/' . $post['post_parent'] . '/revisions/' . $post['ID'] );
 		}
 
 		$_post['meta'] = array( 'links' => $links );
