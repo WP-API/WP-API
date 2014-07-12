@@ -1,31 +1,45 @@
 # REST API
-This is a project to create a JSON-based REST API for WordPress. This project is
-run by Ryan McCue and is part of the WordPress 2013 GSoC projects.
+
+Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.png?branch=master)](https://travis-ci.org/WP-API/WP-API)
 
+## About
 
-## Documentation
+WordPress is moving towards becoming a fully-fledged application framework, and
+we need new APIs. This project was born to create an easy-to-use,
+easy-to-understand and well-tested framework for creating these APIs, plus
+creating APIs for core.
 
-Read the [plugin's documentation][docs].
+This plugin provides an easy to use REST API, available via HTTP. Grab your
+site's data in simple JSON format, including users, posts, taxonomies and more.
+Retrieving or updating data is as simple as sending a HTTP request.
 
-[docs]: https://github.com/WP-API/WP-API/tree/master/docs
+Want to get your site's posts? Simply send a `GET` request to `/wp-json/posts`.
+Update user with ID 4? Send a `POST` request to `/wp-json/users/4`. Get all
+posts with the search term "awesome"? `GET /wp-json/posts?filter[s]=awesome`.
+It's that easy.
+
+WP API exposes a simple yet easy interface to WP Query, the posts API, post meta
+API, users API, revisions API and many more. Chances are, if you can do it with
+WordPress, WP API will let you do it.
+
+WP API also includes an easy-to-use Javascript API based on Backbone models,
+allowing plugin and theme developers to get up and running without needing to
+know anything about the details of getting connected.
+
+Check out [our documentation][docs] for information on what's available in the
+API and how to use it. We've also got documentation on extending the API with
+extra data for plugin and theme developers!
+
+We're currently aiming for integration into WordPress 4.1 as a permanent part of
+core.
 
 
 ## Installation
 
-### As a Plugin
 Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
-
-### As Part of Core
-**Note: These instructions will likely be broken while in development. Please
-use the plugin method instead.**
-
-Drop `wp-json.php` into your WordPress directory, and drop
-`class-wp-json-server.php` into your `wp-includes/` directory. You'll need
-working `PATH_INFO` on your server, but you don't need pretty permalinks
-enabled.
 
 
 ## Quick Setup
@@ -38,7 +52,6 @@ testing environment in a few easy steps:
 
    ```bash
    git clone --recursive git@github.com:sennza/Chassis.git api-tester
-   vagrant plugin install vagrant-hostsupdater
    ```
 
 3. Grab a copy of WP API:
@@ -75,25 +88,17 @@ still "Default," to http://vagrant.local/?json_route=/)
 
 For testing, you'll need a little bit more:
 
-1. SSH into your Vagrant box, and install PHPUnit:
+1. Clone the [Tester extension](https://github.com/Chassis/Tester) for Chassis:
 
    ```bash
-   vagrant ssh
-   sudo apt-get install php-pear
-   sudo pear config-set auto_discover 1
-   sudo pear install pear.phpunit.de/PHPUnit
-   ```
-
-2. Clone WordPress development (including tests):
-
-   ```bash
-   git clone git://develop.git.wordpress.org/ /tmp/wordpress
-   export WP_DEVELOP_DIR=/tmp/wordpress
+   # From your base directory, api-tester if following the steps from before
+   git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
 
 3. Run the testing suite:
 
    ```bash
+   vagrant ssh
    cd /vagrant/content/plugins/json-rest-api
    phpunit
    ```
@@ -101,9 +106,13 @@ For testing, you'll need a little bit more:
 
 ## Issue Tracking
 
-All tickets for the project are being tracked on [GitHub][]. Previous issues can
-be found on the [GSOC Trac][] issue tracker, however new issues should not be
-filed there.
+All tickets for the project are being tracked on [GitHub][]. You can also take a
+look at the [recent updates][] for the project.
 
+Previous issues can be found on the [GSOC Trac][] issue tracker, however new
+issues should not be filed there.
+
+[docs]: https://github.com/WP-API/WP-API/tree/master/docs
 [GitHub]: https://github.com/WP-API/WP-API
 [GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
+[recent updates]: http://make.wordpress.org/core/tag/json-api/
