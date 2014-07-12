@@ -37,7 +37,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 /**
  * Register rewrite rules for the API.
  *
- * @global WP $wp
+ * @global WP $wp Current WordPress environment instance.
  */
 function json_api_init() {
 	json_api_register_rewrites();
@@ -74,10 +74,10 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  *
  * @internal This will live in default-filters.php
  *
- * @global $wp_json_posts
- * @global $wp_json_pages
- * @global $wp_json_media
- * @global $wp_json_taxonomies
+ * @global WP_JSON_Posts      $wp_json_posts
+ * @global WP_JSON_Pages      $wp_json_pages
+ * @global WP_JSON_Media      $wp_json_media
+ * @global WP_JSON_Taxonomies $wp_json_taxonomies
  *
  * @param WP_JSON_ResponseHandler $server Server object.
  */
@@ -283,7 +283,7 @@ add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
  * This value controls whether the post type is available via API endpoints,
  * and defaults to the value of $publicly_queryable.
  *
- * @global $wp_post_types Post types list.
+ * @global array $wp_post_types Post types list.
  *
  * @param string   $post_type Post type to register.
  * @param stdClass $args      Post type arguments.
@@ -317,7 +317,7 @@ add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
  * for logged in users. However, the API has to check nonces
  * for each request to ensure users are not vulnerable to CSRF.
  *
- * @global $wp_json_auth_cookie
+ * @global mixed $wp_json_auth_cookie
  *
  * @param WP_Error|mixed $result Error from another authentication handler,
  *                               null if we should handle it, or another
@@ -372,7 +372,7 @@ add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
  * use by {@see json_cookie_check_errors}.
  *
  * @see current_action()
- * @global $wp_json_auth_cookie
+ * @global mixed $wp_json_auth_cookie
  */
 function json_cookie_collect_status() {
 	global $wp_json_auth_cookie;
