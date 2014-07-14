@@ -1506,6 +1506,11 @@ class WP_JSON_Posts {
 						$term_names = array_filter( array_unique( $term_names ) );
 						wp_set_object_terms( $post_ID, $term_names, $tax_slug );
 					}
+					if ( ! empty( $terms_lists['terms_ids'] ) ) {
+						$term_ids = array_map( 'intval', $terms_lists['terms_ids'] );
+						$term_ids = array_filter( array_unique( $term_ids ) );
+						wp_set_object_terms( $post_ID, $term_ids, $tax_slug );
+					}
 				}
 			}
 		}
