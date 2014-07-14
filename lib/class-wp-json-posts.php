@@ -1498,20 +1498,20 @@ class WP_JSON_Posts {
 		}
 
 		//Custom taxonomy terms
+		$sanitize_callbacks = array(
+			'term_names' => 'sanitize_text_field',
+			'term_ids'   => 'intval',
+		);
+
 		if ( ! empty( $data['tax_input'] ) ) {
 			foreach ( $data['tax_input'] as $tax_slug => $terms_lists ) {
 				if ( ! taxonomy_exists( $tax_slug ) ){
 					continue;
 				}
-				if ( ! empty( $terms_lists['term_names'] ) ) {
-					$term_names = array_map( 'sanitize_text_field', $terms_lists['term_names'] );
-					$term_names = array_filter( array_unique( $term_names ) );
-					wp_set_object_terms( $post_ID, $term_names, $tax_slug );
-				}
-				if ( ! empty( $terms_lists['terms_ids'] ) ) {
-					$term_ids = array_map( 'intval', $terms_lists['terms_ids'] );
-					$term_ids = array_filter( array_unique( $term_ids ) );
-					wp_set_object_terms( $post_ID, $term_ids, $tax_slug );
+				foreach ( $terms_lists as $type => $terms ) {
+					$clean_terms = array_map( $sanitize_callbacks[ $type ], $terms );
+					$clean_terms = array_filter( array_unique( $clean_terms ) );
+					wp_set_object_terms( $post_ID, $clean_terms, $tax_slug );
 				}
 			}
 		}
