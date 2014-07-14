@@ -1497,6 +1497,22 @@ class WP_JSON_Posts {
 			}
 		}
 
+		//Custom taxonomy terms
+		if ( ! empty( $data['tax_input'] ) ) {
+			foreach ( $data['tax_input'] as $tax_slug => $term_names ) {
+				if ( taxonomy_exists( $tax_slug ) ) {
+					if ( ! empty( $term_names ) ) {
+						$term_names = array_map( 'sanitize_text_field', $term_names );
+						$term_names = array_filter( array_unique( $term_names ) );
+						wp_set_object_terms( $post_ID, $term_names, $tax_slug );
+					} else {
+						wp_set_object_terms( $post_ID, '', $tax_slug );
+					}
+				}
+			}
+		}
+
+
 		do_action( 'json_insert_post', $post, $data, $update );
 
 		return $post_ID;
