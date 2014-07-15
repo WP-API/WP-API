@@ -113,7 +113,7 @@ class WP_JSON_Posts {
 	 * @since 3.4.0
 	 *
 	 * The optional $filter parameter modifies the query used to retrieve posts.
-	 * Accepted keys are 'post_type', 'post_status', 'number', 'offset',
+	 * Accepted keys are 'post_type', 'post_status', 'posts_per_page', 'offset',
 	 * 'orderby', and 'order'.
 	 *
 	 * @uses wp_get_recent_posts()
