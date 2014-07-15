@@ -235,7 +235,7 @@ hooking and more for you:
 
 		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
 		$myplugin_api_mytype = new MyPlugin_API_MyType( $server );
-		$myplugin->register_filters();
+		$myplugin_api_mytype->register_filters();
 	}
 	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
 
