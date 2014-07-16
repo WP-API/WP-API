@@ -33,6 +33,8 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 /**
  * Register our rewrite rules for the API
@@ -86,6 +88,12 @@ function json_api_default_filters( $server ) {
 	// Pages
 	$wp_json_pages = new WP_JSON_Pages( $server );
 	$wp_json_pages->register_filters();
+
+	// Post meta
+	$wp_json_post_meta = new WP_JSON_Meta_Posts( $server );
+	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
+	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
+	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
 
 	// Media
 	$wp_json_media = new WP_JSON_Media( $server );
