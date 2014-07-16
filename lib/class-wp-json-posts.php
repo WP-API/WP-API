@@ -1216,4 +1216,139 @@ class WP_JSON_Posts {
 
 		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
 	}
+
+	/**
+	 * Retrieve custom fields for object
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id Object ID
+	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
+	 */
+	public function get_all_meta( $id ) {
+		_deprecated_function( 'WP_JSON_Posts::get_all_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::get_all_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->get_all_meta( $id );
+	}
+
+	/**
+	 * Add meta to a post
+	 *
+	 * Ensures that the correct location header is sent with the response.
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id Post ID
+	 * @param array $data {
+	 *     @type string|null $key Meta key
+	 *     @type string|null $key Meta value
+	 * }
+	 * @return bool|WP_Error
+	 */
+	public function add_meta( $id, $data ) {
+		_deprecated_function( 'WP_JSON_Posts::add_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::add_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->add_meta( $id, $data );
+	}
+
+	/**
+	 * Retrieve custom field object.
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id Object ID
+	 * @param int $mid Metadata ID
+	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 */
+	public function get_meta( $id, $mid ) {
+		_deprecated_function( 'WP_JSON_Posts::get_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::get_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->get_meta( $id, $mid );
+	}
+
+	/**
+	 * Add meta to an object
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id Object ID
+	 * @param array $data {
+	 *     @type string|null $key Meta key
+	 *     @type string|null $key Meta value
+	 * }
+	 * @return bool|WP_Error
+	 */
+	public function update_meta( $id, $mid, $data ) {
+		_deprecated_function( 'WP_JSON_Posts::update_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::update_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->update_meta( $id, $mid, $data );
+	}
+
+	/**
+	 * Delete meta from an object
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id Object ID
+	 * @param int $mid Metadata ID
+	 * @return array|WP_Error Message on success, WP_Error otherwise
+	 */
+	public function delete_meta( $id, $mid ) {
+		_deprecated_function( 'WP_JSON_Posts::delete_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::delete_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->delete_meta( $id, $mid, $data );
+	}
+
+	/**
+	 * Prepares meta data for return as an object
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $post Object ID
+	 * @param stdClass $data Metadata row from database
+	 * @param boolean $is_raw Is the value field still serialized? (False indicates the value has been unserialized)
+	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 */
+	protected function prepare_meta( $post, $data, $is_raw = false ) {
+		_deprecated_function( 'WP_JSON_Posts::prepare_meta', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::prepare_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->_deprecated_call( 'prepare_meta', array( $post, $data, $is_raw ) );
+	}
+
+	/**
+	 * Update/add/delete meta for an object
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param array $data
+	 * @param int $parent_id
+	 * @return bool|WP_Error
+	 */
+	protected function handle_post_meta_action( $post_id, $data ) {
+		_deprecated_function( 'WP_JSON_Posts::handle_post_meta_action', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::handle_inline_meta' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->_deprecated_call( 'handle_inline_meta', array( $post, $data, $is_raw ) );
+	}
+
+	/**
+	 * Check if the data provided is valid data
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param mixed $data Data to be checked
+	 * @return boolean Whether the data is valid or not
+	 */
+	protected function is_valid_meta_data( $data ) {
+		_deprecated_function( 'WP_JSON_Posts::is_valid_meta_data', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::is_valid_meta_data' );
+
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+		return $handler->_deprecated_call( 'is_valid_meta_data', array( $post, $data, $is_raw ) );
+	}
 }

@@ -118,4 +118,18 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 
 		return $post;
 	}
+
+	/**
+	 * Call protected method from WP_JSON_Posts
+	 *
+	 * WPAPI-1.2 deprecated a bunch of protected methods by moving them to this
+	 * class. This proxy method is added to call those methods.
+	 *
+	 * @param string $method Method name
+	 * @param array $args Method arguments
+	 * @return mixed Return value from the method
+	 */
+	public function _deprecated_call( $method, $args ) {
+		return call_user_func_array( array( $this, $method ), $args );
+	}
 }
