@@ -1,28 +1,28 @@
 <?php
 /**
- * Metadata base class
+ * Metadata base class.
  */
 
 /**
- * Metadata base class
+ * Metadata base class.
  */
 abstract class WP_JSON_Meta {
 	/**
-	 * Base route name
+	 * Base route name.
 	 *
 	 * @var string Route base (e.g. /my-plugin/my-type)
 	 */
 	protected $base = null;
 
 	/**
-	 * Associated object type
+	 * Associated object type.
 	 *
 	 * @var string Type slug ("post" or "user")
 	 */
 	protected $type = null;
 
 	/**
-	 * Construct the API handler object
+	 * Construct the API handler object.
 	 */
 	public function __construct( WP_JSON_ResponseHandler $server ) {
 		if ( empty( $this->base ) ) {
@@ -36,7 +36,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Register the meta-related routes
+	 * Register the meta-related routes.
 	 *
 	 * @param array $routes Existing routes
 	 * @return array Modified routes
@@ -82,7 +82,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Retrieve custom fields for object
+	 * Retrieve custom fields for object.
 	 *
 	 * @param int $id Object ID
 	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
@@ -142,7 +142,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Prepares meta data for return as an object
+	 * Prepares meta data for return as an object.
 	 *
 	 * @param int $parent_id Object ID
 	 * @param stdClass $data Metadata row from database
@@ -179,7 +179,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Update/add/delete meta for an object
+	 * Update/add/delete meta for an object.
 	 * 
 	 * Meta data is expected to be sent in the same format as it's output:
 	 *
@@ -216,7 +216,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Add meta to an object
+	 * Add meta to an object.
 	 *
 	 * @param int $id Object ID
 	 * @param array $data {
@@ -293,7 +293,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Check if the data provided is valid data
+	 * Check if the data provided is valid data.
 	 *
 	 * Excludes serialized data from being sent via the API.
 	 *
@@ -310,7 +310,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Add meta to an object
+	 * Add meta to an object.
 	 *
 	 * @param int $id Object ID
 	 * @param array $data {
@@ -369,7 +369,7 @@ abstract class WP_JSON_Meta {
 	}
 
 	/**
-	 * Delete meta from an object
+	 * Delete meta from an object.
 	 *
 	 * @param int $id Object ID
 	 * @param int $mid Metadata ID

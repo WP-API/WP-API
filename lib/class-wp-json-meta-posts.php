@@ -2,21 +2,21 @@
 
 class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	/**
-	 * Base route name
+	 * Base route name.
 	 *
 	 * @var string Route base (e.g. /my-plugin/my-type/(?P<id>\d+)/meta). Must include ID selector.
 	 */
 	protected $base = '/posts/(?P<id>\d+)/meta';
 
 	/**
-	 * Associated object type
+	 * Associated object type.
 	 *
 	 * @var string Type slug ("post" or "user")
 	 */
 	protected $type = 'post';
 
 	/**
-	 * Check if we can edit a post
+	 * Check if we can edit a post.
 	 *
 	 * @param array $post Post data
 	 * @return boolean Can we edit it?
@@ -32,7 +32,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	}
 
 	/**
-	 * Check that the object can be accessed
+	 * Check that the object can be accessed.
 	 *
 	 * @param mixed $id Object ID
 	 * @return boolean|WP_Error
@@ -58,7 +58,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	}
 
 	/**
-	 * Add meta to a post
+	 * Add meta to a post.
 	 *
 	 * Ensures that the correct location header is sent with the response.
 	 *
@@ -84,7 +84,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	}
 
 	/**
-	 * Add post meta to post responses
+	 * Add post meta to post responses.
 	 *
 	 * Adds meta to post responses for the 'edit' context.
 	 *
@@ -109,7 +109,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	}
 
 	/**
-	 * Add post meta on post update
+	 * Add post meta on post update.
 	 *
 	 * Handles adding/updating post meta when creating or updating posts.
 	 *
@@ -131,7 +131,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	}
 
 	/**
-	 * Call protected method from WP_JSON_Posts
+	 * Call protected method from {@see WP_JSON_Posts}.
 	 *
 	 * WPAPI-1.2 deprecated a bunch of protected methods by moving them to this
 	 * class. This proxy method is added to call those methods.
