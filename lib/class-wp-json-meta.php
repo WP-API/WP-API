@@ -243,11 +243,13 @@ abstract class WP_JSON_Meta {
 
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
-			return new WP_Error( 'json_meta_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
+			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
-			return new WP_Error( 'json_meta_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
+			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
@@ -308,10 +310,12 @@ abstract class WP_JSON_Meta {
 		}
 
 		if ( ! array_key_exists( 'key', $data ) ) {
-			return new WP_Error( 'json_meta_missing_key', __( 'Missing meta key.' ), array( 'status' => 400 ) );
+			$code = ( $this->type === 'post' ) ? 'json_post_missing_key' : 'json_meta_missing_key';
+			return new WP_Error( $code, __( 'Missing meta key.' ), array( 'status' => 400 ) );
 		}
 		if ( ! array_key_exists( 'value', $data ) ) {
-			return new WP_Error( 'json_meta_missing_value', __( 'Missing meta value.' ), array( 'status' => 400 ) );
+			$code = ( $this->type === 'post' ) ? 'json_post_missing_value' : 'json_meta_missing_value';
+			return new WP_Error( $code, __( 'Missing meta value.' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $data['key'] ) ) {
@@ -319,8 +323,10 @@ abstract class WP_JSON_Meta {
 		}
 
 		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
+			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+
 			// for now let's not allow updating of arrays, objects or serialized values.
-			return new WP_Error( 'json_meta_invalid_action', __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
+			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
@@ -372,7 +378,8 @@ abstract class WP_JSON_Meta {
 
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
-			return new WP_Error( 'json_meta_invalid_action', __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
+			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
