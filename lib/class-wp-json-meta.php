@@ -130,7 +130,7 @@ abstract class WP_JSON_Meta {
 	 *
 	 * @param int $parent_id Object ID
 	 * @param stdClass $data Metadata row from database
-	 * @param boolean $is_serialized Is the value field still serialized? (False indicates the value has been unserialized)
+	 * @param boolean $is_raw Is the value field still serialized? (False indicates the value has been unserialized)
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	protected function prepare_meta( $parent_id, $data, $is_raw = false ) {
