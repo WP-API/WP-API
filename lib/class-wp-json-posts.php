@@ -344,8 +344,11 @@ class WP_JSON_Posts {
 			return $post;
 		}
 
-		foreach ( $post['meta']['links'] as $rel => $url ) {
-			$response->link_header( $rel, $url );
+		// We don't need to iterate on the "meta" element if it doesnt exist.
+		if ( isset( $post['meta'] )) {
+			foreach ( $post['meta']['links'] as $rel => $url ) {
+				$response->link_header( $rel, $url );
+			}
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
