@@ -9,14 +9,14 @@
  */
 
 /**
- * Version number for our API
+ * Version number for our API.
  *
  * @var string
  */
 define( 'JSON_API_VERSION', '1.1' );
 
 /**
- * Include our files for the API
+ * Include our files for the API.
  */
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
@@ -37,7 +37,9 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 /**
- * Register our rewrite rules for the API
+ * Register rewrite rules for the API.
+ *
+ * @global WP $wp Current WordPress environment instance.
  */
 function json_api_init() {
 	json_api_register_rewrites();
@@ -47,6 +49,9 @@ function json_api_init() {
 }
 add_action( 'init', 'json_api_init' );
 
+/**
+ * Add rewrite rules.
+ */
 function json_api_register_rewrites() {
 	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
 	add_rewrite_rule( '^' . json_get_url_prefix() . '(.*)?','index.php?json_route=$matches[1]','top' );
@@ -67,35 +72,42 @@ function json_api_maybe_flush_rewrites() {
 add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
 
 /**
- * Register the default JSON API filters
+ * Register the default JSON API filters.
  *
  * @internal This will live in default-filters.php
+ *
+ * @global WP_JSON_Posts      $wp_json_posts
+ * @global WP_JSON_Pages      $wp_json_pages
+ * @global WP_JSON_Media      $wp_json_media
+ * @global WP_JSON_Taxonomies $wp_json_taxonomies
+ *
+ * @param WP_JSON_ResponseHandler $server Server object.
  */
 function json_api_default_filters( $server ) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
 
-	// Posts
+	// Posts.
 	$wp_json_posts = new WP_JSON_Posts( $server );
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
-	// Users
+	// Users.
 	$wp_json_users = new WP_JSON_Users( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
 
-	// Pages
+	// Pages.
 	$wp_json_pages = new WP_JSON_Pages( $server );
 	$wp_json_pages->register_filters();
 
-	// Post meta
+	// Post meta.
 	$wp_json_post_meta = new WP_JSON_Meta_Posts( $server );
 	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
 	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
 	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
 
-	// Media
+	// Media.
 	$wp_json_media = new WP_JSON_Media( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
@@ -103,22 +115,22 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
-	// Posts
+	// Posts.
 	$wp_json_taxonomies = new WP_JSON_Taxonomies( $server );
 	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'       ), 2 );
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
 
-	// Deprecated reporting
-	add_action( 'deprecated_function_run', 'json_handle_deprecated_function', 10, 3 );
-	add_filter( 'deprecated_function_trigger_error', '__return_false' );
-	add_action( 'deprecated_argument_run', 'json_handle_deprecated_argument', 10, 3 );
-	add_filter( 'deprecated_argument_trigger_error', '__return_false' );
+	// Deprecated reporting.
+	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
+	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
+	add_action( 'deprecated_argument_run',           'json_handle_deprecated_argument', 10, 3 );
+	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
 /**
- * Load the JSON API
+ * Load the JSON API.
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_json_server_class filter and serving requests. This would also
@@ -130,7 +142,7 @@ function json_api_loaded() {
 		return;
 
 	/**
-	 * Whether this is a XMLRPC Request
+	 * Whether this is a XML-RPC Request.
 	 *
 	 * @var bool
 	 * @todo Remove me in favour of JSON_REQUEST
@@ -138,7 +150,7 @@ function json_api_loaded() {
 	define( 'XMLRPC_REQUEST', true );
 
 	/**
-	 * Whether this is a JSON Request
+	 * Whether this is a JSON Request.
 	 *
 	 * @var bool
 	 */
@@ -151,26 +163,28 @@ function json_api_loaded() {
 	$wp_json_server = new $wp_json_server_class;
 
 	/**
-	 * Prepare to serve an API request.
+	 * Fires when preparing to serve an API request.
 	 *
 	 * Endpoint objects should be created and register their hooks on this
 	 * action rather than another action to ensure they're only loaded when
 	 * needed.
 	 *
-	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object
+	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object.
 	 */
 	do_action( 'wp_json_server_before_serve', $wp_json_server );
 
-	// Fire off the request
+	// Fire off the request.
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
 
-	// Finish off our request
+	// We're done.
 	die();
 }
 add_action( 'template_redirect', 'json_api_loaded', -100 );
 
 /**
  * Register routes and flush the rewrite rules on activation.
+ *
+ * @param bool $network_wide ?
  */
 function json_api_activation( $network_wide ) {
 	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
@@ -192,7 +206,9 @@ function json_api_activation( $network_wide ) {
 register_activation_hook( __FILE__, 'json_api_activation' );
 
 /**
- * Flush the rewrite rules on deactivation
+ * Flush the rewrite rules on deactivation.
+ *
+ * @param bool $network_wide ?
  */
 function json_api_deactivation( $network_wide ) {
 	if ( function_exists( 'is_multisite' ) && is_multisite() && $network_wide ) {
@@ -212,7 +228,9 @@ function json_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
- * Register our API Javascript helpers
+ * Register API Javascript helpers.
+ *
+ * @see wp_register_scripts()
  */
 function json_register_scripts() {
 	wp_register_script( 'wp-api', 'http://wp-api.github.io/client-js/build/js/wp-api.js', array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
@@ -223,7 +241,7 @@ function json_register_scripts() {
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
 
 /**
- * Add the API URL to the WP RSD endpoint
+ * Add the API URL to the WP RSD endpoint.
  */
 function json_output_rsd() {
 	?>
@@ -233,7 +251,9 @@ function json_output_rsd() {
 add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
 
 /**
- * Output API link tag into page header
+ * Output API link tag into page header.
+ *
+ * @see get_json_url()
  */
 function json_output_link_wp_head() {
 	$api_root = get_json_url();
@@ -247,7 +267,7 @@ function json_output_link_wp_head() {
 add_action( 'wp_head', 'json_output_link_wp_head', 10, 0 );
 
 /**
- * Send a Link header for the API
+ * Send a Link header for the API.
  */
 function json_output_link_header() {
 	if ( headers_sent() ) {
@@ -265,30 +285,33 @@ function json_output_link_header() {
 add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
 
 /**
- * Add `show_in_json` {@see register_post_type} argument
+ * Add 'show_in_json' {@see register_post_type()} argument.
  *
- * Adds the `show_in_json` post type argument to {@see register_post_type}. This
- * value controls whether the post type is available via API endpoints, and
- * defaults to the value of `publicly_queryable`
+ * Adds the 'show_in_json' post type argument to {@see register_post_type()}.
+ * This value controls whether the post type is available via API endpoints,
+ * and defaults to the value of $publicly_queryable.
  *
- * @param string $post_type Post type being registered
- * @param stdClass $args Post type arguments
+ * @global array $wp_post_types Post types list.
+ *
+ * @param string   $post_type Post type to register.
+ * @param stdClass $args      Post type arguments.
  */
 function json_register_post_type( $post_type, $args ) {
 	global $wp_post_types;
 
 	$type = &$wp_post_types[ $post_type ];
 
-	// Exception for pages
+	// Exception for pages.
 	if ( $post_type === 'page' ) {
 		$type->show_in_json = true;
 	}
 
-	// Exception for revisions
+	// Exception for revisions.
 	if ( $post_type === 'revision' ) {
 		$type->show_in_json = true;
 	}
 
+	// Default to the value of $publicly_queryable.
 	if ( ! isset( $type->show_in_json ) ) {
 		$type->show_in_json = $type->publicly_queryable;
 	}
@@ -296,14 +319,19 @@ function json_register_post_type( $post_type, $args ) {
 add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
 
 /**
- * Check for errors when using cookie-based authentication
+ * Check for errors when using cookie-based authentication.
  *
- * WordPress' built-in cookie authentication is always active for logged in
- * users. However, the API has to check nonces for each request to ensure users
- * are not vulnerable to CSRF.
+ * WordPress' built-in cookie authentication is always active
+ * for logged in users. However, the API has to check nonces
+ * for each request to ensure users are not vulnerable to CSRF.
  *
- * @param WP_Error|mixed $result Error from another authentication handler, null if we should handle it, or another value if not
- * @return WP_Error|mixed|boolean
+ * @global mixed $wp_json_auth_cookie
+ *
+ * @param WP_Error|mixed $result Error from another authentication handler,
+ *                               null if we should handle it, or another
+ *                               value if not
+ * @return WP_Error|mixed|bool WP_Error if the cookie is invalid, the $result,
+ *                             otherwise true.
  */
 function json_cookie_check_errors( $result ) {
 	if ( ! empty( $result ) ) {
@@ -312,14 +340,16 @@ function json_cookie_check_errors( $result ) {
 
 	global $wp_json_auth_cookie;
 
-	// Are we using cookie authentication?
-	// (If we get an auth error, but we're still logged in, another
-	// authentication must have been used.)
+	/*
+	 * Is cookie authentication being used? (If we get an auth
+	 * error, but we're still logged in, another authentication
+	 * must have been used.)
+	 */
 	if ( $wp_json_auth_cookie !== true && is_user_logged_in() ) {
 		return $result;
 	}
 
-	// Do we have a nonce?
+	// Is there a nonce?
 	$nonce = null;
 	if ( isset( $_REQUEST['_wp_json_nonce'] ) ) {
 		$nonce = $_REQUEST['_wp_json_nonce'];
@@ -328,12 +358,12 @@ function json_cookie_check_errors( $result ) {
 	}
 
 	if ( $nonce === null ) {
-		// No nonce at all, so act as if it's an unauthenticated request
+		// No nonce at all, so act as if it's an unauthenticated request.
 		wp_set_current_user( 0 );
 		return true;
 	}
 
-	// Check the nonce
+	// Check the nonce.
 	$result = wp_verify_nonce( $nonce, 'wp_json' );
 	if ( ! $result ) {
 		return new WP_Error( 'json_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
@@ -344,12 +374,13 @@ function json_cookie_check_errors( $result ) {
 add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
 
 /**
- * Collect cookie authentication status
+ * Collect cookie authentication status.
  *
- * Collects errors from {@see wp_validate_auth_cookie} for use by
- * {@see json_cookie_check_errors}.
+ * Collects errors from {@see wp_validate_auth_cookie} for
+ * use by {@see json_cookie_check_errors}.
  *
- * @param mixed
+ * @see current_action()
+ * @global mixed $wp_json_auth_cookie
  */
 function json_cookie_collect_status() {
 	global $wp_json_auth_cookie;
@@ -375,17 +406,25 @@ add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
  * @return string Prefix.
  */
 function json_get_url_prefix() {
+	/**
+	 * Filter the JSON URL prefix.
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $prefix URL prefix. Default 'wp-json'.
+	 */
 	return apply_filters( 'json_url_prefix', 'wp-json' );
 }
 
 /**
- * Get URL to a JSON endpoint on a site
+ * Get URL to a JSON endpoint on a site.
  *
  * @todo Check if this is even necessary
- * @param int $blog_id Blog ID
- * @param string $path JSON route
- * @param string $scheme Sanitization scheme (usually 'json')
- * @return string Full URL to the endpoint
+ *
+ * @param int    $blog_id Blog ID.
+ * @param string $path    Optional. JSON route. Default empty.
+ * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
+ * @return string Full URL to the endpoint.
  */
 function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
@@ -405,22 +444,32 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 		$url = add_query_arg( 'json_route', $path, $url );
 	}
 
+	/**
+	 * Filter the JSON URL.
+	 *
+	 * @since 1.0
+	 *
+	 * @param string $url     JSON URL.
+	 * @param string $path    JSON route.
+	 * @param int    $blod_ig Blog ID.
+	 * @param string $scheme  Sanitization scheme.
+	 */
 	return apply_filters( 'json_url', $url, $path, $blog_id, $scheme );
 }
 
 /**
- * Get URL to a JSON endpoint
+ * Get URL to a JSON endpoint.
  *
- * @param string $path JSON route
- * @param string $scheme Sanitization scheme (usually 'json')
- * @return string Full URL to the endpoint
+ * @param string $path   Optional. JSON route. Default empty.
+ * @param string $scheme Optional. Sanitization scheme. Default 'json'.
+ * @return string Full URL to the endpoint.
  */
 function json_url( $path = '', $scheme = 'json' ) {
 	return get_json_url( null, $path, $scheme );
 }
 
 /**
- * Ensure a JSON response is a response object
+ * Ensure a JSON response is a response object.
  *
  * This ensures that the response is consistent, and implements
  * {@see WP_JSON_ResponseInterface}, allowing usage of
@@ -428,8 +477,9 @@ function json_url( $path = '', $scheme = 'json' ) {
  * also allow {@see WP_Error} to indicate error responses, so users should
  * immediately check for this value.
  *
- * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check
- * @return WP_Error|WP_JSON_ResponseInterface
+ * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check.
+ * @return WP_Error|WP_JSON_ResponseInterface WP_Error if present, WP_JSON_ResponseInterface
+ *                                            instance otherwise.
  */
 function json_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -444,14 +494,14 @@ function json_ensure_response( $response ) {
 }
 
 /**
- * Parse an RFC3339 timestamp into a DateTime
+ * Parse an RFC3339 timestamp into a DateTime.
  *
- * @param string $date RFC3339 timestamp
- * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
- * @return DateTime
+ * @param string $date      RFC3339 timestamp.
+ * @param bool   $force_utc Force UTC timezone instead of using the timestamp's TZ.
+ * @return DateTime DateTime instance.
  */
 function json_parse_date( $date, $force_utc = false ) {
-	// Default timezone to the server's current one
+	// Default timezone to the server's current one.
 	$timezone = json_get_timezone();
 
 	if ( $force_utc ) {
@@ -459,7 +509,7 @@ function json_parse_date( $date, $force_utc = false ) {
 		$timezone = new DateTimeZone( 'UTC' );
 	}
 
-	// Strip millisecond precision (a full stop followed by one or more digits)
+	// Strip millisecond precision (a full stop followed by one or more digits).
 	if ( strpos( $date, '.' ) !== false ) {
 		$date = preg_replace( '/\.\d+/', '', $date );
 	}
@@ -469,11 +519,12 @@ function json_parse_date( $date, $force_utc = false ) {
 }
 
 /**
- * Get a local date with its GMT equivalent, in MySQL datetime format
+ * Get a local date with its GMT equivalent, in MySQL datetime format.
  *
- * @param string $date RFC3339 timestamp
- * @param boolean $force_utc Should we force UTC timestamp?
- * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s), null on failure
+ * @param string $date      RFC3339 timestamp
+ * @param bool   $force_utc Whether a UTC timestamp should be forced.
+ * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
+ *                    null on failure.
  */
 function json_get_date_with_gmt( $date, $force_utc = false ) {
 	$datetime = json_parse_date( $date, $force_utc );
@@ -497,12 +548,13 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
  * {@see get_avatar()} doesn't return just the URL, so we have to
  * extract it here.
  *
- * @param string $email Email address
- * @return string url for the user's avatar
+ * @param string $email Email address.
+ * @return string URL for the user's avatar, empty string otherwise.
 */
 function json_get_avatar_url( $email ) {
 	$avatar_html = get_avatar( $email );
-	// strip the avatar url from the get_avatar img tag.
+
+	// Strip the avatar url from the get_avatar img tag.
 	preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
 
 	if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
@@ -513,9 +565,9 @@ function json_get_avatar_url( $email ) {
 }
 
 /**
- * Get the timezone object for the site
+ * Get the timezone object for the site.
  *
- * @return DateTimeZone
+ * @return DateTimeZone DateTimeZone instance.
  */
 function json_get_timezone() {
 	static $zone = null;
@@ -543,11 +595,11 @@ function json_get_timezone() {
 }
 
 /**
- * Handle `_deprecated_function` errors
+ * Handle {@see _deprecated_function()} errors.
  *
- * @param string $function
- * @param string $replacement
- * @param string $version
+ * @param string $function    Function name.
+ * @param string $replacement Replacement function name.
+ * @param string $version     Version.
  */
 function json_handle_deprecated_function( $function, $replacement, $version ) {
 	if ( ! empty( $replacement ) ) {
@@ -561,11 +613,11 @@ function json_handle_deprecated_function( $function, $replacement, $version ) {
 }
 
 /**
- * Handle `_deprecated_function` errors
+ * Handle {@see _deprecated_function} errors.
  *
- * @param string $function
- * @param string $replacement
- * @param string $version
+ * @param string $function    Function name.
+ * @param string $replacement Replacement function name.
+ * @param string $version     Version.
  */
 function json_handle_deprecated_argument( $function, $message, $version ) {
 	if ( ! empty( $message ) ) {
