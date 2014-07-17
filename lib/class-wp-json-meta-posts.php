@@ -76,9 +76,9 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 		}
 
 		$response = json_ensure_response( $response );
-		$data = $response->get_data();
+		$data = (object) $response->get_data();
 
-		$response->header( 'Location', json_url( '/posts/' . $id . '/meta/' . $data->id ) );
+		$response->header( 'Location', json_url( '/posts/' . $id . '/meta/' . $data->ID ) );
 
 		return $response;
 	}

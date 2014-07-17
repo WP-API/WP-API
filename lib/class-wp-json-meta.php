@@ -79,9 +79,9 @@ abstract class WP_JSON_Meta {
 
 		global $wpdb;
 		$table = _get_meta_table( $this->type );
-		$id_column = $this->get_id_column();
+		$parent_column = $this->get_parent_column();
 
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE $id_column = %d", $id ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE $parent_column = %d", $id ) );
 
 		$meta = array();
 
