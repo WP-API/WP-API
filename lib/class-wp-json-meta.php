@@ -55,12 +55,28 @@ abstract class WP_JSON_Meta {
 		return $routes;
 	}
 
+	/**
+	 * Check that the object is valid and can be accessed.
+	 *
+	 * @param mixed $id Object ID (can be any data from the API, will be validated)
+	 * @return boolean|WP_Error True if valid and accessible, error otherwise.
+	 */
 	abstract protected function check_object( $id );
 
+	/**
+	 * Get the meta ID column for the relevant table.
+	 *
+	 * @return string
+	 */
 	protected function get_id_column() {
 		return ( 'user' === $this->type ) ? 'umeta_id' : 'meta_id';
 	}
 
+	/**
+	 * Get the object (parent) ID column for the relevant table.
+	 *
+	 * @return string
+	 */
 	protected function get_parent_column() {
 		return ( 'user' === $this->type ) ? 'user_id' : 'post_id';
 	}
