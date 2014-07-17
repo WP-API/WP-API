@@ -109,6 +109,8 @@ class WP_JSON_Media extends WP_JSON_Posts {
 				// Use the same method image_downsize() does
 				$size_data['url'] = str_replace( $img_url_basename, $size_data['file'], $data['source'] );
 			}
+		} else {
+		    $data['attachment_meta']['sizes'] = new stdClass;
 		}
 
 		// Override entity meta keys with the correct links
