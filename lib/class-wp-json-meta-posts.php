@@ -88,19 +88,15 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	 *
 	 * Adds meta to post responses for the 'edit' context.
 	 *
-	 * @param WP_Error|WP_JSON_Response|array $data Post response data (or response)
+	 * @param WP_Error|array $data Post response data (or error)
 	 * @param array $post Post data
 	 * @param string $context Context for the prepared post.
-	 * @return WP_Error|WP_JSON_Response|array Filtered data
+	 * @return WP_Error|array Filtered data
 	 */
 	public function add_post_meta_data( $data, $post, $context ) {
 		if ( $context !== 'edit' || is_wp_error( $data ) ) {
 			return $data;
 		}
-
-		// Ensure we're working with a response, just to be sure
-		$response = json_ensure_response( $data );
-		$data = $response->get_data();
 
 		// Permissions have already been checked at this point, so no need to
 		// check again
@@ -109,8 +105,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 			return $data['post_meta'];
 		}
 
-		$response->set_data( $data );
-		return $response;
+		return $data;
 	}
 
 	/**
