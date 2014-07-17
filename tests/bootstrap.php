@@ -22,4 +22,4 @@ if( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
 }
 
 // Helper classes
-require_once dirname( __FILE__ ) . '/test_json_testcase.php';
+require_once dirname( __FILE__ ) . '/test-json-testcase.php';
