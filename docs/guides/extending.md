@@ -226,8 +226,46 @@ response object, but should *never* be set via the direct `header()` or
 Registering Your Endpoints
 --------------------------
 Now that we've done the bulk of the work, it's time to tell WordPress that we
-have an API to register. If you're following the same structure as the API's
-built-in types, your registration code should look something like this:
+have an API to register. You can use the custom post type base class, which will handle the
+hooking and more for you: 
+
+	// main.php
+	function myplugin_api_init( $server ) {
+		global $myplugin_api_mytype;
+
+		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
+		$myplugin_api_mytype = new MyPlugin_API_MyType( $server );
+		$myplugin_api_mytype->register_filters();
+	}
+	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
+
+	// class-myplugin-api-mytype.php
+	class MyPlugin_API_MyType extends WP_JSON_CustomPostType {
+		protected $base = '/myplugin/mytypeitems';
+		protected $type = 'myplugin-mytype';
+
+		public function register_routes( $routes ) {
+			$routes = parent::register_routes( $routes );
+			// $routes = parent::register_revision_routes( $routes );
+			// $routes = parent::register_comment_routes( $routes );
+
+			// Add more custom routes here
+
+			return $routes;
+		}
+
+		// ...
+	}
+
+(Note that this CPT base class handles other things as well, including strict
+post type checking and correcting URLs.)
+
+You will need to implement the `get_post`, `edit_post`, `get_posts`, and
+`new_post` methods within your new class. Take a look at the `WP_JSON_Posts`
+class to see examples of how these methods can be written.
+
+If you're following the same structure as the API's built-in types, your
+registration code should look something like this:
 
 	function myplugin_api_init() {
 		global $myplugin_api_mytype;
@@ -256,44 +294,6 @@ built-in types, your registration code should look something like this:
 
 		// ...
 	}
-
-You will need to implement the `get_post`, `edit_post`, `get_posts`, and
-`new_post` methods within your new class. Take a look at the `WP_JSON_Posts`
-class to see examples of how these methods can be written.
-
-Alternatively, use the custom post type base class, which will handle the
-hooking and more for you:
-
-	// main.php
-	function myplugin_api_init( $server ) {
-		global $myplugin_api_mytype;
-
-		require_once dirname( __FILE__ ) . '/class-myplugin-api-mytype.php';
-		$myplugin_api_mytype = new MyPlugin_API_MyType( $server );
-		$myplugin->register_filters();
-	}
-	add_action( 'wp_json_server_before_serve', 'myplugin_api_init' );
-
-	// class-myplugin-api-mytype.php
-	class MyPlugin_API_MyType extends WP_JSON_CustomPostType {
-		protected $base = '/myplugin/mytypeitems';
-		protected $type = 'myplugin-mytype';
-
-		public function register_routes( $routes ) {
-			$routes = parent::register_routes( $routes );
-			// $routes = parent::register_revision_routes( $routes );
-			// $routes = parent::register_comment_routes( $routes );
-
-			// Add more custom routes here
-
-			return $routes;
-		}
-
-		// ...
-	}
-
-(Note that this CPT base class handles other things as well, including strict
-post type checking and correcting URLs.)
 
 It is important that this class lives in a separate file that is only included
 on a WP API hook, as your plugin may load before the WP API plugin. If you get
