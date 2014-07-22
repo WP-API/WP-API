@@ -549,7 +549,7 @@ The response is a collection document containing all registered taxonomies.
 Retrieve a Taxonomy
 -------------------
 
-	GET /taxonomy/<taxonomy>
+	GET /taxonomies/<taxonomy>
 
 ### Response
 The response is a Taxonomy entity containing the requested Taxonomy, if available.
@@ -558,7 +558,7 @@ The response is a Taxonomy entity containing the requested Taxonomy, if availabl
 Retrieve Terms for a Taxonomy
 -----------------------------
 
-	GET /taxonomy/<taxonomy>/terms
+	GET /taxonomies/<taxonomy>/terms
 
 ### Response
 The response is a collection of taxonomy terms for the specified Taxonomy, if
@@ -567,7 +567,7 @@ available.
 Retrieve a Taxonomy Term
 ------------------------
 
-	GET /taxonomy/<taxonomy>/terms/<id>
+	GET /taxonomies/<taxonomy>/terms/<id>
 
 ### Response
 The response is a Taxonomy entity object containing the Taxonomy with the
