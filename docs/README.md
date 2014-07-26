@@ -16,10 +16,10 @@ Dive in deeper into the [schema details][schema] to better understand the little
 details, or read about the [philosophy][] behind them. Read about the
 [implementation details][implementation] on how the API works internally.
 
-[Getting Started]: guides/getting-started.md
-[guides]: guides/README.md
-[post-routes]: routes/posts.md
-[media-routes]: routes/media.md
+[Getting Started]: http://wp-api.org/guides.html#getting-started
+[guides]: http://wp-api.org/guides.html
+[post-routes]: http://wp-api.org/#posts
+[media-routes]: http://wp-api.org/#media
 [compatibility]: compatibility.md
 [schema]: schema.md
 [philosophy]: internals/philosophy.md

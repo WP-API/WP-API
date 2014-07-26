@@ -112,7 +112,7 @@ look at the [recent updates][] for the project.
 Previous issues can be found on the [GSOC Trac][] issue tracker, however new
 issues should not be filed there.
 
-[docs]: https://github.com/WP-API/WP-API/tree/master/docs
+[docs]: http://wp-api.org/
 [GitHub]: https://github.com/WP-API/WP-API
 [GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
 [recent updates]: http://make.wordpress.org/core/tag/json-api/
