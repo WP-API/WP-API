@@ -85,14 +85,15 @@ posts.
 
 ### Input
 #### `filter`
-The `filter` parameter controls the query parameters.  It is essentially a subset of the parameters available to [`WP_Query`](http://codex.wordpress.org/Class_Reference/WP_Query).
+The `filter` parameter controls the query parameters.  It is essentially a
+subset of the parameters available to [`WP_Query`](http://codex.wordpress.org/Class_Reference/WP_Query).
 
 The parameter should be an array of the following key/value pairs:
 
 * `post_status` - Comma-separated list of [status
   values](http://codex.wordpress.org/Class_Reference/WP_Query#Status_Parameters).
   Default is "publish". (string)
-* `numberposts` - Number of posts to retrieve, use `-1` for all posts. Default
+* `posts_per_page` - Number of posts to retrieve, use `-1` for all posts. Default
   is set by the site. (integer)
 * `offset` - Number of posts to skip. Default is 0. (integer)
 * `orderby` - Parameter to search by, as per [WP Query](http://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters).  Default is
@@ -100,6 +101,9 @@ The parameter should be an array of the following key/value pairs:
 * `order` - Order to sort by. Default is "DESC". (string, "ASC" or "DESC")
 * `s` - Keyword to search for. (string)
 
+```
+GET /posts?filter[posts_per_page]=8&filter[order]=ASC
+```
 
 #### `context`
 The `context` parameter controls the format of the data to return. See the
