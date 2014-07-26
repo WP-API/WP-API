@@ -189,7 +189,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 * Prepare post data
 	 *
 	 * @param array $post The unprepared post data
-	 * @param array $fields The subset of post type fields to return
+	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
