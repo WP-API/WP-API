@@ -182,6 +182,10 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	public function serve_request( $path = null ) {
 		$this->send_header( 'Content-Type', 'application/json; charset=' . get_option( 'blog_charset' ), true );
 
+		// Mitigate possible JSONP Flash attacks
+		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
+		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
+
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
 
@@ -268,7 +272,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			$result = json_encode( $this->prepare_response( $result ) );
 
 			if ( isset( $_GET['_jsonp'] ) ) {
-				echo $_GET['_jsonp'] . '(' . $result . ')';
+				// Prepend '/**/' to mitigate possible JSONP Flash attacks
+				// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
+				echo '/**/' . $_GET['_jsonp'] . '(' . $result . ')';
 			} else {
 				echo $result;
 			}
