@@ -28,7 +28,7 @@ class WP_JSON_Posts {
 			// Post endpoints
 			'/posts' => array(
 				array( array( $this, 'get_posts' ),      WP_JSON_Server::READABLE ),
-				array( array( $this, 'new_post' ),       WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'create_post' ),    WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
@@ -293,7 +293,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	public function new_post( $data ) {
+	public function create_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -364,7 +364,7 @@ class WP_JSON_Posts {
 	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
 	 *
 	 * @param int $id Post ID to edit
-	 * @param array $data Data construct, see {@see WP_JSON_Posts::new_post}
+	 * @param array $data Data construct, see {@see WP_JSON_Posts::create_post}
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
@@ -1253,7 +1253,7 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
+	 * Helper method for {@see create_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()
