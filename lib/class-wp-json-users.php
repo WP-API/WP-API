@@ -408,7 +408,7 @@ class WP_JSON_Users {
 	 * @param $data
 	 * @return mixed
 	 */
-	public function create_user( $data ) {
+	public function new_user( $data ) {
 		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Users::create_user' );
 
 		return $this->create_user( $data );
