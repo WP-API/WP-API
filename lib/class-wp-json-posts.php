@@ -1424,4 +1424,62 @@ class WP_JSON_Posts {
 
 		return $post_ID;
 	}
+
+	/**
+	 * Delete a comment.
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id
+	 * @param int $comment
+	 * @param boolean $force
+	 * @return array|WP_Error
+	 */
+	public function delete_comment( $id, $comment, $force = false ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Comments::delete_comment' );
+
+		return $this->comments->delete_comment( $id, $comment, $force );
+	}
+
+	/**
+	 * Retrieve comments.
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id
+	 * @return array
+	 */
+	public function get_comments( $id ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Comments::get_comments' );
+
+		return $this->comments->get_comments( $id );
+	}
+
+	/**
+	 * Retrieve comments.
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param int $id
+	 * @return array
+	 */
+	public function get_comment( $comment ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Comments::get_comment' );
+
+		return $this->comments->get_comment( $comment );
+	}
+
+	/**
+	 * Prepares comment data for returning as a JSON response.
+	 *
+	 * @param stdClass $comment
+	 * @param array $requested_fields
+	 * @param string $context
+	 * @return array
+	 */
+	protected function prepare_comment( $comment, $requested_fields = array( 'comment', 'meta' ), $context = 'single' ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Comments::prepare_comment' );
+
+		return $this->comments->_deprecated_call( 'prepare_comment', array( $comment, $requested_fields, $context ) );
+	}
 }
