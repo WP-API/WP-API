@@ -28,7 +28,7 @@ class WP_JSON_Users {
 			// User endpoints
 			'/users' => array(
 				array( array( $this, 'get_users' ),        WP_JSON_Server::READABLE ),
-				array( array( $this, 'new_user' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'create_user' ),      WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/users/(?P<id>\d+)' => array(
 				array( array( $this, 'get_user' ),         WP_JSON_Server::READABLE ),
@@ -373,7 +373,7 @@ class WP_JSON_Users {
 	 * @param $data
 	 * @return mixed
 	 */
-	public function new_user( $data ) {
+	public function create_user( $data ) {
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
@@ -398,6 +398,20 @@ class WP_JSON_Users {
 		$response->header( 'Location', json_url( '/users/' . $user_id ) );
 
 		return $response;
+	}
+
+	/**
+	 * Create a new user.
+	 *
+	 * @deprecated
+	 *
+	 * @param $data
+	 * @return mixed
+	 */
+	public function new_user( $data ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Users::create_user' );
+
+		return $this->create_user( $data );
 	}
 
 	/**

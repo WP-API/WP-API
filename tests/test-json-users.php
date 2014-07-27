@@ -91,7 +91,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 			'password' => 'test_password',
 			'email' => 'test@example.com',
 		);
-		$response = $this->endpoint->new_user( $data );
+		$response = $this->endpoint->create_user( $data );
 
 		// Check that we succeeded
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -116,7 +116,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$data = array(
 			'username' => 'test_user',
 		);
-		$response = $this->endpoint->new_user( $data );
+		$response = $this->endpoint->create_user( $data );
 		$this->assertInstanceOf( 'WP_Error', $response );
 	}
 
