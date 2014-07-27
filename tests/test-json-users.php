@@ -100,15 +100,15 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response_data = $response->get_data();
 
 		// Check that the data is intact
-		$create_user = get_userdata( $response_data['ID'] );
+		$new_user = get_userdata( $response_data['ID'] );
 
 		$this->assertEquals( $data['username'], $response_data['username'] );
-		$this->assertEquals( $data['username'], $create_user->user_login );
+		$this->assertEquals( $data['username'], $new_user->user_login );
 
 		$this->assertEquals( false, $response_data['email'] );
-		$this->assertEquals( $data['email'], $create_user->user_email );
+		$this->assertEquals( $data['email'], $new_user->user_email );
 
-		$this->assertTrue( wp_check_password( $data['password'], $create_user->user_pass ), 'Password check failed' );
+		$this->assertTrue( wp_check_password( $data['password'], $new_user->user_pass ), 'Password check failed' );
 	}
 
 	public function test_create_user_missing_params() {
