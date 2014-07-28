@@ -95,11 +95,24 @@ For testing, you'll need a little bit more:
    git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
 
-3. Run the testing suite:
+2. Configure WP test instance ([database configuration](https://github.com/Chassis/Chassis#mysql-database-1))
 
    ```bash
    vagrant ssh
+   cd /vagrant/extensions/tester/wpdevel
+   cp wp-tests-config-sample.php wp-tests-config.php
+   nano wp-tests-config.php (enter database configuration)
+   cd /vagrant/extensions/tester/wpdevel/src/wp-content/plugins
+   ln -s /vagrant/content/plugins/json-rest-api json-rest-api
+   ```
+
+3. Install phpunit on vagrant box ([phpunit manual](http://phpunit.de/manual/current/en/installation.html))
+
+4. Run the testing suite:
+
+   ```bash
    cd /vagrant/content/plugins/json-rest-api
+   export WP_DEVELOP_DIR=/vagrant/extensions/tester/wpdevel
    phpunit
    ```
 
