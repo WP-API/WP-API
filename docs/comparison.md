@@ -2,8 +2,8 @@
 
 The purpose of this document is to compare the WordPress JSON REST API (WP
 API) to the other WordPress JSON API projects.  Included in this comparison
-are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/),
-and the built-in XML-RPC API.
+are the [WordPress.com JSON REST API](http://developer.wordpress.com/docs/api/) that is availble as part of [JetPack](http://jetpack.me/support/json-api/),
+and the [XML-RPC API](http://codex.wordpress.org/XML-RPC_WordPress_API), which is built in to WordPress Core.
 
 ## Functionality
 
