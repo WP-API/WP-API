@@ -104,7 +104,13 @@ For testing, you'll need a little bit more:
    # From your base directory, api-tester if following the steps from before
    git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
+   
+2. Run the provisioner:
 
+   ```
+   vagrant provision
+   ```
+   
 3. Run the testing suite:
 
    ```bash
