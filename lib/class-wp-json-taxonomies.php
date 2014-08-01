@@ -207,7 +207,7 @@ class WP_JSON_Taxonomies {
 	 * @param string $taxonomy Taxonomy slug
 	 * @return array Term collection
 	 */
-	public function get_taxonomy_terms( $taxonomy ) {
+	public function get_taxonomy_terms( $taxonomy, $filter = array() ) {
 		if ( ! taxonomy_exists( $taxonomy ) ) {
 			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
 		}
@@ -215,7 +215,34 @@ class WP_JSON_Taxonomies {
 		$args = array(
 			'hide_empty' => false,
 		);
-
+		
+		// Allow args in get_terms function, a common sense list... 
+		$valid_vars = array(
+			'orderby',
+			'order',
+			'exclude',
+			'exclude_tree',
+			'include',
+			'number',
+			'fields',
+			'slug',
+			'parent',
+			'hierarchical',
+			'child_of',
+			'get',
+			'name__like',
+			'description__like',
+			'pad_counts',
+			'offset',
+			'search',
+		);
+		
+		foreach ( $valid_vars as $var ) {
+			if ( isset( $filter[ $var ] ) ) {
+				$args[ $var ] = apply_filters( 'json_query_var-' . $var, $filter[ $var ] );
+			}
+		}
+		
 		$terms = get_terms( $taxonomy, $args );
 
 		if ( is_wp_error( $terms ) ) {
