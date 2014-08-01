@@ -210,7 +210,11 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			$_post['meta']['links']['up'] = json_url( $this->base . '/' . $post['ID'] );
 		}
 
-		return apply_filters( "json_prepare_{$this->type}", $_post, $post, $context );
+		// json_prepare_{post_type} filters all objects requested via this endpoint
+		$_post = apply_filters( "json_prepare_{$this->type}", $_post, $post, $context );
+
+		// Run post type-specific filters
+		return apply_filters( "json_prepare_type-{$this->type}", $_post, $post, $context );
 	}
 
 	/**

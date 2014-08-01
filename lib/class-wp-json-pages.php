@@ -116,6 +116,10 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 			$_post['meta']['links']['up'] = json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) );
 		}
 
-		return apply_filters( 'json_prepare_page', $_post, $post, $context );
+		// json_prepare_post filters all objects requested via /posts
+		$_post = apply_filters( 'json_prepare_page', $_post, $post, $context );
+
+		// Run post type-specific filters
+		return apply_filters( 'json_prepare_type-page', $_post, $post, $context );
 	}
 }
