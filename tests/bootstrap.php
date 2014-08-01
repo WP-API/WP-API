@@ -1,25 +1,31 @@
 <?php
 /**
- * Bootstrap the plugin unit testing environment.
- *
- * @package WordPress
- * @subpackage JSON API
- */
+  * Bootstrap the plugin unit testing environment.
+  *
+  * @package WordPress
+  * @subpackage JSON API
+  */
 
-// Activates this plugin in WordPress so it can be tested.
-$GLOBALS['wp_tests_options'] = array(
-	'active_plugins' => array( basename( dirname( dirname( __FILE__ ) ) ) . '/plugin.php' ),
-);
-
-// If the develop repo location is defined (as WP_DEVELOP_DIR), use that
-// location. Otherwise, we'll just assume that this plugin is installed in a
-// WordPress develop SVN checkout.
-
+// Support for:
+// 1. `WP_DEVELOP_DIR` environment variable
+// 2. Plugin installed inside of WordPress.org developer checkout
+// 3. Tests checked out to /tmp
 if( false !== getenv( 'WP_DEVELOP_DIR' ) ) {
-	require getenv( 'WP_DEVELOP_DIR' ) . '/tests/phpunit/includes/bootstrap.php';
-} else {
-	require '../../../../tests/phpunit/includes/bootstrap.php';
+	$test_root = getenv( 'WP_DEVELOP_DIR' );
+} else if ( file_exists( '../../../../tests/phpunit/includes/bootstrap.php' ) ) {
+	$test_root = '../../../..';
+} else if ( file_exists( '/tmp/wordpress-tests-lib/includes/bootstrap.php' ) ) {
+	$test_root = '/tmp/wordpress-tests-lib';
 }
+
+require $test_root . '/includes/functions.php';
+
+function _manually_load_plugin() {
+	require dirname( __FILE__ ) . '/../plugin.php';
+}
+tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
+
+require $test_root . '/includes/bootstrap.php';
 
 // Helper classes
 require_once dirname( __FILE__ ) . '/test-json-testcase.php';
