@@ -4,7 +4,9 @@ Posts
 Create a Post
 -------------
 
-  POST /posts
+	POST /posts
+  
+  Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 The `data` parameter consists of the elements of the Post object to be
@@ -75,13 +77,14 @@ in the Location header.
 
 The new Post entity is also returned in the body for convienience.
 
+If the client is not authenticated, a 403 Forbidden response is given.
 
 Retrieve Posts
 --------------
 The Posts endpoint returns a Post Collection containing a subset of the site's
 posts.
 
-  GET /posts
+	GET /posts
 
 ### Input
 #### `filter`
@@ -133,7 +136,7 @@ available.
 Retrieve a Post
 ---------------
 
-  GET /posts/<id>
+	GET /posts/<id>
 
 ### Input
 #### `context`
@@ -157,7 +160,9 @@ fields available on the Post depend on the `context` parameter.
 Edit a Post
 -----------
 
-  PUT /posts/<id>
+	PUT /posts/<id>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 For compatibility reasons, this endpoint also accepts the POST and PATCH
 methods. Both of these methods have the same behaviour as using PUT. It is
@@ -219,11 +224,14 @@ pairs:
 On a successful update, a 200 OK status is given, indicating the post has been
 updated. The updated Post entity is returned in the body.
 
+If the client is not authenticated, a 403 Forbidden response is sent.
 
 Delete a Post
 -------------
 
-  DELETE /posts/<id>
+	DELETE /posts/<id>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 #### `force`
@@ -242,11 +250,27 @@ later date.
 If force was set to true, a 200 OK status code will be returned instead,
 indicating that the post has been permanently deleted.
 
+If the client is not authenticated, a 403 Forbidden status code will be returned.
 
+Retrieve Revisions for a Post
+------------------------
+
+	GET /posts/<id>/revisions
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+
+### Response
+If successful, returns a 200 OK status code and revisions for the given post.
+
+If the client is not authenticated, a 403 Forbidden status code will be returned.
+
+  
 Create Meta for a Post
 ------------------------
 
-  POST /posts/<id>/meta
+	POST /posts/<id>/meta
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 The supplied data should be a Meta object. This data can be submitted via a
@@ -266,31 +290,40 @@ specified in the Location header.
 
 The new Meta entity is also returned in the body for convienience.
 
+If the client is not authenticated, a 403 Forbidden status code will be returned.
 
 Retrieve Meta for a Post
 ------------------------
 
-  GET /posts/<id>/meta
+	GET /posts/<id>/meta
 
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+  
 ### Response
 The response is a Meta entity containing all the post_meta for the specified
 Post if available.
 
+Returns a 403 Forbidden status code if the client is not authenticated.
 
 Retrieve a Meta for a Post
 ------------------------
 
-  GET /posts/<id>/meta/<mid>
+	GET /posts/<id>/meta/<mid>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Response
 The response a Meta entity containing the post_meta for the specified Meta and
 Post if available.
 
+Returns a 403 Forbidden status code if the client is not authenticated.
 
 Edit a Meta for a Post
 ------------------------
 
-  PUT /posts/<id>/meta/<mid>
+	PUT /posts/<id>/meta/<mid>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 The supplied data should be a Meta object. This data can be submitted via a
@@ -306,17 +339,20 @@ The `data` parameter should be an array containing the following key value pairs
 On a successful update, a 200 OK status is given, indicating the post_meta has
 been updated. The updated Meta entity is returned in the body.
 
+If the client is not authenticated, a 403 Forbidden status code is returned.
 
 Delete a Meta for a Post
 -------------
 
-  DELETE /posts/<id>/meta/<mid>
+	DELETE /posts/<id>/meta/<mid>
 
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Response
 On successful deletion, a 200 OK status code will be returned, indicating
 that the post_meta has been permanently deleted.
 
+If the client is not authenticated, a 403 Forbidden status code is returned.
 
 Media
 =====
@@ -327,7 +363,9 @@ Create an Attachment
 The Create Attachment endpoint is used to create the raw data for an attachment.
 This is a binary object (blob), such as image data or a video.
 
-  POST /media
+	POST /media
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 The attachment creation endpoint can accept data in two forms.
@@ -354,6 +392,7 @@ URL specified in the Location header.
 
 The new Attachment entity is also returned in the body for convienience.
 
+Returns a 403 Forbidden status code if the client is not authenticated.
 
 Get Attachments
 ---------------
@@ -362,7 +401,7 @@ the site's attachments.
 
 This endpoint is an extended version of the Post retrieval endpoint.
 
-  GET /media
+	GET /media
 
 ### Input
 #### `fields`
@@ -380,7 +419,9 @@ Users
 Create a User
 -------------
 
-  POST /users
+	POST /users
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 The supplied data should be a User object. This data can be submitted via a
@@ -403,16 +444,20 @@ On a successful creation, a 201 Created status is given, indicating that the
 user has been created. The user is available canonically from the URL specified
 in the Location header.
 
-The new User entity is also returned in the body for convienience.
+The new User entity is also returned in the body for convenience.
 
+A 403 Forbidden status is returned if the client is not authenticated.
 
 Retrieve Users
 --------------
 The Users endpoint returns a User Collection containing a subset of the site's
 users.
 
-  GET /users
+	GET /users
 
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+
+  
 ### Input
 #### `filter`
 The `filter` parameter controls the query parameters. It is essentially a subset
@@ -432,11 +477,15 @@ The parameter should be an array of the following key/value pairs:
 The response is a User Collection document containing the requested Users if
 available.
 
+A 403 Forbidden status is returned if the client is not authenticated.
+
 
 Retrieve a User
 ---------------
 
-  GET /users/<id>
+	GET /users/<id>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
 #### `context`
@@ -446,7 +495,7 @@ contexts are available:
 * `view`: The default context. Gives the normal User entity.
 * `edit`: Context used for extra fields relevant to updating a user. Includes
   the `extra_capabilities` field; this field contains the capabilities assigned
-  to the user themselves, rather than those inherited from their roles.
+  to the user themselves, rather than those inherited from their roles. Requires [authentication](http://wp-api.org/guides/authentication.html).
 * `embed`: Context used when embedding the response inside another (e.g. post
   author). This is intended as a minimal subset of the user data to reduce
   response size. Excludes `roles` and `capabilities`.
@@ -457,12 +506,16 @@ Default is "view". (string)
 The response is a User entity containing the requested User if available. The
 fields available on the User depend on the `context` parameter.
 
+A 403 Forbidden status is returned if the client is not authenticated.
+
 
 Retrieve Current User
 -------------
 
-  GET /users/me
+	GET /users/me
 
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+  
 This endpoint offers a permalink to get the current user, without needing to
 know the user's ID.
 
@@ -480,14 +533,16 @@ available canonically from the URL specified in the Location header.
 The User entity containing the current User is also returned in the body for
 convenience. The fields available on the User depend on the `context` parameter.
 
-If the client is not logged in, a 401 Unauthorized status is given.
+If the client is not logged in, a 403 Forbidden status is given.
 
 
 Edit a User
 -----------
 
-  PUT /users/<id>
+	PUT /users/<id>
 
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+  
 For compatibility reasons, this endpoint also accepts the POST and PATCH
 methods. Both of these methods have the same behaviour as using PUT. It is
 recommended to use PUT if available to fit with REST convention.
@@ -502,12 +557,15 @@ example.
 On a successful update, a 200 OK status is given, indicating the user has been
 updated. The updated User entity is returned in the body.
 
+If the client is not logged in, a 403 Forbidden status is given.
 
 Delete a User
 -------------
 
-  DELETE /users/<id>
-
+	DELETE /users/<id>
+  
+Requires [authentication](http://wp-api.org/guides/authentication.html)
+  
 ### Input
 #### `force`
 The `force` parameter controls whether the user is permanently deleted or not.
@@ -533,6 +591,7 @@ later date.
 If force was set to true, a 200 OK status code will be returned instead,
 indicating that the user has been permanently deleted.
 
+If the client is not authenticated, a 403 Forbidden status is given.
 
 Taxonomies
 ==========
