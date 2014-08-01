@@ -18,6 +18,14 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->endpoint = new WP_JSON_Users( $this->fake_server );
 	}
 
+	private function allow_user_to_create_users( $user ) {
+		if ( is_multisite() ) {
+			update_site_option( 'site_admins', array( $user->user_login ) );
+		} else {
+			$user->set_role( 'administrator' );
+		}
+	}
+
 	public function test_get_current_user() {
 		$response = $this->endpoint->get_current_user();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -85,7 +93,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	}
 
 	public function test_create_user() {
-		$this->user_obj->set_role( 'administrator' );
+		$this->allow_user_to_create_users( $this->user_obj );
 		$data = array(
 			'username' => 'test_user',
 			'password' => 'test_password',
@@ -112,7 +120,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	}
 
 	public function test_create_user_missing_params() {
-		$this->user_obj->set_role( 'administrator' );
+		$this->allow_user_to_create_users( $this->user_obj );
 		$data = array(
 			'username' => 'test_user',
 		);
@@ -121,7 +129,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	}
 
 	public function test_delete_user() {
-		$this->user_obj->set_role( 'administrator' );
+		$this->allow_user_to_create_users( $this->user_obj );
 
 		// Test with a new user, rather than ourselves, to avoid any
 		// complications with doing so. We should check this separately though.
@@ -139,7 +147,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	}
 
 	public function test_delete_user_reassign() {
-		$this->user_obj->set_role( 'administrator' );
+		$this->allow_user_to_create_users( $this->user_obj );
 
 		// Test with a new user, rather than ourselves, to avoid any
 		// complications with doing so. We should check this separately though.
