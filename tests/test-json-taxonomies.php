@@ -34,9 +34,6 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)',
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms',
 			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)',
-			'/taxonomies/(?P<taxonomy>\w+)',
-			'/taxonomies/(?P<taxonomy>\w+)/terms',
-			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)',
 		);
 
 		foreach ( $deprecated as $route ) {
