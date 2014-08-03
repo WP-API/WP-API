@@ -30,10 +30,10 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
 
 		$deprecated = array(
-			'/posts/types/(?P<type>\w+)/taxonomies',
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)',
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms',
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)',
+			'/posts/types/(?P<type>[\w-]+)/taxonomies',
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy=[\w-]+)',
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms',
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)',
 		);
 
 		foreach ( $deprecated as $route ) {
