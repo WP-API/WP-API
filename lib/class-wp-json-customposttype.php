@@ -60,8 +60,8 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 */
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
-			array( array( $this, 'get_posts' ), WP_JSON_Server::READABLE ),
-			array( array( $this, 'new_post' ),  WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			array( array( $this, 'get_posts' ),   WP_JSON_Server::READABLE ),
+			array( array( $this, 'create_post' ), WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 		);
 
 		$routes[ $this->base . '/(?P<id>\d+)' ] = array(

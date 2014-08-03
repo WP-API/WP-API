@@ -9,7 +9,7 @@
     <testsuites>
         <!-- Default test suite to run all tests -->
         <testsuite>
-            <directory prefix="test_" suffix=".php">tests</directory>
+            <directory prefix="test-" suffix=".php">tests</directory>
         </testsuite>
     </testsuites>
 

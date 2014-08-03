@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.1.1
+
+- Mitigate Flash CSRF exploit
+
+  Using the API's JSONP support, it's possible to control the first bytes of the
+  response sent to the browser. Combining this with an ASCII-encoded SWF allows
+  arbitrary SWFs to be served from the site, allowing bypassing the same-origin
+  policy built in to browsers.
+
+  While the API includes CSRF protection and is not directly vulnerable, this
+  can be used to bypass other browser origin controls.
+
+  Reported by @iandunn on 2014-07-10.
+
+  (props @iandunn, @rmccue, [#356][gh-356])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/1.0...1.1)
+
+[gh-356]: https://github.com/WP-API/WP-API/issues/356
+
 ## 1.1
 
 - Add new routes for taxonomies and terms.

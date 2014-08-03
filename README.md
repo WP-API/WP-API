@@ -69,20 +69,30 @@ testing environment in a few easy steps:
    vagrant up
    ```
 
-5. Browse to http://vagrant.local/wp/wp-admin/plugins.php and activate the WP
-API plugin
+5. Activate the plugin:
+
+   ```bash
+   vagrant ssh -c 'cd /vagrant && wp plugin activate json-rest-api'
+   ```
+
+6. Set the permalink structure to something other than the default, in order to
+   enable the http://vagrant.local/wp-json/ endpoint URL (if you skip this
+   step, it can be accessed at http://vagrant.local/?json_route=/):
+
+   ```bash
+   vagrant ssh -c "cd /vagrant && wp rewrite structure '/%postname%/'"
+   ```
+
+You're done! You should now have a WordPress site available at
+http://vagrant.local; you can access the API via http://vagrant.local/wp-json/
+
+To access the admin interface, visit http://vagrant.local/wp/wp-admin and log
+in with the credentials below:
 
    ```
    Username: admin
    Password: password
    ```
-
-6. Browse to http://vagrant.local/wp/wp-admin/options-permalink.php and set
-the permalink structure to anything other than "Default"
-
-7. Browse to http://vagrant.local/wp-json/ (or if the permalink structure is
-still "Default," to http://vagrant.local/?json_route=/)
-
 
 ### Testing
 
@@ -94,7 +104,13 @@ For testing, you'll need a little bit more:
    # From your base directory, api-tester if following the steps from before
    git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
+   
+2. Run the provisioner:
 
+   ```
+   vagrant provision
+   ```
+   
 3. Run the testing suite:
 
    ```bash
@@ -112,7 +128,7 @@ look at the [recent updates][] for the project.
 Previous issues can be found on the [GSOC Trac][] issue tracker, however new
 issues should not be filed there.
 
-[docs]: https://github.com/WP-API/WP-API/tree/master/docs
+[docs]: http://wp-api.org/
 [GitHub]: https://github.com/WP-API/WP-API
 [GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
 [recent updates]: http://make.wordpress.org/core/tag/json-api/
