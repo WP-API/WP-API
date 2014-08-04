@@ -202,7 +202,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 
 		$this->assertEquals( count( $categories ), count( $data ) );
 
-		$this->assertEquals( $categories[0]->term_id, $data[0]['ID'] );
+		$this->assertEquals( $categories[0]->term_id, $data[0]['id'] );
 		$this->assertEquals( $categories[0]->name, $data[0]['name'] );
 		$this->assertEquals( $categories[0]->slug, $data[0]['slug']);
 		$this->assertEquals( $categories[0]->description, $data[0]['description']);
@@ -246,7 +246,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 	}
 
 	protected function check_taxonomy_term( $term, $data ) {
-		$this->assertEquals( $term->term_id, $data['ID'] );
+		$this->assertEquals( $term->term_id, $data['id'] );
 		$this->assertEquals( $term->name, $data['name'] );
 		$this->assertEquals( $term->slug, $data['slug'] );
 		$this->assertEquals( $term->description, $data['description'] );
@@ -311,7 +311,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$data = $this->endpoint->add_term_data( array(), $post_obj, false );
 
 		$this->assertCount( 1, $data['terms']['category'] );
-		$this->assertEquals( $category, $data['terms']['category'][0]['ID'] );
+		$this->assertEquals( $category, $data['terms']['category'][0]['id'] );
 	}
 
 	public function test_prepare_taxonomy_term() {

@@ -37,7 +37,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$response = json_ensure_response( $response );
 		$response_data = $response->get_data();
 
-		$this->assertEquals( $post_obj->ID, $response_data['ID'] );
+		$this->assertEquals( $post_obj->ID, $response_data['id'] );
 		$this->assertEquals( $post_obj->post_name, $response_data['slug'] );
 		$this->assertEquals( $post_obj->post_status, $response_data['status'] );
 		$this->assertEquals( $post_obj->post_author, $response_data['author'] );
@@ -117,7 +117,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( 'Last-Modified', $headers );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 
 		$this->check_get_post_response( $response, $new_post );
 	}
@@ -154,7 +154,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['author'], $new_post->post_author );
 	}
 
@@ -162,7 +162,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$other_user = $this->factory->user->create( array( 'role' => 'author' ) );
 		$data = $this->set_data(array(
 			'author' => (object) array(
-				'ID' => $other_user,
+				'id' => $other_user,
 			),
 		));
 		$response = $this->endpoint->create_post( $data );
@@ -170,8 +170,8 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
-		$this->assertEquals( $data['author']->ID, $new_post->post_author );
+		$new_post = get_post( $response_data['id'] );
+		$this->assertEquals( $data['author']->id, $new_post->post_author );
 	}
 
 	function test_create_post_invalid_author() {
@@ -235,7 +235,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['status'], $new_post->post_status );
 	}
 
@@ -249,7 +249,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['status'], $new_post->post_status );
 	}
 
@@ -296,7 +296,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
 	}
 
@@ -311,7 +311,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['password'], $new_post->post_password );
 	}
 
@@ -345,7 +345,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 
 		$this->assertEquals( $parent, $new_post->post_parent );
 	}
@@ -374,7 +374,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -389,7 +389,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -419,7 +419,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -437,7 +437,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -456,7 +456,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );
 	}
 
@@ -470,7 +470,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['menu_order'], $new_post->menu_order );
 	}
 
@@ -484,7 +484,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( $data['menu_order'], $new_post->menu_order );
 	}
 
@@ -498,7 +498,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['ID'] );
+		$new_post = get_post( $response_data['id'] );
 		$this->assertEquals( 0, $new_post->menu_order );
 	}
 
@@ -512,7 +512,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$this->assertTrue( is_sticky( $response_data['ID'] ) );
+		$this->assertTrue( is_sticky( $response_data['id'] ) );
 	}
 
 	function test_create_post_sticky_false() {
@@ -525,7 +525,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$this->assertFalse( is_sticky( $response_data['ID'] ) );
+		$this->assertFalse( is_sticky( $response_data['id'] ) );
 	}
 
 	function test_get_post() {
@@ -567,7 +567,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_edit_post() {
-		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
+		$data = $this->set_data( array( 'id' => $this->post_id ) ) ;
 		$response = $this->endpoint->edit_post( $this->post_id, $data );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -584,7 +584,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_edit_post_without_permission() {
-		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
+		$data = $this->set_data( array( 'id' => $this->post_id ) ) ;
 
 		$user = wp_get_current_user();
 		$user->add_cap( 'edit_published_posts', false );
@@ -604,7 +604,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 			'post_status' => 'draft',
 		));
 
-		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
+		$data = $this->set_data( array( 'id' => $this->post_id ) ) ;
 
 		$user = wp_get_current_user();
 		$user->add_cap( 'edit_posts', false );
@@ -619,7 +619,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 	function test_edit_post_change_type() {
 		$data = $this->set_data( array(
-			'ID' => $this->post_id,
+			'id' => $this->post_id,
 			'type' => 'page',
 		) ) ;
 
@@ -629,7 +629,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 	function test_edit_post_change_type_invalid() {
 		$data = $this->set_data( array(
-			'ID' => $this->post_id,
+			'id' => $this->post_id,
 			'type' => 'testposttype',
 		) ) ;
 

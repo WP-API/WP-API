@@ -283,7 +283,7 @@ class WP_JSON_Posts {
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
 	public function create_post( $data ) {
-		unset( $data['ID'] );
+		unset( $data['id'] );
 
 		$result = $this->insert_post( $data );
 		if ( $result instanceof WP_Error ) {
@@ -381,7 +381,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		$data['ID'] = $id;
+		$data['id'] = $id;
 
 		$retval = $this->insert_post( $data );
 		if ( is_wp_error( $retval ) ) {
@@ -636,7 +636,7 @@ class WP_JSON_Posts {
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
 		// Holds the data for this post.
-		$_post = array( 'ID' => (int) $post['ID'] );
+		$_post = array( 'id' => (int) $post['ID'] );
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
@@ -849,16 +849,16 @@ class WP_JSON_Posts {
 	 */
 	protected function insert_post( $data ) {
 		$post   = array();
-		$update = ! empty( $data['ID'] );
+		$update = ! empty( $data['id'] );
 
 		if ( $update ) {
-			$current_post = get_post( absint( $data['ID'] ) );
+			$current_post = get_post( absint( $data['id'] ) );
 
 			if ( ! $current_post ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
 			}
 
-			$post['ID'] = absint( $data['ID'] );
+			$post['ID'] = absint( $data['id'] );
 		} else {
 			// Defaults
 			$post['post_author']   = 0;
@@ -880,7 +880,7 @@ class WP_JSON_Posts {
 			$post['post_type'] = $data['type'];
 		} elseif ( $update ) {
 			// Updating post, use existing post type
-			$current_post = get_post( $data['ID'] );
+			$current_post = get_post( $data['id'] );
 
 			if ( ! $current_post ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
@@ -899,11 +899,11 @@ class WP_JSON_Posts {
 
 		// Permissions check
 		if ( $update ) {
-			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) ) {
+			if ( ! current_user_can( $post_type->cap->edit_post, $data['id'] ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 			}
 
-			if ( $post_type->name != get_post_type( $data['ID'] ) ) {
+			if ( $post_type->name != get_post_type( $data['id'] ) ) {
 				return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
 			}
 		} else {
@@ -968,10 +968,10 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['author'] ) ) {
 			// Allow passing an author object
 			if ( is_object( $data['author'] ) ) {
-				if ( empty( $data['author']->ID ) ) {
+				if ( empty( $data['author']->id ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = (int) $data['author']->ID;
+				$data['author'] = (int) $data['author']->id;
 			} else {
 				$data['author'] = (int) $data['author'];
 			}
@@ -1089,7 +1089,7 @@ class WP_JSON_Posts {
 	 */
 	protected function prepare_comment( $comment, $requested_fields = array( 'comment', 'meta' ), $context = 'single' ) {
 		$fields = array(
-			'ID'   => (int) $comment->comment_ID,
+			'id'   => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
 		);
 
@@ -1145,7 +1145,7 @@ class WP_JSON_Posts {
 			$fields['author'] = (int) $comment->user_id;
 		} else {
 			$fields['author'] = array(
-				'ID'     => 0,
+				'id'     => 0,
 				'name'   => $comment->comment_author,
 				'URL'    => $comment->comment_author_url,
 				'avatar' => json_get_avatar_url( $comment->comment_author_email ),

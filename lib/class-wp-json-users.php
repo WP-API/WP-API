@@ -149,14 +149,14 @@ class WP_JSON_Users {
 	 */
 	protected function prepare_user( $user, $context = 'view' ) {
 		$user_fields = array(
-			'ID'          => $user->ID,
+			'id'          => $user->ID,
 			'username'    => $user->user_login,
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
-			'URL'         => $user->user_url,
+			'url'         => $user->user_url,
 			'avatar'      => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
 		);
@@ -227,14 +227,14 @@ class WP_JSON_Users {
 	protected function insert_user( $data ) {
 		$user = new stdClass;
 
-		if ( ! empty( $data['ID'] ) ) {
-			$existing = get_userdata( $data['ID'] );
+		if ( ! empty( $data['id'] ) ) {
+			$existing = get_userdata( $data['id'] );
 
 			if ( ! $existing ) {
 				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 			}
 
-			if ( ! current_user_can( 'edit_user', $data['ID'] ) ) {
+			if ( ! current_user_can( 'edit_user', $data['id'] ) ) {
 				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 			}
 
@@ -360,7 +360,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
 		}
 
-		$data['ID'] = $user->ID;
+		$data['id'] = $user->ID;
 
 		// Update attributes of the user from $data
 		$retval = $this->insert_user( $data );
@@ -383,7 +383,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
 
-		if ( ! empty( $data['ID'] ) ) {
+		if ( ! empty( $data['id'] ) ) {
 			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
 
