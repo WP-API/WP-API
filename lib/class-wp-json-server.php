@@ -604,62 +604,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	}
 
 	/**
-	 * Parse an RFC3339 timestamp into a DateTime
-	 *
-	 * @deprecated
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
-	 * @return DateTime
-	 */
-	public function parse_date( $date, $force_utc = false ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_parse_date' );
-		
-		return json_parse_date( $date, $force_utc );
-	}
-
-	/**
-	 * Get a local date with its GMT equivalent, in MySQL datetime format
-	 *
-	 * @deprecated
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Should we force UTC timestamp?
-	 * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s), null on failure
-	 */
-	public function get_date_with_gmt( $date, $force_utc = false ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_date_with_gmt' );
-
-		return json_get_date_with_gmt( $date, $force_utc );
-	}
-
-	/**
-	 * Retrieve the avatar url for a user who provided a user ID or email address.
-	 *
-	 * {@see get_avatar()} doesn't return just the URL, so we have to
-	 * extract it here.
-	 *
-	 * @deprecated
-	 * @param string $email Email address
-	 * @return string url for the user's avatar
-	*/
-	public function get_avatar_url( $email ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_avatar_url' );
-
-		return json_get_avatar_url( $email );
-	}
-
-	/**
-	 * Get the timezone object for the site
-	 *
-	 * @deprecated
-	 * @return DateTimeZone
-	 */
-	public function get_timezone() {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_timezone' );
-
-		return json_get_timezone();
-	}
-
-	/**
 	 * Extract headers from a PHP-style $_SERVER array
 	 *
 	 * @param array $server Associative array similar to $_SERVER

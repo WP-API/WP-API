@@ -309,21 +309,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Create a new post for any registered post type.
-	 *
-	 * @deprecated
-	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
-	 *
-	 * @param array $content Content data. (see {@see WP_JSON_Posts::create_post})
-	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
-	 */
-	public function new_post( $data ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Posts::create_post' );
-
-		return $this->create_post( $data );
-	}
-
-	/**
 	 * Retrieve a post.
 	 *
 	 * @uses get_post()
@@ -589,11 +574,6 @@ class WP_JSON_Posts {
 
 		if ( $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
-		}
-
-		if ( $context === true ) {
-			$context = 'embed';
-			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
 		}
 
 		$data = array(
