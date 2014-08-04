@@ -70,7 +70,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response_data = $response->get_data();
 
 		// Check basic data
-		$this->assertEquals( $user_obj->ID, $response_data['ID'] );
+		$this->assertEquals( $user_obj->ID, $response_data['id'] );
 		$this->assertEquals( $user_obj->user_login, $response_data['username'] );
 		if ( $context === 'view' ) {
 			$this->assertEquals( false, $response_data['email'] );
@@ -100,7 +100,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response_data = $response->get_data();
 
 		// Check that the data is intact
-		$new_user = get_userdata( $response_data['ID'] );
+		$new_user = get_userdata( $response_data['id'] );
 
 		$this->assertEquals( $data['username'], $response_data['username'] );
 		$this->assertEquals( $data['username'], $new_user->user_login );
