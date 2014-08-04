@@ -28,21 +28,6 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
-
-		$deprecated = array(
-			'/posts/types/(?P<type>[\w-]+)/taxonomies',
-			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)',
-			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms',
-			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)',
-		);
-
-		foreach ( $deprecated as $route ) {
-			$this->assertArrayHasKey( $route, $routes );
-			foreach ( $routes[$route] as $parts ) {
-				$bitmask = $parts[1];
-				$this->assertEquals( WP_JSON_Server::HIDDEN_ENDPOINT, $bitmask & WP_JSON_Server::HIDDEN_ENDPOINT, "Deprecated $route should be hidden" );
-			}
-		}
 	}
 
 	/**
@@ -71,14 +56,6 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
 
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
-	}
-
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::get_taxonomies_for_type
-	 */
-	public function test_get_taxonomies_for_type() {
-		$response = $this->endpoint->get_taxonomies_for_type( 'post' );
-		$this->check_taxonomies_for_type_response( 'post', $response );
 	}
 
 	public function test_get_taxonomies() {
@@ -127,21 +104,13 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->check_taxonomy_object( $category, $data );
 	}
 
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::get_taxonomy
-	 */
-	public function test_get_taxonomy() {
-		$response = $this->endpoint->get_taxonomy( 'post', 'category' );
-		$this->check_taxonomy_object_response( $response );
-	}
-
 	public function test_get_taxonomy_object() {
-		$response = $this->endpoint->get_taxonomy_object( 'category' );
+		$response = $this->endpoint->get_taxonomy( 'category' );
 		$this->check_taxonomy_object_response( $response );
 	}
 
 	public function test_get_taxonomy_object_empty() {
-		$response = $this->endpoint->get_taxonomy_object( '' );
+		$response = $this->endpoint->get_taxonomy( '' );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
 	}
 
@@ -152,38 +121,9 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		return $class->testProtectedCall( $method, $args );
 	}
 
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy
-	 */
-	public function test_prepare_taxonomy() {
-		$tax = get_taxonomy( 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy', array( $tax ) );
-		$this->check_taxonomy_object( $tax, $data );
-	}
-
 	public function test_prepare_taxonomy_object() {
 		$tax = get_taxonomy( 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax ) );
-		$this->check_taxonomy_object( $tax, $data );
-	}
-
-	/**
-	 * Check old _in_collection parameter
-	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy_object
-	 */
-	public function test_prepare_taxonomy_object_in_collection() {
-		$tax = get_taxonomy( 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax, true ) );
-		$this->check_taxonomy_object( $tax, $data );
-	}
-
-	/**
-	 * Check old _in_collection parameter
-	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_taxonomy_object
-	 */
-	public function test_prepare_taxonomy_object_not_in_collection() {
-		$tax = get_taxonomy( 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy_object', array( $tax, false ) );
+		$data = $this->call_protected( 'prepare_taxonomy', array( $tax ) );
 		$this->check_taxonomy_object( $tax, $data );
 	}
 
@@ -209,26 +149,18 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::get_terms
-	 */
 	public function test_get_terms() {
-		$response = $this->endpoint->get_terms( 'post', 'category' );
+		$response = $this->endpoint->get_terms( 'category' );
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
-	public function test_get_taxonomy_terms() {
-		$response = $this->endpoint->get_taxonomy_terms( 'category' );
-		$this->check_get_taxonomy_terms_response( $response );
-	}
-
-	public function test_get_taxonomy_terms_empty() {
-		$response = $this->endpoint->get_taxonomy_terms( '' );
+	public function test_get_terms_empty() {
+		$response = $this->endpoint->get_terms( '' );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
 	}
 
-	public function test_get_taxonomy_terms_invalid() {
-		$response = $this->endpoint->get_taxonomy_terms( 'testtaxonomy' );
+	public function test_get_terms_invalid() {
+		$response = $this->endpoint->get_terms( 'testtaxonomy' );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
 	}
 
@@ -236,10 +168,10 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		return new WP_Error( 'test_internal_error' );
 	}
 
-	public function test_get_taxonomy_terms_internal_error() {
+	public function test_get_terms_internal_error() {
 		add_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
 
-		$response = $this->endpoint->get_taxonomy_terms( 'category' );
+		$response = $this->endpoint->get_terms( 'category' );
 		remove_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
 
 		$this->assertErrorResponse( 'test_internal_error', $response );
@@ -264,26 +196,18 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->check_taxonomy_term( $category, $data );
 	}
 
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::get_term
-	 */
 	public function test_get_term() {
-		$response = $this->endpoint->get_term( 'post', 'category', 1 );
+		$response = $this->endpoint->get_term( 'category', 1 );
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
-	public function test_get_taxonomy_term() {
-		$response = $this->endpoint->get_taxonomy_term( 'category', 1 );
-		$this->check_get_taxonomy_term_response( $response );
-	}
-
-	public function test_get_taxonomy_term_invalid_taxonomy() {
-		$response = $this->endpoint->get_taxonomy_term( 'testtaxonomy', 1 );
+	public function test_get_term_invalid_taxonomy() {
+		$response = $this->endpoint->get_term( 'testtaxonomy', 1 );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
 	}
 
-	public function test_get_taxonomy_term_invalid_term() {
-		$response = $this->endpoint->get_taxonomy_term( 'category', 'testmissingcat' );
+	public function test_get_term_invalid_term() {
+		$response = $this->endpoint->get_term( 'category', 'testmissingcat' );
 		$this->assertErrorResponse( 'json_taxonomy_invalid_term', $response, 404 );
 	}
 
@@ -316,7 +240,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 
 	public function test_prepare_taxonomy_term() {
 		$term = get_term( 1, 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy_term', array( $term ) );
+		$data = $this->call_protected( 'prepare_term', array( $term ) );
 		$this->check_taxonomy_term( $term, $data );
 	}
 
@@ -326,21 +250,12 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		) );
 
 		$term = get_term( $child, 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy_term', array( $term ) );
+		$data = $this->call_protected( 'prepare_term', array( $term ) );
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertNotEmpty( $data['parent'] );
 
 		$parent = get_term( 1, 'category' );
 		$this->check_taxonomy_term( $parent, $data['parent'] );
-	}
-
-	/**
-	 * @expectedDeprecated WP_JSON_Taxonomies::prepare_term
-	 */
-	public function test_prepare_term() {
-		$term = get_term( 1, 'category' );
-		$data = $this->call_protected( 'prepare_term', array( $term, 'post' ) );
-		$this->check_taxonomy_term( $term, $data );
 	}
 }

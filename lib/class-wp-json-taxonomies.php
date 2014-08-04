@@ -141,7 +141,7 @@ class WP_JSON_Taxonomies {
 
 		$data = array();
 		foreach ( $terms as $term ) {
-			$data[] = $this->prepare_taxonomy_term( $term );
+			$data[] = $this->prepare_term( $term );
 		}
 
 		return $data;
@@ -166,7 +166,7 @@ class WP_JSON_Taxonomies {
 			return new WP_Error( 'json_taxonomy_invalid_term', __( 'Invalid term ID.' ), array( 'status' => 404 ) );
 		}
 
-		return $this->prepare_taxonomy_term( $data, $context );
+		return $this->prepare_term( $data, $context );
 	}
 
 	/**
@@ -183,7 +183,7 @@ class WP_JSON_Taxonomies {
 		$data['terms'] = array();
 
 		foreach ( $terms as $term ) {
-			$data['terms'][ $term->taxonomy ][] = $this->prepare_taxonomy_term( $term );
+			$data['terms'][ $term->taxonomy ][] = $this->prepare_term( $term );
 		}
 
 		return $data;
@@ -195,7 +195,7 @@ class WP_JSON_Taxonomies {
 	 * @param array|object $term The unprepared term data
 	 * @return array The prepared term data
 	 */
-	protected function prepare_taxonomy_term( $term, $context = 'view' ) {
+	protected function prepare_term( $term, $context = 'view' ) {
 		$base_url = '/taxonomies/' . $term->taxonomy . '/terms';
 
 		$data = array(
