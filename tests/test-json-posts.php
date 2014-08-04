@@ -55,8 +55,8 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 				$this->assertEquals( $post_obj->post_parent, $response_data['parent'] );
 			}
 			else {
-				$this->assertEquals( $post_obj->post_parent, $response_data['parent']['ID'] );
-				$this->check_get_post_response( $response_data['parent'], get_post( $response_data['parent']['ID'] ), 'view-parent' );
+				$this->assertEquals( $post_obj->post_parent, $response_data['parent']['id'] );
+				$this->check_get_post_response( $response_data['parent'], get_post( $response_data['parent']['id'] ), 'view-parent' );
 			}
 		}
 		else {
