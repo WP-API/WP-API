@@ -669,11 +669,15 @@ class WP_JSON_Posts {
 
 		// prepare common post fields
 		$post_fields = array(
-			'title'           => get_the_title( $post['ID'] ), // $post['post_title'],
+			'title'           => array(
+				'rendered' => get_the_title( $post['ID'] ), // $post['post_title'],
+			),
+			'content'         => array(
+				'rendered' => apply_filters( 'the_content', $post['post_content'] ),
+			),
 			'status'          => $post['post_status'],
 			'type'            => $post['post_type'],
 			'author'          => (int) $post['post_author'],
-			'content'         => apply_filters( 'the_content', $post['post_content'] ),
 			'parent'          => (int) $post['post_parent'],
 			#'post_mime_type' => $post['post_mime_type'],
 			'link'            => get_permalink( $post['ID'] ),
@@ -681,8 +685,12 @@ class WP_JSON_Posts {
 
 		$post_fields_extended = array(
 			'slug'           => $post['post_name'],
-			'guid'           => apply_filters( 'get_the_guid', $post['guid'] ),
-			'excerpt'        => $this->prepare_excerpt( $post['post_excerpt'] ),
+			'guid'           => array(
+				'rendered' => apply_filters( 'get_the_guid', $post['guid'] ),
+			),
+			'excerpt'        => array(
+				'rendered' => $this->prepare_excerpt( $post['post_excerpt'] ),
+			),
 			'menu_order'     => (int) $post['menu_order'],
 			'comment_status' => $post['comment_status'],
 			'ping_status'    => $post['ping_status'],
@@ -690,10 +698,18 @@ class WP_JSON_Posts {
 		);
 
 		$post_fields_raw = array(
-			'title_raw'   => $post['post_title'],
-			'content_raw' => $post['post_content'],
-			'excerpt_raw' => $post['post_excerpt'],
-			'guid_raw'    => $post['guid'],
+			'title'     => array(
+				'raw' => $post['post_title'],
+			),
+			'content'   => array(
+				'raw' => $post['post_content'],
+			),
+			'excerpt'   => array(
+				'raw' => $post['post_excerpt'],
+			),
+			'guid'      => array(
+				'raw' => $post['guid'],
+			),
 		);
 
 		// Dates
@@ -754,7 +770,7 @@ class WP_JSON_Posts {
 
 		if ( 'edit' === $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-				$_post = array_merge( $_post, $post_fields_raw );
+				$_post = array_merge_recursive( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
 				if ( $previous_post ) {
@@ -764,7 +780,7 @@ class WP_JSON_Posts {
 			}
 		} elseif ( 'view-revision' == $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-				$_post = array_merge( $_post, $post_fields_raw );
+				$_post = array_merge_recursive( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
 				if ( $previous_post ) {
@@ -1002,12 +1018,22 @@ class WP_JSON_Posts {
 		}
 
 		// Content and excerpt
-		if ( ! empty( $data['content_raw'] ) ) {
-			$post['post_content'] = $data['content_raw'];
+		if ( ! empty( $data['content'] ) ) {
+			if ( is_string( $data['content'] ) ) {
+				$post['post_content'] = $data['content'];
+			}
+			elseif ( ! empty( $data['content']['raw'] ) ) {
+				$post['post_content'] = $data['content']['raw'];
+			}
 		}
 
-		if ( ! empty( $data['excerpt_raw'] ) ) {
-			$post['post_excerpt'] = $data['excerpt_raw'];
+		if ( ! empty( $data['excerpt'] ) ) {
+			if ( is_string( $data['excerpt'] ) ) {
+				$post['post_excerpt'] = $data['excerpt'];
+			}
+			elseif ( ! empty( $data['excerpt']['raw'] ) ) {
+				$post['post_excerpt'] = $data['excerpt']['raw'];
+			}
 		}
 
 		// Parent
@@ -1096,8 +1122,10 @@ class WP_JSON_Posts {
 		$post = (array) get_post( $fields['post'] );
 
 		// Content
-		$fields['content'] = apply_filters( 'comment_text', $comment->comment_content, $comment );
-		// $fields['content_raw'] = $comment->comment_content;
+		$fields['content'] = array(
+			'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment )
+		);
+		// $fields['content']['raw'] = $comment->comment_content;
 
 		// Status
 		switch ( $comment->comment_approved ) {

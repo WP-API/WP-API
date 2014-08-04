@@ -92,16 +92,18 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 
 		// Check filtered values.
-		$this->assertEquals( get_the_title( $post_obj->ID ), $response_data['title'] );
+		$this->assertEquals( get_the_title( $post_obj->ID ), $response_data['title']['rendered'] );
 		// TODO: apply content filter for more accurate testing.
-		$this->assertEquals( wpautop( $post_obj->post_content ), $response_data['content'] );
+		$this->assertEquals( wpautop( $post_obj->post_content ), $response_data['content']['rendered'] );
 		// TODO: apply excerpt filter for more accurate testing.
-		$this->assertEquals( wpautop( $post_obj->post_excerpt ), $response_data['excerpt'] );
-		$this->assertEquals( $post_obj->guid, $response_data['guid'] );
+		$this->assertEquals( wpautop( $post_obj->post_excerpt ), $response_data['excerpt']['rendered'] );
+		$this->assertEquals( $post_obj->guid, $response_data['guid']['rendered'] );
 
 		if ( $context === 'edit' ) {
-			$this->assertEquals( $post_obj->post_content, $response_data['content_raw'] );
-			$this->assertEquals( $post_obj->post_excerpt, $response_data['excerpt_raw'] );
+			$this->assertEquals( $post_obj->post_title, $response_data['title']['raw'] );
+			$this->assertEquals( $post_obj->post_content, $response_data['content']['raw'] );
+			$this->assertEquals( $post_obj->post_excerpt, $response_data['excerpt']['raw'] );
+			$this->assertEquals( $post_obj->guid, $response_data['guid']['raw'] );
 		}
 
 	}
