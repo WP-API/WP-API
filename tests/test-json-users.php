@@ -18,7 +18,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->endpoint = new WP_JSON_Users( $this->fake_server );
 	}
 
-	private function allow_user_to_create_users( $user ) {
+	protected function allow_user_to_create_users( $user ) {
 		if ( is_multisite() ) {
 			update_site_option( 'site_admins', array( $user->user_login ) );
 		} else {
