@@ -47,6 +47,41 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	}
 
 	/**
+	 * Check whether current user has appropriate context permission
+	 */
+	protected function check_context_permission( $context ) {
+
+		switch ( $context ) {
+			case 'view':
+				// @todo change to only users who have authored
+				if ( current_user_can( 'edit_posts' ) ) {
+					return true;
+				} else {
+					return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
+				}
+
+			case 'view-private':
+				if ( current_user_can( 'list_users' ) ) {
+					return true;
+				} else {
+					return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
+				}
+				break;
+
+			case 'edit':
+				if ( current_user_can( 'edit_user', $this->data->ID ) ) {
+					return true;
+				} else {
+					return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you cannot edit this post.' ), array( 'status' => 403 ) );
+				}
+				break;
+		}
+
+		return new WP_Error( 'json_error_unknown_context', __( 'Unknown context specified.' ), array( 'status' => 400 ) );
+
+	}
+
+	/**
 	 * Prepare user data for response
 	 *
 	 * @param string $context
@@ -65,7 +100,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 			'description' => $user->description,
 		);
 
-		if ( $context === 'read-private' || $context === 'edit' ) {
+		if ( $context === 'view-private' || $context === 'edit' ) {
 			$user_fields['username']     = $user->user_login;
 			$user_fields['first_name']   = $user->first_name;
 			$user_fields['last_name']    = $user->last_name;
@@ -85,6 +120,5 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 
 		return $user_fields;
 	}
-
 
 }
