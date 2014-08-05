@@ -1,6 +1,6 @@
 <?php
 
-class WP_HTTP_Response implements WP_JSON_ResponseInterface {
+class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	/**
 	 * Constructor
 	 *
