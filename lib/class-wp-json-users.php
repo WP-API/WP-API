@@ -103,10 +103,7 @@ class WP_JSON_Users {
 			return $response;
 		}
 
-		if ( ! ( $response instanceof WP_JSON_ResponseInterface ) ) {
-			$response = new WP_JSON_Response( $response );
-		}
-
+		$response = json_ensure_response( $response );
 		$data = $response->get_data();
 
 		$response->header( 'Location', $data['_links']['self']['href'] );
