@@ -188,7 +188,7 @@ class WP_JSON_Users {
 			return $instance;
 		}
 
-		return $instance->edit( $data );
+		return $instance->update( $data );
 	}
 
 	/**
