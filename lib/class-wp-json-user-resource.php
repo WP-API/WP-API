@@ -15,8 +15,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 			return false;
 		}
 
-		$class = get_called_class();
-		return $class( $user );
+		return new WP_JSON_User_Resource( $user );
 
 	}
 
