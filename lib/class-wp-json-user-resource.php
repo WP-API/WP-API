@@ -21,6 +21,41 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	}
 
 	/**
+	 * Create a new user.
+	 *
+	 * @param $data
+	 * @return mixed
+	 */
+	public static function create_user( $data ) {
+
+		if ( ! current_user_can( 'create_users' ) ) {
+			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $data['id'] ) ) {
+			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
+		}
+
+		$user_id = self::insert_user( $data );
+
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		$user_resource = self::get_instance( $user_id );
+		$response = $user_resource->get( 'edit' );
+
+		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
+			$response = new WP_JSON_Response( $response );
+		}
+
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/users/' . $user_id ) );
+
+		return $response;
+	}
+
+	/**
 	 * Get a user
 	 *
 	 * @param string $context
@@ -42,7 +77,24 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @param string $context
 	 * @return array|WP_Error
 	 */
-	public function update( $context = 'edit' ) {
+	public function update( $data, $context = 'edit' ) {
+
+		$id = $this->data->id;
+
+		if ( ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
+		}
+
+		$data['id'] = $id;
+
+		// Update attributes of the user from $data
+		$retval = self::insert_user( $data );
+
+		if ( is_wp_error( $retval ) ) {
+			return $retval;
+		}
+
+		return self::get_instance( $id );
 
 	}
 
@@ -155,6 +207,100 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 		}
 
 		return $user_fields;
+	}
+
+	/**
+	 * Insert or update a user
+	 */
+	protected static function insert_user( $data ) {
+
+		$user = new stdClass;
+
+		if ( ! empty( $data['id'] ) ) {
+			$user->ID = $data['id'];
+			$update = true;
+		} else {
+
+			$required = array( 'username', 'password', 'email' );
+			foreach ( $required as $arg ) {
+				if ( empty( $data[ $arg ] ) ) {
+					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+				}
+			}
+
+			$update = false;
+		}
+
+		// Basic authentication details
+		if ( isset( $data['username'] ) ) {
+			$user->user_login = $data['username'];
+		}
+
+		if ( isset( $data['password'] ) ) {
+			$user->user_pass = $data['password'];
+		}
+
+		// Names
+		if ( isset( $data['name'] ) ) {
+			$user->display_name = $data['name'];
+		}
+
+		if ( isset( $data['first_name'] ) ) {
+			$user->first_name = $data['first_name'];
+		}
+
+		if ( isset( $data['last_name'] ) ) {
+			$user->last_name = $data['last_name'];
+		}
+
+		if ( isset( $data['nickname'] ) ) {
+			$user->nickname = $data['nickname'];
+		}
+
+		if ( ! empty( $data['slug'] ) ) {
+			$user->user_nicename = $data['slug'];
+		}
+
+		// URL
+		if ( ! empty( $data['URL'] ) ) {
+			$escaped = esc_url_raw( $user->user_url );
+
+			if ( $escaped !== $user->user_url ) {
+				return new WP_Error( 'json_invalid_url', __( 'Invalid user URL.' ), array( 'status' => 400 ) );
+			}
+
+			$user->user_url = $data['URL'];
+		}
+
+		// Description
+		if ( ! empty( $data['description'] ) ) {
+			$user->description = $data['description'];
+		}
+
+		// Email
+		if ( ! empty( $data['email'] ) ) {
+			$user->user_email = $data['email'];
+		}
+
+		// Pre-flight check
+		$user = apply_filters( 'json_pre_insert_user', $user, $data );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$user_id = $update ? wp_update_user( $user ) : wp_insert_user( $user );
+
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		$user->ID = $user_id;
+
+		do_action( 'json_insert_user', $user, $data, $update );
+
+		return $user_id;
+
 	}
 
 }
