@@ -1,6 +1,6 @@
 <?php
 
-abstract class WP_JSON_Resource extends JsonSerializable {
+abstract class WP_JSON_Resource {
 
 	protected $data;
 
