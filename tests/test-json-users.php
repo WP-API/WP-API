@@ -40,7 +40,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$headers = $response->get_headers();
 		$response_data = $response->get_data();
 		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertEquals( $response_data['meta']['links']['self'], $headers['Location'] );
+		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
 
 		$this->check_get_user_response( $response, $this->user_obj );
 

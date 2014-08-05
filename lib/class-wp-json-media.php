@@ -114,18 +114,28 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// Override entity meta keys with the correct links
-		$data['meta'] = array(
-			'links' => array(
-				'self'            => json_url( '/media/' . $post['ID'] ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/media' ),
-				'replies'         => json_url( '/media/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( '/media/' . $post['ID'] . '/revisions' ),
+		$data['_links'] = array(
+			'self'            => array(
+				'href' => json_url( '/media/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection'      => array(
+				'href' => json_url( '/media' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/media/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/media/' . $post['ID'] . '/revisions' ),
 			),
 		);
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$data['meta']['links']['up'] = json_url( '/media/' . (int) $post['post_parent'] );
+			$data['_links']['up'] = array(
+				'href' => json_url( '/media/' . (int) $post['post_parent'] ),
+			);
 		}
 
 		return apply_filters( 'json_prepare_attachment', $data, $post, $context );

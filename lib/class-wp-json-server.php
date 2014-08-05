@@ -520,10 +520,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			'URL'            => get_option( 'siteurl' ),
 			'routes'         => array(),
 			'authentication' => array(),
-			'meta'           => array(
-				'links' => array(
-					'help'    => 'https://github.com/WP-API/WP-API',
-					'profile' => 'https://raw.github.com/WP-API/WP-API/master/docs/schema.json',
+			'_links' => array(
+				'help'    => array(
+					'href' => 'https://github.com/WP-API/WP-API',
 				),
 			),
 		);
@@ -552,7 +551,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 					// For non-variable routes, generate links
 					if ( strpos( $route, '<' ) === false ) {
-						$data['meta'] = array(
+						$data['_links'] = array(
 							'self' => json_url( $route ),
 						);
 					}

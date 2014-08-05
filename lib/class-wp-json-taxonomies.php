@@ -90,12 +90,16 @@ class WP_JSON_Taxonomies {
 			'types'        => $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
-			'meta'         => array(
-				'links' => array(
-					'archives' => json_url( $base_url . '/terms' ),
-					'collection' => json_url( '/taxonomies' ),
-					'self' => json_url( $base_url )
-				)
+			'_links' => array(
+				'archives'   => array(
+					'href' => json_url( $base_url . '/terms' ),
+				),
+				'collection' => array(
+					'href' => json_url( '/taxonomies' ),
+				),
+				'self'       => array(
+					'href' => json_url( $base_url ),
+				),
 			),
 		);
 
@@ -206,10 +210,12 @@ class WP_JSON_Taxonomies {
 			'parent'      => (int) $term->parent,
 			'count'       => (int) $term->count,
 			'link'        => get_term_link( $term, $term->taxonomy ),
-			'meta'        => array(
-				'links' => array(
-					'collection' => json_url( $base_url ),
-					'self'       => json_url( $base_url . '/' . $term->term_id ),
+			'_links' => array(
+				'collection' => array(
+					'href' => json_url( $base_url ),
+				),
+				'self'       => array(
+					'href' => json_url( $base_url . '/' . $term->term_id ),
 				),
 			),
 		);
