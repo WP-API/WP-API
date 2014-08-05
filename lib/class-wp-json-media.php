@@ -35,7 +35,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $filter['post_status'])) {
+		if ( empty( $filter['post_status'] ) ) {
 			$filter['post_status'] = array( 'publish', 'inherit' );
 
 			// Always allow status queries for attachments
@@ -105,7 +105,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		} elseif ( ! empty( $data['attachment_meta']['sizes'] ) ) {
 			$img_url_basename = wp_basename( $data['source'] );
 
-			foreach ($data['attachment_meta']['sizes'] as $size => &$size_data) {
+			foreach ( $data['attachment_meta']['sizes'] as $size => &$size_data ) {
 				// Use the same method image_downsize() does
 				$size_data['url'] = str_replace( $img_url_basename, $size_data['file'], $data['source'] );
 			}
@@ -238,7 +238,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		$name       = basename( $file['file'] );
 		$name_parts = pathinfo( $name );
-		$name       = trim( substr( $name, 0, -(1 + strlen($name_parts['extension'])) ) );
+		$name       = trim( substr( $name, 0, -(1 + strlen( $name_parts['extension'] ) ) ) );
 
 		$url     = $file['url'];
 		$type    = $file['type'];
@@ -247,7 +247,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		$content = '';
 
 		// use image exif/iptc data for title and caption defaults if possible
-		if ( $image_meta = @wp_read_image_metadata($file) ) {
+		if ( $image_meta = @wp_read_image_metadata( $file ) ) {
 			if ( trim( $image_meta['title'] ) && ! is_numeric( sanitize_title( $image_meta['title'] ) ) ) {
 				$title = $image_meta['title'];
 			}
@@ -273,9 +273,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// Save the data
-		$id = wp_insert_attachment($attachment, $file, $post_id );
+		$id = wp_insert_attachment( $attachment, $file, $post_id );
 
-		if ( !is_wp_error($id) ) {
+		if ( ! is_wp_error( $id ) ) {
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 		}
 
@@ -351,10 +351,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		// Now, sideload it in
 		$file_data = array(
-			'error' => null,
+			'error'    => null,
 			'tmp_name' => $tmpfname,
-			'name' => $filename,
-			'type' => $type,
+			'name'     => $filename,
+			'type'     => $type,
 		);
 		$overrides = array(
 			'test_form' => false,
