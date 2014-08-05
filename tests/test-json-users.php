@@ -21,10 +21,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	public function test_get_current_user() {
 		$response = $this->endpoint->get_current_user();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 302, $response->get_status() );
@@ -41,10 +38,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	public function test_get_user() {
 		$response = $this->endpoint->get_user( $this->user );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
@@ -55,10 +49,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	public function test_get_user_with_edit_context() {
 		$response = $this->endpoint->get_user( $this->user, 'edit' );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
@@ -129,10 +120,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response = $this->endpoint->delete_user( $test_user );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
@@ -157,10 +145,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response = $this->endpoint->delete_user( $test_user, false, $test_new_author );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
@@ -178,10 +163,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->edit_user( $this->user, $data );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );

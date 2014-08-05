@@ -388,10 +388,7 @@ class WP_JSON_Users {
 		}
 
 		$response = $this->get_user( $user_id );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/users/' . $user_id ) );
