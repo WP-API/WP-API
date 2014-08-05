@@ -10,7 +10,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 */
 	public function get_instance( $user_id ) {
 
-		$user = get_user_by( 'id', $user_id );
+		$user = get_user_by( 'id', absint( $user_id ) );
 		if ( empty( $user ) ) {
 			return false;
 		}
