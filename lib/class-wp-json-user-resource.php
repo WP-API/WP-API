@@ -126,9 +126,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * Check whether current user has appropriate context permission
 	 */
 	protected function check_context_permission( $context ) {
-		if ( get_current_user_id()
-			&& get_current_user_id() === $this->data->ID
-			&& in_array( $context, array( 'view', 'view-private', 'edit' ) ) ) {
+		if ( get_current_user_id() && get_current_user_id() === $this->data->ID && in_array( $context, array( 'view', 'view-private', 'edit' ) ) ) {
 			return true;
 		}
 
@@ -137,25 +135,21 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 				// @todo change to only users who have authored
 				if ( current_user_can( 'edit_posts' ) ) {
 					return true;
-				} else {
-					return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
 				}
+				return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
 
 			case 'view-private':
 				if ( current_user_can( 'list_users' ) ) {
 					return true;
-				} else {
-					return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
 				}
-				break;
+				return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user.' ), array( 'status' => 403 ) );
 
 			case 'edit':
 				if ( current_user_can( 'edit_user', $this->data->ID ) ) {
 					return true;
-				} else {
-					return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you cannot edit this post.' ), array( 'status' => 403 ) );
 				}
-				break;
+				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you cannot edit this post.' ), array( 'status' => 403 ) );
+
 		}
 
 		return new WP_Error( 'json_error_unknown_context', __( 'Unknown context specified.' ), array( 'status' => 400 ) );
