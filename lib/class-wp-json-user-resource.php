@@ -9,14 +9,12 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return WP_JSON_User_Resource|false
 	 */
 	public static function get_instance( $user_id ) {
-
 		$user = get_user_by( 'id', absint( $user_id ) );
 		if ( empty( $user ) ) {
 			return false;
 		}
 
 		return new WP_JSON_User_Resource( $user );
-
 	}
 
 	/**
@@ -26,7 +24,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return mixed
 	 */
 	public static function create( $data ) {
-
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
@@ -58,7 +55,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return array|WP_Error
 	 */
 	public function get( $context = 'view' ) {
-
 		$ret = $this->check_context_permission( $context );
 		if ( is_wp_error( $ret ) ) {
 			return $ret;
@@ -74,7 +70,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return array|WP_Error
 	 */
 	public function update( $data, $context = 'edit' ) {
-
 		$id = $this->data->ID;
 
 		if ( ! current_user_can( 'edit_user', $id ) ) {
@@ -92,7 +87,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 
 		$instance = self::get_instance( $id );
 		return $instance->get( 'edit' );
-
 	}
 
 	/**
@@ -102,7 +96,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return array|WP_Error
 	 */
 	public function delete( $force = false, $reassign = null ) {
-
 		$id = $this->data->ID;
 
 		// Permissions check
@@ -128,14 +121,12 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 		} else {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
-
 	}
 
 	/**
 	 * Check whether current user has appropriate context permission
 	 */
 	protected function check_context_permission( $context ) {
-
 		if ( get_current_user_id()
 			&& get_current_user_id() === $this->data->ID
 			&& in_array( $context, array( 'view', 'view-private', 'edit' ) ) ) {
@@ -169,7 +160,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 		}
 
 		return new WP_Error( 'json_error_unknown_context', __( 'Unknown context specified.' ), array( 'status' => 400 ) );
-
 	}
 
 	/**
@@ -179,7 +169,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @return array
 	 */
 	protected function prepare( $context ) {
-
 		$user = $this->data;
 
 		$user_fields = array(
@@ -215,7 +204,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * Insert or update a user
 	 */
 	protected static function insert_user( $data ) {
-
 		$user = new stdClass;
 
 		if ( ! empty( $data['id'] ) ) {
@@ -302,7 +290,6 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 		do_action( 'json_insert_user', $user, $data, $update );
 
 		return $user_id;
-
 	}
 
 }
