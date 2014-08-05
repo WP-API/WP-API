@@ -110,10 +110,14 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		$_post = parent::prepare_post( $post, $context );
 
 		// Override entity meta keys with the correct links
-		$_post['meta']['links']['self'] = json_url( $this->base . '/' . get_page_uri( $post['ID'] ) );
+		$_post['_links']['self'] = array(
+			'href' => json_url( $this->base . '/' . get_page_uri( $post['ID'] ) ),
+		);
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['meta']['links']['up'] = json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) );
+			$_post['_links']['up'] = array(
+				'href' => json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) ),
+			);
 		}
 
 		return apply_filters( 'json_prepare_page', $_post, $post, $context );

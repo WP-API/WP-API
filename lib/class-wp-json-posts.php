@@ -344,8 +344,10 @@ class WP_JSON_Posts {
 			return $post;
 		}
 
-		foreach ( $post['meta']['links'] as $rel => $url ) {
-			$response->link_header( $rel, $url );
+		foreach ( $post['_links'] as $rel => $data ) {
+			$other = $data;
+			unset( $other['href'] );
+			$response->link_header( $rel, $data['href'], $other );
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
@@ -584,10 +586,12 @@ class WP_JSON_Posts {
 			'queryable'    => $type->publicly_queryable,
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
-			'meta'         => array(
-				'links' => array(
-					'self'       => json_url( '/posts/types/' . $type->name ),
-					'collection' => json_url( '/posts/types' ),
+			'_links' => array(
+				'self'       => array(
+					'href' => json_url( '/posts/types/' . $type->name ),
+				),
+				'collection' => array(
+					'href' => json_url( '/posts/types' ),
 				),
 			),
 		);
@@ -596,13 +600,19 @@ class WP_JSON_Posts {
 		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
 		$url = json_url( '/taxonomies' );
 		$url = add_query_arg( 'type', $type->name, $url );
-		$data['meta']['links'][ $relation ] = $url;
+		$data['_links'][ $relation ] = array(
+			'href' => $url,
+		);
 
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
-				$data['meta']['links']['archives'] = json_url( '/posts' );
+				$data['_links']['archives'] = array(
+					'href' => json_url( '/posts' ),
+				);
 			} else {
-				$data['meta']['links']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+				$data['_links']['archives'] = array(
+					'href' => json_url( add_query_arg( 'type', $type->name, '/posts' ) ),
+				);
 			}
 		}
 
@@ -632,9 +642,7 @@ class WP_JSON_Posts {
 				'private'      => $status->private,
 				'queryable'    => $status->publicly_queryable,
 				'show_in_list' => $status->show_in_admin_all_list,
-				'meta'         => array(
-					'links' => array()
-				),
+				'_links'       => array(),
 			);
 			if ( $status->publicly_queryable ) {
 				if ( $status->name === 'publish' ) {
@@ -833,20 +841,32 @@ class WP_JSON_Posts {
 
 		// Entity meta
 		$links = array(
-			'self'       => json_url( '/posts/' . $post['ID'] ),
-			'author'     => json_url( '/users/' . $post['post_author'] ),
-			'collection' => json_url( '/posts' ),
+			'self'       => array(
+				'href' => json_url( '/posts/' . $post['ID'] ),
+			),
+			'author'     => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection' => array(
+				'href' => json_url( '/posts' ),
+			),
 		);
 
 		if ( 'view-revision' != $context ) {
-			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
-			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+			$links['replies']         = array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
+			);
+			$links['version-history'] = array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			);
 		}
 
-		$_post['meta'] = array( 'links' => $links );
+		$_post['_links'] = $links;
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
+			$_post['_links']['up'] = array(
+				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+			);
 		}
 
 		$GLOBALS['post'] = $previous_post;
@@ -1535,7 +1555,7 @@ class WP_JSON_Posts {
 	 * @param string $context Where is the comment being loaded?
 	 * @return array Comment data for JSON serialization
 	 */
-	protected function prepare_comment( $comment, $requested_fields = array( 'comment', 'meta' ), $context = 'single' ) {
+	protected function prepare_comment( $comment, $requested_fields = array( 'comment', '_links' ), $context = 'single' ) {
 		$fields = array(
 			'id'   => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
@@ -1617,31 +1637,26 @@ class WP_JSON_Posts {
 		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
 
 		// Meta
-		$meta = array(
-			'links' => array(
-				'up' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) )
+		$links = array(
+			'up' => array(
+				'href' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) ),
 			),
 		);
 
 		if ( 0 !== (int) $comment->comment_parent ) {
-			$meta['links']['in-reply-to'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) );
+			$links['in-reply-to'] = array(
+				'href' => json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) ),
+			);
 		}
 
 		if ( 'single' !== $context ) {
-			$meta['links']['self'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_ID ) );
+			$links['self'] = array(
+				'href' => json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_ID ) ),
+			);
 		}
 
-		// Remove unneeded fields
-		$data = array();
+		$fields['_links'] = $links;
 
-		if ( in_array( 'comment', $requested_fields ) ) {
-			$data = array_merge( $data, $fields );
-		}
-
-		if ( in_array( 'meta', $requested_fields ) ) {
-			$data['meta'] = $meta;
-		}
-
-		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
+		return apply_filters( 'json_prepare_comment', $fields, $comment, $context );
 	}
 }

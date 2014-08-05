@@ -109,7 +109,7 @@ class WP_JSON_Users {
 
 		$data = $response->get_data();
 
-		$response->header( 'Location', $data['meta']['links']['self'] );
+		$response->header( 'Location', $data['_links']['self']['href'] );
 		$response->set_status( 302 );
 
 		return $response;
@@ -176,10 +176,12 @@ class WP_JSON_Users {
 			$user_fields['extra_capabilities'] = $user->caps;
 		}
 
-		$user_fields['meta'] = array(
-			'links' => array(
-				'self' => json_url( '/users/' . $user->ID ),
-				'archives' => json_url( '/users/' . $user->ID . '/posts' ),
+		$user_fields['_links'] = array(
+			'self'     => array(
+				'href' => json_url( '/users/' . $user->ID ),
+			),
+			'archives' => array(
+				'href' => json_url( '/users/' . $user->ID . '/posts' ),
 			),
 		);
 
