@@ -26,7 +26,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 * @param $data
 	 * @return mixed
 	 */
-	public static function create_user( $data ) {
+	public static function create( $data ) {
 
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
@@ -44,10 +44,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 
 		$user_resource = self::get_instance( $user_id );
 		$response = $user_resource->get( 'edit' );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/users/' . $user_id ) );
@@ -94,7 +91,8 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 			return $retval;
 		}
 
-		return self::get_instance( $id );
+		$instance = self::get_instance( $id );
+		return $instance->get( 'edit' );
 
 	}
 
