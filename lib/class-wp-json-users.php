@@ -123,69 +123,13 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
-		$id = (int) $id;
-		$current_user_id = get_current_user_id();
 
-		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
+		$instance = WP_JSON_User_Resource::get_instance( $id );
+		if ( is_wp_error( $instance ) ) {
+			return $instance;
 		}
 
-		$user = get_userdata( $id );
-
-		if ( empty( $user->ID ) ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
-		}
-
-		return $this->prepare_user( $user, $context );
-	}
-
-	/**
-	 *
-	 * Prepare a User entity from a WP_User instance.
-	 *
-	 * @param WP_User $user
-	 * @param string $context One of 'view', 'edit', 'embed'
-	 * @return array
-	 */
-	protected function prepare_user( $user, $context = 'view' ) {
-		$user_fields = array(
-			'id'          => $user->ID,
-			'username'    => $user->user_login,
-			'name'        => $user->display_name,
-			'first_name'  => $user->first_name,
-			'last_name'   => $user->last_name,
-			'nickname'    => $user->nickname,
-			'slug'        => $user->user_nicename,
-			'url'         => $user->user_url,
-			'avatar'      => json_get_avatar_url( $user->user_email ),
-			'description' => $user->description,
-		);
-
-		$user_fields['registered'] = date( 'c', strtotime( $user->user_registered ) );
-
-		if ( $context === 'view' || $context === 'edit' ) {
-			$user_fields['roles']        = $user->roles;
-			$user_fields['capabilities'] = $user->allcaps;
-			$user_fields['email']        = false;
-		}
-
-		if ( $context === 'edit' ) {
-			// The user's specific caps should only be needed if you're editing
-			// the user, as allcaps should handle most uses
-			$user_fields['email']              = $user->user_email;
-			$user_fields['extra_capabilities'] = $user->caps;
-		}
-
-		$user_fields['_links'] = array(
-			'self'     => array(
-				'href' => json_url( '/users/' . $user->ID ),
-			),
-			'archives' => array(
-				'href' => json_url( '/users/' . $user->ID . '/posts' ),
-			),
-		);
-
-		return apply_filters( 'json_prepare_user', $user_fields, $user, $context );
+		return $instance->get();
 	}
 
 	/**
@@ -226,109 +170,6 @@ class WP_JSON_Users {
 		return $data;
 	}
 
-	protected function insert_user( $data ) {
-		$user = new stdClass;
-
-		if ( ! empty( $data['id'] ) ) {
-			$existing = get_userdata( $data['id'] );
-
-			if ( ! $existing ) {
-				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
-			}
-
-			if ( ! current_user_can( 'edit_user', $data['id'] ) ) {
-				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
-			}
-
-			$user->ID = $existing->ID;
-			$update = true;
-		} else {
-			if ( ! current_user_can( 'create_users' ) ) {
-				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
-			}
-
-			$required = array( 'username', 'password', 'email' );
-
-			foreach ( $required as $arg ) {
-				if ( empty( $data[ $arg ] ) ) {
-					return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
-				}
-			}
-
-			$update = false;
-		}
-
-		// Basic authentication details
-		if ( isset( $data['username'] ) ) {
-			$user->user_login = $data['username'];
-		}
-
-		if ( isset( $data['password'] ) ) {
-			$user->user_pass = $data['password'];
-		}
-
-		// Names
-		if ( isset( $data['name'] ) ) {
-			$user->display_name = $data['name'];
-		}
-
-		if ( isset( $data['first_name'] ) ) {
-			$user->first_name = $data['first_name'];
-		}
-
-		if ( isset( $data['last_name'] ) ) {
-			$user->last_name = $data['last_name'];
-		}
-
-		if ( isset( $data['nickname'] ) ) {
-			$user->nickname = $data['nickname'];
-		}
-
-		if ( ! empty( $data['slug'] ) ) {
-			$user->user_nicename = $data['slug'];
-		}
-
-		// URL
-		if ( ! empty( $data['URL'] ) ) {
-			$escaped = esc_url_raw( $user->user_url );
-
-			if ( $escaped !== $user->user_url ) {
-				return new WP_Error( 'json_invalid_url', __( 'Invalid user URL.' ), array( 'status' => 400 ) );
-			}
-
-			$user->user_url = $data['URL'];
-		}
-
-		// Description
-		if ( ! empty( $data['description'] ) ) {
-			$user->description = $data['description'];
-		}
-
-		// Email
-		if ( ! empty( $data['email'] ) ) {
-			$user->user_email = $data['email'];
-		}
-
-		// Pre-flight check
-		$user = apply_filters( 'json_pre_insert_user', $user, $data );
-
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
-
-		$user_id = $update ? wp_update_user( $user ) : wp_insert_user( $user );
-
-		if ( is_wp_error( $user_id ) ) {
-			return $user_id;
-		}
-
-		$user->ID = $user_id;
-
-		do_action( 'json_insert_user', $user, $data, $update );
-
-		return $user_id;
-	}
-
 	/**
 	 * Edit a user.
 	 *
@@ -341,32 +182,13 @@ class WP_JSON_Users {
 	 * @return true on success
 	 */
 	public function edit_user( $id, $data, $_headers = array() ) {
-		$id = absint( $id );
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ), array( 'status' => 400 ) );
+		$instance = WP_JSON_User_Resource::get_instance( $id );
+		if ( is_wp_error( $instance ) ) {
+			return $instance;
 		}
 
-		// Permissions check
-		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
-		}
-
-		$user = get_userdata( $id );
-		if ( ! $user ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
-		}
-
-		$data['id'] = $user->ID;
-
-		// Update attributes of the user from $data
-		$retval = $this->insert_user( $data );
-
-		if ( is_wp_error( $retval ) ) {
-			return $retval;
-		}
-
-		return $this->get_user( $id );
+		return $instance->edit( $data );
 	}
 
 	/**
@@ -376,30 +198,7 @@ class WP_JSON_Users {
 	 * @return mixed
 	 */
 	public function create_user( $data ) {
-		if ( ! current_user_can( 'create_users' ) ) {
-			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
-		}
-
-		if ( ! empty( $data['id'] ) ) {
-			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
-		}
-
-		$user_id = $this->insert_user( $data );
-
-		if ( is_wp_error( $user_id ) ) {
-			return $user_id;
-		}
-
-		$response = $this->get_user( $user_id );
-
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
-
-		$response->set_status( 201 );
-		$response->header( 'Location', json_url( '/users/' . $user_id ) );
-
-		return $response;
+		return WP_JSON_User_Resource::create( $data );
 	}
 
 	/**
@@ -410,40 +209,13 @@ class WP_JSON_Users {
 	 * @return true on success
 	 */
 	public function delete_user( $id, $force = false, $reassign = null ) {
-		$id = absint( $id );
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+		$instance = WP_JSON_User_Resource::get_instance( $id );
+		if ( is_wp_error( $instance ) ) {
+			return $instance;
 		}
 
-		// Permissions check
-		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => 403 ) );
-		}
+		return $instance->delete( $force, $reassign );
 
-		$user = get_userdata( $id );
-
-		if ( ! $user ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
-		}
-
-		if ( ! empty( $reassign ) ) {
-			$reassign = absint( $reassign );
-
-			// Check that reassign is valid
-			if ( empty( $reassign ) || $reassign === $id || ! get_userdata( $reassign ) ) {
-				return new WP_Error( 'json_user_invalid_reassign', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
-			}
-		} else {
-			$reassign = null;
-		}
-
-		$result = wp_delete_user( $id, $reassign );
-
-		if ( ! $result ) {
-			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		} else {
-			return array( 'message' => __( 'Deleted user' ) );
-		}
 	}
 }
