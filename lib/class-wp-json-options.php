@@ -53,12 +53,37 @@ class WP_JSON_Options {
 	 * @param array $filter Future Filter Parameter
 	 * @return array contains a collection of Option entities.
 	 */
-	public function get_options( $filter ) {
+	public function get_options($filter = array()) {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return new WP_Error( 'json_options_cannot_list', __( 'Sorry, you are not allowed to list options.' ), array( 'status' => 403 ) );
 		}
 
         $options = array_map('maybe_unserialize', wp_load_alloptions());
+
+        $total_options = count($options);
+
+        ksort($options);
+
+
+        if (isset($filter['page'])) {
+            $page = $filter['page'];
+        } else {
+            $page = 1;
+        }
+
+        if (isset($filter['per_page'])) {
+            $per_page = $filter['per_page'];
+        } else {
+            $per_page = 50;
+        }
+
+
+
+        if (-1 != $per_page || ( $per_page * $page ) > $total_options ) {
+            // TODO: array_slice is messing up the ordering of the array.
+            //       Really should look into other options [SQL Query] if we really need pagination for options
+            $options = array_slice($options, $page * ( $per_page - 1 ), min( $per_page, $total_options - ( $page * ( $per_page - 1 ) ) ), true );
+        }
 
         $options = apply_filters('json_get_options', $options);
 
