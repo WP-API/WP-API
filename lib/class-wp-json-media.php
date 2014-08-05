@@ -10,13 +10,13 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function register_routes( $routes ) {
 		$media_routes = array(
 			'/media'             => array(
-				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE ),
-				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE ),
+				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE, ),
+				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE, ),
 			),
 			'/media/(?P<id>\d+)' => array(
-				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE ),
-				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE, ),
+				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE, ),
+				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE, ),
 			),
 		);
 		return array_merge( $routes, $media_routes );
