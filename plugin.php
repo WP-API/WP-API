@@ -24,7 +24,9 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
+
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
