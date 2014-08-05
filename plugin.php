@@ -18,6 +18,7 @@ define( 'JSON_API_VERSION', '1.1.1' );
 /**
  * Include our files for the API.
  */
+include_once( dirname( __FILE__ ) . '/lib/class-WP_Nothing.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
@@ -33,6 +34,8 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-options.php' );
+
 
 /**
  * Register rewrite rules for the API.
@@ -113,7 +116,11 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
 
-	// Deprecated reporting.
+    //Options
+    $wp_json_options = new WP_JSON_Options( $server );
+    add_filter( 'json_endpoints',      array( $wp_json_options, 'register_routes'       ), 2 );
+
+    // Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
 	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
 	add_action( 'deprecated_argument_run',           'json_handle_deprecated_argument', 10, 3 );

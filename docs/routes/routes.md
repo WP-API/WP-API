@@ -576,3 +576,243 @@ Retrieve a Taxonomy Term
 ### Response
 The response is a Taxonomy entity object containing the Taxonomy with the
 requested ID, if available.
+
+
+
+Options
+=======
+
+***You MUST be an authenticated as an administrator (really someone with `manage_options`) to make any of these requests***
+
+
+Add an Option
+-------------
+
+```
+  POST /options
+```
+
+### Input
+The `data` parameter consists of the fields that make up an option. It should be 
+an object containing the following key value pairs:
+
+* `name` - The option name (string) __*required*__
+* `value` - The option value (mixed) __*required*__
+* `autoload` - Whether to autoload the option, 'yes' or 'no' (string) *optional*
+
+
+### Response
+On a successful creation, a 201 Created status is given, indicating that the
+option has been created. The Option's filtered `name`, `value`, and `autoload` 
+fields are returned in an object
+
+
+### Examples
+
+**Example 1** Successful creation
+
+```
+POST /options
+
+  `{"name":"alt_admin_email","value":"test@example.com","autoload":"yes"}`
+```
+
+```javascript
+{
+	"name":"alt_admin_email",
+	"value":"test@example.com",
+	"autoload":"yes"
+}
+```
+
+
+Retrieve Options
+----------------
+The Options endpoint returns am Options Collection containing a subset of the site's options
+
+```
+GET /options
+```
+
+### Input
+#### none (at the moment, special filters in the future)
+
+### Response
+The response is a collection of key value pairs mapping the option names to their unserialized values
+
+### Examples
+
+**Example 1** Successful Request for options
+
+```
+GET /options
+```
+
+```javascript
+{
+	"siteurl":"http:\/\/vagrant.local\/wp",
+	"blogname":"WordPress Site",
+	...
+	This list gets long, will definitely need filtering and pagination
+	...
+	"blogdescription":"Just another WordPress site",
+}
+```
+
+
+Retrieve an Option
+------------------
+
+```
+  GET /options/<name>
+```
+
+### Input
+#### none
+
+### Response
+The response is an object with `name` mapping to the option name
+and `value` mapping to the option value for `name`. Remember that
+filters might change the `<name>` that you originally requested depending
+on the site's configuration so it might be a good Idea to have your
+application update the `<name>` it uses to reflect what the API said
+
+### Examples
+
+**Example 1** Successful Request for option
+
+```
+GET /options/blogname
+```
+
+```javascript
+{
+	"name":"blogname",
+	"value":"My Test Site"
+}
+```
+
+
+**Example 2** Failure to get option because option does not exist
+
+```
+GET /options/non_existent_option
+```
+
+```javascript
+[
+	{
+		"code":"json_option_not_found",
+		"message":"Option Not Found."
+	}
+]
+```
+
+
+
+Update an Option
+----------------
+
+```
+  PUT /options/<name>
+```
+
+For compatibility reasons, this endpoint also accepts the POST and PATCH
+methods. Both of these methods have the same behaviour as using PUT. It is
+recommended to use PUT if available to fit with REST convention.
+
+### Input
+The `value` parameter consists of the new option value that you want to set 
+This data can be submitted via a direct JSON body. See the Add Option 
+endpoint for an example.
+
+
+### Response
+On a successful update, a 200 OK status is given, indicating the post has been
+updated. The updated Post entity is returned in the body.
+
+**Note: just Like update_option() this endpoint will add the option if it doesn't exist**
+
+### Examples
+
+**Example 1** Successful Request, but WordPress did not have to change the value.
+
+```
+PUT /options/blogname
+
+	{"value" : "My Test Blog"}
+```
+
+```javascript
+{
+	"name":"blogname",
+	"value":"My Test Blog",
+	"updated":false
+}
+```
+
+
+**Example 2** Failure to update option because no value was set
+
+```
+PUT /options/blogname
+
+	*but you forget to provide the value parameter*
+```
+
+```javascript
+[
+	{
+		"code":"json_missing_callback_param",
+		"message":"Missing parameter data"
+	}
+]
+```
+
+
+
+Delete an Option
+----------------
+
+```
+  DELETE /options/<name>
+```
+
+### Input
+#### none
+
+### Response
+On successful deletion, a 200 OK status code will be returned, indicating
+that the option has been permanenty deleted.
+
+### Examples
+
+**Example 1** Successful Deletion
+
+```
+DELETE /options/blogname
+```
+
+```javascript
+[
+	{
+		"message":"Deleted option"
+	}
+]
+```
+
+
+**Example 2** Failure to delete option that does not exist
+
+```
+DELETE /options/non_existent_option
+```
+
+```javascript
+[
+	{
+		"code":"json_cannot_delete",
+		"message":"The option cannot be deleted."
+	}
+]
+```
