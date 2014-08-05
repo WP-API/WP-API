@@ -79,12 +79,10 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->assertEquals( $user_obj->ID, $response_data['id'] );
 		$this->assertEquals( $user_obj->user_login, $response_data['username'] );
 		if ( $context === 'view' ) {
-			$this->assertEquals( false, $response_data['email'] );
 
 			// Check that we didn't get extra data
 			$this->assertArrayNotHasKey( 'extra_capabilities', $response_data );
-		}
-		else {
+		} else if ( $context === 'view-private' ) {
 			$this->assertEquals( $user_obj->user_email, $response_data['email'] );
 			$this->assertEquals( $user_obj->caps, $response_data['extra_capabilities'] );
 		}
@@ -111,7 +109,6 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->assertEquals( $data['username'], $response_data['username'] );
 		$this->assertEquals( $data['username'], $new_user->user_login );
 
-		$this->assertEquals( false, $response_data['email'] );
 		$this->assertEquals( $data['email'], $new_user->user_email );
 
 		$this->assertTrue( wp_check_password( $data['password'], $new_user->user_pass ), 'Password check failed' );

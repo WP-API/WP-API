@@ -198,13 +198,12 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 			$user_fields['nickname']     = $user->nickname;
 			$user_fields['roles']        = $user->roles;
 			$user_fields['capabilities'] = $user->allcaps;
-			$user_fields['email']        = false;
+			$user_fields['email']        = $user->user_email;
 		}
 
 		if ( $context === 'edit' ) {
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
-			$user_fields['email']              = $user->user_email;
 			$user_fields['extra_capabilities'] = $user->caps;
 			$user_fields['registered']         = date( 'c', strtotime( $user->user_registered ) );
 		}
