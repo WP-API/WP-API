@@ -8,7 +8,7 @@ class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	 * @param integer $status HTTP status code
 	 * @param array $headers HTTP header map
 	 */
-	public function __construct($data = null, $status = 200, $headers = array()) {
+	public function __construct( $data = null, $status = 200, $headers = array() ) {
 		$this->data = $data;
 		$this->set_status( $status );
 		$this->set_headers( $headers );
