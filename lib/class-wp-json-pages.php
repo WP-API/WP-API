@@ -45,7 +45,7 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		$routes = parent::register_comment_routes( $routes );
 
 		// Add post-by-path routes
-		$routes[ $this->base . '/(?P{path}.+)'] = array(
+		$routes[ $this->base . '/(?P<path>.+)'] = array(
 			array( array( $this, 'get_post_by_path' ),    WP_JSON_Server::READABLE ),
 			array( array( $this, 'edit_post_by_path' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 			array( array( $this, 'delete_post_by_path' ), WP_JSON_Server::DELETABLE ),
