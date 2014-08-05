@@ -24,7 +24,9 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
+
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
@@ -478,7 +480,7 @@ function json_ensure_response( $response ) {
 		return $response;
 	}
 
-	if ( $response instanceof WP_JSON_ResponseInterface ) {
+	if ( $response instanceof WP_HTTP_ResponseInterface ) {
 		return $response;
 	}
 
