@@ -18,6 +18,50 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	}
 
 	/**
+	 * Get multiple user resources based on filter args.
+	 *
+	 * @param array $filter Extra query parameters for {@see WP_User_Query}
+	 * @param string $context optional
+	 * @param int $page Page number (1-indexed)
+	 * @return array contains a collection of User entities.
+	 */
+	public static function get_instances( $filter = array(), $context = 'view', $page = 1 ) {
+
+		if ( ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
+		}
+
+		$args = array(
+			'orderby' => 'user_login',
+			'order'   => 'ASC'
+		);
+		$args = array_merge( $args, $filter );
+
+		$args = apply_filters( 'json_user_query', $args, $filter, $context, $page );
+
+		// Pagination
+		$args['number'] = empty( $args['number'] ) ? 10 : absint( $args['number'] );
+		$page           = absint( $page );
+		$args['offset'] = ( $page - 1 ) * $args['number'];
+
+		$user_query = new WP_User_Query( $args );
+
+		if ( empty( $user_query->results ) ) {
+			return array();
+		}
+
+		$struct = array();
+
+		foreach ( $user_query->results as $user ) {
+			$user = WP_JSON_User_Resource::get_instance( $user->ID );
+			$struct[] = $user->get( $context );
+		}
+
+		return $struct;
+
+	}
+
+	/**
 	 * Create a new user.
 	 *
 	 * @param $data

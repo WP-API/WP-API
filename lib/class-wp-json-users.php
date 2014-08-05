@@ -52,36 +52,7 @@ class WP_JSON_Users {
 	 * @return array contains a collection of User entities.
 	 */
 	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
-		if ( ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
-		}
-
-		$args = array(
-			'orderby' => 'user_login',
-			'order'   => 'ASC'
-		);
-		$args = array_merge( $args, $filter );
-
-		$args = apply_filters( 'json_user_query', $args, $filter, $context, $page );
-
-		// Pagination
-		$args['number'] = empty( $args['number'] ) ? 10 : absint( $args['number'] );
-		$page           = absint( $page );
-		$args['offset'] = ( $page - 1 ) * $args['number'];
-
-		$user_query = new WP_User_Query( $args );
-
-		if ( empty( $user_query->results ) ) {
-			return array();
-		}
-
-		$struct = array();
-
-		foreach ( $user_query->results as $user ) {
-			$struct[] = $this->prepare_user( $user, $context );
-		}
-
-		return $struct;
+		return WP_JSON_User_Resource::get_instances( $filter, $context, $page );
 	}
 
 	/**

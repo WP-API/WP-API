@@ -14,6 +14,9 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		wp_set_current_user( $this->user );
 		$this->user_obj = wp_get_current_user();
 
+		$this->subscriber = $this->factory->user->create( array( 'role' => 'subscriber' ) );
+		$this->administrator = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
 		$this->fake_server = $this->getMock('WP_JSON_Server');
 		$this->endpoint = new WP_JSON_Users( $this->fake_server );
 	}
@@ -182,5 +185,32 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
 		$this->assertEquals( $pw_before, $user->user_pass );
+	}
+
+	public function test_get_users() {
+
+		/*
+		 * Logged out has no permission to view users
+		 */
+		wp_set_current_user( 0 );
+		$response = $this->endpoint->get_users();
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_cannot_list', $response->get_error_code() );
+
+		/*
+		 * Logged-in subscriber can't view users
+		 */
+		wp_set_current_user( $this->subscriber );
+		$response = $this->endpoint->get_users();
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_cannot_list', $response->get_error_code() );
+
+		/*
+		 * Logged-in admin can view users
+		 */
+		wp_set_current_user( $this->administrator );
+		$response = $this->endpoint->get_users();
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
 	}
 }
