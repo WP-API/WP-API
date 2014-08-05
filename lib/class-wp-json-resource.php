@@ -13,7 +13,7 @@ abstract class WP_JSON_Resource {
 	abstract public function delete( $force );
 
 	public static function create( $data, $context = 'edit' ) {}
-	public static function get_instance() {}
+	public static function get_instance( $id ) {}
 
 	/**
 	 * Get this resource's relationships to other resources
