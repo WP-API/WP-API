@@ -477,7 +477,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		foreach ( $this->get_routes() as $route => $callbacks ) {
 			$data = array();
 
-			$route = preg_replace( '#\(\?P(<\w+?>).*?\)#', '$1', $route );
+			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 			$methods = array();
 
 			foreach ( self::$method_map as $name => $bitmask ) {
@@ -496,7 +496,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 					}
 
 					// For non-variable routes, generate links
-					if ( strpos( $route, '<' ) === false ) {
+					if ( strpos( $route, '{' ) === false ) {
 						$data['_links'] = array(
 							'self' => json_url( $route ),
 						);
