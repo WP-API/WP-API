@@ -30,9 +30,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$response = $this->endpoint->get_current_user();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 
-		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
-			$response = new WP_JSON_Response( $response );
-		}
+		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 302, $response->get_status() );
