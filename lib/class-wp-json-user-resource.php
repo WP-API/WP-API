@@ -136,6 +136,12 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 */
 	protected function check_context_permission( $context ) {
 
+		if ( get_current_user_id()
+			&& get_current_user_id() === $this->data->ID
+			&& in_array( $context, array( 'view', 'view-private', 'edit' ) ) ) {
+			return true;
+		}
+
 		switch ( $context ) {
 			case 'view':
 				// @todo change to only users who have authored
