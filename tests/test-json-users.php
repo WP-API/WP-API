@@ -74,7 +74,7 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 
 			// Check that we didn't get extra data
 			$this->assertArrayNotHasKey( 'extra_capabilities', $response_data );
-		} else if ( $context === 'view-private' ) {
+		} elseif ( $context === 'view-private' ) {
 			$this->assertEquals( $user_obj->user_email, $response_data['email'] );
 			$this->assertEquals( $user_obj->caps, $response_data['extra_capabilities'] );
 		}
