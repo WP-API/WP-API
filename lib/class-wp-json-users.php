@@ -107,7 +107,9 @@ class WP_JSON_Users {
 
 		$data = $response->get_data();
 
-		$response->header( 'Location', $data['_links']['self']['href'] );
+		// @todo restore
+		// $response->header( 'Location', $data['_links']['self']['href'] );
+		$response->header( 'Location', 'restore me' );
 		$response->set_status( 302 );
 
 		return $response;
