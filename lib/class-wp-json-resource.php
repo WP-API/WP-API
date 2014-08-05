@@ -12,7 +12,7 @@ abstract class WP_JSON_Resource {
 	abstract public function update( $data, $context );
 	abstract public function delete( $force );
 
-	public static function create() {}
+	public static function create( $data, $context = 'edit' ) {}
 	public static function get_instance() {}
 
 	/**
