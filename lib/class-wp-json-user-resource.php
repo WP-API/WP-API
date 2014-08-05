@@ -75,7 +75,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 */
 	public function update( $data, $context = 'edit' ) {
 
-		$id = $this->data->id;
+		$id = $this->data->ID;
 
 		if ( ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
@@ -103,7 +103,7 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	 */
 	public function delete( $force = false, $reassign = null ) {
 
-		$id = $this->data->id;
+		$id = $this->data->ID;
 
 		// Permissions check
 		if ( ! current_user_can( 'delete_user', $id ) ) {
