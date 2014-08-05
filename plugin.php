@@ -480,7 +480,7 @@ function json_ensure_response( $response ) {
 		return $response;
 	}
 
-	if ( $response instanceof WP_JSON_ResponseInterface ) {
+	if ( $response instanceof WP_HTTP_ResponseInterface ) {
 		return $response;
 	}
 
