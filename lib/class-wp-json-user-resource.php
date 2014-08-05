@@ -47,6 +47,42 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	}
 
 	/**
+	 * Delete a user
+	 *
+	 * @param string $context
+	 * @return array|WP_Error
+	 */
+	public function delete( $force = false, $reassign = null ) {
+
+		$id = $this->data->id;
+
+		// Permissions check
+		if ( ! current_user_can( 'delete_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $reassign ) ) {
+			$reassign = absint( $reassign );
+
+			// Check that reassign is valid
+			if ( empty( $reassign ) || $reassign === $id || ! get_userdata( $reassign ) ) {
+				return new WP_Error( 'json_user_invalid_reassign', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+			}
+		} else {
+			$reassign = null;
+		}
+
+		$result = wp_delete_user( $id, $reassign );
+
+		if ( $result ) {
+			return array( 'message' => __( 'Deleted user' ) );
+		} else {
+			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+
+	}
+
+	/**
 	 * Check whether current user has appropriate context permission
 	 */
 	protected function check_context_permission( $context ) {
