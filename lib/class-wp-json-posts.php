@@ -13,7 +13,7 @@ class WP_JSON_Posts {
 	 *
 	 * @param WP_JSON_ResponseHandler $server Server object
 	 */
-	public function __construct(WP_JSON_ResponseHandler $server) {
+	public function __construct( WP_JSON_ResponseHandler $server ) {
 		$this->server = $server;
 	}
 
@@ -144,7 +144,7 @@ class WP_JSON_Posts {
 		global $wp;
 
 		// Allow the same as normal WP
-		$valid_vars = apply_filters('query_vars', $wp->public_query_vars);
+		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
 		// If the user has the correct permissions, also allow use of internal
 		// query parameters, which are only undesirable on the frontend
@@ -397,7 +397,7 @@ class WP_JSON_Posts {
 			}
 
 			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format('U') ) {
+			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
 				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
 			}
 		}
@@ -550,7 +550,7 @@ class WP_JSON_Posts {
 
 		$types = array();
 
-		foreach ($data as $name => $type) {
+		foreach ( $data as $name => $type ) {
 			$type = $this->get_post_type( $type, true );
 			if ( is_wp_error( $type ) ) {
 				continue;
@@ -625,7 +625,7 @@ class WP_JSON_Posts {
 	 * @return array List of post status data
 	 */
 	public function get_post_statuses() {
-		$statuses = get_post_stati(array(), 'objects');
+		$statuses = get_post_stati( array(), 'objects' );
 
 		$data = array();
 
@@ -989,7 +989,7 @@ class WP_JSON_Posts {
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		// Normalize serialized strings
@@ -999,7 +999,7 @@ class WP_JSON_Posts {
 
 		// Don't expose serialized data
 		if ( is_serialized( $value ) || ! is_string( $value ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		$meta = array(
@@ -1109,11 +1109,11 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
@@ -1193,7 +1193,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $data['key'] );
@@ -1257,7 +1257,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
@@ -1279,7 +1279,7 @@ class WP_JSON_Posts {
 	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
 		if ( $context !== 'embed' ) {
 			$data['types'] = array();
-			foreach( $taxonomy->object_type as $type ) {
+			foreach ( $taxonomy->object_type as $type ) {
 				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
 			}
 		}
