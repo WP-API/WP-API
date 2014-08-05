@@ -32,7 +32,6 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 
