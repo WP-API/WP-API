@@ -37,7 +37,7 @@ class WP_JSON_Posts {
 				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
-				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
 			),
 
 			// Meta
@@ -62,13 +62,13 @@ class WP_JSON_Posts {
 
 			// Meta-post endpoints
 			'/posts/types' => array(
-				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE
+				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE,
 			),
 			'/posts/types/(?P<type>\w+)' => array(
-				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE,
 			),
 			'/posts/statuses' => array(
-				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE
+				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE,
 			),
 		);
 		return array_merge( $routes, $post_routes );
