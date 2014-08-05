@@ -496,7 +496,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 					}
 
 					// For non-variable routes, generate links
-					if ( strpos( $route, '<' ) === false ) {
+					if ( strpos( $route, '{' ) === false ) {
 						$data['_links'] = array(
 							'self' => json_url( $route ),
 						);

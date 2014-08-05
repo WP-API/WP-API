@@ -13,7 +13,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE ),
 				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE ),
 			),
-			'/media/(?P<id>\d+)' => array(
+			'/media/(?P{id}\d+)' => array(
 				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE ),
 				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE ),
 				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
@@ -201,7 +201,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {

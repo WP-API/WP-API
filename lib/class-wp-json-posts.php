@@ -31,31 +31,31 @@ class WP_JSON_Posts {
 				array( array( $this, 'create_post' ),    WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
-			'/posts/(?P<id>\d+)' => array(
+			'/posts/(?P{id}\d+)' => array(
 				array( array( $this, 'get_post' ),       WP_JSON_Server::READABLE ),
 				array( array( $this, 'edit_post' ),      WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
 			),
-			'/posts/(?P<id>\d+)/revisions' => array(
+			'/posts/(?P{id}\d+)/revisions' => array(
 				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
 			),
 
 			// Meta
-			'/posts/(?P<id>\d+)/meta' => array(
+			'/posts/(?P{id}\d+)/meta' => array(
 				array( array( $this, 'get_all_meta' ),   WP_JSON_Server::READABLE ),
 				array( array( $this, 'add_meta' ),       WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
-			'/posts/(?P<id>\d+)/meta/(?P<mid>\d+)' => array(
+			'/posts/(?P{id}\d+)/meta/(?P{mid}\d+)' => array(
 				array( array( $this, 'get_meta' ),       WP_JSON_Server::READABLE ),
 				array( array( $this, 'update_meta' ),    WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_meta' ),    WP_JSON_Server::DELETABLE ),
 			),
 
 			// Comments
-			'/posts/(?P<id>\d+)/comments' => array(
+			'/posts/(?P{id}\d+)/comments' => array(
 				array( array( $this, 'get_comments' ),   WP_JSON_Server::READABLE ),
 			),
-			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
+			'/posts/(?P{id}\d+)/comments/(?P{comment}\d+)' => array(
 				array( array( $this, 'get_comment' ),    WP_JSON_Server::READABLE ),
 				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
 			),
@@ -64,7 +64,7 @@ class WP_JSON_Posts {
 			'/posts/types' => array(
 				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE
 			),
-			'/posts/types/(?P<type>\w+)' => array(
+			'/posts/types/(?P{type}\w+)' => array(
 				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE
 			),
 			'/posts/statuses' => array(
@@ -790,7 +790,7 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
 		}
-		
+
 		if ( 0 === $post['post_parent'] ) {
 			$post_fields['parent'] = null;
 		}

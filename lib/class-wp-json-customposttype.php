@@ -79,7 +79,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 * @return array Modified routes
 	 */
 	public function register_revision_routes( $routes ) {
-		$routes[ $this->base . '/(?P<id>\d+)/revisions' ] = array(
+		$routes[ $this->base . '/(?P{id}\d+)/revisions' ] = array(
 			array( array( $this, 'get_revisions' ), WP_JSON_Server::READABLE ),
 		);
 		return $routes;

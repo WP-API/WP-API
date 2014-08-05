@@ -30,7 +30,7 @@ class WP_JSON_Users {
 				array( array( $this, 'get_users' ),        WP_JSON_Server::READABLE ),
 				array( array( $this, 'create_user' ),      WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
-			'/users/(?P<id>\d+)' => array(
+			'/users/(?P{id}\d+)' => array(
 				array( array( $this, 'get_user' ),         WP_JSON_Server::READABLE ),
 				array( array( $this, 'edit_user' ),        WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_user' ),      WP_JSON_Server::DELETABLE ),
