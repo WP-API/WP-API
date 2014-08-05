@@ -28,6 +28,7 @@ class WP_Test_JSON_Taxonomies extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)', $routes );
+
 	}
 
 	/**

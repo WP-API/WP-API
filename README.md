@@ -111,12 +111,19 @@ For testing, you'll need a little bit more:
    vagrant provision
    ```
    
-3. Run the testing suite:
+3. Log in to the virtual machine and run the testing suite:
 
    ```bash
    vagrant ssh
    cd /vagrant/content/plugins/json-rest-api
    phpunit
+   ```
+
+   You can also execute the tests in the context of the VM without SSHing
+   into the virtual machine (this is equivalent to the above):
+
+   ```bash
+   vagrant ssh -c 'cd /vagrant/content/plugins/json-rest-api && phpunit'
    ```
 
 
