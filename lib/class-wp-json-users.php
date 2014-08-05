@@ -104,7 +104,6 @@ class WP_JSON_Users {
 		}
 
 		$response = json_ensure_response( $response );
-
 		$data = $response->get_data();
 
 		// @todo restore
@@ -198,7 +197,9 @@ class WP_JSON_Users {
 	 * @return mixed
 	 */
 	public function create_user( $data ) {
+
 		return WP_JSON_User_Resource::create( $data );
+
 	}
 
 	/**
