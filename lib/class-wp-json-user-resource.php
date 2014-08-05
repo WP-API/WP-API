@@ -115,12 +115,11 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 		}
 
 		$result = wp_delete_user( $id, $reassign );
-
-		if ( $result ) {
-			return array( 'message' => __( 'Deleted user' ) );
-		} else {
+		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
+
+		return array( 'message' => __( 'Deleted user' ) );
 	}
 
 	/**
