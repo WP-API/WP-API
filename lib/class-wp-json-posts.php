@@ -629,8 +629,8 @@ class WP_JSON_Posts {
 
 		$data = array();
 
-		foreach ($statuses as $status) {
-			if ( $status->internal === true || ! $status->show_in_admin_status_list ) {
+		foreach ( $statuses as $status ) {
+			if ( true == $status->internal || ! $status->show_in_admin_status_list ) {
 				continue;
 			}
 
@@ -746,7 +746,6 @@ class WP_JSON_Posts {
 
 		// Dates
 		$timezone = json_get_timezone();
-
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
