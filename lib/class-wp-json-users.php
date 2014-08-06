@@ -76,9 +76,23 @@ class WP_JSON_Users {
 
 		$response = json_ensure_response( $response );
 		$data = $response->get_data();
+		
+		$location = $data['meta']['links']['self'];
+
+	        if ( isset( $_REQUEST['_wp_json_nonce'] ) ) {
+	            $nonce = $_REQUEST['_wp_json_nonce'];
+	        } elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
+	            $nonce = $_SERVER['HTTP_X_WP_NONCE'];
+	        }
+	
+	        if( !empty($nonce) ) {
+	            $location .= '/?_wp_json_nonce=' . $nonce;
+	        }
+
 
 		// @todo restore
 		// $response->header( 'Location', $data['_links']['self']['href'] );
+		// $response->header( 'Location', $location );
 		$response->header( 'Location', 'restore me' );
 		$response->set_status( 302 );
 
