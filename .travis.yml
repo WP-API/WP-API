@@ -4,23 +4,17 @@
 language: php
 
 php:
-    - "5.2"
-    - "5.3"
-    - "5.4"
-    - "5.5"
+    - 5.2
+    - 5.3
+    - 5.4
+    - 5.5
+
+env:
+    - WP_VERSION=latest WP_MULTISITE=0
+    - WP_VERSION=latest WP_MULTISITE=1
 
 # Clones WordPress and configures our testing environment.
 before_script:
-    - export PLUGIN_SLUG=$(basename $(pwd))
-    - git clone --depth=1 git://develop.git.wordpress.org/ /tmp/wordpress
-    - mkdir "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
-    - cp -r . "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG/"
-    - cd /tmp/wordpress
-    - mysql -e "CREATE DATABASE wordpress_tests;" -uroot
-    - cp wp-tests-config-sample.php wp-tests-config.php
-    - sed -i "s/youremptytestdbnamehere/wordpress_tests/" wp-tests-config.php
-    - sed -i "s/yourusernamehere/travis/" wp-tests-config.php
-    - sed -i "s/yourpasswordhere//" wp-tests-config.php
-    - cd "/tmp/wordpress/src/wp-content/plugins/$PLUGIN_SLUG"
+    - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION 
 
 script: phpunit
