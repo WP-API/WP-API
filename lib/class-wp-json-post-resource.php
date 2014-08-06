@@ -111,6 +111,11 @@ class WP_JSON_Post_Resource extends WP_JSON_Resource {
 					return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
 				}
 
+				// Don't allow unauthenticated users to read password-protected posts
+				if ( $this->data->post_password && ! $this->check_context_permission( 'edit' ) ) {
+					return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+				}
+
 				if ( current_user_can( 'read_post', $this->data->ID ) ) {
 					return true;
 				} else {
@@ -146,9 +151,6 @@ class WP_JSON_Post_Resource extends WP_JSON_Resource {
 
 		// Don't allow unauthenticated users to read password-protected posts
 		if ( ! empty( $post->post_password ) ) {
-			if ( is_wp_error( $this->check_context_permission( 'edit' ) ) ) {
-				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
-			}
 
 			// Fake the correct cookie to fool post_password_required().
 			// Without this, get_the_content() will give a password form.
