@@ -309,6 +309,15 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 			$user->user_email = $data['email'];
 		}
 
+		// Role
+		if ( ! empty( $data['role'] ) ) {
+			$role = get_role( $data['role'] );
+			if ( ! $role ) {
+				return new WP_Error( 'json_invalid_role', __( 'Invalid role.' ), array( 'status' => 400 ) );
+			}
+			$user->role = $data['role'];
+		}
+
 		// Pre-flight check
 		$user = apply_filters( 'json_pre_insert_user', $user, $data );
 

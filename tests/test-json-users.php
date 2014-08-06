@@ -108,16 +108,19 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$data = array(
 			'username' => 'test_user',
 			'password' => 'test_password',
-			'email' => 'test@example.com',
+			'email'    => 'test@example.com',
+			'role'     => 'author',
 		);
 		$response = $this->endpoint->create_user( $data );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$response_data = $response->get_data();
 		$new_user = get_userdata( $response_data['id'] );
+		$role = array_shift( $new_user->roles );
 		$this->assertEquals( $data['username'], $response_data['username'] );
 		$this->assertEquals( $data['username'], $new_user->user_login );
 		$this->assertEquals( $data['email'], $new_user->user_email );
+		$this->assertEquals( $data['role'], $role );
 		$this->assertTrue( wp_check_password( $data['password'], $new_user->user_pass ), 'Password check failed' );
 	}
 
@@ -129,6 +132,36 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		);
 		$response = $this->endpoint->create_user( $data );
 		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
+	public function test_create_user_invalid_role() {
+		wp_set_current_user( $this->administrator );
+		$this->allow_user_to_create_users( $this->administrator_obj );
+		$data = array(
+			'username' => 'test_user',
+			'password' => 'test_password',
+			'email'    => 'test@example.com',
+			'role'     => 'invalid_role',
+		);
+		$response = $this->endpoint->create_user( $data );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_invalid_role', $response->get_error_code() );
+	}
+
+	public function test_edit_user_change_role() {
+		wp_set_current_user( $this->administrator );
+		$this->allow_user_to_create_users( $this->administrator_obj );
+		$data = array(
+			'role'     => 'editor',
+		);
+		$response = $this->endpoint->edit_user( $this->author, $data );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$response_data = $response->get_data();
+		$existing_author = get_userdata( $this->author );
+		$role = array_shift( $existing_author->roles );
+		$this->assertEquals( 'editor', $role );
 	}
 
 	public function test_delete_user() {
