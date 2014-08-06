@@ -58,7 +58,7 @@ class WP_JSON_Users {
 
 		$args = array(
 			'orderby' => 'user_login',
-			'order'   => 'ASC'
+			'order'   => 'ASC',
 		);
 		$args = array_merge( $args, $filter );
 
