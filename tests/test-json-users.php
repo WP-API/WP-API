@@ -80,6 +80,13 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		$this->assertEquals( 'json_user_cannot_view', $response->get_error_code() );
 	}
 
+	public function test_get_user_invalid() {
+		wp_set_current_user( 0 );
+		$response = $this->endpoint->get_user( 9999999, 'view' );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_invalid_user', $response->get_error_code() );
+	}
+
 	public function get_user_logged_in_edit_context() {
 		wp_set_current_user( $this->author );
 		$response = $this->endpoint->get_user( $this->user, 'edit' );

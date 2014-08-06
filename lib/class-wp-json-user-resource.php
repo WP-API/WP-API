@@ -11,7 +11,9 @@ class WP_JSON_User_Resource extends WP_JSON_Resource {
 	public static function get_instance( $id ) {
 		$user = get_user_by( 'id', absint( $id ) );
 		if ( empty( $user ) ) {
-			return false;
+			return new WP_Error( 'json_invalid_user', __( 'Invalid user.' ), array(
+				'status'     => 404,
+				) );
 		}
 
 		return new WP_JSON_User_Resource( $user );
