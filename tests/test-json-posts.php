@@ -393,6 +393,21 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
+	function test_create_post_custom_date_with_irregular_offset() {
+		$data = $this->set_data(array(
+			'date' => '2010-01-01T02:00:00-10:14',
+		));
+		$time = gmmktime( 12, 14, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['id'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
 	function test_create_post_custom_date_gmt() {
 		$data = $this->set_data(array(
 			'date_gmt' => '2010-01-01T02:00:00Z',
