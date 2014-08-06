@@ -531,6 +531,21 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
 }
 
 /**
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339
+ *
+ * Explicitly strips timezones, as datetimes are not saved with any timezone
+ * information. Including any information on the offset could be misleading.
+ *
+ * @param string $date 
+ */
+function json_mysql_to_rfc3339( $date_string ) {
+	$formatted = mysql2date( 'c', $date_string, false );
+
+	// Strip timezone information
+	return preg_replace( '/(?:Z|[+-]\d{2}(?::\d{2})?)$/', '', $formatted );
+}
+
+/**
  * Retrieve the avatar url for a user who provided a user ID or email address.
  *
  * {@see get_avatar()} doesn't return just the URL, so we have to

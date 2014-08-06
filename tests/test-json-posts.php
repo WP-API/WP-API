@@ -72,15 +72,13 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		}
 
 		// Check post dates.
-		$timezone = json_get_timezone();
-
 		if ( $post_obj->post_date_gmt === '0000-00-00 00:00:00' ) {
 			$this->assertNull( $response_data['date'] );
 			$this->assertNull( $response_data['date_gmt'] );
 		}
 		else {
-			$this->assertEquals( mysql2date( 'c', $post_obj->post_date,     false ), $response_data['date'] );
-			$this->assertEquals( mysql2date( 'c', $post_obj->post_date_gmt, false ), $response_data['date_gmt'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_date     ), $response_data['date'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_date_gmt ), $response_data['date_gmt'] );
 		}
 
 		if ( $post_obj->post_modified_gmt === '0000-00-00 00:00:00' ) {
@@ -88,8 +86,8 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 			$this->assertNull( $response_data['modified_gmt'] );
 		}
 		else {
-			$this->assertEquals( mysql2date( 'c', $post_obj->post_modified,     false ), $response_data['modified'] );
-			$this->assertEquals( mysql2date( 'c', $post_obj->post_modified_gmt, false ), $response_data['modified_gmt'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_modified     ), $response_data['modified'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_modified_gmt ), $response_data['modified_gmt'] );
 		}
 
 
