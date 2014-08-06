@@ -741,16 +741,13 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = json_get_timezone();
-
-
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
 			$post_fields_extended['date_gmt'] = null;
 		}
 		else {
-			$post_fields['date']              = mysql2date( 'c', $post['post_date'],     false );
-			$post_fields_extended['date_gmt'] = mysql2date( 'c', $post['post_date_gmt'], false );
+			$post_fields['date']              = json_mysql_to_rfc3339( $post['post_date'] );
+			$post_fields_extended['date_gmt'] = json_mysql_to_rfc3339( $post['post_date_gmt'] );
 		}
 
 		if ( $post['post_modified_gmt'] === '0000-00-00 00:00:00' ) {
@@ -758,8 +755,8 @@ class WP_JSON_Posts {
 			$post_fields_extended['modified_gmt'] = null;
 		}
 		else {
-			$post_fields['modified']              = mysql2date( 'c', $post['post_modified'],     false );
-			$post_fields_extended['modified_gmt'] = mysql2date( 'c', $post['post_modified_gmt'], false );
+			$post_fields['modified']              = json_mysql_to_rfc3339( $post['post_modified'] );
+			$post_fields_extended['modified_gmt'] = json_mysql_to_rfc3339( $post['post_modified_gmt'] );
 		}
 
 		// Authorized fields
@@ -780,7 +777,7 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
 		}
-		
+
 		if ( 0 === $post['post_parent'] ) {
 			$post_fields['parent'] = null;
 		}
@@ -1595,10 +1592,8 @@ class WP_JSON_Posts {
 		}
 
 		// Date
-		$timezone = json_get_timezone();
-
-		$fields['date']     = mysql2date( 'c', $comment->comment_date,     false );
-		$fields['date_gmt'] = mysql2date( 'c', $comment->comment_date_gmt, false );
+		$fields['date']     = json_mysql_to_rfc3339( $comment->comment_date );
+		$fields['date_gmt'] = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 
 		// Meta
 		$meta = array(
