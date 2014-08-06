@@ -8,9 +8,9 @@ abstract class WP_JSON_Resource {
 		$this->data = $data;
 	}
 
-	abstract public function get( $context );
-	abstract public function update( $data, $context );
-	abstract public function delete( $force );
+	abstract public function get( $context = 'view' );
+	abstract public function update( $data, $context = 'edit' );
+	abstract public function delete( $force = false );
 
 	public static function create( $data, $context = 'edit' ) {}
 	public static function get_instance( $id ) {}
