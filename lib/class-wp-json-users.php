@@ -99,7 +99,7 @@ class WP_JSON_Users {
 			return $instance;
 		}
 
-		return $instance->get();
+		return $instance->get( $context );
 	}
 
 	/**
