@@ -493,21 +493,17 @@ function json_ensure_response( $response ) {
  * @return DateTime DateTime instance.
  */
 function json_parse_date( $date, $force_utc = false ) {
-	// Default timezone to the server's current one.
-	$timezone = json_get_timezone();
-
 	if ( $force_utc ) {
 		$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
-		$timezone = new DateTimeZone( 'UTC' );
 	}
 
-	// Strip millisecond precision (a full stop followed by one or more digits).
-	if ( strpos( $date, '.' ) !== false ) {
-		$date = preg_replace( '/\.\d+/', '', $date );
-	}
-	$datetime = WP_JSON_DateTime::createFromFormat( DateTime::RFC3339, $date, $timezone );
+	$regex = '#^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}(?::\d{2})?)?$#';
 
-	return $datetime;
+	if ( ! preg_match( $regex, $date, $matches ) ) {
+		return false;
+	}
+
+	return strtotime( $date );
 }
 
 /**
@@ -519,17 +515,14 @@ function json_parse_date( $date, $force_utc = false ) {
  *                    null on failure.
  */
 function json_get_date_with_gmt( $date, $force_utc = false ) {
-	$datetime = json_parse_date( $date, $force_utc );
+	$date = json_parse_date( $date, $force_utc );
 
-	if ( empty( $datetime ) ) {
+	if ( empty( $date ) ) {
 		return null;
 	}
 
-	$datetime->setTimezone( json_get_timezone() );
-	$local = $datetime->format( 'Y-m-d H:i:s' );
-
-	$datetime->setTimezone( new DateTimeZone( 'UTC' ) );
-	$utc = $datetime->format('Y-m-d H:i:s');
+	$utc = date( 'Y-m-d H:i:s', $date );
+	$local = get_date_from_gmt( $utc );
 
 	return array( $local, $utc );
 }
