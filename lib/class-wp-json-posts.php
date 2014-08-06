@@ -13,7 +13,7 @@ class WP_JSON_Posts {
 	 *
 	 * @param WP_JSON_ResponseHandler $server Server object
 	 */
-	public function __construct(WP_JSON_ResponseHandler $server) {
+	public function __construct( WP_JSON_ResponseHandler $server ) {
 		$this->server = $server;
 	}
 
@@ -37,7 +37,7 @@ class WP_JSON_Posts {
 				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
-				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
 			),
 
 			// Meta
@@ -62,13 +62,13 @@ class WP_JSON_Posts {
 
 			// Meta-post endpoints
 			'/posts/types' => array(
-				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE
+				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE,
 			),
 			'/posts/types/(?P<type>\w+)' => array(
-				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE,
 			),
 			'/posts/statuses' => array(
-				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE
+				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE,
 			),
 		);
 		return array_merge( $routes, $post_routes );
@@ -144,7 +144,7 @@ class WP_JSON_Posts {
 		global $wp;
 
 		// Allow the same as normal WP
-		$valid_vars = apply_filters('query_vars', $wp->public_query_vars);
+		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
 		// If the user has the correct permissions, also allow use of internal
 		// query parameters, which are only undesirable on the frontend
@@ -397,7 +397,7 @@ class WP_JSON_Posts {
 			}
 
 			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format('U') ) {
+			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
 				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
 			}
 		}
@@ -550,7 +550,7 @@ class WP_JSON_Posts {
 
 		$types = array();
 
-		foreach ($data as $name => $type) {
+		foreach ( $data as $name => $type ) {
 			$type = $this->get_post_type( $type, true );
 			if ( is_wp_error( $type ) ) {
 				continue;
@@ -625,12 +625,12 @@ class WP_JSON_Posts {
 	 * @return array List of post status data
 	 */
 	public function get_post_statuses() {
-		$statuses = get_post_stati(array(), 'objects');
+		$statuses = get_post_stati( array(), 'objects' );
 
 		$data = array();
 
-		foreach ($statuses as $status) {
-			if ( $status->internal === true || ! $status->show_in_admin_status_list ) {
+		foreach ( $statuses as $status ) {
+			if ( true == $status->internal || ! $status->show_in_admin_status_list ) {
 				continue;
 			}
 
@@ -746,7 +746,6 @@ class WP_JSON_Posts {
 
 		// Dates
 		$timezone = json_get_timezone();
-
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
@@ -989,7 +988,7 @@ class WP_JSON_Posts {
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		// Normalize serialized strings
@@ -999,7 +998,7 @@ class WP_JSON_Posts {
 
 		// Don't expose serialized data
 		if ( is_serialized( $value ) || ! is_string( $value ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		$meta = array(
@@ -1109,11 +1108,11 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
@@ -1193,7 +1192,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $data['key'] );
@@ -1257,7 +1256,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
@@ -1279,7 +1278,7 @@ class WP_JSON_Posts {
 	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
 		if ( $context !== 'embed' ) {
 			$data['types'] = array();
-			foreach( $taxonomy->object_type as $type ) {
+			foreach ( $taxonomy->object_type as $type ) {
 				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
 			}
 		}

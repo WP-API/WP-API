@@ -93,7 +93,6 @@ class WP_JSON_Users {
 	 * @return response
 	 */
 	public function get_user( $id, $context = 'view' ) {
-
 		$instance = WP_JSON_User_Resource::get_instance( $id );
 		if ( is_wp_error( $instance ) ) {
 			return $instance;
@@ -152,7 +151,6 @@ class WP_JSON_Users {
 	 * @return true on success
 	 */
 	public function edit_user( $id, $data, $_headers = array() ) {
-
 		$instance = WP_JSON_User_Resource::get_instance( $id );
 		if ( is_wp_error( $instance ) ) {
 			return $instance;
