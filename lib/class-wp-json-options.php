@@ -109,13 +109,13 @@ class WP_JSON_Options {
         $name = sanitize_key( $name );
 
 
-        $value = get_option( $name, new WP_Nothing());
+        $value = get_option( $name, new WP_Error());
 
         $value = apply_filters('json_get_option', $value, $name);
 
         $value = apply_filters("json_get_option_{$name}", $value);
 
-        if ( is_a( $value, 'WP_Nothing' ) ) {
+        if ( is_a( $value, 'WP_Error' ) ) {
             return new WP_Error( 'json_option_not_found', __( 'Option Not Found.' ), array( 'status' => 404 ) );
         }
 
