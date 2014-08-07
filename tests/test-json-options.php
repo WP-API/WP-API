@@ -192,27 +192,27 @@ class WP_Test_JSON_Options extends WP_Test_JSON_TestCase {
 
 	public function test_add_option_no_key() {
 		$response = $this->endpoint->add_option( array( 'value' => 'testvalue' ) );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_create', $response, 400 );
 	}
 
 	public function test_add_option_invalid_key() {
 		delete_option( 'wp honk horn' );
 		$response = $this->endpoint->add_option( array( 'key' => 'wp honk horn', 'value' => 'tesla' ) );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_create', $response, 400 );
 		$this->assertFalse( get_option( 'wp honk horn' ) );
 	}
 
 	public function test_add_option_key_too_long() {
 		delete_option( 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_honk_honk' );
 		$response = $this->endpoint->add_option( array( 'key' => 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_honk_honk', 'value' => 'tesla' ) );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_create', $response, 400 );
 		$this->assertFalse( get_option( 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_honk_honk' ) );
 	}
 
 	public function test_add_option_key_already_exists() {
 		update_option( 'testname', 'testvalue' );
 		$response = $this->endpoint->add_option( array( 'key' => 'testname', 'value' => 'anothertestvalue' ) );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_create', $response, 400 );
 		$this->assertEquals( 'testvalue', get_option( 'testname' ) );
 	}
 
@@ -325,14 +325,14 @@ class WP_Test_JSON_Options extends WP_Test_JSON_TestCase {
 	public function test_update_option_no_value() {
 		update_option( 'testname', 'testvalue' );
 		$response = $this->endpoint->update_option( 'testname', array() );
-		$this->assertErrorResponse( 'json_cannot_update', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_update', $response, 400 );
 		$this->assertEquals( 'testvalue', get_option( 'testname' ) );
 	}
 
 	public function test_update_option_no_key() {
 		update_option( 'testname', 'testvalue' );
 		$response = $this->endpoint->update_option( null, array( 'value' => 'new_testvalue' ) );
-		$this->assertErrorResponse( 'json_cannot_update', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_update', $response, 400 );
 		$this->assertEquals( 'testvalue', get_option( 'testname' ) );
 	}
 
@@ -342,7 +342,7 @@ class WP_Test_JSON_Options extends WP_Test_JSON_TestCase {
 		update_option( 'wp-honk-horn', 'testvalue' );
 
 		$response = $this->endpoint->update_option( 'wp honk horn', array( 'value' => 'new_testvalue' ) );
-		$this->assertErrorResponse( 'json_cannot_update', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_update', $response, 400 );
 
 		$this->assertEquals( 'testvalue', get_option( 'wphonkhorn' ) );
 		$this->assertEquals( 'testvalue', get_option( 'wp_honk_horn' ) );
@@ -354,7 +354,7 @@ class WP_Test_JSON_Options extends WP_Test_JSON_TestCase {
 		update_option( 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_ho', 'testvalue' );
 
 		$response = $this->endpoint->update_option( 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_honk_honk', array( 'value' => 'new_testvalue' ) );
-		$this->assertErrorResponse( 'json_cannot_update', $response, 400 );
+		$this->assertErrorResponse( 'json_option_cannot_update', $response, 400 );
 
 		$this->assertEquals( 'testvalue', get_option( 'wp_honk_horn_so_much_that_this_key_becomes_more_than_64_chars_ho' ) );
 	}
@@ -384,14 +384,14 @@ class WP_Test_JSON_Options extends WP_Test_JSON_TestCase {
 	public function test_update_option_no_option() {
 		delete_option( 'testname' );
 		$response = $this->endpoint->delete_option( 'testname' );
-		$this->assertErrorResponse( 'json_cannot_delete', $response, 500 );
+		$this->assertErrorResponse( 'json_option_cannot_delete', $response, 500 );
 		$this->assertEquals( false, get_option( 'testname' ) );
 	}
 
 	public function test_delete_option_no_key() {
 		update_option( 'testname', 'testvalue' );
 		$response = $this->endpoint->delete_option( null );
-		$this->assertErrorResponse( 'json_cannot_delete', $response, 500 );
+		$this->assertErrorResponse( 'json_option_cannot_delete', $response, 500 );
 		$this->assertEquals( 'testvalue', get_option( 'testname' ) );
 	}
 }
