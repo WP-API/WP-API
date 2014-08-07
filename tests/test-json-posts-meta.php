@@ -30,7 +30,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['ID'] );
+		$this->assertEquals( $meta_id, $data['id'] );
 		$this->assertEquals( 'testkey', $data['key'] );
 		$this->assertEquals( 'testvalue', $data['value'] );
 	}
@@ -138,21 +138,21 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertCount( 3, $data );
 
 		foreach ( $data as $row ) {
-			$this->assertArrayHasKey( 'ID', $row );
+			$this->assertArrayHasKey( 'id', $row );
 			$this->assertArrayHasKey( 'key', $row );
 			$this->assertArrayHasKey( 'value', $row );
 
-			$this->assertTrue( in_array( $row['ID'], array( $meta_id_basic, $meta_id_other1, $meta_id_other2 ) ) );
+			$this->assertTrue( in_array( $row['id'], array( $meta_id_basic, $meta_id_other1, $meta_id_other2 ) ) );
 
-			if ( $row['ID'] === $meta_id_basic ) {
+			if ( $row['id'] === $meta_id_basic ) {
 				$this->assertEquals( 'testkey', $row['key'] );
 				$this->assertEquals( 'testvalue', $row['value'] );
 			}
-			elseif ( $row['ID'] === $meta_id_other1 ) {
+			elseif ( $row['id'] === $meta_id_other1 ) {
 				$this->assertEquals( 'testotherkey', $row['key'] );
 				$this->assertEquals( 'testvalue1', $row['value'] );
 			}
-			elseif ( $row['ID'] === $meta_id_other2 ) {
+			elseif ( $row['id'] === $meta_id_other2 ) {
 				$this->assertEquals( 'testotherkey', $row['key'] );
 				$this->assertEquals( 'testvalue2', $row['value'] );
 			}
@@ -204,7 +204,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 'testvalue', $meta[0] );
 
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'ID', $data );
+		$this->assertArrayHasKey( 'id', $data );
 		$this->assertEquals( 'testkey', $data['key'] );
 		$this->assertEquals( 'testvalue', $data['value'] );
 	}
@@ -347,7 +347,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['ID'] );
+		$this->assertEquals( $meta_id, $data['id'] );
 		$this->assertEquals( 'testkey', $data['key'] );
 		$this->assertEquals( 'testnewvalue', $data['value'] );
 
@@ -371,7 +371,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['ID'] );
+		$this->assertEquals( $meta_id, $data['id'] );
 		$this->assertEquals( 'testnewkey', $data['key'] );
 		$this->assertEquals( 'testvalue', $data['value'] );
 
@@ -400,7 +400,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['ID'] );
+		$this->assertEquals( $meta_id, $data['id'] );
 		$this->assertEquals( 'testnewkey', $data['key'] );
 		$this->assertEquals( 'testnewvalue', $data['value'] );
 
@@ -426,7 +426,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['ID'] );
+		$this->assertEquals( $meta_id, $data['id'] );
 		$this->assertEquals( 'testkey', $data['key'] );
 		$this->assertEquals( 'testvalue', $data['value'] );
 

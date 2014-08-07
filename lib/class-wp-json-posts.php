@@ -13,7 +13,7 @@ class WP_JSON_Posts {
 	 *
 	 * @param WP_JSON_ResponseHandler $server Server object
 	 */
-	public function __construct(WP_JSON_ResponseHandler $server) {
+	public function __construct( WP_JSON_ResponseHandler $server ) {
 		$this->server = $server;
 	}
 
@@ -37,7 +37,7 @@ class WP_JSON_Posts {
 				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
-				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
 			),
 
 			// Meta
@@ -62,13 +62,13 @@ class WP_JSON_Posts {
 
 			// Meta-post endpoints
 			'/posts/types' => array(
-				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE
+				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE,
 			),
 			'/posts/types/(?P<type>\w+)' => array(
-				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE
+				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE,
 			),
 			'/posts/statuses' => array(
-				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE
+				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE,
 			),
 		);
 		return array_merge( $routes, $post_routes );
@@ -144,7 +144,7 @@ class WP_JSON_Posts {
 		global $wp;
 
 		// Allow the same as normal WP
-		$valid_vars = apply_filters('query_vars', $wp->public_query_vars);
+		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
 		// If the user has the correct permissions, also allow use of internal
 		// query parameters, which are only undesirable on the frontend
@@ -294,7 +294,7 @@ class WP_JSON_Posts {
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
 	public function create_post( $data ) {
-		unset( $data['ID'] );
+		unset( $data['id'] );
 
 		$result = $this->insert_post( $data );
 		if ( $result instanceof WP_Error ) {
@@ -306,21 +306,6 @@ class WP_JSON_Posts {
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
 		return $response;
-	}
-
-	/**
-	 * Create a new post for any registered post type.
-	 *
-	 * @deprecated
-	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
-	 *
-	 * @param array $content Content data. (see {@see WP_JSON_Posts::create_post})
-	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
-	 */
-	public function new_post( $data ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Posts::create_post' );
-
-		return $this->create_post( $data );
 	}
 
 	/**
@@ -359,8 +344,10 @@ class WP_JSON_Posts {
 			return $post;
 		}
 
-		foreach ( $post['meta']['links'] as $rel => $url ) {
-			$response->link_header( $rel, $url );
+		foreach ( $post['_links'] as $rel => $data ) {
+			$other = $data;
+			unset( $other['href'] );
+			$response->link_header( $rel, $data['href'], $other );
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
@@ -410,12 +397,12 @@ class WP_JSON_Posts {
 			}
 
 			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format('U') ) {
+			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
 				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
 			}
 		}
 
-		$data['ID'] = $id;
+		$data['id'] = $id;
 
 		$retval = $this->insert_post( $data );
 		if ( is_wp_error( $retval ) ) {
@@ -563,7 +550,7 @@ class WP_JSON_Posts {
 
 		$types = array();
 
-		foreach ($data as $name => $type) {
+		foreach ( $data as $name => $type ) {
 			$type = $this->get_post_type( $type, true );
 			if ( is_wp_error( $type ) ) {
 				continue;
@@ -591,11 +578,6 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
 		}
 
-		if ( $context === true ) {
-			$context = 'embed';
-			_deprecated_argument( __CLASS__ . '::' . __FUNCTION__, 'WPAPI-1.1', '$context should be set to "embed" rather than true' );
-		}
-
 		$data = array(
 			'name'         => $type->label,
 			'slug'         => $type->name,
@@ -604,10 +586,12 @@ class WP_JSON_Posts {
 			'queryable'    => $type->publicly_queryable,
 			'searchable'   => ! $type->exclude_from_search,
 			'hierarchical' => $type->hierarchical,
-			'meta'         => array(
-				'links' => array(
-					'self'       => json_url( '/posts/types/' . $type->name ),
-					'collection' => json_url( '/posts/types' ),
+			'_links' => array(
+				'self'       => array(
+					'href' => json_url( '/posts/types/' . $type->name ),
+				),
+				'collection' => array(
+					'href' => json_url( '/posts/types' ),
 				),
 			),
 		);
@@ -616,13 +600,19 @@ class WP_JSON_Posts {
 		$relation = 'http://wp-api.org/1.1/collections/taxonomy/';
 		$url = json_url( '/taxonomies' );
 		$url = add_query_arg( 'type', $type->name, $url );
-		$data['meta']['links'][ $relation ] = $url;
+		$data['_links'][ $relation ] = array(
+			'href' => $url,
+		);
 
 		if ( $type->publicly_queryable ) {
 			if ( $type->name === 'post' ) {
-				$data['meta']['links']['archives'] = json_url( '/posts' );
+				$data['_links']['archives'] = array(
+					'href' => json_url( '/posts' ),
+				);
 			} else {
-				$data['meta']['links']['archives'] = json_url( add_query_arg( 'type', $type->name, '/posts' ) );
+				$data['_links']['archives'] = array(
+					'href' => json_url( add_query_arg( 'type', $type->name, '/posts' ) ),
+				);
 			}
 		}
 
@@ -635,12 +625,12 @@ class WP_JSON_Posts {
 	 * @return array List of post status data
 	 */
 	public function get_post_statuses() {
-		$statuses = get_post_stati(array(), 'objects');
+		$statuses = get_post_stati( array(), 'objects' );
 
 		$data = array();
 
-		foreach ($statuses as $status) {
-			if ( $status->internal === true || ! $status->show_in_admin_status_list ) {
+		foreach ( $statuses as $status ) {
+			if ( true == $status->internal || ! $status->show_in_admin_status_list ) {
 				continue;
 			}
 
@@ -652,9 +642,7 @@ class WP_JSON_Posts {
 				'private'      => $status->private,
 				'queryable'    => $status->publicly_queryable,
 				'show_in_list' => $status->show_in_admin_all_list,
-				'meta'         => array(
-					'links' => array()
-				),
+				'_links'       => array(),
 			);
 			if ( $status->publicly_queryable ) {
 				if ( $status->name === 'publish' ) {
@@ -679,7 +667,7 @@ class WP_JSON_Posts {
 	 */
 	protected function prepare_post( $post, $context = 'view' ) {
 		// Holds the data for this post.
-		$_post = array( 'ID' => (int) $post['ID'] );
+		$_post = array( 'id' => (int) $post['ID'] );
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
@@ -712,11 +700,15 @@ class WP_JSON_Posts {
 
 		// prepare common post fields
 		$post_fields = array(
-			'title'           => get_the_title( $post['ID'] ), // $post['post_title'],
+			'title'           => array(
+				'rendered' => get_the_title( $post['ID'] ), // $post['post_title'],
+			),
+			'content'         => array(
+				'rendered' => apply_filters( 'the_content', $post['post_content'] ),
+			),
 			'status'          => $post['post_status'],
 			'type'            => $post['post_type'],
 			'author'          => (int) $post['post_author'],
-			'content'         => apply_filters( 'the_content', $post['post_content'] ),
 			'parent'          => (int) $post['post_parent'],
 			#'post_mime_type' => $post['post_mime_type'],
 			'link'            => get_permalink( $post['ID'] ),
@@ -724,8 +716,12 @@ class WP_JSON_Posts {
 
 		$post_fields_extended = array(
 			'slug'           => $post['post_name'],
-			'guid'           => apply_filters( 'get_the_guid', $post['guid'] ),
-			'excerpt'        => $this->prepare_excerpt( $post['post_excerpt'] ),
+			'guid'           => array(
+				'rendered' => apply_filters( 'get_the_guid', $post['guid'] ),
+			),
+			'excerpt'        => array(
+				'rendered' => $this->prepare_excerpt( $post['post_excerpt'] ),
+			),
 			'menu_order'     => (int) $post['menu_order'],
 			'comment_status' => $post['comment_status'],
 			'ping_status'    => $post['ping_status'],
@@ -733,16 +729,23 @@ class WP_JSON_Posts {
 		);
 
 		$post_fields_raw = array(
-			'title_raw'   => $post['post_title'],
-			'content_raw' => $post['post_content'],
-			'excerpt_raw' => $post['post_excerpt'],
-			'guid_raw'    => $post['guid'],
-			'post_meta'   => $this->get_all_meta( $post['ID'] ),
+			'title'     => array(
+				'raw' => $post['post_title'],
+			),
+			'content'   => array(
+				'raw' => $post['post_content'],
+			),
+			'excerpt'   => array(
+				'raw' => $post['post_excerpt'],
+			),
+			'guid'      => array(
+				'raw' => $post['guid'],
+			),
+			'post_meta' => $this->get_all_meta( $post['ID'] ),
 		);
 
 		// Dates
 		$timezone = json_get_timezone();
-
 
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
@@ -786,7 +789,7 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
 		}
-		
+
 		if ( 0 === $post['post_parent'] ) {
 			$post_fields['parent'] = null;
 		}
@@ -815,7 +818,7 @@ class WP_JSON_Posts {
 					return $post_fields_raw['post_meta'];
 				}
 
-				$_post = array_merge( $_post, $post_fields_raw );
+				$_post = array_merge_recursive( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
 				if ( $previous_post ) {
@@ -825,7 +828,7 @@ class WP_JSON_Posts {
 			}
 		} elseif ( 'view-revision' == $context ) {
 			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-				$_post = array_merge( $_post, $post_fields_raw );
+				$_post = array_merge_recursive( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
 				if ( $previous_post ) {
@@ -837,20 +840,32 @@ class WP_JSON_Posts {
 
 		// Entity meta
 		$links = array(
-			'self'       => json_url( '/posts/' . $post['ID'] ),
-			'author'     => json_url( '/users/' . $post['post_author'] ),
-			'collection' => json_url( '/posts' ),
+			'self'       => array(
+				'href' => json_url( '/posts/' . $post['ID'] ),
+			),
+			'author'     => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection' => array(
+				'href' => json_url( '/posts' ),
+			),
 		);
 
 		if ( 'view-revision' != $context ) {
-			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
-			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+			$links['replies']         = array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
+			);
+			$links['version-history'] = array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			);
 		}
 
-		$_post['meta'] = array( 'links' => $links );
+		$_post['_links'] = $links;
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['meta']['links']['up'] = json_url( '/posts/' . (int) $post['post_parent'] );
+			$_post['_links']['up'] = array(
+				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+			);
 		}
 
 		$GLOBALS['post'] = $previous_post;
@@ -967,13 +982,13 @@ class WP_JSON_Posts {
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	protected function prepare_meta( $post, $data, $is_raw = false ) {
-		$ID    = $data->meta_id;
+		$id    = $data->meta_id;
 		$key   = $data->meta_key;
 		$value = $data->meta_value;
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		// Normalize serialized strings
@@ -983,11 +998,11 @@ class WP_JSON_Posts {
 
 		// Don't expose serialized data
 		if ( is_serialized( $value ) || ! is_string( $value ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		$meta = array(
-			'ID'    => (int) $ID,
+			'id'    => (int) $id,
 			'key'   => $key,
 			'value' => $value,
 		);
@@ -1000,7 +1015,7 @@ class WP_JSON_Posts {
 	 * {
 	 * 	post_meta : [
 	 * 		{
-	 * 			"ID": 42,
+	 * 			"id": 42,
 	 * 			"key" : "meta_key",
 	 * 			"value" : "meta_value"
 	 * 		}
@@ -1017,12 +1032,12 @@ class WP_JSON_Posts {
 	 */
 	protected function handle_post_meta_action( $post_id, $data ) {
 		foreach ( $data as $meta_array ) {
-			if ( empty( $meta_array['ID'] ) ) {
+			if ( empty( $meta_array['id'] ) ) {
 				// Creation
 				$result = $this->add_meta( $post_id, $meta_array );
 			} else {
 				// Update
-				$result = $this->update_meta( $post_id, $meta_array['ID'], $meta_array );
+				$result = $this->update_meta( $post_id, $meta_array['id'], $meta_array );
 			}
 
 			if ( is_wp_error( $result ) ) {
@@ -1093,11 +1108,11 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
@@ -1177,7 +1192,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $data['key'] );
@@ -1241,7 +1256,7 @@ class WP_JSON_Posts {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( ! delete_metadata_by_mid( 'post', $mid ) ) {
@@ -1263,7 +1278,7 @@ class WP_JSON_Posts {
 	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
 		if ( $context !== 'embed' ) {
 			$data['types'] = array();
-			foreach( $taxonomy->object_type as $type ) {
+			foreach ( $taxonomy->object_type as $type ) {
 				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
 			}
 		}
@@ -1282,16 +1297,16 @@ class WP_JSON_Posts {
 	 */
 	protected function insert_post( $data ) {
 		$post   = array();
-		$update = ! empty( $data['ID'] );
+		$update = ! empty( $data['id'] );
 
 		if ( $update ) {
-			$current_post = get_post( absint( $data['ID'] ) );
+			$current_post = get_post( absint( $data['id'] ) );
 
 			if ( ! $current_post ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
 			}
 
-			$post['ID'] = absint( $data['ID'] );
+			$post['ID'] = absint( $data['id'] );
 		} else {
 			// Defaults
 			$post['post_author']   = 0;
@@ -1313,7 +1328,7 @@ class WP_JSON_Posts {
 			$post['post_type'] = $data['type'];
 		} elseif ( $update ) {
 			// Updating post, use existing post type
-			$current_post = get_post( $data['ID'] );
+			$current_post = get_post( $data['id'] );
 
 			if ( ! $current_post ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
@@ -1332,11 +1347,11 @@ class WP_JSON_Posts {
 
 		// Permissions check
 		if ( $update ) {
-			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) ) {
+			if ( ! current_user_can( $post_type->cap->edit_post, $data['id'] ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 			}
 
-			if ( $post_type->name != get_post_type( $data['ID'] ) ) {
+			if ( $post_type->name != get_post_type( $data['id'] ) ) {
 				return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
 			}
 		} else {
@@ -1401,10 +1416,10 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['author'] ) ) {
 			// Allow passing an author object
 			if ( is_object( $data['author'] ) ) {
-				if ( empty( $data['author']->ID ) ) {
+				if ( empty( $data['author']->id ) ) {
 					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
 				}
-				$data['author'] = (int) $data['author']->ID;
+				$data['author'] = (int) $data['author']->id;
 			} else {
 				$data['author'] = (int) $data['author'];
 			}
@@ -1435,12 +1450,22 @@ class WP_JSON_Posts {
 		}
 
 		// Content and excerpt
-		if ( ! empty( $data['content_raw'] ) ) {
-			$post['post_content'] = $data['content_raw'];
+		if ( ! empty( $data['content'] ) ) {
+			if ( is_string( $data['content'] ) ) {
+				$post['post_content'] = $data['content'];
+			}
+			elseif ( ! empty( $data['content']['raw'] ) ) {
+				$post['post_content'] = $data['content']['raw'];
+			}
 		}
 
-		if ( ! empty( $data['excerpt_raw'] ) ) {
-			$post['post_excerpt'] = $data['excerpt_raw'];
+		if ( ! empty( $data['excerpt'] ) ) {
+			if ( is_string( $data['excerpt'] ) ) {
+				$post['post_excerpt'] = $data['excerpt'];
+			}
+			elseif ( ! empty( $data['excerpt']['raw'] ) ) {
+				$post['post_excerpt'] = $data['excerpt']['raw'];
+			}
 		}
 
 		// Parent
@@ -1529,17 +1554,19 @@ class WP_JSON_Posts {
 	 * @param string $context Where is the comment being loaded?
 	 * @return array Comment data for JSON serialization
 	 */
-	protected function prepare_comment( $comment, $requested_fields = array( 'comment', 'meta' ), $context = 'single' ) {
+	protected function prepare_comment( $comment, $requested_fields = array( 'comment', '_links' ), $context = 'single' ) {
 		$fields = array(
-			'ID'   => (int) $comment->comment_ID,
+			'id'   => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
 		);
 
 		$post = (array) get_post( $fields['post'] );
 
 		// Content
-		$fields['content'] = apply_filters( 'comment_text', $comment->comment_content, $comment );
-		// $fields['content_raw'] = $comment->comment_content;
+		$fields['content'] = array(
+			'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment )
+		);
+		// $fields['content']['raw'] = $comment->comment_content;
 
 		// Status
 		switch ( $comment->comment_approved ) {
@@ -1593,7 +1620,7 @@ class WP_JSON_Posts {
 			$fields['author'] = (int) $comment->user_id;
 		} else {
 			$fields['author'] = array(
-				'ID'     => 0,
+				'id'     => 0,
 				'name'   => $comment->comment_author,
 				'URL'    => $comment->comment_author_url,
 				'avatar' => json_get_avatar_url( $comment->comment_author_email ),
@@ -1609,31 +1636,26 @@ class WP_JSON_Posts {
 		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
 
 		// Meta
-		$meta = array(
-			'links' => array(
-				'up' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) )
+		$links = array(
+			'up' => array(
+				'href' => json_url( sprintf( '/posts/%d', (int) $comment->comment_post_ID ) ),
 			),
 		);
 
 		if ( 0 !== (int) $comment->comment_parent ) {
-			$meta['links']['in-reply-to'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) );
+			$links['in-reply-to'] = array(
+				'href' => json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_parent ) ),
+			);
 		}
 
 		if ( 'single' !== $context ) {
-			$meta['links']['self'] = json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_ID ) );
+			$links['self'] = array(
+				'href' => json_url( sprintf( '/posts/%d/comments/%d', (int) $comment->comment_post_ID, (int) $comment->comment_ID ) ),
+			);
 		}
 
-		// Remove unneeded fields
-		$data = array();
+		$fields['_links'] = $links;
 
-		if ( in_array( 'comment', $requested_fields ) ) {
-			$data = array_merge( $data, $fields );
-		}
-
-		if ( in_array( 'meta', $requested_fields ) ) {
-			$data['meta'] = $meta;
-		}
-
-		return apply_filters( 'json_prepare_comment', $data, $comment, $context );
+		return apply_filters( 'json_prepare_comment', $fields, $comment, $context );
 	}
 }

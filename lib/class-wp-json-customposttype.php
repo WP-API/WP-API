@@ -28,7 +28,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	/**
 	 * Construct the API handler object
 	 */
-	public function __construct(WP_JSON_ResponseHandler $server) {
+	public function __construct( WP_JSON_ResponseHandler $server ) {
 		if ( empty( $this->base ) ) {
 			_doing_it_wrong( 'WP_JSON_CustomPostType::__construct', __( 'The route base must be overridden' ), 'WPAPI-0.6' );
 			return;
@@ -38,7 +38,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return;
 		}
 
-		parent::__construct($server);
+		parent::__construct( $server );
 	}
 
 	/**
@@ -196,18 +196,28 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 		$_post = parent::prepare_post( $post, $context );
 
 		// Override entity meta keys with the correct links
-		$_post['meta'] = array(
-			'links' => array(
-				'self'            => json_url( $this->base . '/' . $post['ID'] ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( $this->base ),
-				'replies'         => json_url( $this->base . '/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( $this->base . '/' . $post['ID'] . '/revisions' ),
+		$_post['_links'] = array(
+			'self'            => array(
+				'href' => json_url( $this->base . '/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection'      => array(
+				'href' => json_url( $this->base ),
+			),
+			'replies'         => array(
+				'href' => json_url( $this->base . '/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( $this->base . '/' . $post['ID'] . '/revisions' ),
 			),
 		);
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['meta']['links']['up'] = json_url( $this->base . '/' . $post['ID'] );
+			$_post['_links']['up'] = array(
+				'href' => json_url( $this->base . '/' . $post['ID'] ),
+			);
 		}
 
 		return apply_filters( "json_prepare_{$this->type}", $_post, $post, $context );

@@ -10,13 +10,13 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function register_routes( $routes ) {
 		$media_routes = array(
 			'/media'             => array(
-				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE ),
-				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE ),
+				array( array( $this, 'get_posts' ),         WP_JSON_Server::READABLE, ),
+				array( array( $this, 'upload_attachment' ), WP_JSON_Server::CREATABLE, ),
 			),
 			'/media/(?P<id>\d+)' => array(
-				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE ),
-				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get_post' ),    WP_JSON_Server::READABLE, ),
+				array( array( $this, 'edit_post' ),   WP_JSON_Server::EDITABLE, ),
+				array( array( $this, 'delete_post' ), WP_JSON_Server::DELETABLE, ),
 			),
 		);
 		return array_merge( $routes, $media_routes );
@@ -35,7 +35,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $filter['post_status'])) {
+		if ( empty( $filter['post_status'] ) ) {
 			$filter['post_status'] = array( 'publish', 'inherit' );
 
 			// Always allow status queries for attachments
@@ -105,7 +105,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		} elseif ( ! empty( $data['attachment_meta']['sizes'] ) ) {
 			$img_url_basename = wp_basename( $data['source'] );
 
-			foreach ($data['attachment_meta']['sizes'] as $size => &$size_data) {
+			foreach ( $data['attachment_meta']['sizes'] as $size => &$size_data ) {
 				// Use the same method image_downsize() does
 				$size_data['url'] = str_replace( $img_url_basename, $size_data['file'], $data['source'] );
 			}
@@ -114,18 +114,28 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// Override entity meta keys with the correct links
-		$data['meta'] = array(
-			'links' => array(
-				'self'            => json_url( '/media/' . $post['ID'] ),
-				'author'          => json_url( '/users/' . $post['post_author'] ),
-				'collection'      => json_url( '/media' ),
-				'replies'         => json_url( '/media/' . $post['ID'] . '/comments' ),
-				'version-history' => json_url( '/media/' . $post['ID'] . '/revisions' ),
+		$data['_links'] = array(
+			'self'            => array(
+				'href' => json_url( '/media/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection'      => array(
+				'href' => json_url( '/media' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/media/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/media/' . $post['ID'] . '/revisions' ),
 			),
 		);
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$data['meta']['links']['up'] = json_url( '/media/' . (int) $post['post_parent'] );
+			$data['_links']['up'] = array(
+				'href' => json_url( '/media/' . (int) $post['post_parent'] ),
+			);
 		}
 
 		return apply_filters( 'json_prepare_attachment', $data, $post, $context );
@@ -191,7 +201,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {
@@ -228,7 +238,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		$name       = basename( $file['file'] );
 		$name_parts = pathinfo( $name );
-		$name       = trim( substr( $name, 0, -(1 + strlen($name_parts['extension'])) ) );
+		$name       = trim( substr( $name, 0, -(1 + strlen( $name_parts['extension'] ) ) ) );
 
 		$url     = $file['url'];
 		$type    = $file['type'];
@@ -237,7 +247,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		$content = '';
 
 		// use image exif/iptc data for title and caption defaults if possible
-		if ( $image_meta = @wp_read_image_metadata($file) ) {
+		if ( $image_meta = @wp_read_image_metadata( $file ) ) {
 			if ( trim( $image_meta['title'] ) && ! is_numeric( sanitize_title( $image_meta['title'] ) ) ) {
 				$title = $image_meta['title'];
 			}
@@ -263,9 +273,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// Save the data
-		$id = wp_insert_attachment($attachment, $file, $post_id );
+		$id = wp_insert_attachment( $attachment, $file, $post_id );
 
-		if ( !is_wp_error($id) ) {
+		if ( ! is_wp_error( $id ) ) {
 			wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 		}
 
@@ -341,10 +351,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		// Now, sideload it in
 		$file_data = array(
-			'error' => null,
+			'error'    => null,
 			'tmp_name' => $tmpfname,
-			'name' => $filename,
-			'type' => $type,
+			'name'     => $filename,
+			'type'     => $type,
 		);
 		$overrides = array(
 			'test_form' => false,

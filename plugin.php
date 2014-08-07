@@ -24,19 +24,22 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' );
+
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-options.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-option-resource.php' );
 
 
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-resource.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-user-resource.php' );
 /**
  * Register rewrite rules for the API.
  *
@@ -485,7 +488,7 @@ function json_ensure_response( $response ) {
 		return $response;
 	}
 
-	if ( $response instanceof WP_JSON_ResponseInterface ) {
+	if ( $response instanceof WP_HTTP_ResponseInterface ) {
 		return $response;
 	}
 

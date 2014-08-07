@@ -466,10 +466,9 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			'URL'            => get_option( 'siteurl' ),
 			'routes'         => array(),
 			'authentication' => array(),
-			'meta'           => array(
-				'links' => array(
-					'help'    => 'https://github.com/WP-API/WP-API',
-					'profile' => 'https://raw.github.com/WP-API/WP-API/master/docs/schema.json',
+			'_links' => array(
+				'help'    => array(
+					'href' => 'https://github.com/WP-API/WP-API',
 				),
 			),
 		);
@@ -478,7 +477,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		foreach ( $this->get_routes() as $route => $callbacks ) {
 			$data = array();
 
-			$route = preg_replace( '#\(\?P(<\w+?>).*?\)#', '$1', $route );
+			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 			$methods = array();
 
 			foreach ( self::$method_map as $name => $bitmask ) {
@@ -497,8 +496,8 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 					}
 
 					// For non-variable routes, generate links
-					if ( strpos( $route, '<' ) === false ) {
-						$data['meta'] = array(
+					if ( strpos( $route, '{' ) === false ) {
+						$data['_links'] = array(
 							'self' => json_url( $route ),
 						);
 					}
@@ -601,62 +600,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			default:
 				return null;
 		}
-	}
-
-	/**
-	 * Parse an RFC3339 timestamp into a DateTime
-	 *
-	 * @deprecated
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Force UTC timezone instead of using the timestamp's TZ?
-	 * @return DateTime
-	 */
-	public function parse_date( $date, $force_utc = false ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_parse_date' );
-		
-		return json_parse_date( $date, $force_utc );
-	}
-
-	/**
-	 * Get a local date with its GMT equivalent, in MySQL datetime format
-	 *
-	 * @deprecated
-	 * @param string $date RFC3339 timestamp
-	 * @param boolean $force_utc Should we force UTC timestamp?
-	 * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s), null on failure
-	 */
-	public function get_date_with_gmt( $date, $force_utc = false ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_date_with_gmt' );
-
-		return json_get_date_with_gmt( $date, $force_utc );
-	}
-
-	/**
-	 * Retrieve the avatar url for a user who provided a user ID or email address.
-	 *
-	 * {@see get_avatar()} doesn't return just the URL, so we have to
-	 * extract it here.
-	 *
-	 * @deprecated
-	 * @param string $email Email address
-	 * @return string url for the user's avatar
-	*/
-	public function get_avatar_url( $email ) {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_avatar_url' );
-
-		return json_get_avatar_url( $email );
-	}
-
-	/**
-	 * Get the timezone object for the site
-	 *
-	 * @deprecated
-	 * @return DateTimeZone
-	 */
-	public function get_timezone() {
-		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_get_timezone' );
-
-		return json_get_timezone();
 	}
 
 	/**
