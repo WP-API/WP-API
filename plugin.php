@@ -18,7 +18,6 @@ define( 'JSON_API_VERSION', '1.1.1' );
 /**
  * Include our files for the API.
  */
-include_once( dirname( __FILE__ ) . '/lib/class-WP_Nothing.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
