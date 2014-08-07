@@ -91,6 +91,19 @@ class WP_JSON_Option_Resource extends WP_JSON_Resource {
 
 		}
 
+		// We are overriding the list style of array ( array('name' => ..., 'value' => ... ), ... ) to a simple
+		// key => value assoc. array to make life easier for most devs.  set context to 'view-resource'
+		// to get the full resource style
+		if ( $context == 'view' ) {
+
+			$key_value_struct = array();
+			foreach ( $struct as $index => $option ) {
+				$key_value_struct[$option->name] = $option->value;
+			}
+
+			return $key_value_struct;
+
+		}
 		return $struct;
 	}
 
@@ -208,6 +221,7 @@ class WP_JSON_Option_Resource extends WP_JSON_Resource {
 	 */
 	protected function check_context_permission( $context ) {
 		switch ( $context ) {
+			case 'view-resource':
 			case 'view':
 				if ( current_user_can( 'manage_options' ) ) {
 					return true;
