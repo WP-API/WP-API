@@ -35,11 +35,12 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-options.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-option-resource.php' );
 
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-resource.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-user-resource.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-option-resource.php' );
+
 /**
  * Register rewrite rules for the API.
  *
