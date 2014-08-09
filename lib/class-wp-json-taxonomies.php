@@ -279,7 +279,10 @@ class WP_JSON_Taxonomies {
 	 * @return array Filtered data
 	 */
 	public function add_term_data( $data, $post, $context ) {
+		$public_taxonomies    = get_taxonomies( array( 'public' => true ) );
 		$post_type_taxonomies = get_object_taxonomies( $post['post_type'] );
+		$post_type_taxonomies = array_intersect( $public_taxonomies, $post_type_taxonomies );
+
 		$terms = wp_get_object_terms( $post['ID'], $post_type_taxonomies );
 		$data['terms'] = array();
 
