@@ -275,7 +275,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			// test for json_encode() error
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
-				$json_error_obj = new WP_Error( 'json_encode_error', __( 'json_encode() error: ' . $json_error_message ), array( 'status' => 400 ) );
+				$json_error_obj = new WP_Error( 'json_encode_error', 'json_encode() error: ' . $json_error_message, array( 'status' => 400 ) );
 				$result = $this->error_to_response( $json_error_obj );
 			}
 
@@ -387,7 +387,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 					// test for json_decode() error
 					$json_error_message = $this->get_json_last_error();
 					if ( $json_error_message ) {
-						return new WP_Error( 'json_decode_error', __( 'json_decode() error: ' . $json_error_message ), array( 'status' => 400 ) );
+						return new WP_Error( 'json_decode_error', 'json_decode() error: ' . $json_error_message, array( 'status' => 400 ) );
 					}
 
 					if ( $data !== null ) {
@@ -450,35 +450,36 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 		// use json_last_error_msg() if available
 		if ( function_exists( 'json_last_error_msg' ) ) {
-			return json_last_error_msg();
+			$error_message = json_last_error_msg();
+			return __( sprintf( '%s', $error_message ) );
 		}
 
 		// otherwise use built-in constants
 		if ( defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code ) {
-			return 'Maximum stack depth exceeded';
+			return __( 'Maximum stack depth exceeded' );
 		}
 		elseif ( defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code ) {
-			return 'Invalid or malformed JSON';
+			return __( 'Invalid or malformed JSON' );
 		}
 		elseif ( defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code ) {
-			return 'Control character error, possibly incorrectly encoded';
+			return __( 'Control character error, possibly incorrectly encoded' );
 		}
 		elseif ( defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code ) {
-			return 'Syntax error';
+			return __( 'Syntax error' );
 		}
 		elseif ( defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code ) {
-			return 'Malformed UTF-8 characters, possibly incorrectly encoded';
+			return __( 'Malformed UTF-8 characters, possibly incorrectly encoded' );
 		}
 		elseif ( defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code ) {
-			return 'One or more recursive references in the value to be encoded';
+			return __( 'One or more recursive references in the value to be encoded' );
 		}
 		elseif ( defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code ) {
-			return 'One or more NAN or INF values in the value to be encoded';
+			return __( 'One or more NAN or INF values in the value to be encoded' );
 		}
 		elseif ( defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code ) {
-			return 'A value of a type that cannot be encoded was given';
+			return __( 'A value of a type that cannot be encoded was given' );
 		} else {
-			return 'An unknown error occurred';
+			return __( 'An unknown error occurred' );
 		}
 	}
 
