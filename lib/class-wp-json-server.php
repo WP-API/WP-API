@@ -180,7 +180,8 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @uses WP_JSON_Server::dispatch()
 	 */
 	public function serve_request( $path = null ) {
-		$this->send_header( 'Content-Type', 'application/json; charset=' . get_option( 'blog_charset' ), true );
+		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -202,7 +203,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( preg_match( '/\W/', $_GET['_jsonp'] ) ) {
+			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W/', $_GET['_jsonp'] ) ) {
 				echo $this->json_error( 'json_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}

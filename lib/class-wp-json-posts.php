@@ -786,6 +786,10 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
 		}
+		
+		if ( 0 === $post['post_parent'] ) {
+			$post_fields['parent'] = null;
+		}
 
 		if ( ( 'view' === $context || 'view-revision' == $context ) && 0 !== $post['post_parent'] ) {
 			// Avoid nesting too deeply
