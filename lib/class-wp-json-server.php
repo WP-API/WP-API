@@ -277,6 +277,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			if ( $json_error_message ) {
 				$json_error_obj = new WP_Error( 'json_encode_error', 'json_encode() error: ' . $json_error_message, array( 'status' => 400 ) );
 				$result = $this->error_to_response( $json_error_obj );
+				$result = json_encode( $result->data[0] );
 			}
 
 			if ( isset( $_GET['_jsonp'] ) ) {
