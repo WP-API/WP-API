@@ -1516,23 +1516,25 @@ class WP_JSON_Posts {
 			}
 		}
 
-		//Custom taxonomy terms
-		$sanitize_callbacks = array(
-			'term_names' => 'sanitize_text_field',
-			'term_ids'   => 'intval',
-		);
-
+		//For hierarchical terms (such as categories), you must always pass the id rather than the term name
 		if ( ! empty( $data['tax_input'] ) ) {
-			foreach ( $data['tax_input'] as $tax_slug => $terms_lists ) {
+
+			foreach ( $data['tax_input'] as $tax_slug => $terms ) {
 				if ( ! taxonomy_exists( $tax_slug ) ){
 					continue;
 				}
-				foreach ( $terms_lists as $type => $terms ) {
-					$clean_terms = array_map( $sanitize_callbacks[ $type ], $terms );
-					$clean_terms = array_filter( array_unique( $clean_terms ) );
-					wp_set_object_terms( $post_ID, $clean_terms, $tax_slug );
+				foreach ( $terms as $term ) {
+					$clean_terms[] = ( array_key_exists( 'ID', $term ) ) ? intval( $term['ID'] ) : sanitize_text_field( $term['name'] );
+
 				}
+
+				if ( ! empty( $clean_terms ) ) {
+					$terms_to_insert = array_filter( array_unique( $clean_terms ) );
+					wp_set_object_terms( $post_ID, $terms_to_insert, $tax_slug );
+				}
+
 			}
+
 		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
