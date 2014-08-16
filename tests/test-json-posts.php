@@ -72,17 +72,13 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		}
 
 		// Check post dates.
-		$timezone = json_get_timezone();
-
 		if ( $post_obj->post_date_gmt === '0000-00-00 00:00:00' ) {
 			$this->assertNull( $response_data['date'] );
 			$this->assertNull( $response_data['date_gmt'] );
 		}
 		else {
-			$post_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date, $timezone );
-			$post_date_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_date_gmt );
-			$this->assertEquals( $post_date->format( 'c' ), $response_data['date'] );
-			$this->assertEquals( $post_date_gmt->format( 'c' ), $response_data['date_gmt'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_date     ), $response_data['date'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_date_gmt ), $response_data['date_gmt'] );
 		}
 
 		if ( $post_obj->post_modified_gmt === '0000-00-00 00:00:00' ) {
@@ -90,10 +86,8 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 			$this->assertNull( $response_data['modified_gmt'] );
 		}
 		else {
-			$post_modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified, $timezone );
-			$post_modified_gmt = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post_obj->post_modified_gmt );
-			$this->assertEquals( $post_modified_gmt->format( 'c' ), $response_data['modified_gmt'] );
-			$this->assertEquals( $post_modified->format( 'c' ), $response_data['modified'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_modified     ), $response_data['modified'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post_obj->post_modified_gmt ), $response_data['modified_gmt'] );
 		}
 
 
@@ -391,6 +385,21 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 			'date' => '2010-01-01T02:00:00-10:00',
 		));
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['id'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	function test_create_post_custom_date_with_irregular_offset() {
+		$data = $this->set_data(array(
+			'date' => '2010-01-01T02:00:00-10:14',
+		));
+		$time = gmmktime( 12, 14, 0, 1, 1, 2010 );
 
 		$response = $this->endpoint->create_post( $data );
 		$response = json_ensure_response( $response );
