@@ -404,7 +404,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
-		$new_post = get_post( $response_data['id'] );
+		$new_post = get_post( $response_data['ID'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
