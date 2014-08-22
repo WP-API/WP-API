@@ -9,28 +9,28 @@ class WP_JSON_Taxonomies {
 	 */
 	public function register_routes( $routes ) {
 		$tax_routes = array(
-			'/posts/types/(?P<type>\w+)/taxonomies' => array(
+			'/posts/types/(?P<type>[\w-]+)/taxonomies' => array(
 				array( array( $this, 'get_taxonomies_for_type' ), WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)' => array(
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)' => array(
 				array( array( $this, 'get_taxonomy' ),   WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms' => array(
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms' => array(
 				array( array( $this, 'get_terms' ),      WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
-			'/posts/types/(?P<type>\w+)/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+			'/posts/types/(?P<type>[\w-]+)/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)' => array(
 				array( array( $this, 'get_term' ),       WP_JSON_Server::READABLE | WP_JSON_Server::HIDDEN_ENDPOINT ),
 			),
 			'/taxonomies' => array(
 				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
 			),
-			'/taxonomies/(?P<taxonomy>\w+)' => array(
+			'/taxonomies/(?P<taxonomy>[\w-]+)' => array(
 				array( array( $this, 'get_taxonomy_object' ), WP_JSON_Server::READABLE ),
 			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms' => array(
+			'/taxonomies/(?P<taxonomy>[\w-]+)/terms' => array(
 				array( array( $this, 'get_taxonomy_terms' ), WP_JSON_Server::READABLE ),
 			),
-			'/taxonomies/(?P<taxonomy>\w+)/terms/(?P<term>\w+)' => array(
+			'/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)' => array(
 				array( array( $this, 'get_taxonomy_term' ), WP_JSON_Server::READABLE ),
 			),
 		);
