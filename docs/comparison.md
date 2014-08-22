@@ -100,9 +100,14 @@ accessing via WP Query:
 | Create a reply           |        | X               | X           |
 | List all comments        |        | X               | X           |
 | List comments for a post | X      | X               | X           |
+| Get counts for a post    |        | ~               | X           |
 | Retrieve a comment       | X      | X               | X           |
 | Edit a comment           |        | X               | X           |
 | Delete a comment         | X      | X               | X           |
+| List all comment statuses|        |                 | X           |
+
+WP.com JSON API returns total comment count for a post alongside results, so
+clients must do grouping themselves by iterating over results.
 
 ### Post-Related Data
 
@@ -112,6 +117,7 @@ accessing via WP Query:
 | Retrieve post type       | X      |                 | X           |
 | List all post statuses   | X      |                 | X           |
 | Retrieve post status     |        |                 |             |
+| List all post formats    |        |                 | X           |
 
 ### Taxonomies
 
@@ -155,6 +161,13 @@ taxonomies.
 | Retrieve a page by slug  | X      | X               |             |
 | Edit a page              | X      | X               | X           |
 | Delete a page            | X      | X               | X           |
+
+### Page-Related Data
+
+| Feature                  | WP API | WP.com JSON API | XML-RPC API |
+|:-------------------------|:-------|:---------------:|:-----------:|
+| List all page templates  |        |                 | X           |
+| List all page statuses   |        |                 | X           |
 
 ## Formats
 
