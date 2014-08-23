@@ -57,8 +57,8 @@ class WP_JSON_Options {
 	 *
 	 * @return array contains a collection of Option entities.
 	 */
-	public function get_options( $filter = array(), $context = 'view', $page = 1 ) {
-		return WP_JSON_Option_Resource::get_instances( $filter, $context, $page );
+	public function get_options( $filter = array(), $context = 'view', $page = 1, $args = array() ) {
+		return WP_JSON_Option_Resource::get_instances( $filter, $context, $page, $args );
 	}
 
 	/**
@@ -68,14 +68,14 @@ class WP_JSON_Options {
 	 *
 	 * @return response
 	 */
-	public function get_option( $name, $context = 'view' ) {
+	public function get_option( $name, $context = 'view', $args = array() ) {
 		$instance = WP_JSON_Option_Resource::get_instance( $name );
 
 		if ( is_wp_error( $instance ) ) {
 			return $instance;
 		}
 
-		return $instance->get( $context );
+		return $instance->get( $context, $args );
 	}
 
 	/**
@@ -105,6 +105,7 @@ class WP_JSON_Options {
 	public function update_option( $name, $data ) {
 
 		$instance = WP_JSON_Option_Resource::get_instance( $name );
+
 		if ( is_wp_error( $instance ) ) {
 			return $instance;
 		}
