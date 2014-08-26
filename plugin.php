@@ -34,9 +34,13 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-options.php' );
+
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-resource.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-user-resource.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-option-resource.php' );
+
 /**
  * Register rewrite rules for the API.
  *
@@ -78,7 +82,6 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  * @internal This will live in default-filters.php
  *
  * @global WP_JSON_Posts      $wp_json_posts
- * @global WP_JSON_Pages      $wp_json_pages
  * @global WP_JSON_Media      $wp_json_media
  * @global WP_JSON_Taxonomies $wp_json_taxonomies
  *
@@ -98,10 +101,6 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
 
-	// Pages.
-	$wp_json_pages = new WP_JSON_Pages( $server );
-	$wp_json_pages->register_filters();
-
 	// Media.
 	$wp_json_media = new WP_JSON_Media( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
@@ -116,7 +115,11 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
 
-	// Deprecated reporting.
+    //Options
+    $wp_json_options = new WP_JSON_Options( $server );
+    add_filter( 'json_endpoints',      array( $wp_json_options, 'register_routes'       ), 2 );
+
+    // Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
 	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
 	add_action( 'deprecated_argument_run',           'json_handle_deprecated_argument', 10, 3 );
