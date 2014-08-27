@@ -1571,7 +1571,7 @@ class WP_JSON_Posts {
 			if ( $context === 'single' ) {
 				$parent_fields[] = 'comment';
 			}
-			$parent = get_comment( $post['post_parent'] );
+			$parent = get_comment( $comment->comment_parent );
 
 			$fields['parent'] = $this->prepare_comment( $parent, $parent_fields, 'single-parent' );
 		}
