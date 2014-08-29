@@ -159,12 +159,6 @@ class WP_JSON_Comments {
 			$fields['type'] = 'comment';
 		}
 
-		// Post
-		if ( 'single' === $context ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$fields['parent'] = $this->prepare_post( $parent, 'single-parent' );
-		}
-
 		// Parent
 		if ( ( 'single' === $context || 'single-parent' === $context ) && (int) $comment->comment_parent ) {
 			$parent_fields = array( 'meta' );

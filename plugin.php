@@ -119,6 +119,10 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
 	add_action( 'deprecated_argument_run',           'json_handle_deprecated_argument', 10, 3 );
 	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
+
+	// Default serving
+	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
+	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 2 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -629,4 +633,68 @@ function json_handle_deprecated_argument( $function, $message, $version ) {
 	}
 
 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
+}
+
+/**
+ * Send Cross-Origin Resource Sharing headers with API requests
+ *
+ * @param mixed $value Response data
+ * @return mixed Response data
+ */
+function json_send_cors_headers( $value ) {
+	$origin = get_http_origin();
+
+	if ( $origin ) {
+		header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
+		header( 'Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE' );
+		header( 'Access-Control-Allow-Credentials: true' );
+	}
+
+	return $value;
+}
+
+/**
+ * Handle OPTIONS requests for the server
+ *
+ * This is handled outside of the server code, as it doesn't obey normal route
+ * mapping.
+ *
+ * @param mixed $response Current response, either response or `null` to indicate pass-through
+ * @param WP_JSON_Server $handler ResponseHandler instance (usually WP_JSON_Server)
+ * @return WP_JSON_ResponseHandler Modified response, either response or `null` to indicate pass-through
+ */
+function json_handle_options_request( $response, $handler ) {
+	if ( ! empty( $response ) || $handler->method !== 'OPTIONS' ) {
+		return $response;
+	}
+
+	$response = new WP_JSON_Response();
+
+	$accept = array();
+
+	$handler_class = get_class( $handler );
+	$class_vars = get_class_vars( $handler_class );
+	$map = $class_vars['method_map'];
+
+	foreach ( $handler->get_routes() as $route => $endpoints ) {
+		$match = preg_match( '@^' . $route . '$@i', $handler->path, $args );
+
+		if ( ! $match ) {
+			continue;
+		}
+
+		foreach ( $endpoints as $endpoint ) {
+			foreach ( $map as $type => $bitmask ) {
+				if ( $endpoint[1] & $bitmask ) {
+					$accept[] = $type;
+				}
+			}
+		}
+		break;
+	}
+	$accept = array_unique( $accept );
+
+	$response->header( 'Accept', implode( ', ', $accept ) );
+
+	return $response;
 }
