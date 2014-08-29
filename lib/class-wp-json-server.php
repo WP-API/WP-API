@@ -440,48 +440,11 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		}
 
 		$last_error_code = json_last_error();
-
-		// just in case JSON_ERROR_NONE is not defined
-		$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
-
-		switch ( true ) {
-
-			// return false if no error occurred
-			case $last_error_code === $error_code_none :
-				return false;
-
-			// use json_last_error_msg() if available
-			case function_exists( 'json_last_error_msg' ) :
-				return json_last_error_msg();
-
-			// otherwise use built-in constants
-			case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code :
-				return 'Maximum stack depth exceeded';
-			
-			case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code :
-				return 'Invalid or malformed JSON';
-
-			case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code :
-				return 'Control character error, possibly incorrectly encoded';
-
-			case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code :
-				return 'Syntax error';
-
-			case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code :
-				return 'Malformed UTF-8 characters, possibly incorrectly encoded';
-
-			case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code :
-				return 'One or more recursive references in the value to be encoded';
-
-			case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code :
-				return 'One or more NAN or INF values in the value to be encoded';
-
-			case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code :
-				return 'A value of a type that cannot be encoded was given';
-
-			default :
-				return 'An unknown error occurred';
+		if ( ( defined( 'JSON_ERROR_NONE' ) && $last_error_code === JSON_ERROR_NONE ) || empty( $last_error_code ) ) {
+			return false;
 		}
+
+		return json_last_error_msg();
 	}
 
 	/**
