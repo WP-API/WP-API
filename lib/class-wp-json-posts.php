@@ -28,7 +28,7 @@ class WP_JSON_Posts {
 			// Post endpoints
 			'/posts' => array(
 				array( array( $this, 'get_posts' ),      WP_JSON_Server::READABLE ),
-				array( array( $this, 'new_post' ),       WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'create_post' ),    WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
@@ -282,7 +282,7 @@ class WP_JSON_Posts {
 	 *  - any other fields supported by wp_insert_post()
 	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
 	 */
-	public function new_post( $data ) {
+	public function create_post( $data ) {
 		unset( $data['ID'] );
 
 		$result = $this->insert_post( $data );
@@ -298,6 +298,21 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Create a new post for any registered post type.
+	 *
+	 * @deprecated
+	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
+	 *
+	 * @param array $content Content data. (see {@see WP_JSON_Posts::create_post})
+	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
+	 */
+	public function new_post( $data ) {
+		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Posts::create_post' );
+
+		return $this->create_post( $data );
+	}
+
+	/**
 	 * Retrieve a post.
 	 *
 	 * @uses get_post()
@@ -308,13 +323,9 @@ class WP_JSON_Posts {
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -353,20 +364,16 @@ class WP_JSON_Posts {
 	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
 	 *
 	 * @param int $id Post ID to edit
-	 * @param array $data Data construct, see {@see WP_JSON_Posts::new_post}
+	 * @param array $data Data construct, see {@see WP_JSON_Posts::create_post}
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
 	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -409,13 +416,9 @@ class WP_JSON_Posts {
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -714,31 +717,22 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = json_get_timezone();
-
-
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
-			$post_fields_extended['date_tz'] = null;
 			$post_fields_extended['date_gmt'] = null;
 		}
 		else {
-			$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
-			$post_fields['date'] = $date->format( 'c' );
-			$post_fields_extended['date_tz'] = $date->format( 'e' );
-			$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
+			$post_fields['date']              = json_mysql_to_rfc3339( $post['post_date'] );
+			$post_fields_extended['date_gmt'] = json_mysql_to_rfc3339( $post['post_date_gmt'] );
 		}
 
 		if ( $post['post_modified_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['modified'] = null;
-			$post_fields_extended['modified_tz'] = null;
 			$post_fields_extended['modified_gmt'] = null;
 		}
 		else {
-			$modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
-			$post_fields['modified'] = $modified->format( 'c' );
-			$post_fields_extended['modified_tz'] = $modified->format( 'e' );
-			$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
+			$post_fields['modified']              = json_mysql_to_rfc3339( $post['post_modified'] );
+			$post_fields_extended['modified_gmt'] = json_mysql_to_rfc3339( $post['post_modified_gmt'] );
 		}
 
 		// Authorized fields
@@ -758,6 +752,10 @@ class WP_JSON_Posts {
 
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
+		}
+
+		if ( 0 === $post['post_parent'] ) {
+			$post_fields['parent'] = null;
 		}
 
 		if ( ( 'view' === $context || 'view-revision' == $context ) && 0 !== $post['post_parent'] ) {
@@ -861,7 +859,7 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Helper method for {@see new_post} and {@see edit_post}, containing shared logic.
+	 * Helper method for {@see create_post} and {@see edit_post}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()
@@ -1147,12 +1145,6 @@ class WP_JSON_Posts {
 			$fields['type'] = 'comment';
 		}
 
-		// Post
-		if ( 'single' === $context ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$fields['parent'] = $this->prepare_post( $parent, 'single-parent' );
-		}
-
 		// Parent
 		if ( ( 'single' === $context || 'single-parent' === $context ) && (int) $comment->comment_parent ) {
 			$parent_fields = array( 'meta' );
@@ -1160,7 +1152,7 @@ class WP_JSON_Posts {
 			if ( $context === 'single' ) {
 				$parent_fields[] = 'comment';
 			}
-			$parent = get_comment( $post['post_parent'] );
+			$parent = get_comment( $comment->comment_parent );
 
 			$fields['parent'] = $this->prepare_comment( $parent, $parent_fields, 'single-parent' );
 		}
@@ -1181,12 +1173,8 @@ class WP_JSON_Posts {
 		}
 
 		// Date
-		$timezone = json_get_timezone();
-
-		$date               = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
-		$fields['date']     = $date->format( 'c' );
-		$fields['date_tz']  = $date->format( 'e' );
-		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
+		$fields['date']     = json_mysql_to_rfc3339( $comment->comment_date );
+		$fields['date_gmt'] = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 
 		// Meta
 		$meta = array(

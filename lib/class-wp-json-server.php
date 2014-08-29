@@ -180,7 +180,8 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 * @uses WP_JSON_Server::dispatch()
 	 */
 	public function serve_request( $path = null ) {
-		$this->send_header( 'Content-Type', 'application/json; charset=' . get_option( 'blog_charset' ), true );
+		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -202,7 +203,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( preg_match( '/\W/', $_GET['_jsonp'] ) ) {
+			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W/', $_GET['_jsonp'] ) ) {
 				echo $this->json_error( 'json_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
@@ -231,6 +232,19 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
+			/**
+			 * Allow hijacking the request before dispatching
+			 *
+			 * If `$result` is non-empty, this value will be used to serve the
+			 * request instead.
+			 *
+			 * @param mixed $result Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+			 * @param WP_JSON_ResponseHandler $this ResponseHandler instance (usually WP_JSON_Server)
+			 */
+			$result = apply_filters( 'json_pre_dispatch', null, $this );
+		}
+
+		if ( empty( $result ) ) {
 			$result = $this->dispatch();
 		}
 
