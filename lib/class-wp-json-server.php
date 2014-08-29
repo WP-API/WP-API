@@ -232,6 +232,19 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
+			/**
+			 * Allow hijacking the request before dispatching
+			 *
+			 * If `$result` is non-empty, this value will be used to serve the
+			 * request instead.
+			 *
+			 * @param mixed $result Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+			 * @param WP_JSON_ResponseHandler $this ResponseHandler instance (usually WP_JSON_Server)
+			 */
+			$result = apply_filters( 'json_pre_dispatch', null, $this );
+		}
+
+		if ( empty( $result ) ) {
 			$result = $this->dispatch();
 		}
 

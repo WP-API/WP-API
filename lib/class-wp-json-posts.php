@@ -741,31 +741,22 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
-		$timezone = json_get_timezone();
-
-
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['date'] = null;
-			$post_fields_extended['date_tz'] = null;
 			$post_fields_extended['date_gmt'] = null;
 		}
 		else {
-			$date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
-			$post_fields['date'] = $date->format( 'c' );
-			$post_fields_extended['date_tz'] = $date->format( 'e' );
-			$post_fields_extended['date_gmt'] = date( 'c', strtotime( $post['post_date_gmt'] ) );
+			$post_fields['date']              = json_mysql_to_rfc3339( $post['post_date'] );
+			$post_fields_extended['date_gmt'] = json_mysql_to_rfc3339( $post['post_date_gmt'] );
 		}
 
 		if ( $post['post_modified_gmt'] === '0000-00-00 00:00:00' ) {
 			$post_fields['modified'] = null;
-			$post_fields_extended['modified_tz'] = null;
 			$post_fields_extended['modified_gmt'] = null;
 		}
 		else {
-			$modified = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
-			$post_fields['modified'] = $modified->format( 'c' );
-			$post_fields_extended['modified_tz'] = $modified->format( 'e' );
-			$post_fields_extended['modified_gmt'] = date( 'c', strtotime( $post['post_modified_gmt'] ) );
+			$post_fields['modified']              = json_mysql_to_rfc3339( $post['post_modified'] );
+			$post_fields_extended['modified_gmt'] = json_mysql_to_rfc3339( $post['post_modified_gmt'] );
 		}
 
 		// Authorized fields
@@ -786,7 +777,7 @@ class WP_JSON_Posts {
 		if ( empty( $post_fields['format'] ) ) {
 			$post_fields['format'] = 'standard';
 		}
-		
+
 		if ( 0 === $post['post_parent'] ) {
 			$post_fields['parent'] = null;
 		}
@@ -1567,12 +1558,6 @@ class WP_JSON_Posts {
 			$fields['type'] = 'comment';
 		}
 
-		// Post
-		if ( 'single' === $context ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$fields['parent'] = $this->prepare_post( $parent, 'single-parent' );
-		}
-
 		// Parent
 		if ( ( 'single' === $context || 'single-parent' === $context ) && (int) $comment->comment_parent ) {
 			$parent_fields = array( 'meta' );
@@ -1580,7 +1565,7 @@ class WP_JSON_Posts {
 			if ( $context === 'single' ) {
 				$parent_fields[] = 'comment';
 			}
-			$parent = get_comment( $post['post_parent'] );
+			$parent = get_comment( $comment->comment_parent );
 
 			$fields['parent'] = $this->prepare_comment( $parent, $parent_fields, 'single-parent' );
 		}
@@ -1601,12 +1586,8 @@ class WP_JSON_Posts {
 		}
 
 		// Date
-		$timezone = json_get_timezone();
-
-		$date               = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
-		$fields['date']     = $date->format( 'c' );
-		$fields['date_tz']  = $date->format( 'e' );
-		$fields['date_gmt'] = date( 'c', strtotime( $comment->comment_date_gmt ) );
+		$fields['date']     = json_mysql_to_rfc3339( $comment->comment_date );
+		$fields['date_gmt'] = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 
 		// Meta
 		$meta = array(
