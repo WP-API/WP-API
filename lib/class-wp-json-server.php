@@ -272,6 +272,14 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 			$result = json_encode( $this->prepare_response( $result ) );
 
+			// test for json_encode() error
+			$json_error_message = $this->get_json_last_error();
+			if ( $json_error_message ) {
+				$json_error_obj = new WP_Error( 'json_encode_error', $json_error_message, array( 'status' => 500 ) );
+				$result = $this->error_to_response( $json_error_obj );
+				$result = json_encode( $result->data[0] );
+			}
+
 			if ( isset( $_GET['_jsonp'] ) ) {
 				// Prepend '/**/' to mitigate possible JSONP Flash attacks
 				// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -377,6 +385,12 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
 
+					// test for json_decode() error
+					$json_error_message = $this->get_json_last_error();
+					if ( $json_error_message ) {
+						return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+					}
+
 					if ( $data !== null ) {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
@@ -412,6 +426,77 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		}
 
 		return new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) );
+	}
+
+	/**
+	 * Returns if an error occurred during most recent JSON encode/decode
+	 * Strings to be translated will be in format like "Encoding error: Maximum stack depth exceeded"
+	 *
+	 * @return boolean|string Boolean false or string error message
+	 */
+	protected function get_json_last_error( ) {
+		// see https://core.trac.wordpress.org/ticket/27799
+		if ( ! function_exists( 'json_last_error' ) ) {
+			return false;
+		}
+
+		$last_error_code = json_last_error();
+
+		// just in case JSON_ERROR_NONE is not defined
+		$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
+		
+		// prefix error messages with this string
+		$error_message_prefix = 'Encoding error:';
+		
+		switch ( true ) {
+
+			// return false if no error occurred
+			case $last_error_code === $error_code_none :
+				return false;
+				break;
+
+			// use json_last_error_msg() if available
+			case function_exists( 'json_last_error_msg' ) :
+				$error_message = json_last_error_msg();
+				return __( sprintf( '%s %s', $error_message_prefix, $error_message ) );
+				break;
+
+			// otherwise use built-in constants
+			case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code :
+				return __( sprintf( '%s Maximum stack depth exceeded', $error_message_prefix ) );
+				break;
+			
+			case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code :
+				return __( sprintf( '%s Invalid or malformed JSON', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code :
+				return __( sprintf( '%s Control character error, possibly incorrectly encoded', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code :
+				return __( sprintf( '%s Syntax error', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code :
+				return __( sprintf( '%s Malformed UTF-8 characters, possibly incorrectly encoded', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code :
+				return __( sprintf( '%s One or more recursive references in the value to be encoded', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code :
+				return __( sprintf( '%s One or more NAN or INF values in the value to be encoded', $error_message_prefix ) );
+				break;
+
+			case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code :
+				return __( sprintf( '%s A value of a type that cannot be encoded was given', $error_message_prefix ) );
+				break;
+
+			default :
+				return __( sprintf( '%s An unknown error occurred', $error_message_prefix ) );
+		}
 	}
 
 	/**
