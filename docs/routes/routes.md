@@ -88,21 +88,93 @@ posts.
 
 ### Input
 #### `filter`
-The `filter` parameter controls the query parameters.  It is essentially a
-subset of the parameters available to [`WP_Query`](http://codex.wordpress.org/Class_Reference/WP_Query).
+The `filter` parameter controls the parameters used to query for posts.
 
-The parameter should be an array of the following key/value pairs:
+**Note:** Only "public" query variables are available via the API, as not all
+query variables are safe to expose. "Private" query variables are also available
+when authenticated as a user with `edit_posts`. Other query variables can be
+registered via the `query_vars` filter, or `json_query_vars` for API-specific
+query variables.
 
-* `post_status` - Comma-separated list of [status
-  values](http://codex.wordpress.org/Class_Reference/WP_Query#Status_Parameters).
-  Default is "publish". (string)
-* `posts_per_page` - Number of posts to retrieve, use `-1` for all posts. Default
-  is set by the site. (integer)
-* `offset` - Number of posts to skip. Default is 0. (integer)
-* `orderby` - Parameter to search by, as per [WP Query](http://codex.wordpress.org/Class_Reference/WP_Query#Order_.26_Orderby_Parameters).  Default is
-  "date". (string)
-* `order` - Order to sort by. Default is "DESC". (string, "ASC" or "DESC")
-* `s` - Keyword to search for. (string)
+Extended documentation on the query variables is available from
+[the codex](http://codex.wordpress.org/Class_Reference/WP_Query).
+
+The following query variables are available to the API:
+
+* `m`
+* `p`
+* `posts`
+* `w`
+* `cat`
+* `withcomments`
+* `withoutcomments`
+* `s`
+* `search`
+* `exact`
+* `sentence`
+* `calendar`
+* `page`
+* `paged`
+* `more`
+* `tb`
+* `pb`
+* `author`
+* `order`
+* `orderby`
+* `year`
+* `monthnum`
+* `day`
+* `hour`
+* `minute`
+* `second`
+* `name`
+* `category_name`
+* `tag`
+* `feed`
+* `author_name`
+* `static`
+* `pagename`
+* `page_id`
+* `error`
+* `comments_popup`
+* `attachment`
+* `attachment_id`
+* `subpost`
+* `subpost_id`
+* `preview`
+* `robots`
+* `taxonomy`
+* `term`
+* `cpage`
+* `post_type`
+
+In addition, the following are available when authenticated as a user with
+`edit_posts`:
+
+* `offset`
+* `posts_per_page`
+* `posts_per_archive_page`
+* `showposts`
+* `nopaging`
+* `post_type`
+* `post_status`
+* `category__in`
+* `category__not_in`
+* `category__and`
+* `tag__in`
+* `tag__not_in`
+* `tag__and`
+* `tag_slug__in`
+* `tag_slug__and`
+* `tag_id`
+* `post_mime_type`
+* `perm`
+* `comments_per_page`
+* `post__in`
+* `post__not_in`
+* `post_parent`
+* `post_parent__in`
+* `post_parent__not_in`
 
 ```
 GET /posts?filter[posts_per_page]=8&filter[order]=ASC
