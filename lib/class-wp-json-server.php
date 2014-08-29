@@ -444,9 +444,6 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		// just in case JSON_ERROR_NONE is not defined
 		$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
 
-		// prefix error messages with this string
-		$error_message_prefix = __( 'Encoding error: %s' );
-
 		switch ( true ) {
 
 			// return false if no error occurred
@@ -455,36 +452,35 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 			// use json_last_error_msg() if available
 			case function_exists( 'json_last_error_msg' ) :
-				$error_message = json_last_error_msg();
-				return sprintf( $error_message_prefix, $error_message );
+				return json_last_error_msg();
 
 			// otherwise use built-in constants
 			case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code :
-				return sprintf( $error_message_prefix, 'Maximum stack depth exceeded' );
+				return 'Maximum stack depth exceeded';
 			
 			case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code :
-				return sprintf( $error_message_prefix, 'Invalid or malformed JSON' );
+				return 'Invalid or malformed JSON';
 
 			case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code :
-				return sprintf( $error_message_prefix, 'Control character error, possibly incorrectly encoded' );
+				return 'Control character error, possibly incorrectly encoded';
 
 			case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code :
-				return sprintf( $error_message_prefix, 'Syntax error' );
+				return 'Syntax error';
 
 			case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code :
-				return sprintf( $error_message_prefix, 'Malformed UTF-8 characters, possibly incorrectly encoded' );
+				return 'Malformed UTF-8 characters, possibly incorrectly encoded';
 
 			case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code :
-				return sprintf( $error_message_prefix, 'One or more recursive references in the value to be encoded' );
+				return 'One or more recursive references in the value to be encoded';
 
 			case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code :
-				return sprintf( $error_message_prefix, 'One or more NAN or INF values in the value to be encoded' );
+				return 'One or more NAN or INF values in the value to be encoded';
 
 			case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code :
-				return sprintf( $error_message_prefix, 'A value of a type that cannot be encoded was given' );
+				return 'A value of a type that cannot be encoded was given';
 
 			default :
-				return sprintf( $error_message_prefix, 'An unknown error occurred' );
+				return 'An unknown error occurred';
 		}
 	}
 
