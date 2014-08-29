@@ -36,6 +36,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-resource.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-post-resource.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-user-resource.php' );
 /**
  * Register rewrite rules for the API.

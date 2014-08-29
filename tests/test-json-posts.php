@@ -34,6 +34,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	protected function check_get_post_response( $response, $post_obj, $context = 'view' ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$response_data = $response->get_data();
 

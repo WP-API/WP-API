@@ -297,11 +297,16 @@ class WP_JSON_Posts {
 		unset( $data['id'] );
 
 		$result = $this->insert_post( $data );
-		if ( $result instanceof WP_Error ) {
+		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
 
-		$response = json_ensure_response( $this->get_post( $result ) );
+		$response = $this->get_post( $result );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
@@ -317,43 +322,11 @@ class WP_JSON_Posts {
 	 * @return array Post entity
 	 */
 	public function get_post( $id, $context = 'view' ) {
-		$id = (int) $id;
-
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $post['ID'] ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! $this->check_read_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
-		}
-
-		// Link headers (see RFC 5988)
-
-		$response = new WP_JSON_Response();
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
-
-		$post = $this->prepare_post( $post, $context );
-
+		$post = WP_JSON_Post_Resource::get_instance( $id );
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
-
-		foreach ( $post['_links'] as $rel => $data ) {
-			$other = $data;
-			unset( $other['href'] );
-			$response->link_header( $rel, $data['href'], $other );
-		}
-
-		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-		$response->set_data( $post );
-
-		return $response;
+		return $post->get( $context );
 	}
 
 	/**
@@ -420,36 +393,11 @@ class WP_JSON_Posts {
 	 * @return true on success
 	 */
 	public function delete_post( $id, $force = false ) {
-		$id = (int) $id;
-
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		$post = WP_JSON_Post_Resource::get_instance( $id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
 		}
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $post['ID'] ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->delete_post, $id ) ) {
-			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
-		}
-
-		$result = wp_delete_post( $id, $force );
-
-		if ( ! $result ) {
-			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
-		}
-
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
+		return $post->delete( $force );
 	}
 
 	/**
