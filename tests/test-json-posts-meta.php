@@ -204,9 +204,9 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 'testvalue', $meta[0] );
 
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'ID', $data );
-		$this->assertEquals( 'testkey', $data['key'] );
-		$this->assertEquals( 'testvalue', $data['value'] );
+		$this->assertObjectHasAttribute( 'ID', $data );
+		$this->assertEquals( 'testkey', $data->key );
+		$this->assertEquals( 'testvalue', $data->value );
 	}
 
 	public function test_add_meta_no_post_id() {
