@@ -13,9 +13,9 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->user = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 		$this->user_obj = wp_get_current_user();
-		$this->user_obj->add_role('author');
+		$this->user_obj->add_role( 'author' );
 
-		$this->fake_server = $this->getMock('WP_JSON_Server');
+		$this->fake_server = $this->getMock( 'WP_JSON_Server' );
 		$this->endpoint = new WP_JSON_Meta_Posts( $this->fake_server );
 	}
 
@@ -306,10 +306,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 	}
 
 	public function test_add_meta_failed_get() {
-		$this->endpoint = $this->getMock('WP_JSON_Meta_Posts', array('get_meta'), array( $this->fake_server ) );
+		$this->endpoint = $this->getMock( 'WP_JSON_Meta_Posts', array('get_meta'), array( $this->fake_server ) );
 
 		$test_error = new WP_Error( 'json_test_error', 'Test error' );
-		$this->endpoint->expects($this->any())->method('get_meta')->will($this->returnValue($test_error));
+		$this->endpoint->expects( $this->any() )->method( 'get_meta' )->will( $this->returnValue( $test_error ) );
 
 		$post_id = $this->factory->post->create();
 		$data = array(
