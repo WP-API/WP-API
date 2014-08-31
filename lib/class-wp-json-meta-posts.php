@@ -116,7 +116,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	public function insert_post_meta( $post, $data ) {
 		// Post meta
 		if ( ! empty( $data['post_meta'] ) ) {
-			$result = $this->handle_post_meta_action( $post['ID'], $data['post_meta'] );
+			$result = $this->handle_inline_meta( $post['ID'], $data['post_meta'] );
 
 			if ( is_wp_error( $result ) ) {
 				return $result;
