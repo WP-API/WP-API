@@ -31,9 +31,27 @@ class WP_Test_JSON_Post_Comments extends WP_UnitTestCase {
 		$this->assertEquals( 10, count( $data ) );
 	}
 
+	private function _create_comment( $args = array() ) {
+		$default_args = array(
+			'comment_post_ID' => $this->post_id,
+		);
+		$comment_args = wp_parse_args( $args, $default_args );
+
+		return $this->factory->comment->create_object( $comment_args );
+	}
+
 	public function test_get_comment() {
-		$comment = $this->factory->comment->create_post_comments( $this->post_id, 1 );
-		$comment_id = (int) $comment[0];
+		$comment_id = $this->_create_comment();
+
+		$response = $this->endpoint->get_comment( (int) $comment_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function test_get_comment_with_parent() {
+		$comment_parent_id = $this->_create_comment();
+		$comment_id        = $this->_create_comment( array( 'comment_parent' => (int) $comment_parent_id ) );
 
 		$response = $this->endpoint->get_comment( $comment_id );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
