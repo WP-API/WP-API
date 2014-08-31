@@ -156,7 +156,7 @@ abstract class WP_JSON_Meta {
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		// Normalize serialized strings
@@ -166,7 +166,7 @@ abstract class WP_JSON_Meta {
 
 		// Don't expose serialized data
 		if ( is_serialized( $value ) || ! is_string( $value ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.'), $key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s contains serialized data.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		$meta = array(
@@ -180,7 +180,7 @@ abstract class WP_JSON_Meta {
 
 	/**
 	 * Update/add/delete meta for an object.
-	 * 
+	 *
 	 * Meta data is expected to be sent in the same format as it's output:
 	 *
 	 *     {
@@ -269,11 +269,11 @@ abstract class WP_JSON_Meta {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
@@ -346,7 +346,7 @@ abstract class WP_JSON_Meta {
 		}
 
 		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $data['key'] ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $data['key'] );
@@ -399,7 +399,7 @@ abstract class WP_JSON_Meta {
 		}
 
 		if ( is_protected_meta( $current->meta_key ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.'), $current->meta_key ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
 		if ( ! delete_metadata_by_mid( $this->type, $mid ) ) {
