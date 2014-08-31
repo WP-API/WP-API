@@ -118,6 +118,10 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
 	add_action( 'deprecated_argument_run',           'json_handle_deprecated_argument', 10, 3 );
 	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
+
+	// Default serving
+	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
+	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 2 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -629,3 +633,120 @@ function json_handle_deprecated_argument( $function, $message, $version ) {
 
 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
 }
+
+/**
+ * Send Cross-Origin Resource Sharing headers with API requests
+ *
+ * @param mixed $value Response data
+ * @return mixed Response data
+ */
+function json_send_cors_headers( $value ) {
+	$origin = get_http_origin();
+
+	if ( $origin ) {
+		header( 'Access-Control-Allow-Origin: ' . esc_url_raw( $origin ) );
+		header( 'Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE' );
+		header( 'Access-Control-Allow-Credentials: true' );
+	}
+
+	return $value;
+}
+
+/**
+ * Handle OPTIONS requests for the server
+ *
+ * This is handled outside of the server code, as it doesn't obey normal route
+ * mapping.
+ *
+ * @param mixed $response Current response, either response or `null` to indicate pass-through
+ * @param WP_JSON_Server $handler ResponseHandler instance (usually WP_JSON_Server)
+ * @return WP_JSON_ResponseHandler Modified response, either response or `null` to indicate pass-through
+ */
+function json_handle_options_request( $response, $handler ) {
+	if ( ! empty( $response ) || $handler->method !== 'OPTIONS' ) {
+		return $response;
+	}
+
+	$response = new WP_JSON_Response();
+
+	$accept = array();
+
+	$handler_class = get_class( $handler );
+	$class_vars = get_class_vars( $handler_class );
+	$map = $class_vars['method_map'];
+
+	foreach ( $handler->get_routes() as $route => $endpoints ) {
+		$match = preg_match( '@^' . $route . '$@i', $handler->path, $args );
+
+		if ( ! $match ) {
+			continue;
+		}
+
+		foreach ( $endpoints as $endpoint ) {
+			foreach ( $map as $type => $bitmask ) {
+				if ( $endpoint[1] & $bitmask ) {
+					$accept[] = $type;
+				}
+			}
+		}
+		break;
+	}
+	$accept = array_unique( $accept );
+
+	$response->header( 'Accept', implode( ', ', $accept ) );
+
+	return $response;
+}
+
+if ( ! function_exists( 'json_last_error_msg' ) ):
+/**
+ * Returns the error string of the last json_encode() or json_decode() call
+ *
+ * @internal This is a compatibility function for PHP <5.5
+ *
+ * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
+ */
+function json_last_error_msg() {
+	// see https://core.trac.wordpress.org/ticket/27799
+	if ( ! function_exists( 'json_last_error' ) ) {
+		return false;
+	}
+
+	$last_error_code = json_last_error();
+
+	// just in case JSON_ERROR_NONE is not defined
+	$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
+
+	switch ( true ) {
+		case $last_error_code === $error_code_none:
+			return 'No error';
+
+		case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code:
+			return 'Maximum stack depth exceeded';
+
+		case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code:
+			return 'State mismatch (invalid or malformed JSON)';
+
+		case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code:
+			return 'Control character error, possibly incorrectly encoded';
+
+		case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code:
+			return 'Syntax error';
+
+		case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code:
+			return 'Malformed UTF-8 characters, possibly incorrectly encoded';
+
+		case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code:
+			return 'Recursion detected';
+
+		case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code:
+			return 'Inf and NaN cannot be JSON encoded';
+
+		case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code:
+			return 'Type is not supported';
+
+		default:
+			return 'An unknown error occurred';
+	}
+}
+endif;

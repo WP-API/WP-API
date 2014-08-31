@@ -334,13 +334,9 @@ class WP_JSON_Posts {
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -386,13 +382,9 @@ class WP_JSON_Posts {
 	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -435,13 +427,9 @@ class WP_JSON_Posts {
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -879,13 +867,9 @@ class WP_JSON_Posts {
 	public function get_all_meta( $id ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -922,13 +906,9 @@ class WP_JSON_Posts {
 	public function get_meta( $id, $mid ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -1038,13 +1018,9 @@ class WP_JSON_Posts {
 		$id  = (int) $id;
 		$mid = (int) $mid;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -1137,13 +1113,9 @@ class WP_JSON_Posts {
 	public function add_meta( $id, $data ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -1202,13 +1174,9 @@ class WP_JSON_Posts {
 	public function delete_meta( $id, $mid ) {
 		$id = (int) $id;
 
-		if ( empty( $id ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
 		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $post['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -1556,12 +1524,6 @@ class WP_JSON_Posts {
 
 		if ( empty( $fields['type'] ) ) {
 			$fields['type'] = 'comment';
-		}
-
-		// Post
-		if ( 'single' === $context ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
-			$fields['parent'] = $this->prepare_post( $parent, 'single-parent' );
 		}
 
 		// Parent

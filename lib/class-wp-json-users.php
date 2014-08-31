@@ -307,6 +307,11 @@ class WP_JSON_Users {
 			$user->user_email = $data['email'];
 		}
 
+		// Role
+		if ( ! empty( $data['role'] ) ) {
+			$user->role = $data['role'];
+		}
+
 		// Pre-flight check
 		$user = apply_filters( 'json_pre_insert_user', $user, $data );
 
