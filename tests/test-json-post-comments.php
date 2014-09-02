@@ -17,7 +17,7 @@ class WP_Test_JSON_Post_Comments extends WP_UnitTestCase {
 			'post_type'    => 'post',
 		) );
 		$this->fake_server = $this->getMock( 'WP_JSON_Server' );
-		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
+		$this->endpoint = new WP_JSON_Comments( $this->fake_server );
 	}
 
 	public function test_get_comments() {
