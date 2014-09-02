@@ -203,7 +203,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W/', $_GET['_jsonp'] ) ) {
+			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W\./', $_GET['_jsonp'] ) ) {
 				echo $this->json_error( 'json_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
@@ -284,6 +284,13 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			}
 
 			$result = json_encode( $this->prepare_response( $result ) );
+
+			$json_error_message = $this->get_json_last_error();
+			if ( $json_error_message ) {
+				$json_error_obj = new WP_Error( 'json_encode_error', $json_error_message, array( 'status' => 500 ) );
+				$result = $this->error_to_response( $json_error_obj );
+				$result = json_encode( $result->data[0] );
+			}
 
 			if ( isset( $_GET['_jsonp'] ) ) {
 				// Prepend '/**/' to mitigate possible JSONP Flash attacks
@@ -390,6 +397,12 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				if ( $supported & self::ACCEPT_JSON ) {
 					$data = json_decode( $this->get_raw_data(), true );
 
+					// test for json_decode() error
+					$json_error_message = $this->get_json_last_error();
+					if ( $json_error_message ) {
+						return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+					}
+
 					if ( $data !== null ) {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
@@ -425,6 +438,26 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		}
 
 		return new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) );
+	}
+
+	/**
+	 * Returns if an error occurred during most recent JSON encode/decode
+	 * Strings to be translated will be in format like "Encoding error: Maximum stack depth exceeded"
+	 *
+	 * @return boolean|string Boolean false or string error message
+	 */
+	protected function get_json_last_error( ) {
+		// see https://core.trac.wordpress.org/ticket/27799
+		if ( ! function_exists( 'json_last_error' ) ) {
+			return false;
+		}
+
+		$last_error_code = json_last_error();
+		if ( ( defined( 'JSON_ERROR_NONE' ) && $last_error_code === JSON_ERROR_NONE ) || empty( $last_error_code ) ) {
+			return false;
+		}
+
+		return json_last_error_msg();
 	}
 
 	/**
@@ -626,7 +659,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 	 */
 	public function parse_date( $date, $force_utc = false ) {
 		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.1', 'json_parse_date' );
-		
+
 		return json_parse_date( $date, $force_utc );
 	}
 

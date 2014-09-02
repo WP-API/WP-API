@@ -37,7 +37,8 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the format of errors encoded to json.
+	 * Test the format of errors encoded to json. Include
+	 * a test with periods to be sure it's allowed.
 	 */
 	function test_json_error() {
 		$this->markTestIncomplete('Missing test implementation.');

@@ -2,7 +2,7 @@
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
-[![Build Status](https://travis-ci.org/WP-API/WP-API.png?branch=master)](https://travis-ci.org/WP-API/WP-API)
+[![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=master)](https://travis-ci.org/WP-API/WP-API)
 
 ## About
 
