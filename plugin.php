@@ -243,6 +243,7 @@ function json_register_scripts() {
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
+add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
 
 /**
  * Add the API URL to the WP RSD endpoint.
