@@ -539,10 +539,37 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		$response = $this->endpoint->create_post( $data );
 		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
 
 		$response_data = $response->get_data();
 		$post_meta_value = get_post_meta( $response_data['ID'], 'testkey', true );
 		$this->assertEquals( 'testvalue', $post_meta_value );
+	}
+
+	function test_create_post_with_multiple_meta() {
+		$data = $this->set_data( array(
+			'post_meta' => array(
+				array(
+					'key' => 'some_meta',
+					'value' => 'some_value',
+				),
+				array(
+					'key' => 'some_other_meta',
+					'value' => 'some_other_value',
+				),
+		) ) );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$this->assertEquals( 2, count( $response_data['post_meta'] ) );
+
+		$post_meta_first_value = get_post_meta( $response_data['ID'], 'some_meta', true );
+		$post_meta_second_value = get_post_meta( $response_data['ID'], 'some_other_meta', true );
+		$this->assertEquals( 'some_value', $post_meta_first_value );
+		$this->assertEquals( 'some_other_value', $post_meta_second_value );
 	}
 
 	function test_get_post() {
