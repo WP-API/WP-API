@@ -290,7 +290,7 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = json_ensure_response( $this->get_post( $result ) );
+		$response = json_ensure_response( $this->get_post( $result, 'edit' ) );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
@@ -403,7 +403,7 @@ class WP_JSON_Posts {
 			return $retval;
 		}
 
-		return $this->get_post( $id );
+		return $this->get_post( $id, 'edit' );
 	}
 
 	/**
