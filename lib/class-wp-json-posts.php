@@ -1335,22 +1335,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Update/add/delete meta for an object
-	 *
-	 * @deprecated WPAPI-1.2
-	 *
-	 * @param array $data
-	 * @param int $parent_id
-	 * @return bool|WP_Error
-	 */
-	protected function handle_post_meta_action( $post_id, $data ) {
-		_deprecated_function( 'WP_JSON_Posts::handle_post_meta_action', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::handle_inline_meta' );
-
-		$handler = new WP_JSON_Meta_Posts( $this->server );
-		return $handler->_deprecated_call( 'handle_inline_meta', array( $post, $data, $is_raw ) );
-	}
-
-	/**
 	 * Check if the data provided is valid data
 	 *
 	 * @deprecated WPAPI-1.2
