@@ -1085,6 +1085,14 @@ class WP_JSON_Posts {
 			$post['ID'] = $post_ID;
 		}
 
+		// Post meta
+		if ( ! empty( $data['post_meta'] ) ) {
+			$result = $this->handle_post_meta_action( $post_ID, $data );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
 		// Sticky
 		if ( isset( $data['sticky'] ) ) {
 			if ( $data['sticky'] ) {
