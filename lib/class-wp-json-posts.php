@@ -714,6 +714,7 @@ class WP_JSON_Posts {
 			'content_raw' => $post['post_content'],
 			'excerpt_raw' => $post['post_excerpt'],
 			'guid_raw'    => $post['guid'],
+			'post_meta'   => $this->handle_get_post_meta( $post['ID'] ),
 		);
 
 		// Dates
