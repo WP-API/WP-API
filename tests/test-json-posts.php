@@ -528,6 +528,23 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertFalse( is_sticky( $response_data['ID'] ) );
 	}
 
+	function test_create_post_with_meta() {
+		$data = $this->set_data( array(
+			'post_meta' => array(
+				array(
+					'key' => 'testkey',
+					'value' => 'testvalue',
+				),
+		) ) );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+
+		$response_data = $response->get_data();
+		$post_meta_value = get_post_meta( $response_data['ID'], 'testkey', true );
+		$this->assertEquals( 'testvalue', $post_meta_value );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
