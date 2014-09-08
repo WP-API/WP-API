@@ -1206,6 +1206,31 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Update/add/delete meta for a post.
+	 *
+	 * @param int $post_id
+	 * @param array $data
+	 * @return bool|WP_Error
+	 */
+	protected function handle_post_meta_action( $post_id, $data ) {
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+
+		return $handler->handle_inline_meta( $post_id, $data['post_meta'] );
+	}
+
+	/**
+	 * Retrieve all meta for a post.
+	 *
+	 * @param int $post_id Post ID
+	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
+	 */
+	protected function handle_get_post_meta( $post_id ) {
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+
+		return $handler->get_all_meta( $post_id );
+	}
+
+	/**
 	 * Retrieve custom fields for object
 	 *
 	 * @deprecated WPAPI-1.2
