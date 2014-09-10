@@ -506,6 +506,8 @@ function json_ensure_response( $response ) {
  * @return boolean Can we read it?
  */
 function json_check_read_permission( $object, $type = 'post' ) {
+	$permisson = false;
+
 	if ( 'post' == $type ) {
 		$post_type = get_post_type_object( $object['post_type'] );
 
@@ -514,7 +516,6 @@ function json_check_read_permission( $object, $type = 'post' ) {
 			return false;
 		}
 
-		// Can we read the post?
 		if ( 'publish' === $object['post_status'] || current_user_can( $post_type->cap->read_post, $object['ID'] ) ) {
 			$permisson = true;
 		}
@@ -533,11 +534,9 @@ function json_check_read_permission( $object, $type = 'post' ) {
 		if ( 'inherit' === $object['post_status'] ) {
 			$permisson = true;
 		}
-
-		$permisson = false;
 	}
 
-	return apply_filters( "json_read_{$object}_permission", $permission, $object );
+	return apply_filters( "json_read_{$type}_permission", $permission, $object );
 }
 
 /**
@@ -548,17 +547,17 @@ function json_check_read_permission( $object, $type = 'post' ) {
  * @return boolean Can we edit it?
  */
 function json_check_edit_permission( $object, $type = 'post' ) {
-	if ( 'post' == $type ) {
-		$post_type = get_post_type_object( $object['post_type'] );
+	$permission = false;
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $object['ID'] ) ) {
+	if ( 'post' == $type ) {
+		$post_type  = get_post_type_object( $object['post_type'] );
+
+		if ( current_user_can( $post_type->cap->edit_post, $object['ID'] ) ) {
 			$permission = true;
 		}
-
-		$permission = false;
 	}
 
-	return apply_filters( "json_edit_{$object}_permission", $permission, $object );
+	return apply_filters( "json_edit_{$type}_permission", $permission, $object );
 }
 
 /**
