@@ -499,6 +499,48 @@ function json_ensure_response( $response ) {
 }
 
 /**
+ * Check if we have permissions to read an object.
+ *
+ * @param object $object Post|User|Term object.
+ * @param string $type Slug of object being passed.
+ * @return boolean Can we read it?
+ */
+function json_check_read_permission( $object, $type = 'post' ) {
+	if ( 'post' == $type ) {
+		$post_type = get_post_type_object( $object['post_type'] );
+
+		// Ensure the post type can be read
+		if ( ! $post_type->show_in_json ) {
+			return false;
+		}
+
+		// Can we read the post?
+		if ( 'publish' === $object['post_status'] || current_user_can( $post_type->cap->read_post, $object['ID'] ) ) {
+			$permisson = true;
+		}
+
+		// Can we read the parent if we're inheriting?
+		if ( 'inherit' === $object['post_status'] && $object['post_parent'] > 0 ) {
+			$parent = get_post( $object['post_parent'], ARRAY_A );
+
+			if ( json_check_read_permission( $parent ) ) {
+				$permisson = true;
+			}
+		}
+
+		// If we don't have a parent, but the status is set to inherit, assume
+		// it's published (as per get_post_status())
+		if ( 'inherit' === $object['post_status'] ) {
+			$permisson = true;
+		}
+
+		$permisson = false;
+	}
+
+	return apply_filters( "json_read_{$object}_permission", $permission, $object );
+}
+
+/**
  * Parse an RFC3339 timestamp into a DateTime.
  *
  * @param string $date      RFC3339 timestamp.
