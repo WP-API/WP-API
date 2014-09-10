@@ -541,6 +541,27 @@ function json_check_read_permission( $object, $type = 'post' ) {
 }
 
 /**
+ * Check if we have permissions to edit an object.
+ *
+ * @param object $object Post|User|Term object.
+ * @param string $type Slug of object being passed.
+ * @return boolean Can we edit it?
+ */
+function json_check_edit_permission( $object, $type = 'post' ) {
+	if ( 'post' == $type ) {
+		$post_type = get_post_type_object( $object['post_type'] );
+
+		if ( ! current_user_can( $post_type->cap->edit_post, $object['ID'] ) ) {
+			$permission = true;
+		}
+
+		$permission = false;
+	}
+
+	return apply_filters( "json_edit_{$object}_permission", $permission, $object );
+}
+
+/**
  * Parse an RFC3339 timestamp into a DateTime.
  *
  * @param string $date      RFC3339 timestamp.
