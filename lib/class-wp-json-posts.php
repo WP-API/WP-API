@@ -203,59 +203,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Check if we can read a post
-	 *
-	 * Correctly handles posts with the inherit status.
-	 * @param array $post Post data
-	 * @return boolean Can we read it?
-	 */
-	protected function check_read_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		// Ensure the post type can be read
-		if ( ! $post_type->show_in_json ) {
-			return false;
-		}
-
-		// Can we read the post?
-		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
-			return true;
-		}
-
-		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
-
-			if ( $this->check_read_permission( $parent ) ) {
-				return true;
-			}
-		}
-
-		// If we don't have a parent, but the status is set to inherit, assume
-		// it's published (as per get_post_status())
-		if ( 'inherit' === $post['post_status'] ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Check if we can edit a post
-	 * @param array $post Post data
-	 * @return boolean Can we edit it?
-	 */
-	protected function check_edit_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Create a new post for any registered post type.
 	 *
 	 * @since 3.4.0
@@ -1338,5 +1285,33 @@ class WP_JSON_Posts {
 
 		$handler = new WP_JSON_Meta_Posts( $this->server );
 		return $handler->_deprecated_call( 'is_valid_meta_data', array( $post, $data, $is_raw ) );
+	}
+
+	/**
+	 * Check if we can read a post
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param array $post Post data
+	 * @return boolean Can we read it?
+	 */
+	protected function check_read_permission( $post ) {
+		_deprecated_function( 'WP_JSON_Posts::check_read_permission', 'WPAPI-1.2', 'json_check_read_permission' );
+
+		return json_check_read_permission( $post );
+	}
+
+	/**
+	 * Check if we can edit a post
+	 *
+	 * @deprecated WPAPI-1.2
+	 *
+	 * @param array $post Post data
+	 * @return boolean Can we edit it?
+	 */
+	protected function check_edit_permission( $post ) {
+		_deprecated_function( 'WP_JSON_Posts::check_edit_permission', 'WPAPI-1.2', 'json_check_edit_permission' );
+
+		return json_check_edit_permission( $post );
 	}
 }
