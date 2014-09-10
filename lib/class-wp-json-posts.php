@@ -79,7 +79,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $parent ) ) {
+		if ( ! json_check_edit_permission( $parent ) ) {
  			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
  		}
 
@@ -619,7 +619,7 @@ class WP_JSON_Posts {
 
 		// Don't allow unauthenticated users to read password-protected posts
 		if ( ! empty( $post['post_password'] ) ) {
-			if ( ! $this->check_edit_permission( $post ) ) {
+			if ( ! json_check_edit_permission( $post ) ) {
 				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
 			}
 
