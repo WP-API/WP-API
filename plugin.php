@@ -506,7 +506,7 @@ function json_ensure_response( $response ) {
  * @return boolean Can we read it?
  */
 function json_check_read_permission( $object, $type = 'post' ) {
-	$permisson = false;
+	$permission = false;
 
 	if ( 'post' == $type ) {
 		$post_type = get_post_type_object( $object['post_type'] );
@@ -517,7 +517,7 @@ function json_check_read_permission( $object, $type = 'post' ) {
 		}
 
 		if ( 'publish' === $object['post_status'] || current_user_can( $post_type->cap->read_post, $object['ID'] ) ) {
-			$permisson = true;
+			$permission = true;
 		}
 
 		// Can we read the parent if we're inheriting?
@@ -525,14 +525,14 @@ function json_check_read_permission( $object, $type = 'post' ) {
 			$parent = get_post( $object['post_parent'], ARRAY_A );
 
 			if ( json_check_read_permission( $parent ) ) {
-				$permisson = true;
+				$permission = true;
 			}
 		}
 
 		// If we don't have a parent, but the status is set to inherit, assume
 		// it's published (as per get_post_status())
 		if ( 'inherit' === $object['post_status'] ) {
-			$permisson = true;
+			$permission = true;
 		}
 	}
 
