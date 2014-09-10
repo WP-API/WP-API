@@ -185,7 +185,7 @@ class WP_JSON_Posts {
 			$post = get_object_vars( $post );
 
 			// Do we have permission to read this post?
-			if ( ! $this->check_read_permission( $post ) ) {
+			if ( ! json_check_read_permission( $post ) ) {
 				continue;
 			}
 
@@ -276,7 +276,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! json_check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -445,7 +445,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! json_check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -607,7 +607,7 @@ class WP_JSON_Posts {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! json_check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
