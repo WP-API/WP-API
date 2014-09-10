@@ -16,22 +16,6 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	protected $type = 'post';
 
 	/**
-	 * Check if we can edit a post.
-	 *
-	 * @param array $post Post data
-	 * @return boolean Can we edit it?
-	 */
-	protected function check_edit_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Check that the object can be accessed.
 	 *
 	 * @param mixed $id Object ID
