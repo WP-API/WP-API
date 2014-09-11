@@ -685,7 +685,7 @@ class WP_JSON_Posts {
 		// Authorized fields
 		// TODO: Send `Vary: Authorization` to clarify that the data can be
 		// changed by the user's auth status
-		if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+		if ( json_check_edit_permission( $post ) ) {
 			$post_fields_extended['password'] = $post['post_password'];
 		}
 
@@ -720,7 +720,7 @@ class WP_JSON_Posts {
 		$_post = array_merge( $_post, $post_fields_extended );
 
 		if ( 'edit' === $context ) {
-			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			if ( json_check_edit_permission( $post ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
@@ -730,7 +730,7 @@ class WP_JSON_Posts {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 			}
 		} elseif ( 'view-revision' == $context ) {
-			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+			if ( json_check_edit_permission( $post ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
@@ -854,6 +854,7 @@ class WP_JSON_Posts {
 			}
 
 			$post_type = get_post_type_object( $current_post->post_type );
+			$post['post_type'] = $current_post->post_type;
 		} else {
 			// Creating new post, use default type
 			$post['post_type'] = apply_filters( 'json_insert_default_post_type', 'post' );
@@ -866,7 +867,7 @@ class WP_JSON_Posts {
 
 		// Permissions check
 		if ( $update ) {
-			if ( ! current_user_can( $post_type->cap->edit_post, $data['ID'] ) ) {
+			if ( ! json_check_edit_permission( $post ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 			}
 
