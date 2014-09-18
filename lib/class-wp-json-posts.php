@@ -1084,6 +1084,11 @@ class WP_JSON_Posts {
 		if ( ! $update ) {
 			$post['ID'] = $post_ID;
 		}
+		
+		// Scan post content and associate any included attachments with post.
+		if (! empty($post['post_content']) ) {
+			$this->attach_uploads( $post['ID'], $post['post_content'] );
+		}
 
 		// Sticky
 		if ( isset( $data['sticky'] ) ) {
@@ -1097,6 +1102,25 @@ class WP_JSON_Posts {
 		do_action( 'json_insert_post', $post, $data, $update );
 
 		return $post_ID;
+	}
+	
+	/**
+	 * Attach upload to a post.
+	 *
+	 * @param int $post_ID Post ID.
+	 * @param string $post_content Post Content to scan for attachments.
+	 */
+	protected function attach_uploads( $post_ID, $post_content ) {
+		global $wpdb;
+
+		// find any unattached files
+		$attachments = $wpdb->get_results( "SELECT ID, guid FROM {$wpdb->posts} WHERE post_parent = '0' AND post_type = 'attachment'" );
+		if ( is_array( $attachments ) ) {
+			foreach ( $attachments as $file ) {
+				if ( ! empty( $file->guid ) && strpos( $post_content, $file->guid ) !== false )
+					$wpdb->update($wpdb->posts, array('post_parent' => $post_ID), array('ID' => $file->ID) );
+			}
+		}
 	}
 
 	/**
