@@ -72,38 +72,48 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	}
 
 	/**
-	 * Send navigation-related headers for post collections
+	 * Send navigation-related headers for object collections
 	 *
-	 * @param WP_Query $query
+	 * @param object $query WP_Query|WP_User_Query
+	 * @param string $collection The collection type: posts (default) or user..
 	 */
-	public function query_navigation_headers( $query ) {
-		$max_page = $query->max_num_pages;
-		$paged    = $query->get('paged');
-
+	public function query_navigation_headers( $query, $collection = 'post' ) {
+		$paged = $query->get( 'paged' );
 		if ( ! $paged ) {
 			$paged = 1;
 		}
 
-		$nextpage = intval($paged) + 1;
+		$nextpage = intval( $paged ) + 1;
 
-		if ( ! $query->is_single() ) {
-			if ( $paged > 1 ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $paged - 1, $request );
-				$this->link_header( 'prev', $request );
-			}
+		if ( 'post' == $collection ) {
+			$total    = intval( $query->found_posts );
+			$max_page = $query->max_num_pages;
 
-			if ( $nextpage <= $max_page ) {
-				$request = remove_query_arg( 'page' );
-				$request = add_query_arg( 'page', $nextpage, $request );
-				$this->link_header( 'next', $request );
+			if ( ! $query->is_single() ) {
+				if ( $paged > 1 ) {
+					$request = remove_query_arg( 'page' );
+					$request = add_query_arg( 'page', $paged - 1, $request );
+					$this->link_header( 'prev', $request );
+				}
+
+				if ( $nextpage <= $max_page ) {
+					$request = remove_query_arg( 'page' );
+					$request = add_query_arg( 'page', $nextpage, $request );
+					$this->link_header( 'next', $request );
+				}
 			}
 		}
 
-		$this->header( 'X-WP-Total', $query->found_posts );
+		if ( 'user' == $collection ) {
+			$total    = intval( $query->total_users );
+			$number   = $query->get( 'number' );
+			$max_page = ceil( $total / $number );
+		}
+
+		$this->header( 'X-WP-Total', $total );
 		$this->header( 'X-WP-TotalPages', $max_page );
 
-		do_action('json_query_navigation_headers', $this, $query);
+		do_action( 'json_query_navigation_headers', $this, $query );
 	}
 
 	/**
