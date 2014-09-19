@@ -70,10 +70,7 @@ class WP_JSON_Users {
 		$args['offset'] = ( $page - 1 ) * $args['number'];
 
 		$user_query = new WP_User_Query( $args );
-		// try to set paged query var for users.
-		$user_query->set( 'paged', $page );
-
-		$response = new WP_JSON_Response();
+		$response   = new WP_JSON_Response();
 		$response->query_navigation_headers( $user_query, 'user' );
 
 		if ( empty( $user_query->results ) ) {
