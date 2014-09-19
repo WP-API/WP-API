@@ -79,7 +79,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! json_check_edit_permission( $parent ) ) {
+		if ( ! json_check_post_permission( $parent, 'edit' ) ) {
  			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
  		}
 
@@ -185,7 +185,7 @@ class WP_JSON_Posts {
 			$post = get_object_vars( $post );
 
 			// Do we have permission to read this post?
-			if ( ! json_check_read_permission( $post ) ) {
+			if ( ! json_check_post_permission( $post, 'read' ) ) {
 				continue;
 			}
 
@@ -276,7 +276,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! json_check_read_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'read' ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -369,7 +369,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! json_check_delete_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'delete' ) ) {
 			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -443,7 +443,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! json_check_read_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'read' ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -605,7 +605,7 @@ class WP_JSON_Posts {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! json_check_read_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'read' ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -617,7 +617,7 @@ class WP_JSON_Posts {
 
 		// Don't allow unauthenticated users to read password-protected posts
 		if ( ! empty( $post['post_password'] ) ) {
-			if ( ! json_check_edit_permission( $post ) ) {
+			if ( ! json_check_post_permission( $post, 'edit' ) ) {
 				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
 			}
 
@@ -683,7 +683,7 @@ class WP_JSON_Posts {
 		// Authorized fields
 		// TODO: Send `Vary: Authorization` to clarify that the data can be
 		// changed by the user's auth status
-		if ( json_check_edit_permission( $post ) ) {
+		if ( json_check_post_permission( $post, 'edit' ) ) {
 			$post_fields_extended['password'] = $post['post_password'];
 		}
 
@@ -718,7 +718,7 @@ class WP_JSON_Posts {
 		$_post = array_merge( $_post, $post_fields_extended );
 
 		if ( 'edit' === $context ) {
-			if ( json_check_edit_permission( $post ) ) {
+			if ( json_check_post_permission( $post, 'edit' ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
@@ -728,7 +728,7 @@ class WP_JSON_Posts {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 			}
 		} elseif ( 'view-revision' == $context ) {
-			if ( json_check_edit_permission( $post ) ) {
+			if ( json_check_post_permission( $post, 'edit' ) ) {
 				$_post = array_merge( $_post, $post_fields_raw );
 			} else {
 				$GLOBALS['post'] = $previous_post;
@@ -865,7 +865,7 @@ class WP_JSON_Posts {
 
 		// Permissions check
 		if ( $update ) {
-			if ( ! json_check_edit_permission( $post ) ) {
+			if ( ! json_check_post_permission( $post, 'edit' ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 			}
 
@@ -873,7 +873,7 @@ class WP_JSON_Posts {
 				return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
 			}
 		} else {
-			if ( ! json_check_create_permission( $post ) ) {
+			if ( ! json_check_post_permission( $post, 'create' ) ) {
 				return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 			}
 		}
@@ -887,13 +887,13 @@ class WP_JSON_Posts {
 				case 'pending':
 					break;
 				case 'private':
-					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+					if ( ! json_check_post_permission( $post, 'publish_posts' ) ) {
 						return new WP_Error( 'json_cannot_create_private', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
 					}
 					break;
 				case 'publish':
 				case 'future':
-					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+					if ( ! json_check_post_permission( $post, 'publish_posts' ) ) {
 						return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
 					}
 					break;
@@ -944,7 +944,7 @@ class WP_JSON_Posts {
 
 			// Only check edit others' posts if we are another user
 			if ( $data['author'] !== get_current_user_id() ) {
-				if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+				if ( ! json_check_post_permission( $post, 'edit_others_posts' ) ) {
 					return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
 				}
 
@@ -962,7 +962,7 @@ class WP_JSON_Posts {
 		if ( ! empty( $data['password'] ) ) {
 			$post['post_password'] = $data['password'];
 
-			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
+			if ( ! json_check_post_permission( $post, 'publish_posts' ) ) {
 				return new WP_Error( 'json_cannot_create_passworded', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
 			}
 		}
@@ -1295,9 +1295,9 @@ class WP_JSON_Posts {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $post ) {
-		_deprecated_function( 'WP_JSON_Posts::check_read_permission', 'WPAPI-1.2', 'json_check_read_permission' );
+		_deprecated_function( 'WP_JSON_Posts::check_read_permission', 'WPAPI-1.2', 'json_check_post_permission' );
 
-		return json_check_read_permission( $post );
+		return json_check_post_permission( $post, 'read' );
 	}
 
 	/**
@@ -1309,8 +1309,8 @@ class WP_JSON_Posts {
 	 * @return boolean Can we edit it?
 	 */
 	protected function check_edit_permission( $post ) {
-		_deprecated_function( 'WP_JSON_Posts::check_edit_permission', 'WPAPI-1.2', 'json_check_edit_permission' );
+		_deprecated_function( 'WP_JSON_Posts::check_edit_permission', 'WPAPI-1.2', 'json_check_post_permission' );
 
-		return json_check_edit_permission( $post );
+		return json_check_post_permission( $post, 'edit' );
 	}
 }

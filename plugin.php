@@ -499,107 +499,67 @@ function json_ensure_response( $response ) {
 }
 
 /**
- * Check if we have permissions to read an object.
+ * Check if we have permission to interact with the post object.
  *
- * @param object $object Post|User|Term object.
- * @param string $type Slug of object being passed.
- * @return boolean Can we read it?
+ * @param WP_Post $post Post object.
+ * @param string $capability Permission to check.
+ * @return boolean Can we interact with it?
  */
-function json_check_read_permission( $object, $type = 'post' ) {
+function json_check_post_permission( $post, $capability = 'read' ) {
 	$permission = false;
+	$post_type = get_post_type_object( $post['post_type'] );
 
-	if ( 'post' == $type ) {
-		$post_type = get_post_type_object( $object['post_type'] );
+	switch ( $capability ) {
+		case 'read' :
+			if ( ! $post_type->show_in_json ) {
+				return false;
+			}
 
-		// Ensure the post type can be read
-		if ( ! $post_type->show_in_json ) {
-			return false;
-		}
-
-		if ( 'publish' === $object['post_status'] || current_user_can( $post_type->cap->read_post, $object['ID'] ) ) {
-			$permission = true;
-		}
-
-		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $object['post_status'] && $object['post_parent'] > 0 ) {
-			$parent = get_post( $object['post_parent'], ARRAY_A );
-
-			if ( json_check_read_permission( $parent ) ) {
+			if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
 				$permission = true;
 			}
-		}
 
-		// If we don't have a parent, but the status is set to inherit, assume
-		// it's published (as per get_post_status())
-		if ( 'inherit' === $object['post_status'] ) {
-			$permission = true;
-		}
+			// Can we read the parent if we're inheriting?
+			if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+				$parent = get_post( $post['post_parent'], ARRAY_A );
+
+				if ( json_check_post_permission( $parent, 'read' ) ) {
+					$permission = true;
+				}
+			}
+
+			// If we don't have a parent, but the status is set to inherit, assume
+			// it's published (as per get_post_status())
+			if ( 'inherit' === $post['post_status'] ) {
+				$permission = true;
+			}
+			break;
+
+		case 'edit' :
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				$permission = true;
+			}
+			break;
+
+		case 'create' :
+			if ( current_user_can( $post_type->cap->create_posts ) || current_user_can( $post_type->cap->edit_posts ) ) {
+				$permission = true;
+			}
+			break;
+
+		case 'delete' :
+			if ( current_user_can( $post_type->cap->delete_post, $post['ID'] ) ) {
+				$permission = true;
+			}
+			break;
+
+		default :
+			if ( current_user_can( $post_type->cap->$capability ) ) {
+				$permission = true;
+			}
 	}
 
-	return apply_filters( "json_read_{$type}_permission", $permission, $object );
-}
-
-/**
- * Check if we have permissions to edit an object.
- *
- * @param object $object Post|User|Term object.
- * @param string $type Slug of object being passed.
- * @return boolean Can we edit it?
- */
-function json_check_edit_permission( $object, $type = 'post' ) {
-	$permission = false;
-
-	if ( 'post' == $type ) {
-		$post_type  = get_post_type_object( $object['post_type'] );
-
-		if ( current_user_can( $post_type->cap->edit_post, $object['ID'] ) ) {
-			$permission = true;
-		}
-	}
-
-	return apply_filters( "json_edit_{$type}_permission", $permission, $object );
-}
-
-/**
- * Check if we have permissions to create an object.
- *
- * @param object $object Post|User|Term object.
- * @param string $type Slug of object being passed.
- * @return boolean Can we create it?
- */
-function json_check_create_permission( $object, $type = 'post' ) {
-	$permission = false;
-
-	if ( 'post' == $type ) {
-		$post_type  = get_post_type_object( $object['post_type'] );
-
-		if ( current_user_can( $post_type->cap->create_posts ) || current_user_can( $post_type->cap->edit_posts ) ) {
-			$permission = true;
-		}
-	}
-
-	return apply_filters( "json_create_{$type}_permission", $permission, $object );
-}
-
-/**
- * Check if we have permissions to delete an object.
- *
- * @param object $object Post|User|Term object.
- * @param string $type Slug of object being passed.
- * @return boolean Can we delete it?
- */
-function json_check_delete_permission( $object, $type = 'post' ) {
-	$permission = false;
-
-	if ( 'post' == $type ) {
-		$post_type  = get_post_type_object( $object['post_type'] );
-
-		if ( current_user_can( $post_type->cap->delete_post, $object['ID'] ) ) {
-			$permission = true;
-		}
-	}
-
-	return apply_filters( "json_delete_{$type}_permission", $permission, $object );
+	return apply_filters( "json_check_post_{$capability}_permission", $permission, $post );
 }
 
 /**
@@ -650,7 +610,7 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
  * Explicitly strips timezones, as datetimes are not saved with any timezone
  * information. Including any information on the offset could be misleading.
  *
- * @param string $date 
+ * @param string $date
  */
 function json_mysql_to_rfc3339( $date_string ) {
 	$formatted = mysql2date( 'c', $date_string, false );
