@@ -82,7 +82,7 @@ class WP_JSON_Comments {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'read' ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -166,7 +166,7 @@ class WP_JSON_Comments {
 			if ( $context === 'single' ) {
 				$parent_fields[] = 'comment';
 			}
-			$parent = get_comment( $post['post_parent'] );
+			$parent = get_comment( $comment->comment_parent );
 
 			$fields['parent'] = $this->prepare_comment( $parent, $parent_fields, 'single-parent' );
 		}
