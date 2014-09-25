@@ -244,6 +244,7 @@ function json_register_scripts() {
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
+add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
 
 /**
  * Add the API URL to the WP RSD endpoint.
@@ -499,6 +500,70 @@ function json_ensure_response( $response ) {
 }
 
 /**
+ * Check if we have permission to interact with the post object.
+ *
+ * @param WP_Post $post Post object.
+ * @param string $capability Permission to check.
+ * @return boolean Can we interact with it?
+ */
+function json_check_post_permission( $post, $capability = 'read' ) {
+	$permission = false;
+	$post_type = get_post_type_object( $post['post_type'] );
+
+	switch ( $capability ) {
+		case 'read' :
+			if ( ! $post_type->show_in_json ) {
+				return false;
+			}
+
+			if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
+				$permission = true;
+			}
+
+			// Can we read the parent if we're inheriting?
+			if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+				$parent = get_post( $post['post_parent'], ARRAY_A );
+
+				if ( json_check_post_permission( $parent, 'read' ) ) {
+					$permission = true;
+				}
+			}
+
+			// If we don't have a parent, but the status is set to inherit, assume
+			// it's published (as per get_post_status())
+			if ( 'inherit' === $post['post_status'] ) {
+				$permission = true;
+			}
+			break;
+
+		case 'edit' :
+			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+				$permission = true;
+			}
+			break;
+
+		case 'create' :
+			if ( current_user_can( $post_type->cap->create_posts ) || current_user_can( $post_type->cap->edit_posts ) ) {
+				$permission = true;
+			}
+			break;
+
+		case 'delete' :
+			if ( current_user_can( $post_type->cap->delete_post, $post['ID'] ) ) {
+				$permission = true;
+			}
+			break;
+
+		default :
+			if ( current_user_can( $post_type->cap->$capability ) ) {
+				$permission = true;
+			}
+	}
+
+	return apply_filters( "json_check_post_{$capability}_permission", $permission, $post );
+}
+
+/**
  * Parse an RFC3339 timestamp into a DateTime.
  *
  * @param string $date      RFC3339 timestamp.
@@ -546,7 +611,7 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
  * Explicitly strips timezones, as datetimes are not saved with any timezone
  * information. Including any information on the offset could be misleading.
  *
- * @param string $date 
+ * @param string $date
  */
 function json_mysql_to_rfc3339( $date_string ) {
 	$formatted = mysql2date( 'c', $date_string, false );
