@@ -255,11 +255,20 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 
 		// Send extra data from response objects
 		if ( $result instanceof WP_JSON_ResponseInterface ) {
-			$headers = $result->get_headers();
-			$this->send_headers( $headers );
+			if ( isset( $_GET['_envelope'] ) ) {
+				$envelope = new stdClass();
+				$envelope->body = $result->get_data();
+				$envelope->status = $result->get_status();
+				$envelope->headers = $result->get_headers();
+				$result = $envelope;
+			}
+			else {
+				$headers = $result->get_headers();
+				$this->send_headers( $headers );
 
-			$code = $result->get_status();
-			$this->set_status( $code );
+				$code = $result->get_status();
+				$this->set_status( $code );
+			}
 		}
 
 		/**
