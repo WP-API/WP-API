@@ -759,3 +759,66 @@ function json_last_error_msg() {
 	}
 }
 endif;
+
+if ( ! function_exists( 'json_insert_post_from_json' ) ):
+/**
+ * Insert a post form a remote site on current site
+ *
+ * Note: ID wil be set as import_id to attempt to use the same ID. Does not guarantee that ID will be used.
+ *
+ * @param obj|array $post A post returned by the REST API. Result of jp_rest_client_get_json() will work.
+ *
+ * @return int|string|WP_Error
+ */
+function json_insert_post_from_json( $post ) {
+
+	if ( is_array( $post ) || is_object( $post )  ) {
+		//ensure $post is an array, converting from object if need be
+		$post = (array) $post;
+	}
+	else {
+		return sprintf( 'The data inputted to %1s must be an object or an array', __FUNCTION__ );
+	}
+
+	$convert_keys = array(
+		'title'     => 'post_title',
+		'content'   => 'post_content',
+		'slug'      => 'post_name',
+		'status'    => 'post_status',
+		'parent'    => 'post_parent',
+		'excerpt'   => 'post_excerpt',
+		'date'      => 'post_date',
+		'type'      => 'post_type',
+		'ID'        => 'import_id',
+	);
+
+	foreach ( $convert_keys as $from => $to ) {
+		if ( isset( $post[$from] ) ) {
+			$post[$to] = $post[$from];
+			unset( $post[$from] );
+		}
+
+	}
+
+	$post['post_author' ] = $post['author']->ID;
+	unset( $post['author'] );
+
+	$terms = (array) $post['terms'];
+	unset( $post['terms'] );
+
+	//create post and return its ID
+	$id = wp_insert_post( $post );
+
+	/**
+	 * Exposes the component of the JSON array that has the taxonomy information it it via an action to be handled as needed.
+	 *
+	 * @param array $terms The terms
+	 * @param int $id The ID of the post that was created.
+	 * @param int $original_id ID of the post being copied from
+	 */
+	add_action( 'json_insert_post_from_json_terms', $terms, $id, $post[ 'import_id' ]  );
+
+	return $id;
+
+}
+endif;
