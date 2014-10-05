@@ -1094,6 +1094,11 @@ class WP_JSON_Posts {
 			}
 		}
 
+		//post thumbnail
+		if ( ! empty( $data['post_thumbnail'] ) && intval( $data['post_thumbnail'] ) > 0 && post_type_supports( $post['post_type'], 'thumbnail' ) ) {
+			set_post_thumbnail( $post_ID, $data['post_thumbnail'] );
+		}
+
 		do_action( 'json_insert_post', $post, $data, $update );
 
 		return $post_ID;
