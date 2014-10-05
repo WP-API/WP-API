@@ -816,7 +816,7 @@ if ( ! function_exists( 'json_insert_post_from_json' ) ):
 		 * @param int $id The ID of the post that was created.
 		 * @param int $original_id ID of the post being copied from
 		 */
-		add_action( 'json_insert_post_from_json_terms', $terms, $id, $post[ 'import_id' ]  );
+		do_action( 'json_insert_post_from_json_terms', $terms, $id, $post[ 'import_id' ]  );
 
 		return $id;
 
