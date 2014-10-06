@@ -717,21 +717,29 @@ class WP_JSON_Posts {
 		);
 
 		// Dates
+		$timezone = json_get_timezone();
+
 		if ( $post['post_date_gmt'] === '0000-00-00 00:00:00' ) {
-			$post_fields['date'] = null;
+			$post_fields['date']              = null;
+			$post_fields_extended['date_tz']  = null;
 			$post_fields_extended['date_gmt'] = null;
 		}
 		else {
+			$post_date                        = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_date'], $timezone );
 			$post_fields['date']              = json_mysql_to_rfc3339( $post['post_date'] );
+			$post_fields_extended['date_tz']  = $post_date->format( 'e' );
 			$post_fields_extended['date_gmt'] = json_mysql_to_rfc3339( $post['post_date_gmt'] );
 		}
 
 		if ( $post['post_modified_gmt'] === '0000-00-00 00:00:00' ) {
-			$post_fields['modified'] = null;
+			$post_fields['modified']              = null;
+			$post_fields_extended['modified_tz']  = null;
 			$post_fields_extended['modified_gmt'] = null;
 		}
 		else {
+			$modified_date                        = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $post['post_modified'], $timezone );
 			$post_fields['modified']              = json_mysql_to_rfc3339( $post['post_modified'] );
+			$post_fields_extended['modified_tz']  = $modified_date->format( 'e' );
 			$post_fields_extended['modified_gmt'] = json_mysql_to_rfc3339( $post['post_modified_gmt'] );
 		}
 
@@ -1173,7 +1181,11 @@ class WP_JSON_Posts {
 		}
 
 		// Date
+		$timezone = json_get_timezone();
+
+		$comment_date       = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
 		$fields['date']     = json_mysql_to_rfc3339( $comment->comment_date );
+		$fields['date_tz']  = $comment_date->format( 'e' );
 		$fields['date_gmt'] = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 
 		// Meta
