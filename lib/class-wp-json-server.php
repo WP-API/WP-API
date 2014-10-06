@@ -395,12 +395,20 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 				}
 
 				if ( $supported & self::ACCEPT_JSON ) {
-					$data = json_decode( $this->get_raw_data(), true );
+					$raw_data = $this->get_raw_data();
+					$data = json_decode( $raw_data, true );
 
 					// test for json_decode() error
 					$json_error_message = $this->get_json_last_error();
 					if ( $json_error_message ) {
-						return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+
+						$data = array();
+						parse_str( $raw_data, $data );
+
+						if ( empty( $data ) ) {
+
+							return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+						}
 					}
 
 					if ( $data !== null ) {
