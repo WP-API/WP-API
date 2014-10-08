@@ -166,8 +166,23 @@ class WP_JSON_Posts {
 		// Special parameter handling
 		$query['paged'] = absint( $page );
 
+		$response = $this->do_query( $query, $context );
+
+		return $response;
+
+	}
+
+	/**
+	 * Creates a proper JSON response from a WP_QUERY arguments array.
+	 *
+	 * @param array $query_args An array of args to pass to WP_Query
+	 * @param string $context Optional. The context; 'view' (default) or 'edit'.
+	 *
+	 * @return WP_JSON_Response
+	 */
+	public function do_query( $query_args, $context = 'view' ) {
 		$post_query = new WP_Query();
-		$posts_list = $post_query->query( $query );
+		$posts_list = $post_query->query( $query_args );
 		$response   = new WP_JSON_Response();
 		$response->query_navigation_headers( $post_query );
 
@@ -200,6 +215,7 @@ class WP_JSON_Posts {
 		$response->set_data( $struct );
 
 		return $response;
+
 	}
 
 	/**
