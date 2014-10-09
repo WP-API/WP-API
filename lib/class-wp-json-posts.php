@@ -546,7 +546,7 @@ class WP_JSON_Posts {
 				continue;
 			}
 
-			$types[ $name ] = $type;
+			$types[] = $type;
 		}
 
 		return $types;
