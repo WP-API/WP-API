@@ -39,6 +39,10 @@ class WP_JSON_Posts {
 			'/posts/(?P<id>\d+)/revisions' => array(
 				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
 			),
+			
+			'/posts/(?P<type>\w+)/(?P<path>[a-z\-]+)' => array(
+				array( $this, 'get_post_by_type_and_path'), WP_JSON_Server::READABLE
+			),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments' => array(
@@ -202,6 +206,21 @@ class WP_JSON_Posts {
 		return $response;
 	}
 
+	/**
+	 * Retrieve a simple post by path name
+	 * 
+	 * @param string $path
+	 */
+	public function get_post_by_type_and_path( $type, $path, $context = 'view' ) {
+
+		$post = get_page_by_path( $path, ARRAY_A, $type);		
+		if ( empty( $post ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		return $this->get_post( $post['ID'], $context );
+	}
+	
 	/**
 	 * Check if we can read a post
 	 *
