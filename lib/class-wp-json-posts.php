@@ -477,8 +477,9 @@ class WP_JSON_Posts {
 		if ( $force ) {
 			return array( 'message' => __( 'Permanently deleted comment' ) );
 		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted comment' ) );
+			//return array( 'message' => __( 'Deleted comment' ) );
+			$response = http_response_code(202);
+			return $response;
 		}
 	}
 
