@@ -2,7 +2,7 @@
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
-[![Build Status](https://travis-ci.org/WP-API/WP-API.png?branch=master)](https://travis-ci.org/WP-API/WP-API)
+[![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=master)](https://travis-ci.org/WP-API/WP-API)
 
 ## About
 
@@ -48,10 +48,10 @@ Want to test out WP-API and work on it? Here's how you can set up your own
 testing environment in a few easy steps:
 
 1. Install [Vagrant](http://vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/).
-2. Clone [Chassis](https://github.com/sennza/Chassis):
+2. Clone [Chassis](https://github.com/Chassis/Chassis):
 
    ```bash
-   git clone --recursive git@github.com:sennza/Chassis.git api-tester
+   git clone --recursive git@github.com:Chassis/Chassis.git api-tester
    ```
 
 3. Grab a copy of WP API:
@@ -104,13 +104,13 @@ For testing, you'll need a little bit more:
    # From your base directory, api-tester if following the steps from before
    git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
-   
+
 2. Run the provisioner:
 
    ```
    vagrant provision
    ```
-   
+
 3. Log in to the virtual machine and run the testing suite:
 
    ```bash
