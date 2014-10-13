@@ -1094,15 +1094,14 @@ class WP_JSON_Posts {
 			}
 		}
 
-		//For hierarchical terms (such as categories), you must always pass the id rather than the term name
 		if ( ! empty( $data['tax_input'] ) ) {
 
 			foreach ( $data['tax_input'] as $tax_slug => $terms ) {
 				if ( ! taxonomy_exists( $tax_slug ) ){
 					continue;
 				}
-				foreach ( $terms as $term ) {
-					$clean_terms[] = ( array_key_exists( 'ID', $term ) ) ? intval( $term['ID'] ) : sanitize_text_field( $term['name'] );
+				foreach ( $terms as $key => $term ) {
+					$clean_terms[] = ( 'ID' === $key ) ? intval( $term ) : sanitize_text_field( $term );
 
 				}
 
