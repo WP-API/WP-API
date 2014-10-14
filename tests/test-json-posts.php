@@ -337,22 +337,28 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		register_taxonomy( 'my-wp-api-tax', 'post' );
 
 		// Create a new category to attach to post by ID
-		$category = array( 'cat_name' => 'My WP API Cat' );
-		$category_ID = wp_insert_category( $category );
+		$category_ID = $this->factory->term->create( array( 'name' => 'Category Name', 'taxonomy' => 'category', 'slug' => 'cat-slug' ) );
+
+		$tag_ID_1 = $this->factory->term->create( array( 'name' => 'Tag Name', 'taxonomy' => 'post_tag', 'slug' => 'tag-slug' ) );
+
+		$tag_ID_2 = $this->factory->term->create( array( 'name' => 'Tag Name 2', 'taxonomy' => 'post_tag', 'slug' => 'tag-slug-2' ) );
+
+		//  List of terms. Can be an array or a comma separated string. If you want to enter terms of a hierarchical taxonomy like categories, then use IDs. If you want to add non-hierarchical terms like tags, then use names.
 
 		$tax_input = array(
 			'category' => array(
-				'name'   => 'my-new-cat-1',
-				'ID'     => $category_ID,
+				1, // default category Uncategorized
+				$category_ID,
 			),
 			'post_tag' => array(
-				'name' => 'my-new-tag-1',
+				$tag_ID_1, $tag_ID_2
 			),
 			'my-custom-tax' => array(
-				'name' => 'my-custom-tax-term-1',
+				'My custom Tax Term 1',
 			),
 			'my-wp-api-tax' => array(
-				'name'   => 'my-wp-api-term-1',
+				'My WP API Term 1',
+				'My WP API Term 2',
 			)
 		);
 
@@ -367,27 +373,47 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$response_data = $response->get_data();
 		$new_post = get_post( $response_data['ID'] );
 
-		// Make sure the term was created
-		$new_cat = get_term_by( 'slug', 'my-new-cat-1', 'category' );
-		$this->assertNotFalse( $new_cat );
-
-		$new_tag = get_term_by( 'slug', 'my-new-tag-1', 'post_tag' );
-		$this->assertNotFalse( $new_tag );
-
-		$this->assertTrue( has_category( $new_cat, $new_post ) );
-		$this->assertTrue( has_tag( $new_tag, $new_post ) );
-
-		$this->assertTrue( has_category( 'My WP API Cat', $new_post ) );
+		$this->assertTrue( has_category( 1, $new_post ), 'Check post has new cat' );
+		$this->assertTrue( has_category( $category_ID, $new_post ), 'Check post has new cat' );
+		$this->assertTrue( has_tag( $tag_ID_1, $new_post ), 'Check post has tag ID 1' );
+		$this->assertTrue( has_tag( $tag_ID_2, $new_post ), 'Check post has tag ID 2' );
 
 		// Custom tax ( not registered, so should not exist )
-		$custom_tax_term = get_term_by( 'slug', 'my-custom-tax-term-1', 'my-custom-tax' );
+		$custom_tax_term = get_term_by( 'name', 'My custom Tax Term 1', 'my-custom-tax' );
 		$this->assertFalse( $custom_tax_term );
 		$this->assertFalse( has_term( $custom_tax_term, 'my-custom-tax', $new_post ) );
 
 		// Custom tax
-		$custom_tax_term = get_term_by( 'slug', 'my-wp-api-term-1', 'my-wp-api-tax' );
+		$custom_tax_term = get_term_by( 'name', 'My WP API Term 1', 'my-wp-api-tax' );
 		$this->assertNotFalse( $custom_tax_term );
 		$this->assertTrue( has_term( $custom_tax_term, 'my-wp-api-tax', $new_post ) );
+	}
+
+	function test_create_post_with_tag_names() {
+
+		//  List of terms. Can be an array or a comma separated string. If you want to enter terms of a hierarchical taxonomy like categories, then use IDs. If you want to add non-hierarchical terms like tags, then use names.
+
+		$tax_input = array(
+			'post_tag' => array(
+				'My New Tag 1',
+				'My New Tag 2',
+			),
+		);
+
+		$data = $this->set_data( array(
+			'tax_input' => $tax_input,
+		) );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$new_post = get_post( $response_data['ID'] );
+
+		$this->assertTrue( has_tag( 'My New Tag 1', $new_post ), 'Check post has My New Tag 1' );
+		$this->assertTrue( has_tag( 'My New Tag 2', $new_post ), 'Check post has My New Tag 2' );
+
 	}
 
 	function test_create_page_with_parent() {
