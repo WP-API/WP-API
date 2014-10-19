@@ -766,7 +766,7 @@ if ( ! function_exists( 'json_insert_post_from_json' ) ):
 	 *
 	 * Note: ID wil be set as import_id to attempt to use the same ID. Does not guarantee that ID will be used.
 	 *
-	 * @param obj|array $post A post returned by the REST API. Result of jp_rest_client_get_json() will work.
+	 * @param obj|array $post A post returned by the REST API.
 	 *
 	 * @return int|string|WP_Error
 	 */
@@ -777,7 +777,7 @@ if ( ! function_exists( 'json_insert_post_from_json' ) ):
 			$post = (array) $post;
 		}
 		else {
-			return sprintf( 'The data inputted to %1s must be an object or an array', __FUNCTION__ );
+			return WP_Error( 'json_insert_post_from_json_bad_input', __( sprintf( 'The data inputted to %1s must be an object or an array', __FUNCTION__  ) ) );
 		}
 
 		$convert_keys = array(
