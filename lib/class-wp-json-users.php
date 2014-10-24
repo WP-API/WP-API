@@ -2,22 +2,6 @@
 
 class WP_JSON_Users {
 	/**
-	 * Server object
-	 *
-	 * @var WP_JSON_ResponseHandler
-	 */
-	protected $server;
-
-	/**
-	 * Constructor
-	 *
-	 * @param WP_JSON_ResponseHandler $server Server object
-	 */
-	public function __construct( WP_JSON_ResponseHandler $server ) {
-		$this->server = $server;
-	}
-
-	/**
 	 * Register the user-related routes
 	 *
 	 * @param array $routes Existing routes

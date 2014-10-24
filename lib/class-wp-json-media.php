@@ -198,7 +198,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Attachment data or error
 	 */
-	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
+	public function upload_attachment( $_files, $_headers, $data = null, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
 		
@@ -227,7 +227,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 
 		// Get the file via $_FILES or raw data
 		if ( empty( $_files ) ) {
-			$file = $this->upload_from_data( $_files, $_headers );
+			$file = $this->upload_from_data( $data, $_files, $_headers );
 		} else {
 			$file = $this->upload_from_file( $_files, $_headers );
 		}
@@ -291,9 +291,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
-	protected function upload_from_data( $_files, $_headers ) {
-		$data = $this->server->get_raw_data();
-
+	protected function upload_from_data( $data, $_files, $_headers ) {
 		if ( empty( $data ) ) {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}
