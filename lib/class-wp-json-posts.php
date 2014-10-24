@@ -27,14 +27,14 @@ class WP_JSON_Posts {
 		$post_routes = array(
 			// Post endpoints
 			'/posts' => array(
-				array( array( $this, 'get_posts' ),      WP_JSON_Server::READABLE ),
-				array( array( $this, 'create_post' ),    WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_multiple' ),   WP_JSON_Server::READABLE ),
+				array( array( $this, 'create' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
-				array( array( $this, 'get_post' ),       WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_post' ),      WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get' ),            WP_JSON_Server::READABLE ),
+				array( array( $this, 'update' ),         WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete' ),         WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
 				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
@@ -106,7 +106,6 @@ class WP_JSON_Posts {
 	 * 'orderby', and 'order'.
 	 *
 	 * @uses wp_get_recent_posts()
-	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter Parameters to pass through to `WP_Query`
 	 * @param string $context The context; 'view' (default) or 'edit'.
@@ -114,7 +113,7 @@ class WP_JSON_Posts {
 	 * @param int $page Page number (1-indexed)
 	 * @return stdClass[] Collection of Post entities
 	 */
-	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
+	public function get_multiple( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
 		// Validate post types and permissions
@@ -280,9 +279,9 @@ class WP_JSON_Posts {
 	 *  - terms_names - array, with taxonomy names as keys and arrays of term names as values
 	 *  - enclosure
 	 *  - any other fields supported by wp_insert_post()
-	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
+	 * @return array Post data (see {@see get})
 	 */
-	public function create_post( $data ) {
+	public function create( $data ) {
 		unset( $data['id'] );
 
 		$result = $this->insert_post( $data );
@@ -290,7 +289,7 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = json_ensure_response( $this->get_post( $result ) );
+		$response = json_ensure_response( $this->get( $result ) );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
@@ -305,7 +304,7 @@ class WP_JSON_Posts {
 	 * @param string $context The context; 'view' (default) or 'edit'.
 	 * @return array Post entity
 	 */
-	public function get_post( $id, $context = 'view' ) {
+	public function get( $id, $context = 'view' ) {
 		$id = (int) $id;
 
 		$post = get_post( $id, ARRAY_A );
@@ -351,11 +350,11 @@ class WP_JSON_Posts {
 	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
 	 *
 	 * @param int $id Post ID to edit
-	 * @param array $data Data construct, see {@see WP_JSON_Posts::create_post}
+	 * @param array $data Data construct, see {@see WP_JSON_Posts::create}
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	public function edit_post( $id, $data, $_headers = array() ) {
+	public function update( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		$post = get_post( $id, ARRAY_A );
@@ -390,7 +389,7 @@ class WP_JSON_Posts {
 			return $retval;
 		}
 
-		return $this->get_post( $id );
+		return $this->get( $id );
 	}
 
 	/**
@@ -400,7 +399,7 @@ class WP_JSON_Posts {
 	 * @param int $id
 	 * @return true on success
 	 */
-	public function delete_post( $id, $force = false ) {
+	public function delete( $id, $force = false ) {
 		$id = (int) $id;
 
 		$post = get_post( $id, ARRAY_A );
@@ -875,7 +874,7 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Helper method for {@see create_post} and {@see edit_post}, containing shared logic.
+	 * Helper method for {@see create} and {@see update}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()

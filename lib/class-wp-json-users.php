@@ -27,13 +27,13 @@ class WP_JSON_Users {
 		$user_routes = array(
 			// User endpoints
 			'/users' => array(
-				array( array( $this, 'get_users' ),        WP_JSON_Server::READABLE ),
-				array( array( $this, 'create_user' ),      WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_multiple' ),     WP_JSON_Server::READABLE ),
+				array( array( $this, 'create' ),           WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 			'/users/(?P<id>\d+)' => array(
-				array( array( $this, 'get_user' ),         WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_user' ),        WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete_user' ),      WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get' ),              WP_JSON_Server::READABLE ),
+				array( array( $this, 'update' ),           WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete' ),           WP_JSON_Server::DELETABLE ),
 			),
 			// /users/me is an alias, and simply redirects to /users/<id>
 			'/users/me' => array(
@@ -51,7 +51,7 @@ class WP_JSON_Users {
 	 * @param int $page Page number (1-indexed)
 	 * @return array contains a collection of User entities.
 	 */
-	public function get_users( $filter = array(), $context = 'view', $page = 1 ) {
+	public function get_multiple( $filter = array(), $context = 'view', $page = 1 ) {
 		if ( ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
 		}
@@ -97,7 +97,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$response = $this->get_user( $current_user_id, $context );
+		$response = $this->get( $current_user_id, $context );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -119,7 +119,7 @@ class WP_JSON_Users {
 	 * @param string $context
 	 * @return response
 	 */
-	public function get_user( $id, $context = 'view' ) {
+	public function get( $id, $context = 'view' ) {
 		$id = (int) $id;
 		$current_user_id = get_current_user_id();
 
@@ -342,7 +342,7 @@ class WP_JSON_Users {
 	 * @param array $_headers Header data
 	 * @return true on success
 	 */
-	public function edit_user( $id, $data, $_headers = array() ) {
+	public function update( $id, $data, $_headers = array() ) {
 		$id = absint( $id );
 
 		if ( empty( $id ) ) {
@@ -368,7 +368,7 @@ class WP_JSON_Users {
 			return $retval;
 		}
 
-		return $this->get_user( $id );
+		return $this->get( $id );
 	}
 
 	/**
@@ -377,7 +377,7 @@ class WP_JSON_Users {
 	 * @param $data
 	 * @return mixed
 	 */
-	public function create_user( $data ) {
+	public function create( $data ) {
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
@@ -392,7 +392,7 @@ class WP_JSON_Users {
 			return $user_id;
 		}
 
-		$response = $this->get_user( $user_id );
+		$response = $this->get( $user_id );
 		$response = json_ensure_response( $response );
 
 		$response->set_status( 201 );
@@ -408,7 +408,7 @@ class WP_JSON_Users {
 	 * @param bool force
 	 * @return true on success
 	 */
-	public function delete_user( $id, $force = false, $reassign = null ) {
+	public function delete( $id, $force = false, $reassign = null ) {
 		$id = absint( $id );
 
 		if ( empty( $id ) ) {
