@@ -43,6 +43,27 @@ class WP_JSON_Users {
 		return array_merge( $routes, $user_routes );
 	}
 
+	protected function check_permission( $context, $user ) {
+		$current_id = get_current_user_id();
+
+		switch ( $context ) {
+			case 'view':
+				// Users can always access their own data
+				if ( $user->ID === $current_id ) {
+					return true;
+				}
+
+				return current_user_can( 'list_users' );
+
+			case 'edit':
+				// Users can always edit their own data
+				return current_user_can( 'edit_user', $user->ID );
+		}
+
+		// Invalid context
+		return false;
+	}
+
 	/**
 	 * Retrieve users.
 	 *
@@ -78,6 +99,10 @@ class WP_JSON_Users {
 		$struct = array();
 
 		foreach ( $user_query->results as $user ) {
+			if ( ! $this->check_permission( 'view', $user ) ) {
+				continue;
+			}
+
 			$struct[] = $this->prepare_user( $user, $context );
 		}
 
@@ -121,16 +146,14 @@ class WP_JSON_Users {
 	 */
 	public function get_user( $id, $context = 'view' ) {
 		$id = (int) $id;
-		$current_user_id = get_current_user_id();
-
-		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
-		}
-
 		$user = get_userdata( $id );
 
-		if ( empty( $user->ID ) ) {
+		if ( empty( $user ) || empty( $user->ID ) ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $this->check_permission( $context, $id ) ) {
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
 		return $this->prepare_user( $user, $context );
@@ -233,7 +256,7 @@ class WP_JSON_Users {
 				return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 			}
 
-			if ( ! current_user_can( 'edit_user', $data['id'] ) ) {
+			if ( ! $this->check_permission( 'edit', $existing ) ) {
 				return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 			}
 
@@ -349,14 +372,14 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID must be supplied.' ), array( 'status' => 400 ) );
 		}
 
-		// Permissions check
-		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
-		}
-
 		$user = get_userdata( $id );
 		if ( ! $user ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		// Permissions check
+		if ( ! $this->check_permission( 'edit', $user ) ) {
+			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 		}
 
 		$data['id'] = $user->ID;
