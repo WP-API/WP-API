@@ -89,28 +89,28 @@ function json_api_default_filters( $server ) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
 
 	// Posts.
-	$wp_json_posts = new WP_JSON_Posts( $server );
+	$wp_json_posts = new WP_JSON_Posts();
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
 	// Users.
-	$wp_json_users = new WP_JSON_Users( $server );
+	$wp_json_users = new WP_JSON_Users();
 	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
 	add_filter( 'json_prepare_comment', array( $wp_json_users, 'add_comment_author_data' ), 10, 3 );
 
 	// Pages.
-	$wp_json_pages = new WP_JSON_Pages( $server );
+	$wp_json_pages = new WP_JSON_Pages();
 	$wp_json_pages->register_filters();
 
 	// Post meta.
-	$wp_json_post_meta = new WP_JSON_Meta_Posts( $server );
+	$wp_json_post_meta = new WP_JSON_Meta_Posts();
 	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
 	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
 	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
 
 	// Media.
-	$wp_json_media = new WP_JSON_Media( $server );
+	$wp_json_media = new WP_JSON_Media();
 	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
 	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check'    ), 10, 3 );
@@ -118,7 +118,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
 	// Posts.
-	$wp_json_taxonomies = new WP_JSON_Taxonomies( $server );
+	$wp_json_taxonomies = new WP_JSON_Taxonomies();
 	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'       ), 2 );
 	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
 	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
