@@ -79,7 +79,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $parent ) ) {
+		if ( ! $this->check_permission( 'edit', $parent ) ) {
  			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
  		}
 
@@ -185,7 +185,7 @@ class WP_JSON_Posts {
 			$post = get_object_vars( $post );
 
 			// Do we have permission to read this post?
-			if ( ! $this->check_read_permission( $post ) ) {
+			if ( ! $this->check_permission( $context, $post ) ) {
 				continue;
 			}
 
@@ -202,14 +202,7 @@ class WP_JSON_Posts {
 		return $response;
 	}
 
-	/**
-	 * Check if we can read a post
-	 *
-	 * Correctly handles posts with the inherit status.
-	 * @param array $post Post data
-	 * @return boolean Can we read it?
-	 */
-	protected function check_read_permission( $post ) {
+	protected function check_permission( $context, $post ) {
 		$post_type = get_post_type_object( $post['post_type'] );
 
 		// Ensure the post type can be read
@@ -217,42 +210,39 @@ class WP_JSON_Posts {
 			return false;
 		}
 
-		// Can we read the post?
-		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
-			return true;
-		}
+		switch ( $context ) {
+			case 'view':
+				// Can we read the post?
+				if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
+					return true;
+				}
 
-		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
-			$parent = get_post( $post['post_parent'], ARRAY_A );
+				// Can we read the parent if we're inheriting?
+				if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+					$parent = get_post( $post['post_parent'], ARRAY_A );
 
-			if ( $this->check_read_permission( $parent ) ) {
+					if ( $this->check_permission( $context, $parent ) ) {
+						return true;
+					}
+				}
+
+				// If we don't have a parent, but the status is set to inherit, assume
+				// it's published (as per get_post_status())
+				if ( 'inherit' === $post['post_status'] ) {
+					return true;
+				}
+
+				return false;
+
+			case 'edit':
+				$post_type = get_post_type_object( $post['post_type'] );
+
+				if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
+					return false;
+				}
+
 				return true;
-			}
 		}
-
-		// If we don't have a parent, but the status is set to inherit, assume
-		// it's published (as per get_post_status())
-		if ( 'inherit' === $post['post_status'] ) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Check if we can edit a post
-	 * @param array $post Post data
-	 * @return boolean Can we edit it?
-	 */
-	protected function check_edit_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -314,7 +304,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! $this->check_permission( 'read', $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -485,7 +475,7 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $post ) ) {
+		if ( ! $this->check_permission( 'read', $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -648,10 +638,6 @@ class WP_JSON_Posts {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! $this->check_read_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
-		}
-
 		$previous_post = null;
 		if ( ! empty( $GLOBALS['post'] ) ) {
 			$previous_post = $GLOBALS['post'];
@@ -705,7 +691,7 @@ class WP_JSON_Posts {
 			'sticky'         => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
 		);
 
-		$post_fields_raw = array(
+		$post_fields_edit = array(
 			'title'     => array(
 				'raw' => $post['post_title'],
 			),
@@ -718,6 +704,7 @@ class WP_JSON_Posts {
 			'guid'      => array(
 				'raw' => $post['guid'],
 			),
+			'password'  => $post['post_password'],
 		);
 
 		// Dates
@@ -737,13 +724,6 @@ class WP_JSON_Posts {
 		else {
 			$post_fields['modified']              = json_mysql_to_rfc3339( $post['post_modified'] );
 			$post_fields_extended['modified_gmt'] = json_mysql_to_rfc3339( $post['post_modified_gmt'] );
-		}
-
-		// Authorized fields
-		// TODO: Send `Vary: Authorization` to clarify that the data can be
-		// changed by the user's auth status
-		if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			$post_fields_extended['password'] = $post['post_password'];
 		}
 
 		// Consider future posts as published
@@ -776,26 +756,8 @@ class WP_JSON_Posts {
 		// Include extended fields. We might come back to this.
 		$_post = array_merge( $_post, $post_fields_extended );
 
-		if ( 'edit' === $context ) {
-			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-				$_post = array_merge_recursive( $_post, $post_fields_raw );
-			} else {
-				$GLOBALS['post'] = $previous_post;
-				if ( $previous_post ) {
-					setup_postdata( $previous_post );
-				}
-				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
-			}
-		} elseif ( 'view-revision' == $context ) {
-			if ( current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-				$_post = array_merge_recursive( $_post, $post_fields_raw );
-			} else {
-				$GLOBALS['post'] = $previous_post;
-				if ( $previous_post ) {
-					setup_postdata( $previous_post );
-				}
-				return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view this revision' ), array( 'status' => 403 ) );
-			}
+		if ( 'edit' === $context || 'view-revision' === $context ) {
+			$_post = array_merge_recursive( $_post, $post_fields_edit );
 		}
 
 		// Entity meta
