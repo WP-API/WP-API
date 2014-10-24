@@ -210,6 +210,11 @@ class WP_JSON_Posts {
 			return false;
 		}
 
+		// If the post is passworded, require edit permissions
+		if ( ! empty( $post['post_password'] ) && $context === 'view' ) {
+			$context = 'edit';
+		}
+
 		switch ( $context ) {
 			case 'view':
 				// Can we read the post?
@@ -646,10 +651,6 @@ class WP_JSON_Posts {
 
 		// Don't allow unauthenticated users to read password-protected posts
 		if ( ! empty( $post['post_password'] ) ) {
-			if ( ! $this->check_edit_permission( $post ) ) {
-				return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
-			}
-
 			// Fake the correct cookie to fool post_password_required().
 			// Without this, get_the_content() will give a password form.
 			require_once ABSPATH . 'wp-includes/class-phpass.php';
