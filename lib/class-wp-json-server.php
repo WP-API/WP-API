@@ -14,7 +14,7 @@ require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
  *
  * @package WordPress
  */
-class WP_JSON_Server implements WP_JSON_ResponseHandler {
+class WP_JSON_Server {
 	const METHOD_GET    = 1;
 	const METHOD_POST   = 2;
 	const METHOD_PUT    = 4;
@@ -239,7 +239,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			 * request instead.
 			 *
 			 * @param mixed $result Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
-			 * @param WP_JSON_ResponseHandler $this ResponseHandler instance (usually WP_JSON_Server)
+			 * @param WP_JSON_Server $this Server instance
 			 */
 			$result = apply_filters( 'json_pre_dispatch', null, $this );
 		}
@@ -274,7 +274,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 		 * @param mixed $result Result to send to the client. JsonSerializable, or other value to pass to `json_encode`
 		 * @param string $path Route requested
 		 * @param string $method HTTP request method (HEAD/GET/POST/PUT/PATCH/DELETE)
-		 * @param WP_JSON_ResponseHandler $this ResponseHandler instance (usually WP_JSON_Server)
+		 * @param WP_JSON_Server $this Server instance
 		 */
 		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method, $this );
 

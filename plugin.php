@@ -83,7 +83,7 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  * @global WP_JSON_Media      $wp_json_media
  * @global WP_JSON_Taxonomies $wp_json_taxonomies
  *
- * @param WP_JSON_ResponseHandler $server Server object.
+ * @param WP_JSON_Server $server Server object.
  */
 function json_api_default_filters( $server ) {
 	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
@@ -175,7 +175,7 @@ function json_api_loaded() {
 	 * action rather than another action to ensure they're only loaded when
 	 * needed.
 	 *
-	 * @param WP_JSON_ResponseHandler $wp_json_server Response handler object.
+	 * @param WP_JSON_Server $wp_json_server Server object.
 	 */
 	do_action( 'wp_json_server_before_serve', $wp_json_server );
 
@@ -671,7 +671,7 @@ function json_send_cors_headers( $value ) {
  *
  * @param mixed $response Current response, either response or `null` to indicate pass-through
  * @param WP_JSON_Server $handler ResponseHandler instance (usually WP_JSON_Server)
- * @return WP_JSON_ResponseHandler Modified response, either response or `null` to indicate pass-through
+ * @return WP_JSON_Response Modified response, either response or `null` to indicate pass-through
  */
 function json_handle_options_request( $response, $handler ) {
 	if ( ! empty( $response ) || $handler->method !== 'OPTIONS' ) {
