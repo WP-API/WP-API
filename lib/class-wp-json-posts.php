@@ -248,6 +248,9 @@ class WP_JSON_Posts {
 
 				return true;
 		}
+
+		// Invalid context
+		return false;
 	}
 
 	/**
