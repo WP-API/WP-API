@@ -28,6 +28,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responseinterface.php' )
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-comments.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
@@ -91,7 +92,13 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
 	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
-	// Users.
+	// Comments
+	$wp_json_comments = new WP_JSON_Comments( $server );
+	add_filter( 'json_endpoints', array( $wp_json_comments, 'register_routes' ), 0 );
+	add_filter( 'json_prepare_taxonomy', array( $wp_json_comments, 'add_post_type_data' ), 10, 3 );
+
+
+	// Users
 	$wp_json_users = new WP_JSON_Users( $server );
 	add_filter( 'json_endpoints',       array( $wp_json_users, 'register_routes'         ), 0     );
 	add_filter( 'json_prepare_post',    array( $wp_json_users, 'add_post_author_data'    ), 10, 3 );
