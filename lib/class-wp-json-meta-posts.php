@@ -16,22 +16,6 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	protected $type = 'post';
 
 	/**
-	 * Check if we can edit a post.
-	 *
-	 * @param array $post Post data
-	 * @return boolean Can we edit it?
-	 */
-	protected function check_edit_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Check that the object can be accessed.
 	 *
 	 * @param mixed $id Object ID
@@ -46,7 +30,7 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $post ) ) {
+		if ( ! json_check_post_permission( $post, 'edit' ) ) {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
 		}
 
