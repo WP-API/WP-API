@@ -114,8 +114,6 @@ class WP_JSON_Comments {
 	 */
 	public function get_comment( $comment ) {
 
-		wp_send_json_error( 'Sad Panda' );
-
 		$comment = get_comment( $comment );
 
 		if ( empty( $comment ) ) {
