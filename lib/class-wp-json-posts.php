@@ -751,7 +751,7 @@ class WP_JSON_Posts {
 			}
 
 			$post['post_type'] = $data['type'];
-		} elseif ( $update ) {
+		} if ( $update ) {
 			// Updating post, use existing post type
 			$current_post = get_post( $data['ID'] );
 
