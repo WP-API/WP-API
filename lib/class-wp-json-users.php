@@ -375,10 +375,12 @@ class WP_JSON_Users {
 	/**
 	 * Create a new user.
 	 *
-	 * @param $data
+	 * @param $data User Data
 	 * @return mixed
 	 */
 	public function create_user( $data ) {
+		
+		// Permissions check
 		if ( ! current_user_can( 'create_users' ) ) {
 			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
