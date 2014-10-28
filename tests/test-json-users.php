@@ -29,7 +29,6 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 	public function test_get_current_user() {
 		$response = $this->endpoint->get_current_user();
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 
 		// Check that we succeeded
 		$this->assertEquals( 302, $response->get_status() );
