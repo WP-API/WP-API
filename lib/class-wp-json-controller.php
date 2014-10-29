@@ -1,7 +1,7 @@
 <?php
 
 
-abstract class WP_JSON_Resource {
+abstract class WP_JSON_Controller {
 
 	/**
 	 * Get a collection of items
