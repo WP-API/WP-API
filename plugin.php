@@ -33,9 +33,60 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
+
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-terms-controller.php';
+
+/**
+ * Register a JSON API route
+ *
+ * @param string $namespace
+ * @param string $route
+ * @param array $args
+ */
+function register_json_route( $namespace, $route, $args = array() ) {
+
+	$defaults = array(
+		'methods'         => array( 'GET' ),
+		'callback'        => null,
+		'args'            => array(),
+	);
+	$args = array_merge( $defaults, $args );
+
+	add_filter( 'json_endpoints', function( $routes ) use ( $namespace, $route, $args ) {
+
+		return $routes;
+	});
+
+}
+
+/**
+ * Register default JSON API routes
+ */
+function create_initial_json_routes() {
+	
+	$taxonomy_terms = new WP_JSON_Taxonomy_Terms_Controller;
+	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+		'methods'         => array( 'GET' ),
+		'callback'        => array( $taxonomy_terms, 'get_items' ),
+		'args'            => array(
+			'search'          => array(
+				'required'       => false,
+			),
+			'per_page'        => array(
+				'required'       => false,
+			),
+			'page'            => array(
+				'required'       => false,
+			)
+		)
+	));
+
+
+}
+add_action( 'init', 'create_initial_json_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
@@ -115,12 +166,6 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check'    ), 10, 3 );
 	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
 	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
-
-	// Posts.
-	$wp_json_taxonomies = new WP_JSON_Taxonomies();
-	add_filter( 'json_endpoints',      array( $wp_json_taxonomies, 'register_routes'       ), 2 );
-	add_filter( 'json_post_type_data', array( $wp_json_taxonomies, 'add_taxonomy_data' ), 10, 3 );
-	add_filter( 'json_prepare_post',   array( $wp_json_taxonomies, 'add_term_data'     ), 10, 3 );
 
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
