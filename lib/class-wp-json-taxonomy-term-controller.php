@@ -40,6 +40,9 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	public function get_item( array $args, WP_JSON_Request $request ) {
 		// Get term by does a taxonomy check for us
 		$term = get_term_by( 'id', $args['id'], $args['taxonomy'] ); 
+		if ( ! $term ) {
+			return new WP_Error( 'invalid-item', "Term doesn't exist.", array( 'status' => 404 ) );
+		}
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
