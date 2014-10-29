@@ -14,7 +14,7 @@ require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
  *
  * @package WordPress
  */
-class WP_JSON_Server implements WP_JSON_ResponseHandler {
+class WP_JSON_Server {
 	const METHOD_GET    = 'GET';
 	const METHOD_POST   = 'POST';
 	const METHOD_PUT    = 'PUT';
