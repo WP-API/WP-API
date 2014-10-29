@@ -104,12 +104,12 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 * @param obj $item Term object
 	 */
 	public static function prepare_item_for_response( $item ) {
-		return (object)array(
-			'id'           => (int) $term->term_id,
-			'description'  => $term->description,
-			'name'         => $term->name,
-			'slug'         => $term->slug,
-			'parent'       => (int) $term->parent,
+		return array(
+			'id'           => (int) $item->term_id,
+			'description'  => $item->description,
+			'name'         => $item->name,
+			'slug'         => $item->slug,
+			'parent'       => (int) $item->parent,
 		);
 	}
 
