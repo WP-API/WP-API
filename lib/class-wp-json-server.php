@@ -432,8 +432,6 @@ class WP_JSON_Server {
 					return $args;
 				}
 
-				$params = $this->sort_callback_params( $callback, $args );
-
 				if ( is_wp_error( $params ) ) {
 					return $params;
 				}
@@ -463,41 +461,6 @@ class WP_JSON_Server {
 		}
 
 		return json_last_error_msg();
-	}
-
-	/**
-	 * Sort parameters by order specified in method declaration
-	 *
-	 * Takes a callback and a list of available params, then filters and sorts
-	 * by the parameters the method actually needs, using the Reflection API
-	 *
-	 * @param callback $callback
-	 * @param array $params
-	 * @return array
-	 */
-	protected function sort_callback_params( $callback, $provided ) {
-		if ( is_array( $callback ) ) {
-			$ref_func = new ReflectionMethod( $callback[0], $callback[1] );
-		} else {
-			$ref_func = new ReflectionFunction( $callback );
-		}
-
-		$wanted = $ref_func->getParameters();
-		$ordered_parameters = array();
-
-		foreach ( $wanted as $param ) {
-			if ( isset( $provided[ $param->getName() ] ) ) {
-				// We have this parameters in the list to choose from
-				$ordered_parameters[] = $provided[ $param->getName() ];
-			} elseif ( $param->isDefaultValueAvailable() ) {
-				// We don't have this parameter, but it's optional
-				$ordered_parameters[] = $param->getDefaultValue();
-			} else {
-				// We don't have this parameter and it wasn't optional, abort!
-				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $param->getName() ), array( 'status' => 400 ) );
-			}
-		}
-		return $ordered_parameters;
 	}
 
 	/**
