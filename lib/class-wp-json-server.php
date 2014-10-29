@@ -14,18 +14,18 @@ require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
  *
  * @package WordPress
  */
-class WP_JSON_Server {
-	const METHOD_GET    = 1;
-	const METHOD_POST   = 2;
-	const METHOD_PUT    = 4;
-	const METHOD_PATCH  = 8;
-	const METHOD_DELETE = 16;
+class WP_JSON_Server implements WP_JSON_ResponseHandler {
+	const METHOD_GET    = 'GET';
+	const METHOD_POST   = 'POST';
+	const METHOD_PUT    = 'PUT';
+	const METHOD_PATCH  = 'PATCH';
+	const METHOD_DELETE = 'DELETE';
 
-	const READABLE   = 1;  // GET
-	const CREATABLE  = 2;  // POST
-	const EDITABLE   = 14; // POST | PUT | PATCH
-	const DELETABLE  = 16; // DELETE
-	const ALLMETHODS = 31; // GET | POST | PUT | PATCH | DELETE
+	const READABLE   = 'GET';
+	const CREATABLE  = 'POST';
+	const EDITABLE   = 'POST, PUT, PATCH';
+	const DELETABLE  = 'DELETE';
+	const ALLMETHODS = 'GET, POST, PUT, PATCH, DELETE';
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
@@ -322,15 +322,38 @@ class WP_JSON_Server {
 	public function get_routes() {
 		$endpoints = array(
 			// Meta endpoints
-			'/' => array( array( $this, 'get_index' ), self::READABLE ),
+			'/' => array(
+				'callback' => array( $this, 'get_index' ),
+				'methods' => 'GET'
+			),
 		);
 
 		$endpoints = apply_filters( 'json_endpoints', $endpoints );
 
 		// Normalise the endpoints
+		$defaults = array(
+			'methods'     => '',
+			'accept_json' => false,
+			'accept_raw'  => false,
+		);
 		foreach ( $endpoints as $route => &$handlers ) {
-			if ( count( $handlers ) <= 2 && isset( $handlers[1] ) && ! is_array( $handlers[1] ) ) {
+			if ( isset( $handlers['callback'] ) ) {
+				// Single endpoint, add one deeper
 				$handlers = array( $handlers );
+			}
+
+			foreach ( $handlers as $key => &$handler ) {
+				$handler = wp_parse_args( $handler, $defaults );
+
+				// Allow comma-separated HTTP methods
+				if ( is_string( $handler['methods'] ) ) {
+					$methods = explode( ',', $handler['methods'] );
+					$handler['methods'] = array();
+					foreach ( $methods as $method ) {
+						$method = strtoupper( trim( $method ) );
+						$handler['methods'][ $method ] = true;
+					}
+				}
 			}
 		}
 		return $endpoints;
@@ -343,38 +366,12 @@ class WP_JSON_Server {
 	 * @return mixed The value returned by the callback, or a WP_Error instance
 	 */
 	public function dispatch() {
-		switch ( $this->method ) {
-			case 'HEAD':
-			case 'GET':
-				$method = self::METHOD_GET;
-				break;
-
-			case 'POST':
-				$method = self::METHOD_POST;
-				break;
-
-			case 'PUT':
-				$method = self::METHOD_PUT;
-				break;
-
-			case 'PATCH':
-				$method = self::METHOD_PATCH;
-				break;
-
-			case 'DELETE':
-				$method = self::METHOD_DELETE;
-				break;
-
-			default:
-				return new WP_Error( 'json_unsupported_method', __( 'Unsupported request method' ), array( 'status' => 400 ) );
-		}
-
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
-				$callback = $handler[0];
-				$supported = isset( $handler[1] ) ? $handler[1] : self::METHOD_GET;
+				$callback  = $handler['callback'];
+				$supported = $handler['methods'];
 
-				if ( ! ( $supported & $method ) ) {
+				if ( empty( $handler['methods'][ $this->method ] ) ) {
 					continue;
 				}
 
@@ -390,11 +387,11 @@ class WP_JSON_Server {
 
 				$args = array_merge( $args, $this->params['GET'] );
 
-				if ( $method & self::METHOD_POST ) {
+				if ( $method === 'POST' ) {
 					$args = array_merge( $args, $this->params['POST'] );
 				}
 
-				if ( $supported & self::ACCEPT_JSON ) {
+				if ( ! empty( $handler['accept_json'] ) ) {
 					$raw_data = $this->get_raw_data();
 					$data = json_decode( $raw_data, true );
 
@@ -414,7 +411,7 @@ class WP_JSON_Server {
 					if ( $data !== null ) {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
-				} elseif ( $supported & self::ACCEPT_RAW ) {
+				} elseif ( ! empty( $handler['accept_raw'] ) ) {
 					$data = $this->get_raw_data();
 
 					if ( ! empty( $data ) ) {
@@ -428,7 +425,7 @@ class WP_JSON_Server {
 				$args['_headers'] = $this->headers;
 				$args['_files']   = $this->files;
 
-				$args = apply_filters( 'json_dispatch_args', $args, $callback );
+				$args = apply_filters( 'json_dispatch_args', $args, $handler );
 
 				// Allow plugins to halt the request via this filter
 				if ( is_wp_error( $args ) ) {
