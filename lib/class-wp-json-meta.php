@@ -24,7 +24,7 @@ abstract class WP_JSON_Meta {
 	/**
 	 * Construct the API handler object.
 	 */
-	public function __construct( WP_JSON_ResponseHandler $server ) {
+	public function __construct() {
 		if ( empty( $this->base ) ) {
 			_doing_it_wrong( 'WP_JSON_Meta::__construct', __( 'The route base must be overridden' ), 'WPAPI-1.2' );
 			return;
