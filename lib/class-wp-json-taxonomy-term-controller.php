@@ -81,6 +81,24 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Delete a single term from a taxonomy
+	 *
+	 * @param array $args
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function delete_item( array $args, WP_JSON_Request $request ) {
+		
+		$term = $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
+		if ( is_wp_error( $term ) ) {
+			return $term;
+		}
+
+		// @todo delete the term
+
+	}
+
+	/**
 	 * Prepare a single term output for response
 	 *
 	 * @param obj $item Term object
