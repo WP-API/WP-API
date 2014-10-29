@@ -11,14 +11,14 @@ class WP_JSON_Posts {
 		$post_routes = array(
 			// Post endpoints
 			'/posts' => array(
-				array( array( $this, 'get_posts' ),      WP_JSON_Server::READABLE ),
-				array( array( $this, 'create_post' ),    WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'get_multiple' ),   WP_JSON_Server::READABLE ),
+				array( array( $this, 'create' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
-				array( array( $this, 'get_post' ),       WP_JSON_Server::READABLE ),
-				array( array( $this, 'edit_post' ),      WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete_post' ),    WP_JSON_Server::DELETABLE ),
+				array( array( $this, 'get' ),            WP_JSON_Server::READABLE ),
+				array( array( $this, 'update' ),         WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array( array( $this, 'delete' ),         WP_JSON_Server::DELETABLE ),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
 				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
@@ -48,36 +48,89 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Get revisions for a specific post.
+	 * Create a new post for any registered post type.
 	 *
-	 * @param int $id Post ID
-	 * @uses wp_get_post_revisions
-	 * @return WP_JSON_Response
+	 * @since 3.4.0
+	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
+	 *
+	 * @param array $content Content data. Can contain:
+	 *  - post_type (default: 'post')
+	 *  - post_status (default: 'draft')
+	 *  - post_title
+	 *  - post_author
+	 *  - post_excerpt
+	 *  - post_content
+	 *  - post_date_gmt | post_date
+	 *  - post_format
+	 *  - post_password
+	 *  - comment_status - can be 'open' | 'closed'
+	 *  - ping_status - can be 'open' | 'closed'
+	 *  - sticky
+	 *  - post_thumbnail - ID of a media item to use as the post thumbnail/featured image
+	 *  - custom_fields - array, with each element containing 'key' and 'value'
+	 *  - terms - array, with taxonomy names as keys and arrays of term IDs as values
+	 *  - terms_names - array, with taxonomy names as keys and arrays of term names as values
+	 *  - enclosure
+	 *  - any other fields supported by wp_insert_post()
+	 * @return array Post data (see {@see get})
 	 */
-	public function get_revisions( $id ) {
+	public function create( $data ) {
+		unset( $data['id'] );
+
+		$result = $this->insert_post( $data );
+		if ( $result instanceof WP_Error ) {
+			return $result;
+		}
+
+		$response = json_ensure_response( $this->get( $result ) );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/posts/' . $result ) );
+
+		return $response;
+	}
+
+	/**
+	 * Retrieve a post.
+	 *
+	 * @uses get_post()
+	 * @param int $id Post ID
+	 * @param string $context The context; 'view' (default) or 'edit'.
+	 * @return array Post entity
+	 */
+	public function get( $id, $context = 'view' ) {
 		$id = (int) $id;
 
-		$parent = get_post( $id, ARRAY_A );
+		$post = get_post( $id, ARRAY_A );
 
-		if ( empty( $id ) || empty( $parent['ID'] ) ) {
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $parent ) ) {
- 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
- 		}
-
-		// Todo: Query args filter for wp_get_post_revisions
-		$revisions = wp_get_post_revisions( $id );
-
-		$struct = array();
-		foreach ( $revisions as $revision ) {
-			$post = get_object_vars( $revision );
-
-			$struct[] = $this->prepare_post( $post, 'view-revision' );
+		if ( ! $this->check_read_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		return $struct;
+		// Link headers (see RFC 5988)
+
+		$response = new WP_JSON_Response();
+		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
+
+		$post = $this->prepare_post( $post, $context );
+
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		foreach ( $post['_links'] as $rel => $data ) {
+			$other = $data;
+			unset( $other['href'] );
+			$response->link_header( $rel, $data['href'], $other );
+		}
+
+		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+		$response->set_data( $post );
+
+		return $response;
 	}
 
 	/**
@@ -90,7 +143,6 @@ class WP_JSON_Posts {
 	 * 'orderby', and 'order'.
 	 *
 	 * @uses wp_get_recent_posts()
-	 * @see get_posts() for more on $filter values
 	 *
 	 * @param array $filter Parameters to pass through to `WP_Query`
 	 * @param string $context The context; 'view' (default) or 'edit'.
@@ -98,7 +150,7 @@ class WP_JSON_Posts {
 	 * @param int $page Page number (1-indexed)
 	 * @return stdClass[] Collection of Post entities
 	 */
-	public function get_posts( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
+	public function get_multiple( $filter = array(), $context = 'view', $type = 'post', $page = 1 ) {
 		$query = array();
 
 		// Validate post types and permissions
@@ -187,6 +239,127 @@ class WP_JSON_Posts {
 	}
 
 	/**
+	 * Get revisions for a specific post.
+	 *
+	 * @param int $id Post ID
+	 * @uses wp_get_post_revisions
+	 * @return WP_JSON_Response
+	 */
+	public function get_revisions( $id ) {
+		$id = (int) $id;
+
+		$parent = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $parent['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_edit_permission( $parent ) ) {
+ 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+ 		}
+
+		// Todo: Query args filter for wp_get_post_revisions
+		$revisions = wp_get_post_revisions( $id );
+
+		$struct = array();
+		foreach ( $revisions as $revision ) {
+			$post = get_object_vars( $revision );
+
+			$struct[] = $this->prepare_post( $post, 'view-revision' );
+		}
+
+		return $struct;
+	}
+
+	/**
+	 * Edit a post for any registered post type.
+	 *
+	 * The $data parameter only needs to contain fields that should be changed.
+	 * All other fields will retain their existing values.
+	 *
+	 * @since 3.4.0
+	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
+	 *
+	 * @param int $id Post ID to edit
+	 * @param array $data Data construct, see {@see WP_JSON_Posts::create}
+	 * @param array $_headers Header data
+	 * @return true on success
+	 */
+	public function update( $id, $data, $_headers = array() ) {
+		$id = (int) $id;
+
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( isset( $_headers['IF_UNMODIFIED_SINCE'] ) ) {
+			// As mandated by RFC2616, we have to check all of RFC1123, RFC1036
+			// and C's asctime() format (and ignore invalid headers)
+			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
+
+			foreach ( $formats as $format ) {
+				$check = WP_JSON_DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
+
+				if ( $check !== false ) {
+					break;
+				}
+			}
+
+			// If the post has been modified since the date provided, return an error.
+			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
+				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
+			}
+		}
+
+		$data['id'] = $id;
+
+		$retval = $this->insert_post( $data );
+		if ( is_wp_error( $retval ) ) {
+			return $retval;
+		}
+
+		return $this->get( $id );
+	}
+
+	/**
+	 * Delete a post for any registered post type
+	 *
+	 * @uses wp_delete_post()
+	 * @param int $id
+	 * @return true on success
+	 */
+	public function delete( $id, $force = false ) {
+		$id = (int) $id;
+
+		$post = get_post( $id, ARRAY_A );
+
+		if ( empty( $id ) || empty( $post['ID'] ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post_type = get_post_type_object( $post['post_type'] );
+
+		if ( ! current_user_can( $post_type->cap->delete_post, $id ) ) {
+			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
+		}
+
+		$result = wp_delete_post( $id, $force );
+
+		if ( ! $result ) {
+			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted post' ) );
+		} else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted post' ) );
+		}
+	}
+
+	/**
 	 * Check if we can read a post
 	 *
 	 * Correctly handles posts with the inherit status.
@@ -240,220 +413,6 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Create a new post for any registered post type.
-	 *
-	 * @since 3.4.0
-	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
-	 *
-	 * @param array $content Content data. Can contain:
-	 *  - post_type (default: 'post')
-	 *  - post_status (default: 'draft')
-	 *  - post_title
-	 *  - post_author
-	 *  - post_excerpt
-	 *  - post_content
-	 *  - post_date_gmt | post_date
-	 *  - post_format
-	 *  - post_password
-	 *  - comment_status - can be 'open' | 'closed'
-	 *  - ping_status - can be 'open' | 'closed'
-	 *  - sticky
-	 *  - post_thumbnail - ID of a media item to use as the post thumbnail/featured image
-	 *  - custom_fields - array, with each element containing 'key' and 'value'
-	 *  - terms - array, with taxonomy names as keys and arrays of term IDs as values
-	 *  - terms_names - array, with taxonomy names as keys and arrays of term names as values
-	 *  - enclosure
-	 *  - any other fields supported by wp_insert_post()
-	 * @return array Post data (see {@see WP_JSON_Posts::get_post})
-	 */
-	public function create_post( $data ) {
-		unset( $data['id'] );
-
-		$result = $this->insert_post( $data );
-		if ( $result instanceof WP_Error ) {
-			return $result;
-		}
-
-		$response = json_ensure_response( $this->get_post( $result ) );
-		$response->set_status( 201 );
-		$response->header( 'Location', json_url( '/posts/' . $result ) );
-
-		return $response;
-	}
-
-	/**
-	 * Retrieve a post.
-	 *
-	 * @uses get_post()
-	 * @param int $id Post ID
-	 * @param string $context The context; 'view' (default) or 'edit'.
-	 * @return array Post entity
-	 */
-	public function get_post( $id, $context = 'view' ) {
-		$id = (int) $id;
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $id ) || empty( $post['ID'] ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! $this->check_read_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
-		}
-
-		// Link headers (see RFC 5988)
-
-		$response = new WP_JSON_Response();
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
-
-		$post = $this->prepare_post( $post, $context );
-
-		if ( is_wp_error( $post ) ) {
-			return $post;
-		}
-
-		foreach ( $post['_links'] as $rel => $data ) {
-			$other = $data;
-			unset( $other['href'] );
-			$response->link_header( $rel, $data['href'], $other );
-		}
-
-		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-		$response->set_data( $post );
-
-		return $response;
-	}
-
-	/**
-	 * Edit a post for any registered post type.
-	 *
-	 * The $data parameter only needs to contain fields that should be changed.
-	 * All other fields will retain their existing values.
-	 *
-	 * @since 3.4.0
-	 * @internal 'data' is used here rather than 'content', as get_default_post_to_edit uses $_REQUEST['content']
-	 *
-	 * @param int $id Post ID to edit
-	 * @param array $data Data construct, see {@see WP_JSON_Posts::create_post}
-	 * @param array $_headers Header data
-	 * @return true on success
-	 */
-	public function edit_post( $id, $data, $_headers = array() ) {
-		$id = (int) $id;
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $id ) || empty( $post['ID'] ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( isset( $_headers['IF_UNMODIFIED_SINCE'] ) ) {
-			// As mandated by RFC2616, we have to check all of RFC1123, RFC1036
-			// and C's asctime() format (and ignore invalid headers)
-			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
-
-			foreach ( $formats as $format ) {
-				$check = WP_JSON_DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
-
-				if ( $check !== false ) {
-					break;
-				}
-			}
-
-			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
-				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
-			}
-		}
-
-		$data['id'] = $id;
-
-		$retval = $this->insert_post( $data );
-		if ( is_wp_error( $retval ) ) {
-			return $retval;
-		}
-
-		return $this->get_post( $id );
-	}
-
-	/**
-	 * Delete a post for any registered post type
-	 *
-	 * @uses wp_delete_post()
-	 * @param int $id
-	 * @return true on success
-	 */
-	public function delete_post( $id, $force = false ) {
-		$id = (int) $id;
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $id ) || empty( $post['ID'] ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->delete_post, $id ) ) {
-			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
-		}
-
-		$result = wp_delete_post( $id, $force );
-
-		if ( ! $result ) {
-			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
-		}
-
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
-	}
-
-	/**
-	 * Delete a comment.
-	 *
-	 * @uses wp_delete_comment
-	 * @param int $id Post ID
-	 * @param int $comment Comment ID
-	 * @param boolean $force Skip trash
-	 * @return array
-	 */
-	public function delete_comment( $id, $comment, $force = false ) {
-		$comment = (int) $comment;
-
-		if ( empty( $comment ) ) {
-			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
-		}
-
-		$comment_array = get_comment( $comment, ARRAY_A );
-
-		if ( empty( $comment_array ) ) {
-			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! current_user_can(  'edit_comment', $comment_array['comment_ID'] ) ) {
-			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
-		}
-
-		$result = wp_delete_comment( $comment_array['comment_ID'], $force );
-
-		if ( ! $result ) {
-			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
-		}
-
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted comment' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted comment' ) );
-		}
-	}
-
-	/**
 	 * Retrieve comments
 	 *
 	 * @param int $id Post ID to retrieve comments for
@@ -498,6 +457,46 @@ class WP_JSON_Posts {
 		$data = $this->prepare_comment( $comment );
 
 		return $data;
+	}
+
+	/**
+	 * Delete a comment.
+	 *
+	 * @uses wp_delete_comment
+	 * @param int $id Post ID
+	 * @param int $comment Comment ID
+	 * @param boolean $force Skip trash
+	 * @return array
+	 */
+	public function delete_comment( $id, $comment, $force = false ) {
+		$comment = (int) $comment;
+
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		$comment_array = get_comment( $comment, ARRAY_A );
+
+		if ( empty( $comment_array ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! current_user_can(  'edit_comment', $comment_array['comment_ID'] ) ) {
+			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
+		}
+
+		$result = wp_delete_comment( $comment_array['comment_ID'], $force );
+
+		if ( ! $result ) {
+			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted comment' ) );
+		} else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted comment' ) );
+		}
 	}
 
 	/**
@@ -839,27 +838,7 @@ class WP_JSON_Posts {
 	}
 
 	/**
-	 * Embed post type data into taxonomy data
-	 *
-	 * @uses self::get_post_type()
-	 * @param array $data Taxonomy data
-	 * @param array $taxonomy Internal taxonomy data
-	 * @param string $context Context (view|embed)
-	 * @return array Filtered data
-	 */
-	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
-		if ( $context !== 'embed' ) {
-			$data['types'] = array();
-			foreach ( $taxonomy->object_type as $type ) {
-				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
-			}
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Helper method for {@see create_post} and {@see edit_post}, containing shared logic.
+	 * Helper method for {@see create} and {@see update}, containing shared logic.
 	 *
 	 * @since 3.4.0
 	 * @uses wp_insert_post()
@@ -1210,5 +1189,25 @@ class WP_JSON_Posts {
 		$fields['_links'] = $links;
 
 		return apply_filters( 'json_prepare_comment', $fields, $comment, $context );
+	}
+
+	/**
+	 * Embed post type data into taxonomy data
+	 *
+	 * @uses self::get_post_type()
+	 * @param array $data Taxonomy data
+	 * @param array $taxonomy Internal taxonomy data
+	 * @param string $context Context (view|embed)
+	 * @return array Filtered data
+	 */
+	public function add_post_type_data( $data, $taxonomy, $context = 'view' ) {
+		if ( $context !== 'embed' ) {
+			$data['types'] = array();
+			foreach ( $taxonomy->object_type as $type ) {
+				$data['types'][ $type ] = $this->get_post_type( $type, 'embed' );
+			}
+		}
+
+		return $data;
 	}
 }
