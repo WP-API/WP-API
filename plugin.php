@@ -22,7 +22,6 @@ include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-responsehandler.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
@@ -548,7 +547,7 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
  * Explicitly strips timezones, as datetimes are not saved with any timezone
  * information. Including any information on the offset could be misleading.
  *
- * @param string $date 
+ * @param string $date
  */
 function json_mysql_to_rfc3339( $date_string ) {
 	$formatted = mysql2date( 'c', $date_string, false );
