@@ -14,6 +14,8 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		wp_set_current_user( $this->user );
 		$this->user_obj = wp_get_current_user();
 
+		$this->markTestSkipped( "Needs to be revisited after dust has settled on develop" );
+
 		$this->fake_server = $this->getMock('WP_JSON_Server');
 		$this->endpoint = new WP_JSON_Users( $this->fake_server );
 	}
