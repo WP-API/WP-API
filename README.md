@@ -1,5 +1,7 @@
 # REST API
 
+## BIG IMPORTANT WARNING: THE "DEVELOP" BRANCH IS UNDERGOING SUBSTANTIAL CHANGES AND SHOULD NOT BE USED IN PRODUCTION. IF YOU WANT STABLE, "MASTER" IS YOUR BRANCH.
+
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=master)](https://travis-ci.org/WP-API/WP-API)
