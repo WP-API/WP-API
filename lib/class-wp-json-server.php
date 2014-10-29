@@ -432,11 +432,10 @@ class WP_JSON_Server {
 					return $args;
 				}
 
-				if ( is_wp_error( $params ) ) {
-					return $params;
-				}
-
-				return call_user_func_array( $callback, $params );
+				// @todo fill this out
+				$request = new WP_JSON_Request;
+				
+				return call_user_func_array( $callback, array( 'args' => $args, 'request' => $request ) );
 			}
 		}
 
