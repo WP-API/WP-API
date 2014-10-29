@@ -49,14 +49,15 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-terms-controller
 function register_json_route( $namespace, $route, $args = array() ) {
 
 	$defaults = array(
-		'methods'         => array( 'GET' ),
+		'methods'         => 'GET',
 		'callback'        => null,
 		'args'            => array(),
 	);
 	$args = array_merge( $defaults, $args );
 
 	add_filter( 'json_endpoints', function( $routes ) use ( $namespace, $route, $args ) {
-
+		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+		$routes[ $full_route ] = $args;
 		return $routes;
 	});
 
@@ -69,7 +70,7 @@ function create_initial_json_routes() {
 	
 	$taxonomy_terms = new WP_JSON_Taxonomy_Terms_Controller;
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => array( 'GET' ),
+		'methods'         => 'GET',
 		'callback'        => array( $taxonomy_terms, 'get_items' ),
 		'args'            => array(
 			'search'          => array(
@@ -84,9 +85,8 @@ function create_initial_json_routes() {
 		)
 	));
 
-
 }
-add_action( 'init', 'create_initial_json_routes', 0 );
+add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
