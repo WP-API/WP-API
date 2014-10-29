@@ -15,8 +15,8 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	public function get_items( array $args, WP_JSON_Request $request ) {
 		$prepared_args = array();
 		$prepared_args['number'] = isset( $args['per_page'] ) ? (int) $args['per_page'] : 10;
-		$prepared_args['offset'] = isset( $args['page'] ) ? ( absint( $args['page'] ) - 1 ) * $prepared_args['number'] ) : 0; 
-		$prepared_args['search'] = isset( $args['search'] ) ? sanitize_text_field( $args['search' ) : '';
+		$prepared_args['offset'] = isset( $args['page'] ) ? ( absint( $args['page'] ) - 1 ) * $prepared_args['number'] : 0; 
+		$prepared_args['search'] = isset( $args['search'] ) ? sanitize_text_field( $args['search'] ) : '';
 
 		// get_terms() does a taxonomy validation check for us
 		$terms = get_terms( $args['taxonomy'], $prepared_args );
@@ -74,7 +74,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 		if ( is_wp_error( $update ) ) {
 			return $update;
 		}
-		return $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy' ), $request );
+		return $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 			'name'         => $term->name,
 			'slug'         => $term->slug,
 			'parent'       => (int) $term->parent,
-		};
+		);
 	}
 
 }
