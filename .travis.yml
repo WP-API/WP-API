@@ -15,6 +15,13 @@ env:
 
 # Clones WordPress and configures our testing environment.
 before_script:
-    - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION 
+    - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+    - source bin/ci-env.sh
+    - mkdir -p $PHPCS_DIR && curl -L https://github.com/$PHPCS_GITHUB_SRC/archive/$PHPCS_GIT_TREE.tar.gz | tar xvz --strip-components=1 -C $PHPCS_DIR
+    - mkdir -p $WPCS_DIR && curl -L https://github.com/$WPCS_GITHUB_SRC/archive/$WPCS_GIT_TREE.tar.gz | tar xvz --strip-components=1 -C $WPCS_DIR
+    - $PHPCS_DIR/scripts/phpcs --config-set installed_paths $WPCS_DIR
 
-script: phpunit
+script:
+    - find . \( -name '*.php' \) -exec php -lf {} \;
+    - phpunit
+    - $PHPCS_DIR/scripts/phpcs --standard="$WPCS_STANDARD" .
