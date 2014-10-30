@@ -33,6 +33,6 @@ abstract class WP_JSON_Controller {
 	 * @param mixed $item WordPress representation of the item
 	 * @return object
 	 */
-	abstract public static function prepare_item_for_response( $item );
+	abstract public function prepare_item_for_response( $item );
 
 }
