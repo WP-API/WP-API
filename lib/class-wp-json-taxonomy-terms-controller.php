@@ -12,7 +12,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
-	public function get_items( array $args, WP_JSON_Request $request ) {
+	public static function get_items( array $args, WP_JSON_Request $request ) {
 		$prepared_args = array();
 		$prepared_args['number'] = isset( $args['per_page'] ) ? (int) $args['per_page'] : 10;
 		$prepared_args['offset'] = isset( $args['page'] ) ? ( absint( $args['page'] ) - 1 ) * $prepared_args['number'] : 0; 
@@ -37,7 +37,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
-	public function get_item( array $args, WP_JSON_Request $request ) {
+	public static function get_item( array $args, WP_JSON_Request $request ) {
 		// Get term by does a taxonomy check for us
 		$term = get_term_by( 'id', $args['id'], $args['taxonomy'] ); 
 		if ( ! $term ) {
@@ -56,7 +56,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
-	public function update_item( array $args, WP_JSON_Request $request ) {
+	public static function update_item( array $args, WP_JSON_Request $request ) {
 		$prepared_args = array();
 		if ( isset( $args['name'] ) ) {
 			$prepared_args['name'] = sanitize_text_field( $args['name'] );
@@ -70,14 +70,14 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 
 		// Bail early becuz no updates
 		if ( empty( $prepared_args ) ) {
-			return $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
+			return self::get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
 		}
 
 		$update = wp_update_term( (int) $args['id'], $args['taxonomy'], $prepared_args );
 		if ( is_wp_error( $update ) ) {
 			return $update;
 		}
-		return $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
+		return self::get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
 	}
 
 	/**
@@ -87,9 +87,9 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
-	public function delete_item( array $args, WP_JSON_Request $request ) {
+	public static function delete_item( array $args, WP_JSON_Request $request ) {
 		
-		$term = $this->get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
+		$term = self::get_item( array( 'id' => $args['id'], 'taxonomy' => $args['taxonomy'] ), $request );
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
@@ -103,7 +103,7 @@ class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
 	 *
 	 * @param obj $item Term object
 	 */
-	public function prepare_item_for_response( $item ) {
+	public static function prepare_item_for_response( $item ) {
 		return array(
 			'id'           => (int) $item->term_id,
 			'description'  => $item->description,
