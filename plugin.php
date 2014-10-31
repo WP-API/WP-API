@@ -65,10 +65,11 @@ function register_json_route( $namespace, $route, $args = array() ) {
  * Register default JSON API routes
  */
 function create_initial_json_routes() {
-	
+
+	$controller = new WP_JSON_Taxonomy_Terms_Controller;	
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
-		'callback'        => array( 'WP_JSON_Taxonomy_Terms_Controller', 'get_items' ),
+		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
 			'search'          => array(
 				'required'       => false,

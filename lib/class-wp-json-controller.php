@@ -10,28 +10,28 @@ abstract class WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full data about the request
 	 * @return array|WP_Error
 	 */
-	public static function get_items( array $args, WP_JSON_Request $request ) {
+	public function get_items( array $args, WP_JSON_Request $request ) {
 		return new WP_Error( 'invalid-method', "Method not implemented. Must be over-ridden in subclass.", array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Get one item from the collection
 	 */
-	public static function get_item( array $args, WP_JSON_Request $request ) {
+	public function get_item( array $args, WP_JSON_Request $request ) {
 		return new WP_Error( 'invalid-method', "Method not implemented. Must be over-ridden in subclass.", array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Update one item from the collection
 	 */
-	public static function update_item( array $args, WP_JSON_Request $request ) {
+	public function update_item( array $args, WP_JSON_Request $request ) {
 		return new WP_Error( 'invalid-method', "Method not implemented. Must be over-ridden in subclass.", array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Delete one item from the collection
 	 */
-	public static function delete_item( array $args, WP_JSON_Request $request ) {
+	public function delete_item( array $args, WP_JSON_Request $request ) {
 		return new WP_Error( 'invalid-method', "Method not implemented. Must be over-ridden in subclass.", array( 'status' => 405 ) );
 	}
 
@@ -41,7 +41,7 @@ abstract class WP_JSON_Controller {
 	 * @param mixed $item WordPress representation of the item
 	 * @return object
 	 */
-	public static function prepare_item_for_response( $item ) {
+	public function prepare_item_for_response( $item ) {
 		return new WP_Error( 'invalid-method', "Method not implemented. Must be over-ridden in subclass.", array( 'status' => 405 ) );
 	}
 
