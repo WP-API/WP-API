@@ -90,6 +90,27 @@ class WP_JSON_Server {
 	public $files = array();
 
 	/**
+	 * Endpoints registered to the server
+	 *
+	 * @var array
+	 */
+	private $endpoints = array();
+
+	/**
+	 * Instantiate the server
+	 */
+	public function __construct() {
+		$this->endpoints = array(
+			// Meta endpoints
+			'/' => array(
+				'callback' => array( $this, 'get_index' ),
+				'methods' => 'GET'
+			),
+		);
+	}
+
+
+	/**
 	 * Check the authentication headers if supplied
 	 *
 	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
@@ -303,6 +324,16 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Register a route to the server
+	 *
+	 * @param string $route
+	 * @param array $route_args
+	 */
+	public function register_route( $route, $route_args ) {
+		$this->endpoints[ $route ] = $route_args;
+	}
+
+	/**
 	 * Retrieve the route map
 	 *
 	 * The route map is an associative array with path regexes as the keys. The
@@ -320,15 +351,8 @@ class WP_JSON_Server {
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or `'/path/regex' => array( array( $callback, $bitmask ), ...)`
 	 */
 	public function get_routes() {
-		$endpoints = array(
-			// Meta endpoints
-			'/' => array(
-				'callback' => array( $this, 'get_index' ),
-				'methods' => 'GET'
-			),
-		);
 
-		$endpoints = apply_filters( 'json_endpoints', $endpoints );
+		$endpoints = apply_filters( 'json_endpoints', $this->endpoints );
 
 		// Normalise the endpoints
 		$defaults = array(

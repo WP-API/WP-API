@@ -48,6 +48,7 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-terms-controller
  * @param array $args
  */
 function register_json_route( $namespace, $route, $args = array() ) {
+	global $wp_json_server;
 
 	$defaults = array(
 		'methods'         => 'GET',
@@ -56,12 +57,8 @@ function register_json_route( $namespace, $route, $args = array() ) {
 	);
 	$args = array_merge( $defaults, $args );
 
-	add_filter( 'json_endpoints', function( $routes ) use ( $namespace, $route, $args ) {
-		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-		$routes[ $full_route ] = $args;
-		return $routes;
-	});
-
+	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+	$wp_json_server->register_route( $full_route, $args );
 }
 
 /**
