@@ -521,6 +521,22 @@ function json_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
+ * Ensure request arguments are a request object.
+ *
+ * This ensures that the request is consistent.
+ *
+ * @param array|WP_JSON_Request $reques Request to check.
+ * @return WP_JSON_Request
+ */
+function json_ensure_request( $request ) {
+	if ( $request instanceof WP_JSON_Request ) {
+		return $request;
+	}
+
+	return new WP_JSON_Request( $request );
+}
+
+/**
  * Ensure a JSON response is a response object.
  *
  * This ensures that the response is consistent, and implements
