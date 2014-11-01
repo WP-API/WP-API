@@ -225,7 +225,7 @@ class WP_JSON_Server {
 			 * @param mixed $result Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
 			 * @param WP_JSON_Server $this Server instance
 			 */
-			$result = apply_filters( 'json_pre_dispatch', null, $this );
+			$result = apply_filters( 'json_pre_dispatch', null, $this, $request );
 		}
 
 		if ( empty( $result ) ) {
