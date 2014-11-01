@@ -27,7 +27,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-request.php';
+require_once( dirname( __FILE__ ) . '/lib/class-wp-json-request.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
