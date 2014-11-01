@@ -433,9 +433,13 @@ class WP_JSON_Server {
 				}
 
 				// @todo fill this out
-				$request = new WP_JSON_Request;
+				$request = json_ensure_request( $args );
+				$request->set_method( $this->method );
+				$request->set_headers( $this->headers );
+				$request->set_route( $route );
+				$request->set_attributes( $handler );
 				
-				return call_user_func_array( $callback, array( 'args' => $args, 'request' => $request ) );
+				return call_user_func( $callback, $request );
 			}
 		}
 
