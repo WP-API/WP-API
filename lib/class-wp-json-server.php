@@ -52,44 +52,6 @@ class WP_JSON_Server {
 	);
 
 	/**
-	 * Requested path (relative to the API root, `wp-json`)
-	 *
-	 * @var string
-	 */
-	public $path = '';
-
-	/**
-	 * Requested method (GET/HEAD/POST/PUT/PATCH/DELETE)
-	 *
-	 * @var string
-	 */
-	public $method = 'HEAD';
-
-	/**
-	 * Request parameters
-	 *
-	 * This acts as an abstraction of the superglobals
-	 * (GET => $_GET, POST => $_POST)
-	 *
-	 * @var array
-	 */
-	public $params = array( 'GET' => array(), 'POST' => array() );
-
-	/**
-	 * Request headers
-	 *
-	 * @var array
-	 */
-	public $headers = array();
-
-	/**
-	 * Request files (matches $_FILES)
-	 *
-	 * @var array
-	 */
-	public $files = array();
-
-	/**
 	 * Check the authentication headers if supplied
 	 *
 	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
@@ -217,17 +179,17 @@ class WP_JSON_Server {
 			}
 		}
 
-		$this->request = new WP_JSON_Request();
-		$this->request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
-		$this->request->set_query_params( $_GET );
-		$this->request->set_body_params( $_POST );
-		$this->request->set_file_params( $_FILES );
-		$this->request->set_headers( $this->get_headers( $_SERVER ) );
-		$this->path = $path;
+		$request = new WP_JSON_Request();
+		$request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+		$request->set_query_params( $_GET );
+		$request->set_body_params( $_POST );
+		$request->set_file_params( $_FILES );
+		$request->set_headers( $this->get_headers( $_SERVER ) );
+		$request->set_route( $path );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$this->request->set_method( strtoupper( $_GET['_method'] ) );
+			$request->set_method( strtoupper( $_GET['_method'] ) );
 		}
 
 		$result = $this->check_authentication();
@@ -246,7 +208,7 @@ class WP_JSON_Server {
 		}
 
 		if ( empty( $result ) ) {
-			$result = $this->dispatch();
+			$result = $this->dispatch( $request );
 		}
 
 		// Normalize errors to response objects
@@ -273,14 +235,13 @@ class WP_JSON_Server {
 		 *
 		 * @param bool $served Whether the request has already been served
 		 * @param mixed $result Result to send to the client. JsonSerializable, or other value to pass to `json_encode`
-		 * @param string $path Route requested
-		 * @param string $method HTTP request method (HEAD/GET/POST/PUT/PATCH/DELETE)
+		 * @param WP_JSON_Request $request Request used to generate the response
 		 * @param WP_JSON_Server $this Server instance
 		 */
-		$served = apply_filters( 'json_serve_request', false, $result, $path, $this->method, $this );
+		$served = apply_filters( 'json_pre_serve_request', false, $result, $request, $this );
 
 		if ( ! $served ) {
-			if ( 'HEAD' === $this->method ) {
+			if ( 'HEAD' === $request->get_method() ) {
 				return;
 			}
 
@@ -363,11 +324,12 @@ class WP_JSON_Server {
 	/**
 	 * Match the request to a callback and call it
 	 *
-	 * @param string $path Requested route
+	 * @param WP_JSON_Request $request Request to attempt dispatching
 	 * @return mixed The value returned by the callback, or a WP_Error instance
 	 */
-	public function dispatch() {
-		$method = $this->request->get_method();
+	public function dispatch( $request ) {
+		$method = $request->get_method();
+		$path   = $request->get_route();
 
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
@@ -378,7 +340,7 @@ class WP_JSON_Server {
 					continue;
 				}
 
-				$match = preg_match( '@^' . $route . '$@i', $this->path, $args );
+				$match = preg_match( '@^' . $route . '$@i', $path, $args );
 
 				if ( ! $match ) {
 					continue;
@@ -425,7 +387,7 @@ class WP_JSON_Server {
 					return $args;
 				}
 
-				return call_user_func( $callback, $this->request );
+				return call_user_func( $callback, $request );
 			}
 		}
 
