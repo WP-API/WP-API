@@ -550,6 +550,7 @@ class WP_JSON_Posts {
 			'parent'          => (int) $post['post_parent'],
 			#'post_mime_type' => $post['post_mime_type'],
 			'link'            => get_permalink( $post['ID'] ),
+			'path'            => wp_make_link_relative( get_permalink( $post['ID'] ) ),
 		);
 
 		$post_fields_extended = array(
