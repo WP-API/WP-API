@@ -62,6 +62,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 */
 	public function __construct( $attributes = array() ) {
 		$this->params = array(
+			'URL' => array(),
 			'GET'  => array(),
 			'POST' => array(),
 			'FILES' => array(),
@@ -202,18 +203,22 @@ class WP_JSON_Request implements ArrayAccess {
 	public function get_param( $key ) {
 		switch ( $this->method ) {
 			case 'POST':
-				if ( ! isset( $this->params['POST'][ $key ] ) ) {
-					return null;
+				if ( isset( $this->params['POST'][ $key ] ) ) {
+					return $this->params['POST'][ $key ];
 				}
 
-				return $this->params['POST'][ $key ];
+				
 
 			default:
-				if ( ! isset( $this->params['GET'][ $key ] ) ) {
-					return null;
+				if ( isset( $this->params['GET'][ $key ] ) ) {
+					return $this->params['GET'][ $key ];
 				}
 
-				return $this->params['GET'][ $key ];
+				if ( isset( $this->params['URL'][ $key ] ) ) {
+					return $this->params['URL'][ $key ];
+				}
+
+				return null;
 		}
 	}
 
@@ -233,6 +238,28 @@ class WP_JSON_Request implements ArrayAccess {
 				$this->params['GET'][ $offset ] = $value;
 				break;
 		}
+	}
+
+	/**
+	 * Get parameters from the route itself
+	 *
+	 * These are parsed from the URL using the regex.
+	 *
+	 * @return array Parameter map of key to value
+	 */
+	public function get_url_params() {
+		return $this->params['URL'];
+	}
+
+	/**
+	 * Set parameters from the route
+	 *
+	 * Typically, this is set after parsing the URL.
+	 *
+	 * @param array $params Parameter map of key to value
+	 */
+	public function set_url_params( $params ) {
+		$this->params['URL'] = $params;
 	}
 
 	/**

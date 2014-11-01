@@ -403,12 +403,14 @@ class WP_JSON_Server {
 					}
 				}
 				*/
+			
+				$request->set_url_params( $args );
 
-				$args = apply_filters( 'json_dispatch_args', $args, $handler );
+				$dispatch_result = apply_filters( 'json_dispatch_request', $request );
 
 				// Allow plugins to halt the request via this filter
-				if ( is_wp_error( $args ) ) {
-					return $args;
+				if ( is_wp_error( $dispatch_result ) ) {
+					return $dispatch_result;
 				}
 
 				return call_user_func( $callback, $request );
