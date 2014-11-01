@@ -217,16 +217,17 @@ class WP_JSON_Server {
 			}
 		}
 
-		$this->path           = $path;
-		$this->method         = $_SERVER['REQUEST_METHOD'];
-		$this->params['GET']  = $_GET;
-		$this->params['POST'] = $_POST;
-		$this->headers        = $this->get_headers( $_SERVER );
-		$this->files          = $_FILES;
+		$this->request = new WP_JSON_Request();
+		$this->request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+		$this->request->set_query_params( $_GET );
+		$this->request->set_body_params( $_POST );
+		$this->request->set_file_params( $_FILES );
+		$this->request->set_headers( $this->get_headers( $_SERVER ) );
+		$this->path = $path;
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$this->method = strtoupper( $_GET['_method'] );
+			$this->request->set_method( strtoupper( $_GET['_method'] ) );
 		}
 
 		$result = $this->check_authentication();
@@ -366,12 +367,14 @@ class WP_JSON_Server {
 	 * @return mixed The value returned by the callback, or a WP_Error instance
 	 */
 	public function dispatch() {
+		$method = $this->request->get_method();
+
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
 
-				if ( empty( $handler['methods'][ $this->method ] ) ) {
+				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
 				}
 
@@ -385,12 +388,7 @@ class WP_JSON_Server {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
 
-				$args = array_merge( $args, $this->params['GET'] );
-
-				if ( $method === 'POST' ) {
-					$args = array_merge( $args, $this->params['POST'] );
-				}
-
+				/*
 				if ( ! empty( $handler['accept_json'] ) ) {
 					$raw_data = $this->get_raw_data();
 					$data = json_decode( $raw_data, true );
@@ -418,12 +416,7 @@ class WP_JSON_Server {
 						$args = array_merge( $args, array( 'data' => $data ) );
 					}
 				}
-
-				$args['_method']  = $method;
-				$args['_route']   = $route;
-				$args['_path']    = $this->path;
-				$args['_headers'] = $this->headers;
-				$args['_files']   = $this->files;
+				*/
 
 				$args = apply_filters( 'json_dispatch_args', $args, $handler );
 
@@ -432,14 +425,7 @@ class WP_JSON_Server {
 					return $args;
 				}
 
-				// @todo fill this out
-				$request = json_ensure_request( $args );
-				$request->set_method( $this->method );
-				$request->set_headers( $this->headers );
-				$request->set_route( $route );
-				$request->set_attributes( $handler );
-				
-				return call_user_func( $callback, $request );
+				return call_user_func( $callback, $this->request );
 			}
 		}
 
