@@ -90,6 +90,27 @@ class WP_JSON_Server {
 	public $files = array();
 
 	/**
+	 * Endpoints registered to the server
+	 *
+	 * @var array
+	 */
+	private $endpoints = array();
+
+	/**
+	 * Instantiate the server
+	 */
+	public function __construct() {
+		$this->endpoints = array(
+			// Meta endpoints
+			'/' => array(
+				'callback' => array( $this, 'get_index' ),
+				'methods' => 'GET'
+			),
+		);
+	}
+
+
+	/**
 	 * Check the authentication headers if supplied
 	 *
 	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
@@ -303,6 +324,16 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Register a route to the server
+	 *
+	 * @param string $route
+	 * @param array $route_args
+	 */
+	public function register_route( $route, $route_args ) {
+		$this->endpoints[ $route ] = $route_args;
+	}
+
+	/**
 	 * Retrieve the route map
 	 *
 	 * The route map is an associative array with path regexes as the keys. The
@@ -320,15 +351,8 @@ class WP_JSON_Server {
 	 * @return array `'/path/regex' => array( $callback, $bitmask )` or `'/path/regex' => array( array( $callback, $bitmask ), ...)`
 	 */
 	public function get_routes() {
-		$endpoints = array(
-			// Meta endpoints
-			'/' => array(
-				'callback' => array( $this, 'get_index' ),
-				'methods' => 'GET'
-			),
-		);
 
-		$endpoints = apply_filters( 'json_endpoints', $endpoints );
+		$endpoints = apply_filters( 'json_endpoints', $this->endpoints );
 
 		// Normalise the endpoints
 		$defaults = array(
@@ -432,13 +456,10 @@ class WP_JSON_Server {
 					return $args;
 				}
 
-				$params = $this->sort_callback_params( $callback, $args );
-
-				if ( is_wp_error( $params ) ) {
-					return $params;
-				}
-
-				return call_user_func_array( $callback, $params );
+				// @todo fill this out
+				$request = new WP_JSON_Request;
+				
+				return call_user_func_array( $callback, array( 'args' => $args, 'request' => $request ) );
 			}
 		}
 
@@ -463,41 +484,6 @@ class WP_JSON_Server {
 		}
 
 		return json_last_error_msg();
-	}
-
-	/**
-	 * Sort parameters by order specified in method declaration
-	 *
-	 * Takes a callback and a list of available params, then filters and sorts
-	 * by the parameters the method actually needs, using the Reflection API
-	 *
-	 * @param callback $callback
-	 * @param array $params
-	 * @return array
-	 */
-	protected function sort_callback_params( $callback, $provided ) {
-		if ( is_array( $callback ) ) {
-			$ref_func = new ReflectionMethod( $callback[0], $callback[1] );
-		} else {
-			$ref_func = new ReflectionFunction( $callback );
-		}
-
-		$wanted = $ref_func->getParameters();
-		$ordered_parameters = array();
-
-		foreach ( $wanted as $param ) {
-			if ( isset( $provided[ $param->getName() ] ) ) {
-				// We have this parameters in the list to choose from
-				$ordered_parameters[] = $provided[ $param->getName() ];
-			} elseif ( $param->isDefaultValueAvailable() ) {
-				// We don't have this parameter, but it's optional
-				$ordered_parameters[] = $param->getDefaultValue();
-			} else {
-				// We don't have this parameter and it wasn't optional, abort!
-				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $param->getName() ), array( 'status' => 400 ) );
-			}
-		}
-		return $ordered_parameters;
 	}
 
 	/**
