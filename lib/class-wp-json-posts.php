@@ -165,20 +165,21 @@ class WP_JSON_Posts {
 		$response = new WP_JSON_Response();
 		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
-		$post = $this->prepare_post( $post, $context );
+		$data = $this->prepare_post( $post, $context );
 
-		if ( is_wp_error( $post ) ) {
-			return $post;
+		if ( is_wp_error( $data ) ) {
+			return $data;
 		}
 
-		foreach ( $post['_links'] as $rel => $data ) {
-			$other = $data;
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
 			unset( $other['href'] );
-			$response->link_header( $rel, $data['href'], $other );
+			$response->add_link( $rel, $attributes['href'], $other );
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-		$response->set_data( $post );
+		$response->set_data( $data );
 
 		return $response;
 	}
