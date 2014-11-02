@@ -853,6 +853,7 @@ class WP_JSON_Posts {
 			),
 			'author'          => array(
 				'href' => json_url( '/users/' . $post['post_author'] ),
+				'embeddable' => true,
 			),
 			'collection'      => array(
 				'href' => json_url( '/posts' ),
@@ -868,6 +869,7 @@ class WP_JSON_Posts {
 		if ( ! empty( $post['post_parent'] ) ) {
 			$links['up'] = array(
 				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+				'embeddable' => true,
 			);
 		}
 

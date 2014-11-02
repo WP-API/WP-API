@@ -306,9 +306,9 @@ class WP_JSON_Server {
 				$data['_links'][ $rel ] = array();
 
 				foreach ( $items as $item ) {
-					$data['_links'][ $rel ][] = array(
-						'href' => $item['href'],
-					);
+					$attributes = $item['attributes'];
+					$attributes['href'] = $item['href'];
+					$data['_links'][ $rel ][] = $attributes;
 				}
 			}
 
@@ -342,8 +342,8 @@ class WP_JSON_Server {
 			$embeds = array();
 
 			foreach ( $links as $item ) {
-				// Is the URL linking to the API?
-				if ( strpos( $item['href'], $api_root ) !== 0 ) {
+				// Is the link embeddable?
+				if ( empty( $item['embeddable'] ) || strpos( $item['href'], $api_root ) !== 0 ) {
 					// Ensure we keep the same order
 					$embeds[] = array();
 					continue;
