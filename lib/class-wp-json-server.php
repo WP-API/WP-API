@@ -267,7 +267,7 @@ class WP_JSON_Server {
 			}
 
 			// Embed links inside the request
-			$result = $this->response_to_data( $this->prepare_response( $result ), isset( $_GET['_embed'] ) );
+			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
 			$result = json_encode( $result );
 
@@ -288,8 +288,15 @@ class WP_JSON_Server {
 		}
 	}
 
+	/**
+	 * Convert a response to data to send
+	 *
+	 * @param WP_JSON_Response $response Response object
+	 * @param boolean $embed Should we embed links?
+	 * @return array
+	 */
 	public function response_to_data( $response, $embed ) {
-		$data  = $response->get_data();
+		$data  = $this->prepare_response( $response->get_data() );
 		$links = $response->get_links();
 
 		if ( ! empty( $links ) ) {
