@@ -318,9 +318,10 @@ class WP_JSON_Server {
 
 		// Normalise the endpoints
 		$defaults = array(
-			'methods'     => '',
-			'accept_json' => false,
-			'accept_raw'  => false,
+			'methods'       => '',
+			'accept_json'   => false,
+			'accept_raw'    => false,
+			'show_in_index' => true,
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
@@ -466,34 +467,33 @@ class WP_JSON_Server {
 
 		// Find the available routes
 		foreach ( $this->get_routes() as $route => $callbacks ) {
-			$data = array();
+			$data = array(
+				'methods' => array(),
+			);
 
 			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
-			$methods = array();
 
-			foreach ( self::$method_map as $name => $bitmask ) {
-				foreach ( $callbacks as $callback ) {
-					// Skip to the next route if any callback is hidden
-					if ( $callback[1] & self::HIDDEN_ENDPOINT ) {
-						continue 3;
-					}
+			foreach ( $callbacks as $callback ) {
+				// Skip to the next route if any callback is hidden
+				if ( empty( $callback['show_in_index'] ) ) {
+					continue;
+				}
 
-					if ( $callback[1] & $bitmask ) {
-						$data['supports'][] = $name;
-					}
+				$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
 
-					if ( $callback[1] & self::ACCEPT_JSON ) {
-						$data['accepts_json'] = true;
-					}
-
-					// For non-variable routes, generate links
-					if ( strpos( $route, '<' ) === false ) {
-						$data['_links'] = array(
-							'self' => json_url( $route ),
-						);
-					}
+				// For non-variable routes, generate links
+				if ( strpos( $route, '{' ) === false ) {
+					$data['_links'] = array(
+						'self' => json_url( $route ),
+					);
 				}
 			}
+
+			if ( empty( $data['methods'] ) ) {
+				// No methods supported, hide the route
+				continue;
+			}
+
 			$available['routes'][ $route ] = apply_filters( 'json_endpoints_description', $data );
 		}
 		return apply_filters( 'json_index', $available );
