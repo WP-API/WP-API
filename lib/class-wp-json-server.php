@@ -266,7 +266,10 @@ class WP_JSON_Server {
 				return;
 			}
 
-			$result = json_encode( $this->prepare_response( $result ) );
+			// Embed links inside the request
+			$result = $this->response_to_data( $this->prepare_response( $result ), isset( $_GET['_embed'] ) );
+
+			$result = json_encode( $result );
 
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
@@ -283,6 +286,84 @@ class WP_JSON_Server {
 				echo $result;
 			}
 		}
+	}
+
+	public function response_to_data( $response, $embed ) {
+		$data  = $response->get_data();
+		$links = $response->get_links();
+
+		if ( ! empty( $links ) ) {
+			// Convert links to part of the data
+			$data['_links'] = array();
+			foreach ( $links as $rel => $items ) {
+				$data['_links'][ $rel ] = array();
+
+				foreach ( $items as $item ) {
+					$data['_links'][ $rel ][] = array(
+						'href' => $item['href'],
+					);
+				}
+			}
+
+			if ( $embed ) {
+				$data = $this->embed_links( $data );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Embed the links from the data into the request
+	 *
+	 * @param array $data Data from the request
+	 * @return array Data with sub-requests embedded
+	 */
+	protected function embed_links( $data ) {
+		if ( empty( $data['_links'] ) ) {
+			return $data;
+		}
+
+		$embedded = array();
+		$api_root = json_url();
+		foreach ( $data['_links'] as $rel => $links ) {
+			// Ignore links to self, for obvious reasons
+			if ( $rel === 'self' ) {
+				continue;
+			}
+
+			$embeds = array();
+
+			foreach ( $links as $item ) {
+				// Is the URL linking to the API?
+				if ( strpos( $item['href'], $api_root ) !== 0 ) {
+					// Ensure we keep the same order
+					$embeds[] = array();
+					continue;
+				}
+
+				// Run through our internal routing and serve
+				$request = new WP_JSON_Request();
+				$request->set_method( 'GET' );
+
+				$route = substr( $item['href'], strlen( $api_root ) );
+				$request->set_route( $route );
+
+				$embeds[] = $this->dispatch( $request );
+			}
+
+			// Did we get any real links?
+			$has_links = count( array_filter( $embeds ) );
+			if ( $has_links ) {
+				$embedded[ $rel ] = $embeds;
+			}
+		}
+
+		if ( ! empty( $embedded ) ) {
+			$data['_embedded'] = $embedded;
+		}
+
+		return $data;
 	}
 
 	/**

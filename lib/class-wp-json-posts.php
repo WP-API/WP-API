@@ -831,41 +831,46 @@ class WP_JSON_Posts {
 			}
 		}
 
-		// Entity meta
-		$links = array(
-			'self'       => array(
-				'href' => json_url( '/posts/' . $post['ID'] ),
-			),
-			'author'     => array(
-				'href' => json_url( '/users/' . $post['post_author'] ),
-			),
-			'collection' => array(
-				'href' => json_url( '/posts' ),
-			),
-		);
-
-		if ( 'view-revision' != $context ) {
-			$links['replies']         = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
-			);
-			$links['version-history'] = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-			);
-		}
-
-		$_post['_links'] = $links;
-
-		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['_links']['up'] = array(
-				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
-			);
-		}
-
 		$GLOBALS['post'] = $previous_post;
 		if ( $previous_post ) {
 			setup_postdata( $previous_post );
 		}
 		return apply_filters( 'json_prepare_post', $_post, $post, $context );
+	}
+
+	/**
+	 * Prepare links for the request
+	 *
+	 * @param array $post Post data
+	 * @return array Links for the given post
+	 */
+	protected function prepare_links( $post ) {
+		// Entity meta
+		$links = array(
+			'self'            => array(
+				'href' => json_url( '/posts/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+			),
+			'collection'      => array(
+				'href' => json_url( '/posts' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			),
+		);
+
+		if ( ! empty( $post['post_parent'] ) ) {
+			$links['up'] = array(
+				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+			);
+		}
+
+		return $links;
 	}
 
 	/**
