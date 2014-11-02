@@ -19,7 +19,6 @@ That is, the following are equivalent:
 ```
 Content-Type: application/x-www-form-urlencoded
 
-
 data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
 ```
 
