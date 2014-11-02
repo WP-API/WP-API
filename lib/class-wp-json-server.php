@@ -356,6 +356,9 @@ class WP_JSON_Server {
 				$route = substr( $item['href'], strlen( $api_root ) );
 				$request->set_route( $route );
 
+				// Embedded resources get passed context=embed
+				$request->set_query_params( array( 'context' => 'embed' ) );
+
 				$response = $this->dispatch( $request );
 				if ( is_wp_error( $response ) ) {
 					$response = $this->error_to_response( $response );
