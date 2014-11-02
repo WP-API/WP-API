@@ -27,7 +27,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-request.php';
+require_once( dirname( __FILE__ ) . '/lib/class-wp-json-request.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-users.php' );
@@ -173,7 +173,7 @@ function json_api_default_filters( $server ) {
 
 	// Default serving
 	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
-	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 2 );
+	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -518,6 +518,22 @@ function json_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
+ * Ensure request arguments are a request object.
+ *
+ * This ensures that the request is consistent.
+ *
+ * @param array|WP_JSON_Request $request Request to check.
+ * @return WP_JSON_Request
+ */
+function json_ensure_request( $request ) {
+	if ( $request instanceof WP_JSON_Request ) {
+		return $request;
+	}
+
+	return new WP_JSON_Request( $request );
+}
+
+/**
  * Ensure a JSON response is a response object.
  *
  * This ensures that the response is consistent, and implements
@@ -715,8 +731,8 @@ function json_send_cors_headers( $value ) {
  * @param WP_JSON_Server $handler ResponseHandler instance (usually WP_JSON_Server)
  * @return WP_JSON_Response Modified response, either response or `null` to indicate pass-through
  */
-function json_handle_options_request( $response, $handler ) {
-	if ( ! empty( $response ) || $handler->method !== 'OPTIONS' ) {
+function json_handle_options_request( $response, $handler, $request ) {
+	if ( ! empty( $response ) || $request->get_method() !== 'OPTIONS' ) {
 		return $response;
 	}
 
@@ -729,7 +745,7 @@ function json_handle_options_request( $response, $handler ) {
 	$map = $class_vars['method_map'];
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
-		$match = preg_match( '@^' . $route . '$@i', $handler->path, $args );
+		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
 
 		if ( ! $match ) {
 			continue;
