@@ -531,7 +531,7 @@ function json_ensure_request( $request ) {
 		return $request;
 	}
 
-	return new WP_JSON_Request( $request );
+	return new WP_JSON_Request( 'GET', '', $request );
 }
 
 /**

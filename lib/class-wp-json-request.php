@@ -63,7 +63,7 @@ class WP_JSON_Request implements ArrayAccess {
 	/**
 	 * Constructor
 	 */
-	public function __construct( $attributes = array() ) {
+	public function __construct( $method = '', $route = '', $attributes = array() ) {
 		$this->params = array(
 			'URL' => array(),
 			'GET'  => array(),
@@ -71,8 +71,8 @@ class WP_JSON_Request implements ArrayAccess {
 			'FILES' => array(),
 		);
 
-		$this->headers = array();
-
+		$this->method = $method;
+		$this->route = $route;
 		$this->attributes = $attributes;
 	}
 
