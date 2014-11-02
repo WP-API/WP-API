@@ -11,37 +11,75 @@ class WP_JSON_Posts {
 		$post_routes = array(
 			// Post endpoints
 			'/posts' => array(
-				array( array( $this, 'get_multiple' ),   WP_JSON_Server::READABLE ),
-				array( array( $this, 'create' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array(
+					'callback' => array( $this, 'get_multiple' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
+				array(
+					'callback'    => array( $this, 'create' ),
+					'methods'     => WP_JSON_Server::CREATABLE,
+					'accept_json' => true,
+				),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
-				array( array( $this, 'get' ),            WP_JSON_Server::READABLE ),
-				array( array( $this, 'update' ),         WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete' ),         WP_JSON_Server::DELETABLE ),
+				array(
+					'callback' => array( $this, 'get' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
+				array(
+					'callback' => array( $this, 'update' ),
+					'methods'  => WP_JSON_Server::EDITABLE,
+					'accept_json' => true,
+				),
+				array(
+					'callback' => array( $this, 'delete' ),
+					'methods'  => WP_JSON_Server::DELETABLE,
+				),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
-				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
+				array(
+					'callback' => array( $this, 'get_revisions' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments' => array(
-				array( array( $this, 'get_comments' ),   WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_comments' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $this, 'get_comment' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
+				array(
+					'callback' => array( $this, 'get_comment' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
+				array(
+					'callback' => array( $this, 'delete_comment' ),
+					'methods'  => WP_JSON_Server::DELETABLE,
+				),
 			),
 
 			// Meta-post endpoints
 			'/posts/types' => array(
-				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE,
+				array(
+					'callback' => array( $this, 'get_post_types' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/posts/types/(?P<type>\w+)' => array(
-				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE,
+				array(
+					'callback' => array( $this, 'get_post_type' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/posts/statuses' => array(
-				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE,
+				array(
+					'callback' => array( $this, 'get_post_statuses' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 		);
 		return array_merge( $routes, $post_routes );

@@ -11,17 +11,37 @@ class WP_JSON_Users {
 		$user_routes = array(
 			// User endpoints
 			'/users' => array(
-				array( array( $this, 'get_multiple' ),     WP_JSON_Server::READABLE ),
-				array( array( $this, 'create' ),           WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array(
+					'callback' => array( $this, 'get_multiple' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
+				array(
+					'callback'    => array( $this, 'create' ),
+					'methods'     => WP_JSON_Server::CREATABLE,
+					'accept_json' => true,
+				),
 			),
 			'/users/(?P<id>\d+)' => array(
-				array( array( $this, 'get' ),              WP_JSON_Server::READABLE ),
-				array( array( $this, 'update' ),           WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete' ),           WP_JSON_Server::DELETABLE ),
+				array(
+					'callback' => array( $this, 'get' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
+				array(
+					'callback'    => array( $this, 'update' ),
+					'methods'     => WP_JSON_Server::EDITABLE,
+					'accept_json' => true,
+				),
+				array(
+					'callback' => array( $this, 'delete' ),
+					'methods'  => WP_JSON_Server::DELETABLE,
+				),
 			),
 			// /users/me is an alias, and simply redirects to /users/<id>
 			'/users/me' => array(
-				array( array( $this, 'get_current' ), WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_current' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 		);
 		return array_merge( $routes, $user_routes );
