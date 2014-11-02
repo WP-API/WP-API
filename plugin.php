@@ -522,7 +522,7 @@ function json_url( $path = '', $scheme = 'json' ) {
  *
  * This ensures that the request is consistent.
  *
- * @param array|WP_JSON_Request $reques Request to check.
+ * @param array|WP_JSON_Request $request Request to check.
  * @return WP_JSON_Request
  */
 function json_ensure_request( $request ) {
