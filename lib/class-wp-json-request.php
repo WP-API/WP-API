@@ -53,6 +53,9 @@ class WP_JSON_Request implements ArrayAccess {
 	/**
 	 * Attributes (options) for the route that was matched
 	 *
+	 * This is the options array used when the route was registered, typically
+	 * containing the callback as well as the valid methods for the route.
+	 *
 	 * @return array Attributes for the request
 	 */
 	protected $attributes = array();
