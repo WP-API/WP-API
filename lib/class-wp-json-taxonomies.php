@@ -10,16 +10,28 @@ class WP_JSON_Taxonomies {
 	public function register_routes( $routes ) {
 		$tax_routes = array(
 			'/taxonomies' => array(
-				array( array( $this, 'get_taxonomies' ), WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_taxonomies' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)' => array(
-				array( array( $this, 'get_taxonomy' ), WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_taxonomy' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)/terms' => array(
-				array( array( $this, 'get_terms' ), WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_terms' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)' => array(
-				array( array( $this, 'get_term' ), WP_JSON_Server::READABLE ),
+				array(
+					'callback' => array( $this, 'get_term' ),
+					'methods'  => WP_JSON_Server::READABLE,
+				),
 			),
 		);
 
