@@ -44,28 +44,33 @@ abstract class WP_JSON_Meta {
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
 			array(
-				'callback' => array( $this, 'get_all_meta' ),
-				'methods'  => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_all_meta' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
 			),
 			array(
 				'callback'    => array( $this, 'add_meta' ),
 				'methods'     => WP_JSON_Server::CREATABLE,
 				'accept_json' => true,
+				'v1_compat'   => true,
 			),
 		);
 		$routes[ $this->base . '/(?P<mid>\d+)' ] = array(
 			array(
-				'callback' => array( $this, 'get_meta' ),
-				'methods'  => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_meta' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
 			),
 			array(
 				'callback'    => array( $this, 'update_meta' ),
 				'methods'     => WP_JSON_Server::EDITABLE,
 				'accept_json' => true,
+				'v1_compat'   => true,
 			),
 			array(
-				'callback' => array( $this, 'delete_meta' ),
-				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback'  => array( $this, 'delete_meta' ),
+				'methods'   => WP_JSON_Server::DELETABLE,
+				'v1_compat' => true,
 			),
 		);
 

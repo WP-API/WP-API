@@ -59,29 +59,34 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
 			array(
-				'callback' => array( $this, 'get_posts' ),
-				'methods'  => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_posts' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
 			),
 			array(
 				'callback'    => array( $this, 'create_post' ),
 				'methods'     => WP_JSON_Server::CREATABLE,
 				'accept_json' => true,
+				'v1_compat'   => true,
 			),
 		);
 
 		$routes[ $this->base . '/(?P<id>\d+)' ] = array(
 			array(
-				'callback' => array( $this, 'get_post' ),
-				'methods'  => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_post' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
 			),
 			array(
 				'callback'    => array( $this, 'edit_post' ),
 				'methods'     => WP_JSON_Server::EDITABLE,
 				'accept_json' => true,
+				'v1_compat'   => true,
 			),
 			array(
-				'callback' => array( $this, 'delete_post' ),
-				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback'  => array( $this, 'delete_post' ),
+				'methods'   => WP_JSON_Server::DELETABLE,
+				'v1_compat' => true,
 			),
 		);
 		return $routes;

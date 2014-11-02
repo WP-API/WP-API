@@ -47,17 +47,20 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		// Add post-by-path routes
 		$routes[ $this->base . '/(?P<path>.+)'] = array(
 			array(
-				'callback' => array( $this, 'get_post_by_path' ),
-				'methods'  => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_post_by_path' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
 			),
 			array(
 				'callback'    => array( $this, 'edit_post_by_path' ),
 				'methods'     => WP_JSON_Server::EDITABLE,
 				'accept_json' => true,
+				'v1_compat'   => true,
 			),
 			array(
-				'callback' => array( $this, 'delete_post_by_path' ),
-				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback'  => array( $this, 'delete_post_by_path' ),
+				'methods'   => WP_JSON_Server::DELETABLE,
+				'v1_compat' => true,
 			),
 		);
 

@@ -12,35 +12,41 @@ class WP_JSON_Users {
 			// User endpoints
 			'/users' => array(
 				array(
-					'callback' => array( $this, 'get_multiple' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_multiple' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 				array(
 					'callback'    => array( $this, 'create' ),
 					'methods'     => WP_JSON_Server::CREATABLE,
 					'accept_json' => true,
+					'v1_compat'   => true,
 				),
 			),
 			'/users/(?P<id>\d+)' => array(
 				array(
-					'callback' => array( $this, 'get' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 				array(
 					'callback'    => array( $this, 'update' ),
 					'methods'     => WP_JSON_Server::EDITABLE,
 					'accept_json' => true,
+					'v1_compat'   => true,
 				),
 				array(
-					'callback' => array( $this, 'delete' ),
-					'methods'  => WP_JSON_Server::DELETABLE,
+					'callback'  => array( $this, 'delete' ),
+					'methods'   => WP_JSON_Server::DELETABLE,
+					'v1_compat' => true,
 				),
 			),
 			// /users/me is an alias, and simply redirects to /users/<id>
 			'/users/me' => array(
 				array(
-					'callback' => array( $this, 'get_current' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_current' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 		);
