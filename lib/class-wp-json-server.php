@@ -349,7 +349,12 @@ class WP_JSON_Server {
 				$route = substr( $item['href'], strlen( $api_root ) );
 				$request->set_route( $route );
 
-				$embeds[] = $this->dispatch( $request );
+				$response = $this->dispatch( $request );
+				if ( is_wp_error( $response ) ) {
+					$response = $this->error_to_response( $response );
+				}
+
+				$embeds[] = $response;
 			}
 
 			// Did we get any real links?
