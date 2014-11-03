@@ -16,7 +16,7 @@ Dive in deeper into the [schema details][schema] to better understand the little
 details, or read about the [philosophy][] behind them. Read about the
 [implementation details][implementation] on how the API works internally.
 
-[Getting Started]: http://wp-api.org/guides.html#getting-started
+[Getting Started]: http://wp-api.org/guides/getting-started.html
 [guides]: http://wp-api.org/guides.html
 [post-routes]: http://wp-api.org/#posts
 [media-routes]: http://wp-api.org/#media
