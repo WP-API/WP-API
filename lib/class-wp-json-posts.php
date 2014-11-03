@@ -160,13 +160,9 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		// Link headers (see RFC 5988)
-
 		$response = new WP_JSON_Response();
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
 		$post = $this->prepare_post( $post, $context );
-
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
@@ -263,9 +259,7 @@ class WP_JSON_Posts {
 		}
 
 		// holds all the posts data
-		$struct = array();
-
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
+		$response = array();
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
@@ -275,15 +269,13 @@ class WP_JSON_Posts {
 				continue;
 			}
 
-			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
 			$post_data = $this->prepare_post( $post, $context );
 			if ( is_wp_error( $post_data ) ) {
 				continue;
 			}
 
-			$struct[] = $post_data;
+			$response[] = $post_data;
 		}
-		$response->set_data( $struct );
 
 		return $response;
 	}
@@ -342,25 +334,6 @@ class WP_JSON_Posts {
 
 		if ( empty( $id ) || empty( $post['ID'] ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( isset( $_headers['IF_UNMODIFIED_SINCE'] ) ) {
-			// As mandated by RFC2616, we have to check all of RFC1123, RFC1036
-			// and C's asctime() format (and ignore invalid headers)
-			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
-
-			foreach ( $formats as $format ) {
-				$check = WP_JSON_DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
-
-				if ( $check !== false ) {
-					break;
-				}
-			}
-
-			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
-				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
-			}
 		}
 
 		$data['id'] = $id;
