@@ -16,14 +16,17 @@ body.
 
 That is, the following are equivalent:
 
+```
 Content-Type: application/x-www-form-urlencoded
 
-  data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
+data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
+```
 
-
+```
 Content-Type: application/json
-
-  {"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
+	
+{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
+ ```
 
 The `data` parameter should be an object containing the following key value
 pairs:
