@@ -71,9 +71,9 @@ class WP_JSON_Request implements ArrayAccess {
 			'FILES' => array(),
 		);
 
-		$this->method = $method;
-		$this->route = $route;
-		$this->attributes = $attributes;
+		$this->set_method( $method );
+		$this->set_route( $route );
+		$this->set_attributes( $attributes );
 	}
 
 	/**
