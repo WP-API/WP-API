@@ -11,26 +11,30 @@ class WP_JSON_Taxonomies {
 		$tax_routes = array(
 			'/taxonomies' => array(
 				array(
-					'callback' => array( $this, 'get_taxonomies' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_taxonomies' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)' => array(
 				array(
-					'callback' => array( $this, 'get_taxonomy' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_taxonomy' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)/terms' => array(
 				array(
-					'callback' => array( $this, 'get_terms' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_terms' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)' => array(
 				array(
-					'callback' => array( $this, 'get_term' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_term' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 		);

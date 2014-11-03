@@ -406,11 +406,18 @@ class WP_JSON_Server {
 				*/
 			
 				$request->set_url_params( $args );
+				$request->set_attributes( $handler );
 
-				$dispatch_result = apply_filters( 'json_dispatch_request', $request );
+				/**
+				 * Allow plugins to override dispatching the request
+				 *
+				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+				 * @param WP_JSON_Request $request
+				 */
+				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
 
 				// Allow plugins to halt the request via this filter
-				if ( is_wp_error( $dispatch_result ) ) {
+				if ( $dispatch_result !== null ) {
 					return $dispatch_result;
 				}
 

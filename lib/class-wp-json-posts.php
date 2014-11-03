@@ -12,73 +12,85 @@ class WP_JSON_Posts {
 			// Post endpoints
 			'/posts' => array(
 				array(
-					'callback' => array( $this, 'get_multiple' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_multiple' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 				array(
 					'callback'    => array( $this, 'create' ),
 					'methods'     => WP_JSON_Server::CREATABLE,
 					'accept_json' => true,
+					'v1_compat'   => true,
 				),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
 				array(
-					'callback' => array( $this, 'get' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 				array(
-					'callback' => array( $this, 'update' ),
-					'methods'  => WP_JSON_Server::EDITABLE,
+					'callback'    => array( $this, 'update' ),
+					'methods'     => WP_JSON_Server::EDITABLE,
 					'accept_json' => true,
+					'v1_compat'   => true,
 				),
 				array(
-					'callback' => array( $this, 'delete' ),
-					'methods'  => WP_JSON_Server::DELETABLE,
+					'callback'  => array( $this, 'delete' ),
+					'methods'   => WP_JSON_Server::DELETABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
 				array(
-					'callback' => array( $this, 'get_revisions' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_revisions' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments' => array(
 				array(
-					'callback' => array( $this, 'get_comments' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_comments' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
 				array(
-					'callback' => array( $this, 'get_comment' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_comment' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 				array(
-					'callback' => array( $this, 'delete_comment' ),
-					'methods'  => WP_JSON_Server::DELETABLE,
+					'callback'  => array( $this, 'delete_comment' ),
+					'methods'   => WP_JSON_Server::DELETABLE,
+					'v1_compat' => true,
 				),
 			),
 
 			// Meta-post endpoints
 			'/posts/types' => array(
 				array(
-					'callback' => array( $this, 'get_post_types' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_post_types' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/posts/types/(?P<type>\w+)' => array(
 				array(
-					'callback' => array( $this, 'get_post_type' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_post_type' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 			'/posts/statuses' => array(
 				array(
-					'callback' => array( $this, 'get_post_statuses' ),
-					'methods'  => WP_JSON_Server::READABLE,
+					'callback'  => array( $this, 'get_post_statuses' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
 				),
 			),
 		);
