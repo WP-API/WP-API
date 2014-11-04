@@ -9,6 +9,10 @@
  * @TODO fix this doc block (Make it better maybe?)
  */
 
+//Hooks and Actions 
+add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
+add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
+
 
 /**
  * Register API Javascript helpers.
@@ -21,5 +25,4 @@ function json_register_scripts() {
 	$settings = array( 'root' => esc_url_raw( get_json_url() ), 'nonce' => wp_create_nonce( 'wp_json' ) );
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
-add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
-add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
+
