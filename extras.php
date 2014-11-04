@@ -9,7 +9,6 @@
  * @TODO fix this doc block (Make it better maybe?)
  */
 
-//Hooks and Actions
 add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
 add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
 add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
@@ -20,8 +19,6 @@ add_action( 'auth_cookie_expired',      'json_cookie_collect_status' );
 add_action( 'auth_cookie_bad_username', 'json_cookie_collect_status' );
 add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
 add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
-
-//Filters
 add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
 
 
@@ -176,6 +173,64 @@ function json_get_avatar_url( $email ) {
 
 	return '';
 }
+
+/**
+ * Parse an RFC3339 timestamp into a DateTime.
+ *
+ * @param string $date      RFC3339 timestamp.
+ * @param bool   $force_utc Force UTC timezone instead of using the timestamp's TZ.
+ * @return DateTime DateTime instance.
+ */
+function json_parse_date( $date, $force_utc = false ) {
+	if ( $force_utc ) {
+		$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
+	}
+
+	$regex = '#^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}(?::\d{2})?)?$#';
+
+	if ( ! preg_match( $regex, $date, $matches ) ) {
+		return false;
+	}
+
+	return strtotime( $date );
+}
+
+/**
+ * Get a local date with its GMT equivalent, in MySQL datetime format.
+ *
+ * @param string $date      RFC3339 timestamp
+ * @param bool   $force_utc Whether a UTC timestamp should be forced.
+ * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
+ *                    null on failure.
+ */
+function json_get_date_with_gmt( $date, $force_utc = false ) {
+	$date = json_parse_date( $date, $force_utc );
+
+	if ( empty( $date ) ) {
+		return null;
+	}
+
+	$utc = date( 'Y-m-d H:i:s', $date );
+	$local = get_date_from_gmt( $utc );
+
+	return array( $local, $utc );
+}
+
+/**
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339
+ *
+ * Explicitly strips timezones, as datetimes are not saved with any timezone
+ * information. Including any information on the offset could be misleading.
+ *
+ * @param string $date
+ */
+function json_mysql_to_rfc3339( $date_string ) {
+	$formatted = mysql2date( 'c', $date_string, false );
+
+	// Strip timezone information
+	return preg_replace( '/(?:Z|[+-]\d{2}(?::\d{2})?)$/', '', $formatted );
+}
+
 
 /**
  * Get the timezone object for the site.
