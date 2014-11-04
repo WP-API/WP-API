@@ -3,7 +3,10 @@
 /**
  * Extra File where a lot of the extra functions from plugin.php go.
  *
- * @TODO fix this doc block
+ * @package WordPress
+ * @subpackage JSON API
+ *
+ * @TODO fix this doc block (Make it better maybe?)
  */
 
 
