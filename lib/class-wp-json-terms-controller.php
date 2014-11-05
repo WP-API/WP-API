@@ -109,6 +109,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	public function prepare_item_for_response( $item, $request ) {
 		return array(
 			'id'           => (int) $item->term_id,
+			'count'        => (int) $item->count,
 			'description'  => $item->description,
 			'name'         => $item->name,
 			'slug'         => $item->slug,
