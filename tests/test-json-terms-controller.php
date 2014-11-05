@@ -60,7 +60,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$request->set_param( 'taxonomy', 'category' );
 		$request->set_param( 'id', 2 );
 		$response = $this->endpoint->get_item( $request );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_term', $response, 404 );
+		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
 	public function test_prepare_taxonomy_term() {
