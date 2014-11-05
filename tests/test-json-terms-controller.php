@@ -22,7 +22,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		do_action( 'wp_json_server_before_serve' );
 		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)', $routes );
-		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/(?P<term>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', $routes );
 	}
 
 	public function test_get_terms() {
