@@ -26,8 +26,6 @@ class WP_Test_JSON_Taxonomy_Terms_Controller extends WP_Test_JSON_TestCase {
 		$routes = array();
 		$routes = $this->endpoint->register_routes( $routes );
 
-		$this->assertArrayHasKey( '/taxonomies', $routes );
-		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms', $routes );
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
 	}
