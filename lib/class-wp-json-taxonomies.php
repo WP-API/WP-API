@@ -9,20 +9,6 @@ class WP_JSON_Taxonomies {
 	 */
 	public function register_routes( $routes ) {
 		$tax_routes = array(
-			'/taxonomies' => array(
-				array(
-					'callback'  => array( $this, 'get_taxonomies' ),
-					'methods'   => WP_JSON_Server::READABLE,
-					'v1_compat' => true,
-				),
-			),
-			'/taxonomies/(?P<taxonomy>[\w-]+)' => array(
-				array(
-					'callback'  => array( $this, 'get_taxonomy' ),
-					'methods'   => WP_JSON_Server::READABLE,
-					'v1_compat' => true,
-				),
-			),
 			'/taxonomies/(?P<taxonomy>[\w-]+)/terms' => array(
 				array(
 					'callback'  => array( $this, 'get_terms' ),
@@ -40,86 +26,6 @@ class WP_JSON_Taxonomies {
 		);
 
 		return array_merge( $routes, $tax_routes );
-	}
-
-	/**
-	 * Get taxonomies
-	 *
-	 * @param string|null $type A specific post type for which to retrieve taxonomies (optional)
-	 * @return array Taxonomy data
-	 */
-	public function get_taxonomies( $type = null, $context = 'view' ) {
-		if ( null === $type ) {
-			$taxonomies = get_taxonomies( '', 'objects' );
-		} else {
-			$taxonomies = get_object_taxonomies( $type, 'objects' );
-		}
-
-		$data = array();
-
-		foreach ( $taxonomies as $tax_type => $value ) {
-			$tax = $this->prepare_taxonomy( $value, $context );
-			if ( is_wp_error( $tax ) ) {
-				continue;
-			}
-
-			$data[] = $tax;
-		}
-
-		return $data;
-	}
-
-	/**
-	 * Get taxonomies
-	 *
-	 * @param string $taxonomy Taxonomy slug
-	 * @return array Taxonomy data
-	 */
-	public function get_taxonomy( $taxonomy ) {
-		$tax = get_taxonomy( $taxonomy );
-
-		if ( empty( $tax ) ) {
-			return new WP_Error( 'json_taxonomy_invalid_id', __( 'Invalid taxonomy ID.' ), array( 'status' => 404 ) );
-		}
-
-		return $this->prepare_taxonomy( $tax );
-	}
-
-	/**
-	 * Prepare a taxonomy object for serialization
-	 *
-	 * @param stdClass $taxonomy Taxonomy data
-	 * @param string $context Context (view|embed)
-	 * @return array Taxonomy data
-	 */
-	protected function prepare_taxonomy( $taxonomy, $context = 'view' ) {
-		if ( $taxonomy->public === false ) {
-			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
-		}
-
-		$base_url = '/taxonomies/' . $taxonomy->name;
-
-		$data = array(
-			'name'         => $taxonomy->label,
-			'slug'         => $taxonomy->name,
-			'labels'       => $taxonomy->labels,
-			'types'        => $taxonomy->object_type,
-			'show_cloud'   => $taxonomy->show_tagcloud,
-			'hierarchical' => $taxonomy->hierarchical,
-			'_links' => array(
-				'archives'   => array(
-					'href' => json_url( $base_url . '/terms' ),
-				),
-				'collection' => array(
-					'href' => json_url( '/taxonomies' ),
-				),
-				'self'       => array(
-					'href' => json_url( $base_url ),
-				),
-			),
-		);
-
-		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $context );
 	}
 
 	/**

@@ -39,6 +39,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-terms-controller.php';
 
 /**
@@ -67,8 +68,23 @@ function register_json_route( $namespace, $route, $args = array() ) {
  */
 function create_initial_json_routes() {
 
-	$controller = new WP_JSON_Taxonomy_Terms_Controller;	
+	$controller = new WP_JSON_Taxonomy_Controller;
+	register_json_route( 'wp', '/taxonomies', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'post_type'          => array(
+				'required'   => false,
+			),
+		),		
+	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_item' ),
+	) );
+
+	$controller = new WP_JSON_Taxonomy_Terms_Controller;	
+	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
