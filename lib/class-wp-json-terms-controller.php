@@ -12,7 +12,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array();
+		$prepared_args = array( 'hide_empty' => false );
 		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
 		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0; 
 		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
