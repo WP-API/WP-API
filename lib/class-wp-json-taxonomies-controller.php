@@ -1,6 +1,6 @@
 <?php
 
-class WP_JSON_Taxonomy_Controller extends WP_JSON_Controller {
+class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	
 	/**
 	 * Get all public taxonomies
