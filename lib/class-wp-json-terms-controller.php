@@ -3,7 +3,7 @@
 /**
  * Access terms associated with a taxonomy
  */
-class WP_JSON_Taxonomy_Terms_Controller extends WP_JSON_Controller {
+class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Get terms associated with a taxonomy

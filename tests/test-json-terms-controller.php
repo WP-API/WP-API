@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Unit tests covering WP_JSON_Taxonomy_Terms_Controller functionality.
+ * Unit tests covering WP_JSON_Terms_Controller functionality.
  *
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Taxonomy_Terms_Controller extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 	/**
 	 * This function is run before each method
 	 */
