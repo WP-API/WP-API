@@ -13,49 +13,94 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->user = $this->factory->user->create();
-		wp_set_current_user( $this->user );
-
-		$this->markTestSkipped( "Needs to be revisited after dust has settled on develop" );
-
-		$this->fake_server = $this->getMock('WP_JSON_Server');
-		$this->endpoint = new WP_JSON_Taxonomies( $this->fake_server );
+		$this->endpoint = new WP_JSON_Terms_Controller();
 	}
 
 	public function test_register_routes() {
-		$routes = array();
-		$routes = $this->endpoint->register_routes( $routes );
-
-		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms', $routes );
-		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
+		global $wp_json_server;
+		$wp_json_server = new WP_JSON_Server;
+		do_action( 'wp_json_server_before_serve' );
+		$routes = $wp_json_server->get_routes();
+		$this->assertArrayHasKey( '/terms/(?P<taxonomy>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/terms/(?P<taxonomy>[\w-]+)/(?P<term>[\w-]+)', $routes );
 	}
 
 	public function test_get_terms() {
-		$response = $this->endpoint->get_terms( 'category' );
+		$request = new WP_JSON_Request;
+		$request->set_param( 'taxonomy', 'category' );
+		$response = $this->endpoint->get_items( $request );
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
-	public function test_get_terms_empty() {
-		$response = $this->endpoint->get_terms( '' );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	public function test_get_terms_invalid_taxonomy() {
+		$request = new WP_JSON_Request;
+		$request->set_param( 'taxonomy', '' );
+		$response = $this->endpoint->get_items( $request );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
-	public function test_get_terms_invalid() {
-		$response = $this->endpoint->get_terms( 'testtaxonomy' );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
+	public function test_get_term() {
+		$request = new WP_JSON_Request;
+		$request->set_param( 'taxonomy', 'category' );
+		$request->set_param( 'id', 1 );
+		$response = $this->endpoint->get_item( $request );
+		$this->check_get_taxonomy_term_response( $response );
 	}
 
-	public function get_terms_return_error() {
-		return new WP_Error( 'test_internal_error' );
+	public function test_get_term_invalid_taxonomy() {
+		$request = new WP_JSON_Request;
+		$request->set_param( 'taxonomy', 'invalid-taxonomy' );
+		$request->set_param( 'id', 2 );
+		$response = $this->endpoint->get_item( $request );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
-	public function test_get_terms_internal_error() {
-		add_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
+	public function test_get_term_invalid_term() {
+		$request = new WP_JSON_Request;
+		$request->set_param( 'taxonomy', 'category' );
+		$request->set_param( 'id', 2 );
+		$response = $this->endpoint->get_item( $request );
+		$this->assertErrorResponse( 'json_taxonomy_invalid_term', $response, 404 );
+	}
 
-		$response = $this->endpoint->get_terms( 'category' );
-		remove_filter( 'get_terms', array( $this, 'get_terms_return_error' ) );
+	public function test_prepare_taxonomy_term() {
+		$request = new WP_JSON_Request;
+		$term = get_term( 1, 'category' );
+		$data = $this->endpoint->prepare_item_for_response( $term, $request );
+		$this->check_taxonomy_term( $term, $data );
+	}
 
-		$this->assertErrorResponse( 'test_internal_error', $response );
+	public function test_prepare_taxonomy_term_child() {
+		$child = $this->factory->category->create( array(
+			'parent' => 1,
+		) );
+
+		$request = new WP_JSON_Request;
+		$term = get_term( $child, 'category' );
+		$data = $this->endpoint->prepare_item_for_response( $term, $request );
+		$this->check_taxonomy_term( $term, $data );
+
+		$this->assertNotEmpty( $data['parent'] );
+
+		$parent = get_term( 1, 'category' );
+		$this->check_taxonomy_term( $parent, $data['parent'] );
+	}
+
+	protected function check_get_taxonomy_terms_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$args = array(
+			'hide_empty' => false,
+		);
+		$categories = get_terms( 'category', $args );
+		$this->assertEquals( count( $categories ), count( $data ) );
+		$this->assertEquals( $categories[0]->term_id, $data[0]['id'] );
+		$this->assertEquals( $categories[0]->name, $data[0]['name'] );
+		$this->assertEquals( $categories[0]->slug, $data[0]['slug']);
+		$this->assertEquals( $categories[0]->description, $data[0]['description']);
+		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
 	protected function check_taxonomy_term( $term, $data ) {
@@ -66,7 +111,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $term->count, $data['count'] );
 	}
 
-	public function check_get_taxonomy_term_response( $response ) {
+	protected function check_get_taxonomy_term_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -75,68 +120,5 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$data = $response->get_data();
 		$category = get_term( 1, 'category' );
 		$this->check_taxonomy_term( $category, $data );
-	}
-
-	public function test_get_term() {
-		$response = $this->endpoint->get_term( 'category', 1 );
-		$this->check_get_taxonomy_term_response( $response );
-	}
-
-	public function test_get_term_invalid_taxonomy() {
-		$response = $this->endpoint->get_term( 'testtaxonomy', 1 );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
-	}
-
-	public function test_get_term_invalid_term() {
-		$response = $this->endpoint->get_term( 'category', 'testmissingcat' );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_term', $response, 404 );
-	}
-
-	public function test_add_taxonomy_data() {
-		// Mock type
-		$type = new stdClass;
-		$type->name = 'post';
-
-		// This record is not a taxonomy record: taxonomies should be embedded
-		$data = $this->endpoint->add_taxonomy_data( array(), $type, 'view' );
-		$this->assertArrayHasKey( 'taxonomies', $data );
-
-		// This record is a taxonomy record: taxonomies should NOT be embedded
-		$data_within_taxonomy = $this->endpoint->add_taxonomy_data( array(), $type, 'embed' );
-		$this->assertArrayNotHasKey( 'taxonomies', $data_within_taxonomy );
-	}
-
-	public function test_add_term_data() {
-		$post = $this->factory->post->create();
-		$post_obj = get_post( $post, ARRAY_A );
-		$category = $this->factory->category->create();
-		wp_set_post_categories( $post, $category );
-
-		// This record is not a taxonomy record: taxonomies should be embedded
-		$data = $this->endpoint->add_term_data( array(), $post_obj, false );
-
-		$this->assertCount( 1, $data['terms']['category'] );
-		$this->assertEquals( $category, $data['terms']['category'][0]['id'] );
-	}
-
-	public function test_prepare_taxonomy_term() {
-		$term = get_term( 1, 'category' );
-		$data = $this->call_protected( 'prepare_term', array( $term ) );
-		$this->check_taxonomy_term( $term, $data );
-	}
-
-	public function test_prepare_taxonomy_term_child() {
-		$child = $this->factory->category->create( array(
-			'parent' => 1,
-		) );
-
-		$term = get_term( $child, 'category' );
-		$data = $this->call_protected( 'prepare_term', array( $term ) );
-		$this->check_taxonomy_term( $term, $data );
-
-		$this->assertNotEmpty( $data['parent'] );
-
-		$parent = get_term( 1, 'category' );
-		$this->check_taxonomy_term( $parent, $data['parent'] );
 	}
 }

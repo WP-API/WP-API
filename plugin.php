@@ -99,6 +99,14 @@ function create_initial_json_routes() {
 			)
 		)
 	));
+	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<term>[\w-]+)', array(
+		'methods'         => array( 'GET', 'POST', 'DELETE' ),
+		'callback'        => array(
+			'GET'     => array( $controller, 'get_item' ),
+			'POST'    => array( $controller, 'update_item' ),
+			'DELETE'  => array( $controller, 'delete_item' ),
+		),
+	) );
 
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
