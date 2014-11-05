@@ -30,90 +30,6 @@ class WP_Test_JSON_Taxonomy_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
 	}
 
-	/**
-	 * Utility function for use in get_public_taxonomies
-	 */
-	private function is_public( $taxonomy ) {
-		return $taxonomy->public !== false;
-	}
-
-	/**
-	 * Utility function to filter down to only public taxonomies
-	 */
-	private function get_public_taxonomies( $taxonomies ) {
-		// Pass through array_values to re-index after filtering
-		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
-	}
-
-	protected function check_taxonomies_for_type_response( $type, $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-
-		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
-
-		$this->assertEquals( count( $taxonomies ), count( $data ) );
-	}
-
-	public function test_get_taxonomies() {
-		$response = $this->endpoint->get_taxonomies();
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
-		$this->assertEquals( count( $taxonomies ), count( $data ) );
-
-		// Check each key in $data against those in $taxonomies
-		foreach ( array_keys( $data ) as $key ) {
-			$this->assertEquals( $taxonomies[$key]->label, $data[$key]['name'] );
-			$this->assertEquals( $taxonomies[$key]->name, $data[$key]['slug'] );
-			$this->assertEquals( $taxonomies[$key]->hierarchical, $data[$key]['hierarchical'] );
-			$this->assertEquals( $taxonomies[$key]->show_tagcloud, $data[$key]['show_cloud'] );
-		}
-	}
-
-	public function test_get_taxonomies_with_types() {
-		foreach ( get_post_types() as $type ) {
-			$response = $this->endpoint->get_taxonomies( $type );
-			$this->check_taxonomies_for_type_response( $type, $response );
-		}
-	}
-
-	protected function check_taxonomy_object( $tax_obj, $data ) {
-		$this->assertEquals( $tax_obj->label, $data['name'] );
-		$this->assertEquals( $tax_obj->name, $data['slug'] );
-		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
-		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
-	}
-
-	protected function check_taxonomy_object_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$category = get_taxonomy( 'category' );
-
-		$this->check_taxonomy_object( $category, $data );
-	}
-
-	public function test_get_taxonomy_object() {
-		$response = $this->endpoint->get_taxonomy( 'category' );
-		$this->check_taxonomy_object_response( $response );
-	}
-
-	public function test_get_taxonomy_object_empty() {
-		$response = $this->endpoint->get_taxonomy( '' );
-		$this->assertErrorResponse( 'json_taxonomy_invalid_id', $response, 404 );
-	}
-
 	protected function call_protected( $method, $args ) {
 		require_once dirname( __FILE__ ) . '/taxonomies_caller.php';
 
@@ -125,28 +41,6 @@ class WP_Test_JSON_Taxonomy_Terms_Controller extends WP_Test_JSON_TestCase {
 		$tax = get_taxonomy( 'category' );
 		$data = $this->call_protected( 'prepare_taxonomy', array( $tax ) );
 		$this->check_taxonomy_object( $tax, $data );
-	}
-
-	protected function check_get_taxonomy_terms_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-
-		$args = array(
-			'hide_empty' => false,
-		);
-		$categories = get_terms( 'category', $args );
-
-		$this->assertEquals( count( $categories ), count( $data ) );
-
-		$this->assertEquals( $categories[0]->term_id, $data[0]['id'] );
-		$this->assertEquals( $categories[0]->name, $data[0]['name'] );
-		$this->assertEquals( $categories[0]->slug, $data[0]['slug']);
-		$this->assertEquals( $categories[0]->description, $data[0]['description']);
-		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
 	public function test_get_terms() {

@@ -9,8 +9,8 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_items( $request ) {
-		if ( ! empty( $request['type'] ) ) {
-			$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+		if ( ! empty( $request['post_type'] ) ) {
+			$taxonomies = get_object_taxonomies( $request['post_type'], 'objects' );
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}
@@ -52,10 +52,10 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 		}
 		$base_url = '/taxonomies/' . $taxonomy->name;
 		$data = array(
-			'name'         => $taxonomy->label,
-			'slug'         => $taxonomy->name,
-			'labels'       => $taxonomy->labels,
-			'types'        => $taxonomy->object_type,
+			'name'		 => $taxonomy->label,
+			'slug'		 => $taxonomy->name,
+			'labels'	   => $taxonomy->labels,
+			'types'		=> $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 		);
