@@ -118,7 +118,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		// Check that we succeeded
 		$this->assertEquals( 201, $response->get_status() );
 		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertArrayHasKey( 'Last-Modified', $headers );
 
 		$response_data = $response->get_data();
 		$new_post = get_post( $response_data['id'] );
@@ -541,7 +540,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertArrayHasKey( 'Last-Modified', $headers );
 
 		$this->check_get_post_response( $response, $this->post_obj );
 	}
