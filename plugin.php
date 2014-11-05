@@ -68,6 +68,9 @@ function register_json_route( $namespace, $route, $args = array() ) {
  */
 function create_initial_json_routes() {
 
+	/*
+	 * Taxonomies
+	 */
 	$controller = new WP_JSON_Taxonomies_Controller;
 	register_json_route( 'wp', '/taxonomies', array(
 		'methods'         => 'GET',
@@ -83,6 +86,9 @@ function create_initial_json_routes() {
 		'callback'        => array( $controller, 'get_item' ),
 	) );
 
+	/*
+	 * Terms
+	 */
 	$controller = new WP_JSON_Terms_Controller;	
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
