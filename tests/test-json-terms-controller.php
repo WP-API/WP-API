@@ -80,10 +80,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$data = $this->endpoint->prepare_item_for_response( $term, $request );
 		$this->check_taxonomy_term( $term, $data );
 
-		$this->assertNotEmpty( $data['parent'] );
-
-		$parent = get_term( 1, 'category' );
-		$this->check_taxonomy_term( $parent, $data['parent'] );
+		$this->assertEquals( 1, $data['parent'] );
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {
