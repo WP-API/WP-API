@@ -30,19 +30,6 @@ class WP_Test_JSON_Taxonomy_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/taxonomies/(?P<taxonomy>[\w-]+)/terms/(?P<term>[\w-]+)', $routes );
 	}
 
-	protected function call_protected( $method, $args ) {
-		require_once dirname( __FILE__ ) . '/taxonomies_caller.php';
-
-		$class = new WP_Test_JSON_Taxonomies_Caller();
-		return $class->testProtectedCall( $method, $args );
-	}
-
-	public function test_prepare_taxonomy_object() {
-		$tax = get_taxonomy( 'category' );
-		$data = $this->call_protected( 'prepare_taxonomy', array( $tax ) );
-		$this->check_taxonomy_object( $tax, $data );
-	}
-
 	public function test_get_terms() {
 		$response = $this->endpoint->get_terms( 'category' );
 		$this->check_get_taxonomy_terms_response( $response );

@@ -63,6 +63,12 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
+	public function test_prepare_taxonomy() {
+		$tax = get_taxonomy( 'category' );
+		$data = $this->endpoint->prepare_item_for_response( $tax, new WP_JSON_Request );
+		$this->check_taxonomy_object( $tax, $data );
+	}
+
 	public function tearDown() {
 		global $wp_json_server;
 
