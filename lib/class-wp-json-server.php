@@ -200,13 +200,11 @@ class WP_JSON_Server {
 			}
 		}
 
-		$request = new WP_JSON_Request();
-		$request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+		$request = new WP_JSON_Request( $_SERVER['REQUEST_METHOD'], $path );
 		$request->set_query_params( $_GET );
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
 		$request->set_headers( $this->get_headers( $_SERVER ) );
-		$request->set_route( $path );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
@@ -266,8 +264,10 @@ class WP_JSON_Server {
 				return;
 			}
 
-			// Embed links inside the request
-			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
+			if ( is_object( $result ) ) {
+				// Embed links inside the request
+				$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
+			}
 
 			$result = json_encode( $result );
 
@@ -497,7 +497,7 @@ class WP_JSON_Server {
 					}
 				}
 				*/
-			
+
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
 
