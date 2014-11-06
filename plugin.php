@@ -106,16 +106,18 @@ function create_initial_json_routes() {
 		)
 	));
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
-		'method'     => 'GET',
-		'callback'   => array( $controller, 'get_item' ),
-	) );
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
-		'method'     => 'POST',
-		'callback'   => array( $controller, 'update_item' ),
-	) );
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
-		'method'     => 'DELETE',
-		'callback'   => array( $controller, 'delete_item' ),
+		array(
+			'method'     => 'GET',
+			'callback'   => array( $controller, 'get_item' ),
+		),
+		array(
+			'method'     => 'POST',
+			'callback'   => array( $controller, 'update_item' ),
+		),
+		array(
+			'method'     => 'DELETE',
+			'callback'   => array( $controller, 'delete_item' ),
+		)	
 	) );
 
 }
