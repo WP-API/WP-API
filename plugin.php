@@ -115,15 +115,15 @@ function create_initial_json_routes() {
 	));
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 		array(
-			'method'     => 'GET',
+			'methods'    => 'GET',
 			'callback'   => array( $controller, 'get_item' ),
 		),
 		array(
-			'method'     => 'POST',
+			'methods'    => 'POST',
 			'callback'   => array( $controller, 'update_item' ),
 		),
 		array(
-			'method'     => 'DELETE',
+			'methods'    => 'DELETE',
 			'callback'   => array( $controller, 'delete_item' ),
 		)	
 	) );
