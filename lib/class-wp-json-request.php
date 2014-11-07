@@ -234,11 +234,11 @@ class WP_JSON_Request implements ArrayAccess {
 	public function set_param( $key, $value ) {
 		switch ( $this->method ) {
 			case 'POST':
-				$this->params['POST'][ $offset ] = $value;
+				$this->params['POST'][ $key ] = $value;
 				break;
 
 			default:
-				$this->params['GET'][ $offset ] = $value;
+				$this->params['GET'][ $key ] = $value;
 				break;
 		}
 	}

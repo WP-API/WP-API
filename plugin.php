@@ -39,27 +39,36 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomy-terms-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
 
 /**
  * Register a JSON API route
  *
  * @param string $namespace
  * @param string $route
- * @param array $args
+ * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
+ * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
-function register_json_route( $namespace, $route, $args = array() ) {
+function register_json_route( $namespace, $route, $args = array(), $override = false ) {
 	global $wp_json_server;
+
+	if ( isset( $args['callback'] ) ) {
+		// Upgrade a single set to multiple
+		$args = array( $args );
+	}
 
 	$defaults = array(
 		'methods'         => 'GET',
 		'callback'        => null,
 		'args'            => array(),
 	);
-	$args = array_merge( $defaults, $args );
+	foreach ( $args as &$arg_group ) {
+		$arg_group = array_merge( $defaults, $arg_group );
+	}
 
 	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-	$wp_json_server->register_route( $full_route, $args );
+	$wp_json_server->register_route( $full_route, $args, $override );
 }
 
 /**
@@ -67,8 +76,29 @@ function register_json_route( $namespace, $route, $args = array() ) {
  */
 function create_initial_json_routes() {
 
-	$controller = new WP_JSON_Taxonomy_Terms_Controller;	
+	/*
+	 * Taxonomies
+	 */
+	$controller = new WP_JSON_Taxonomies_Controller;
+	register_json_route( 'wp', '/taxonomies', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'post_type'          => array(
+				'required'   => false,
+			),
+		),		
+	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_item' ),
+	) );
+
+	/*
+	 * Terms
+	 */
+	$controller = new WP_JSON_Terms_Controller;	
+	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
@@ -83,6 +113,34 @@ function create_initial_json_routes() {
 			)
 		)
 	));
+	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+		array(
+			'methods'    => 'GET',
+			'callback'   => array( $controller, 'get_item' ),
+		),
+		array(
+			'methods'    => 'POST',
+			'callback'   => array( $controller, 'update_item' ),
+			'args'       => array(
+				'name'           => array(
+					'required'   => false,
+				),
+				'description'    => array(
+					'required'   => false,
+				),
+				'slug'           => array(
+					'required'   => false,
+				),
+				'parent'         => array(
+					'required'   => false,
+				),
+			),
+		),
+		array(
+			'methods'    => 'DELETE',
+			'callback'   => array( $controller, 'delete_item' ),
+		)	
+	) );
 
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
