@@ -47,17 +47,24 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
  *
  * @param string $namespace
  * @param string $route
- * @param array $args
+ * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
  */
 function register_json_route( $namespace, $route, $args = array() ) {
 	global $wp_json_server;
+
+	if ( isset( $args['callback'] ) ) {
+		// Upgrade a single set to multiple
+		$args = array( $args );
+	}
 
 	$defaults = array(
 		'methods'         => 'GET',
 		'callback'        => null,
 		'args'            => array(),
 	);
-	$args = array_merge( $defaults, $args );
+	foreach ( $args as &$arg_group ) {
+		$arg_group = array_merge( $defaults, $arg_group );
+	}
 
 	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
 	$wp_json_server->register_route( $full_route, $args );
