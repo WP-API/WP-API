@@ -444,7 +444,7 @@ class WP_JSON_Server {
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
-	 * @return mixed The value returned by the callback, or a WP_Error instance
+	 * @return WP_JSON_Response Response returned by the callback, or a WP_Error instance
 	 */
 	public function dispatch( $request ) {
 		$method = $request->get_method();
@@ -512,10 +512,10 @@ class WP_JSON_Server {
 
 				// Allow plugins to halt the request via this filter
 				if ( $dispatch_result !== null ) {
-					return $dispatch_result;
+					return json_ensure_response( $dispatch_result );
 				}
 
-				return call_user_func( $callback, $request );
+				return json_ensure_response( call_user_func( $callback, $request ) );
 			}
 		}
 
