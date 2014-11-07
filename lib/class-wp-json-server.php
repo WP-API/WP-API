@@ -230,19 +230,20 @@ class WP_JSON_Server {
 			$result = $this->dispatch( $request );
 		}
 
-		// Normalize errors to response objects
+		// Normalize to either WP_Error or WP_JSON_Response...
+		$result = json_ensure_response( $result );
+
+		// ...then convert WP_Error across
 		if ( is_wp_error( $result ) ) {
 			$result = $this->error_to_response( $result );
 		}
 
 		// Send extra data from response objects
-		if ( $result instanceof WP_JSON_ResponseInterface ) {
-			$headers = $result->get_headers();
-			$this->send_headers( $headers );
+		$headers = $result->get_headers();
+		$this->send_headers( $headers );
 
-			$code = $result->get_status();
-			$this->set_status( $code );
-		}
+		$code = $result->get_status();
+		$this->set_status( $code );
 
 		/**
 		 * Allow sending the request manually
