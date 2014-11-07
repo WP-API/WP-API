@@ -48,8 +48,9 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
  * @param string $namespace
  * @param string $route
  * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
+ * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
-function register_json_route( $namespace, $route, $args = array() ) {
+function register_json_route( $namespace, $route, $args = array(), $override = false ) {
 	global $wp_json_server;
 
 	if ( isset( $args['callback'] ) ) {
@@ -67,7 +68,7 @@ function register_json_route( $namespace, $route, $args = array() ) {
 	}
 
 	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-	$wp_json_server->register_route( $full_route, $args );
+	$wp_json_server->register_route( $full_route, $args, $override );
 }
 
 /**

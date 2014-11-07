@@ -290,9 +290,15 @@ class WP_JSON_Server {
 	 *
 	 * @param string $route
 	 * @param array $route_args
+	 * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
 	 */
-	public function register_route( $route, $route_args ) {
-		$this->endpoints[ $route ] = $route_args;
+	public function register_route( $route, $route_args, $override = false ) {
+		if ( $override || empty( $this->endpoints[ $route ] ) ) {
+			$this->endpoints[ $route ] = $route_args;
+		}
+		else {
+			$this->endpoints[ $route ] = array_merge( $this->endpoints[ $route ], $route_args );
+		}
 	}
 
 	/**
