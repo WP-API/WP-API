@@ -162,9 +162,9 @@ class WP_JSON_Posts {
 
 		$response = new WP_JSON_Response();
 
-		$post = $this->prepare_post( $post, $context );
-		if ( is_wp_error( $post ) ) {
-			return $post;
+		$data = $this->prepare_post( $post, $context );
+		if ( is_wp_error( $data ) ) {
+			return $data;
 		}
 
 		$links = $this->prepare_links( $post );
