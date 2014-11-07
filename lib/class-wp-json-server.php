@@ -56,7 +56,7 @@ class WP_JSON_Server {
 	 *
 	 * @var array
 	 */
-	private $endpoints = array();
+	protected $endpoints = array();
 
 	/**
 	 * Instantiate the server
