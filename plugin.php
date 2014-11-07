@@ -121,6 +121,20 @@ function create_initial_json_routes() {
 		array(
 			'methods'    => 'POST',
 			'callback'   => array( $controller, 'update_item' ),
+			'args'       => array(
+				'name'           => array(
+					'required'   => false,
+				),
+				'description'    => array(
+					'required'   => false,
+				),
+				'slug'           => array(
+					'required'   => false,
+				),
+				'parent'         => array(
+					'required'   => false,
+				),
+			),
 		),
 		array(
 			'methods'    => 'DELETE',
