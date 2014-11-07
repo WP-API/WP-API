@@ -265,10 +265,8 @@ class WP_JSON_Server {
 				return;
 			}
 
-			if ( is_object( $result ) ) {
-				// Embed links inside the request
-				$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
-			}
+			// Embed links inside the request
+			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
 			$result = json_encode( $result );
 
