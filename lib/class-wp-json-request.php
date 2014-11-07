@@ -88,13 +88,10 @@ class WP_JSON_Request implements ArrayAccess {
 	/**
 	 * Set HTTP method for the request
 	 *
-	 * Technically, HTTP methods are case-sensitive, however they are typically
-	 * uppercase. If needed, canonicalize when setting.
-	 *
 	 * @param string $method HTTP method
 	 */
 	public function set_method( $method ) {
-		$this->method = $method;
+		$this->method = strtoupper( $method );
 	}
 
 	/**

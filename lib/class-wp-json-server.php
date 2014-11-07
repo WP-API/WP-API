@@ -201,7 +201,7 @@ class WP_JSON_Server {
 		}
 
 		$request = new WP_JSON_Request();
-		$request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+		$request->set_method( $_SERVER['REQUEST_METHOD'] );
 		$request->set_query_params( $_GET );
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
@@ -210,7 +210,7 @@ class WP_JSON_Server {
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( strtoupper( $_GET['_method'] ) );
+			$request->set_method( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
