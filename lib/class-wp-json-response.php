@@ -2,6 +2,45 @@
 
 class WP_JSON_Response extends WP_HTTP_Response {
 	/**
+	 * Links related to the response
+	 *
+	 * @var array
+	 */
+	protected $links = array();
+
+	/**
+	 * Add a link to the response
+	 *
+	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
+	 *
+	 * @link http://tools.ietf.org/html/rfc5988
+	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
+	 *
+	 * @param string $rel Link relation. Either an IANA registered type, or an absolute URL
+	 * @param string $link Target IRI for the link
+	 * @param array $attributes Link parameters to send along with the URL
+	 */
+	public function add_link( $rel, $href, $attributes = array() ) {
+		if ( empty( $this->links[ $rel ] ) ) {
+			$this->links[ $rel ] = array();
+		}
+
+		$this->links[ $rel ][] = array(
+			'href'       => $href,
+			'attributes' => $attributes,
+		);
+	}
+
+	/**
+	 * Get links for the response
+	 *
+	 * @return array
+	 */
+	public function get_links() {
+		return $this->links;
+	}
+
+	/**
 	 * Set a single link header
 	 *
 	 * @internal The $rel parameter is first, as this looks nicer when sending multiple

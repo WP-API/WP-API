@@ -589,20 +589,20 @@ function json_ensure_request( $request ) {
 		return $request;
 	}
 
-	return new WP_JSON_Request( $request );
+	return new WP_JSON_Request( 'GET', '', $request );
 }
 
 /**
  * Ensure a JSON response is a response object.
  *
  * This ensures that the response is consistent, and implements
- * {@see WP_JSON_ResponseInterface}, allowing usage of
+ * {@see WP_HTTP_ResponseInterface}, allowing usage of
  * `set_status`/`header`/etc without needing to double-check the object. Will
  * also allow {@see WP_Error} to indicate error responses, so users should
  * immediately check for this value.
  *
- * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check.
- * @return WP_Error|WP_JSON_ResponseInterface WP_Error if present, WP_JSON_ResponseInterface
+ * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
+ * @return WP_Error|WP_HTTP_ResponseInterface WP_Error if present, WP_HTTP_ResponseInterface
  *                                            instance otherwise.
  */
 function json_ensure_response( $response ) {
@@ -610,7 +610,7 @@ function json_ensure_response( $response ) {
 		return $response;
 	}
 
-	if ( $response instanceof WP_JSON_ResponseInterface ) {
+	if ( $response instanceof WP_HTTP_ResponseInterface ) {
 		return $response;
 	}
 

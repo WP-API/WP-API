@@ -200,13 +200,11 @@ class WP_JSON_Server {
 			}
 		}
 
-		$request = new WP_JSON_Request();
-		$request->set_method( strtoupper( $_SERVER['REQUEST_METHOD'] ) );
+		$request = new WP_JSON_Request( $_SERVER['REQUEST_METHOD'], $path );
 		$request->set_query_params( $_GET );
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
 		$request->set_headers( $this->get_headers( $_SERVER ) );
-		$request->set_route( $path );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
@@ -232,19 +230,20 @@ class WP_JSON_Server {
 			$result = $this->dispatch( $request );
 		}
 
-		// Normalize errors to response objects
+		// Normalize to either WP_Error or WP_JSON_Response...
+		$result = json_ensure_response( $result );
+
+		// ...then convert WP_Error across
 		if ( is_wp_error( $result ) ) {
 			$result = $this->error_to_response( $result );
 		}
 
 		// Send extra data from response objects
-		if ( $result instanceof WP_JSON_ResponseInterface ) {
-			$headers = $result->get_headers();
-			$this->send_headers( $headers );
+		$headers = $result->get_headers();
+		$this->send_headers( $headers );
 
-			$code = $result->get_status();
-			$this->set_status( $code );
-		}
+		$code = $result->get_status();
+		$this->set_status( $code );
 
 		/**
 		 * Allow sending the request manually
@@ -266,7 +265,10 @@ class WP_JSON_Server {
 				return;
 			}
 
-			$result = json_encode( $this->prepare_response( $result ) );
+			// Embed links inside the request
+			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
+
+			$result = json_encode( $result );
 
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
@@ -283,6 +285,96 @@ class WP_JSON_Server {
 				echo $result;
 			}
 		}
+	}
+
+	/**
+	 * Convert a response to data to send
+	 *
+	 * @param WP_JSON_Response $response Response object
+	 * @param boolean $embed Should we embed links?
+	 * @return array
+	 */
+	public function response_to_data( $response, $embed ) {
+		$data  = $this->prepare_response( $response->get_data() );
+		$links = $response->get_links();
+
+		if ( ! empty( $links ) ) {
+			// Convert links to part of the data
+			$data['_links'] = array();
+			foreach ( $links as $rel => $items ) {
+				$data['_links'][ $rel ] = array();
+
+				foreach ( $items as $item ) {
+					$attributes = $item['attributes'];
+					$attributes['href'] = $item['href'];
+					$data['_links'][ $rel ][] = $attributes;
+				}
+			}
+
+			if ( $embed ) {
+				$data = $this->embed_links( $data );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Embed the links from the data into the request
+	 *
+	 * @param array $data Data from the request
+	 * @return array Data with sub-requests embedded
+	 */
+	protected function embed_links( $data ) {
+		if ( empty( $data['_links'] ) ) {
+			return $data;
+		}
+
+		$embedded = array();
+		$api_root = json_url();
+		foreach ( $data['_links'] as $rel => $links ) {
+			// Ignore links to self, for obvious reasons
+			if ( $rel === 'self' ) {
+				continue;
+			}
+
+			$embeds = array();
+
+			foreach ( $links as $item ) {
+				// Is the link embeddable?
+				if ( empty( $item['embeddable'] ) || strpos( $item['href'], $api_root ) !== 0 ) {
+					// Ensure we keep the same order
+					$embeds[] = array();
+					continue;
+				}
+
+				// Run through our internal routing and serve
+				$route = substr( $item['href'], strlen( $api_root ) );
+				$request = new WP_JSON_Request( 'GET', $route );
+
+				// Embedded resources get passed context=embed
+				$request->set_query_params( array( 'context' => 'embed' ) );
+
+				$response = $this->dispatch( $request );
+				if ( is_wp_error( $response ) ) {
+					$response = $this->error_to_response( $response );
+				}
+
+				$embeds[] = $response;
+			}
+
+			// Did we get any real links?
+			$has_links = count( array_filter( $embeds ) );
+			if ( $has_links ) {
+				$embedded[ $rel ] = $embeds;
+			}
+		}
+
+		if ( ! empty( $embedded ) ) {
+			$data['_embedded'] = $embedded;
+		}
+
+		return $data;
 	}
 
 	/**
@@ -356,7 +448,7 @@ class WP_JSON_Server {
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
-	 * @return mixed The value returned by the callback, or a WP_Error instance
+	 * @return WP_JSON_Response Response returned by the callback, or a WP_Error instance
 	 */
 	public function dispatch( $request ) {
 		$method = $request->get_method();
@@ -410,7 +502,7 @@ class WP_JSON_Server {
 					}
 				}
 				*/
-			
+
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
 
@@ -424,10 +516,10 @@ class WP_JSON_Server {
 
 				// Allow plugins to halt the request via this filter
 				if ( $dispatch_result !== null ) {
-					return $dispatch_result;
+					return json_ensure_response( $dispatch_result );
 				}
 
-				return call_user_func( $callback, $request );
+				return json_ensure_response( call_user_func( $callback, $request ) );
 			}
 		}
 
