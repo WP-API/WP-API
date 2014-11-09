@@ -147,12 +147,12 @@ The following query variables are available to the API:
 * `term`
 * `cpage`
 * `post_type`
+* `posts_per_page`
 
 In addition, the following are available when authenticated as a user with
 `edit_posts`:
 
 * `offset`
-* `posts_per_page`
 * `posts_per_archive_page`
 * `showposts`
 * `nopaging`
