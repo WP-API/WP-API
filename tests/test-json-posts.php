@@ -385,7 +385,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		// Custom tax
 		$custom_tax_term = get_term_by( 'name', 'My WP API Term 1', 'my-wp-api-tax' );
-		$this->assertNotFalse( $custom_tax_term );
 		$this->assertTrue( has_term( $custom_tax_term, 'my-wp-api-tax', $new_post ) );
 	}
 
