@@ -29,11 +29,35 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return $users;
 		}
 
-		$struct = array();
+		$data = array();
 		foreach ( $users->results as &$user ) {
-			$struct[] = self::prepare_item_for_response( $user, $request );
+			$data[] = $this->prepare_item_for_response( $user, $request );
 		}
-		return $struct;
+
+		return $data;
+	}
+
+	/**
+	 * Get a single user
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function get_item( $request ) {
+		$id = (int) $request['id'];
+		$current_user_id = get_current_user_id();
+
+		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
+		}
+
+		$user = get_userdata( $id );
+
+		if ( empty( $user->ID ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+		}
+
+		return self::prepare_item_for_response( $user, $request );
 	}
 
 	/**
