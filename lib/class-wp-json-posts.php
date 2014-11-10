@@ -714,13 +714,12 @@ class WP_JSON_Posts {
 	/**
 	 * Helper method for {@see create_post} and {@see edit_post}, containing shared logic.
 	 *
-	 * @since 3.4.0
-	 * @uses wp_insert_post()
 	 *
-	 * @param WP_User $user The post author if post_author isn't set in $content_struct.
-	 * @param array $content_struct Post data to insert.
+	 * @param array $data Post data to insert.
+	 *
+	 * @return int|WP_Error
 	 */
-	protected function insert_post( $data ) {
+	protected function insert_post( array $data ) {
 		$post   = array();
 		$update = ! empty( $data['ID'] );
 
