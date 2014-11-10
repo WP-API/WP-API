@@ -41,6 +41,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
 
 /**
  * Register a JSON API route
@@ -87,7 +88,7 @@ function create_initial_json_routes() {
 			'post_type'          => array(
 				'required'   => false,
 			),
-		),		
+		),
 	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
@@ -97,7 +98,7 @@ function create_initial_json_routes() {
 	/*
 	 * Terms
 	 */
-	$controller = new WP_JSON_Terms_Controller;	
+	$controller = new WP_JSON_Terms_Controller;
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_items' ),
@@ -139,7 +140,33 @@ function create_initial_json_routes() {
 		array(
 			'methods'    => 'DELETE',
 			'callback'   => array( $controller, 'delete_item' ),
-		)	
+		),
+	) );
+
+	/*
+	 * Users
+	 */
+	$controller = new WP_JSON_Users_Controller;
+	register_json_route( 'wp', '/users', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'context'          => array(
+				'required'   => false,
+			),
+			'order'        => array(
+				'required'       => false,
+			),
+			'orderby'            => array(
+				'required'       => false,
+			),
+			'per_page'        => array(
+				'required'       => false,
+			),
+			'page'            => array(
+				'required'       => false,
+			),
+		),
 	) );
 
 }
