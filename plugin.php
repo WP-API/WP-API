@@ -680,11 +680,11 @@ function json_mysql_to_rfc3339( $date_string ) {
  * {@see get_avatar()} doesn't return just the URL, so we have to
  * extract it here.
  *
- * @param string $email Email address.
+ * @param string|int $id_or_email User ID or email address.
  * @return string URL for the user's avatar, empty string otherwise.
 */
-function json_get_avatar_url( $email ) {
-	$avatar_html = get_avatar( $email );
+function json_get_avatar_url( $id_or_email ) {
+	$avatar_html = get_avatar( $id_or_email );
 
 	// Strip the avatar url from the get_avatar img tag.
 	preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
