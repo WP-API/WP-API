@@ -59,7 +59,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
 			array(
-				'callback'  => array( $this, 'get_posts' ),
+				'callback'  => array( $this, 'get_multiple' ),
 				'methods'   => WP_JSON_Server::READABLE,
 				'v1_compat' => true,
 			),
@@ -73,18 +73,18 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 
 		$routes[ $this->base . '/(?P<id>\d+)' ] = array(
 			array(
-				'callback'  => array( $this, 'get_post' ),
+				'callback'  => array( $this, 'get' ),
 				'methods'   => WP_JSON_Server::READABLE,
 				'v1_compat' => true,
 			),
 			array(
-				'callback'    => array( $this, 'edit_post' ),
+				'callback'    => array( $this, 'update' ),
 				'methods'     => WP_JSON_Server::EDITABLE,
 				'accept_json' => true,
 				'v1_compat'   => true,
 			),
 			array(
-				'callback'  => array( $this, 'delete_post' ),
+				'callback'  => array( $this, 'delete' ),
 				'methods'   => WP_JSON_Server::DELETABLE,
 				'v1_compat' => true,
 			),
@@ -123,27 +123,11 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	}
 
 	/**
-	 * Retrieve posts
-	 *
-	 * Overrides the $type to set to $this->type, then passes through to the
-	 * post endpoints.
-	 *
-	 * @see WP_JSON_Posts::get_posts()
-	 */
-	public function get_posts( $filter = array(), $context = 'view', $type = null, $page = 1 ) {
-		if ( ! empty( $type ) && $type !== $this->type ) {
-			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-		}
-
-		return parent::get_posts( $filter, $context, $this->type, $page );
-	}
-
-	/**
 	 * Retrieve a post
 	 *
-	 * @see WP_JSON_Posts::get_post()
+	 * @see WP_JSON_Posts::get()
 	 */
-	public function get_post( $id, $context = 'view' ) {
+	public function get( $id, $context = 'view' ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -156,15 +140,31 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::get_post( $id, $context );
+		return parent::get( $id, $context );
+	}
+
+	/**
+	 * Retrieve posts
+	 *
+	 * Overrides the $type to set to $this->type, then passes through to the
+	 * post endpoints.
+	 *
+	 * @see WP_JSON_Posts::get_multiple()
+	 */
+	public function get_multiple( $filter = array(), $context = 'view', $type = null, $page = 1 ) {
+		if ( ! empty( $type ) && $type !== $this->type ) {
+			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+		}
+
+		return parent::get_multiple( $filter, $context, $this->type, $page );
 	}
 
 	/**
 	 * Edit a post
 	 *
-	 * @see WP_JSON_Posts::edit_post()
+	 * @see WP_JSON_Posts::update()
 	 */
-	function edit_post( $id, $data, $_headers = array() ) {
+	function update( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -181,15 +181,15 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::edit_post( $id, $data, $_headers );
+		return parent::update( $id, $data, $_headers );
 	}
 
 	/**
 	 * Delete a post
 	 *
-	 * @see WP_JSON_Posts::delete_post()
+	 * @see WP_JSON_Posts::delete()
 	 */
-	public function delete_post( $id, $force = false ) {
+	public function delete( $id, $force = false ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -202,7 +202,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::delete_post( $id, $force );
+		return parent::delete( $id, $force );
 	}
 
 	/**
