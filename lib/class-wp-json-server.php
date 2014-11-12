@@ -469,6 +469,32 @@ class WP_JSON_Server {
 					continue;
 				}
 
+				$allowed_methods = array();
+
+				// get the allowed methods across the routes
+				foreach ( $handlers as $_handler ) {
+					foreach ( $_handler['methods'] as $handler_method => $value ) {
+
+						if ( ! empty( $_handler['capability'] ) ) {
+							$allowed_methods[$handler_method] = (bool) array_filter( array_map( 'current_user_can', (array) $_handler['capability'] ) );
+						} else {
+							$allowed_methods[$handler_method] = true;
+						}
+					}
+				}
+
+				// strip out all the methods that are not allowed (false values)
+				$allowed_methods = array_filter( $allowed_methods );
+
+				if ( $allowed_methods ) {
+					$this->send_header( 'Allowed', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+				}
+
+				// check capabilties specified on the route.
+				if ( empty( $allowed_methods[$method] ) ) {
+					return new WP_Error( 'json_forbidden', __( 'You don\'t have permission to do this.' ), array( 'status' => 401 ) );
+				}
+
 				if ( ! is_callable( $callback ) ) {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
