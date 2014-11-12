@@ -218,6 +218,48 @@ function create_initial_json_routes() {
 				'required'         => false,
 			),
 		),
+		array(
+			'methods'         => 'PUT',
+			'callback'        => array( $controller, 'update_item' ),
+			'args'            => array(
+				'id'              => array(
+					'required'        => true,
+				),
+				'email'           => array(
+					'required'        => true,
+				),
+				'username'        => array(
+					'required'        => true,
+				),
+				'password'        => array(
+					'required'        => true,
+				),
+				'name'            => array(
+					'required'        => false,
+				),
+				'first_name'      => array(
+					'required'        => false,
+				),
+				'last_name'       => array(
+					'required'        => false,
+				),
+				'nickname'        => array(
+					'required'        => false,
+				),
+				'slug'            => array(
+					'required'        => false,
+				),
+				'description'     => array(
+					'required'        => false,
+				),
+				'role'            => array(
+					'required'        => false,
+				),
+				'URL'       => array(
+					'required'        => false,
+				),
+			),
+		),
 	) );
 
 }
