@@ -11,7 +11,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
-	public function get_items( WP_JSON_Request $request ) {
+	public function get_items( $request ) {
 		if ( ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
 		}
