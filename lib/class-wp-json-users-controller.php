@@ -29,12 +29,12 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return $users;
 		}
 
-		$data = array();
-		foreach ( $users->results as &$user ) {
-			$data[] = $this->prepare_item_for_response( $user, $request );
+		$users = $users->results;
+		foreach ( $users as  &$user ) {
+			$user = $this->prepare_item_for_response( $user, $request );
 		}
 
-		return $data;
+		return $users;
 	}
 
 	/**
