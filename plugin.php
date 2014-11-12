@@ -148,23 +148,64 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Users_Controller;
 	register_json_route( 'wp', '/users', array(
-		'methods'         => 'GET',
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'context'          => array(
-				'required'   => false,
+		array(
+			'methods'         => 'GET',
+			'callback'        => array( $controller, 'get_items' ),
+			'args'            => array(
+				'context'          => array(
+					'required'         => false,
+				),
+				'order'            => array(
+					'required'         => false,
+				),
+				'orderby'          => array(
+					'required'         => false,
+				),
+				'per_page'         => array(
+					'required'         => false,
+				),
+				'page'             => array(
+					'required'         => false,
+				),
 			),
-			'order'        => array(
-				'required'       => false,
-			),
-			'orderby'            => array(
-				'required'       => false,
-			),
-			'per_page'        => array(
-				'required'       => false,
-			),
-			'page'            => array(
-				'required'       => false,
+		),
+		array(
+			'methods'         => 'POST',
+			'callback'        => array( $controller, 'create_item' ),
+			'args'            => array(
+				'email'           => array(
+					'required'        => true,
+				),
+				'username'        => array(
+					'required'        => true,
+				),
+				'password'        => array(
+					'required'        => true,
+				),
+				'name'            => array(
+					'required'        => false,
+				),
+				'first_name'      => array(
+					'required'        => false,
+				),
+				'last_name'       => array(
+					'required'        => false,
+				),
+				'nickname'        => array(
+					'required'        => false,
+				),
+				'slug'            => array(
+					'required'        => false,
+				),
+				'description'     => array(
+					'required'        => false,
+				),
+				'role'            => array(
+					'required'        => false,
+				),
+				'URL'       => array(
+					'required'        => false,
+				),
 			),
 		),
 	) );
