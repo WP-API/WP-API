@@ -279,7 +279,7 @@ class WP_JSON_Users {
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
-			'avatar'      => json_get_avatar_url( $user->user_email ),
+			'avatar'      => json_get_avatar_url( $user->ID ),
 			'description' => $user->description,
 		);
 
