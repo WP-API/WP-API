@@ -90,7 +90,51 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user->ID = $user_id;
-		do_action( 'json_insert_user', $user, $request );
+		do_action( 'json_insert_user', $user, $request, false );
+
+		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
+
+		return $response;
+	}
+
+	/**
+	 * Update a single user
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function update_item( $request ) {
+		$id = (int) $request['id'];
+
+		if ( ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
+		}
+
+		$check_required = $this->check_required_parameters( $request );
+		if ( is_wp_error( $check_required ) ) {
+			return $check_required;
+		}
+
+		$user = get_userdata( $id );
+
+		if ( ! $user ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		$user = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$user_id = wp_update_user( $user );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		do_action( 'json_insert_user', $user, $request, false );
 
 		$response = $this->get_item( array( 'id' => $user_id ) );
 		$response = json_ensure_response( $response );
