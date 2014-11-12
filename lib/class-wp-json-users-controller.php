@@ -74,11 +74,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
 
-		$check_required = $this->check_required_parameters( $request );
-		if ( is_wp_error( $check_required ) ) {
-			return $check_required;
-		}
-
 		$user = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $user ) ) {
 			return $user;
@@ -113,13 +108,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
 		}
 
-		$check_required = $this->check_required_parameters( $request );
-		if ( is_wp_error( $check_required ) ) {
-			return $check_required;
-		}
-
 		$user = get_userdata( $id );
-
 		if ( ! $user ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
 		}
@@ -233,23 +222,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
-	}
-
-	/**
-	 * Check that all required parameters are present in the request.
-	 *
-	 * @param WP_JSON_Request $request
-	 * @return true|WP_Error
-	 */
-	protected function check_required_parameters( $request ) {
-		foreach ( $request as $arg ) {
-
-			if ( true == $arg['required'] && empty( $request[ $arg ] ) ) {
-				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
-			}
-		}
-
-		return true;
 	}
 
 }

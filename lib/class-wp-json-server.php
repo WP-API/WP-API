@@ -445,6 +445,23 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Check that all required parameters are present in the request.
+	 *
+	 * @param WP_JSON_Request $request Request with parameters to check.
+	 * @return true|WP_Error
+	 */
+	protected function check_required_parameters( $request ) {
+		foreach ( $request as $arg ) {
+
+			if ( true == $arg['required'] && empty( $request[ $arg ] ) ) {
+				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
@@ -471,6 +488,11 @@ class WP_JSON_Server {
 
 				if ( ! is_callable( $callback ) ) {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
+				}
+
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
+					return $check_required;
 				}
 
 				/*
