@@ -487,7 +487,7 @@ class WP_JSON_Server {
 				$allowed_methods = array_filter( $allowed_methods );
 
 				if ( $allowed_methods ) {
-					$this->send_header( 'Allowed', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+					$this->send_header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
 				}
 
 				// check capabilties specified on the route.
