@@ -61,6 +61,47 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Create a single user
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function create_item( $request ) {
+		if ( ! current_user_can( 'create_users' ) ) {
+			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
+		}
+		if ( ! empty( $request['id'] ) ) {
+			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
+		}
+
+		$check_required = $this->check_required_parameters( $request );
+		if ( is_wp_error( $check_required ) ) {
+			return $check_required;
+		}
+
+		$user = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$user_id = wp_insert_user( $user );
+		if ( is_wp_error( $user_id ) ) {
+			return $user_id;
+		}
+
+		$user->ID = $user_id;
+
+		do_action( 'json_insert_user', $user, $request );
+
+		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
+
+		return $response;
+	}
+
+	/**
 	 * Prepare a single user output for response
 	 *
 	 * @param obj $item User object
@@ -104,6 +145,68 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		);
 
 		return apply_filters( 'json_prepare_user', $data, $user, $request );
+	}
+
+	/**
+	 * Prepare a single user for create or update
+	 *
+	 * @param array $request Request object
+	 * @return obj $prepared_user User object
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$prepared_user = new stdClass;
+
+		// required arguments.
+		$prepared_user->user_email = sanitize_email( $request['email'] );
+		$prepared_user->user_login = sanitize_user( $request['username'] );
+		$prepared_user->password = $request['password'];
+
+		if ( isset( $request['id'] ) ) {
+			$prepared_user->ID = absint( $request['id'] );
+		}
+		if ( isset( $request['name'] ) ) {
+			$prepared_user->display_name = sanitize_text_field( $request['name'] );
+		}
+		if ( isset( $request['first_name'] ) ) {
+			$prepared_user->first_name = sanitize_text_field( $request['first_name'] );
+		}
+		if ( isset( $request['last_name'] ) ) {
+			$prepared_user->last_name = sanitize_text_field( $request['last_name'] );
+		}
+		if ( isset( $request['nickname'] ) ) {
+			$prepared_user->nickname = sanitize_text_field( $request['nickname'] );
+		}
+		if ( isset( $request['slug'] ) ) {
+			$prepared_user->user_nicename = sanitize_title( $request['slug'] );
+		}
+		if ( isset( $request['description'] ) ) {
+			$prepared_user->description = wp_filter_post_kses( $request['description'] );
+		}
+		if ( isset( $request['role'] ) ) {
+			$prepared_user->role = sanitize_text_field( $request['role'] );
+		}
+		if ( isset( $request['URL'] ) ) {
+			$prepared_user->user_url = esc_url_raw( $request['URL'] );
+		}
+
+		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
+	}
+
+	/**
+	 * Check that all required parameters are present in the request.
+	 *
+	 * @param WP_JSON_Request $request
+	 * @return true|WP_Error
+	 */
+	protected function check_required_parameters( $request ) {
+		foreach ( $request as $arg ) {
+
+			if ( true == $arg['required'] && empty( $request[ $arg ] ) ) {
+				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+			}
+		}
+
+		return true;
 	}
 
 }
