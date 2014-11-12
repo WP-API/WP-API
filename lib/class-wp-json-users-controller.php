@@ -90,7 +90,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user->ID = $user_id;
-
 		do_action( 'json_insert_user', $user, $request );
 
 		$response = $this->get_item( array( 'id' => $user_id ) );
