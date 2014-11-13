@@ -493,11 +493,6 @@ class WP_JSON_Server {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
 
-				$check_required = $this->check_required_parameters( $request );
-				if ( is_wp_error( $check_required ) ) {
-					return $check_required;
-				}
-
 				/*
 				if ( ! empty( $handler['accept_json'] ) ) {
 					$raw_data = $this->get_raw_data();
@@ -530,6 +525,11 @@ class WP_JSON_Server {
 
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
+
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
+					return $check_required;
+				}
 
 				/**
 				 * Allow plugins to override dispatching the request
