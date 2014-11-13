@@ -203,6 +203,11 @@ class WP_JSON_Users {
 		if ( ! $user ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
 		}
+		
+		// Email already exists
+		if ( email_exists( $data['email'] ) && $user->user_email !== $data['email'] ) {
+			return new WP_Error( 'existing_user_email', __( 'Sorry, that email address is already used!' ), array( 'status' => 400 ) );
+		}
 
 		$data['id'] = $user->ID;
 
