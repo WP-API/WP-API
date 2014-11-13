@@ -451,10 +451,13 @@ class WP_JSON_Server {
 	 * @return true|WP_Error
 	 */
 	protected function check_required_parameters( $request ) {
-		foreach ( $request as $arg ) {
+		$attributes = $request->get_attributes();
 
-			if ( true == $arg['required'] && empty( $request[ $arg ] ) ) {
-				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $arg ), array( 'status' => 400 ) );
+		foreach ( $attributes['args'] as $key => $arg ) {
+			$param = $request->get_param( $key );
+
+			if ( true == $arg['required'] && empty( $param ) ) {
+				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $key ), array( 'status' => 400 ) );
 			}
 		}
 
