@@ -135,7 +135,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
-		$data = $response->get_data()[0];
+		$all_data = $response->get_data();
+		$data = $all_data[0];
 		$userdata = get_userdata( $data['id'] );
 		$this->check_user_data( $userdata, $data, $context );
 	}
