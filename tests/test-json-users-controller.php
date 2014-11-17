@@ -43,8 +43,21 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 
 		$request = new WP_JSON_Request;
 		$request->set_param( 'id', $user_id );
+
 		$response = $this->endpoint->get_item( $request );
-		$this->check_get_user_response( $response );
+		$this->check_get_user_response( $response, 'view' );
+	}
+
+	public function test_get_user_with_edit_context() {
+		$user_id = $this->factory->user->create();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request;
+		$request->set_param( 'id', $user_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = $this->endpoint->get_item( $request );
+		$this->check_get_user_response( $response, 'edit' );
 	}
 
 	public function test_delete_user() {
@@ -91,7 +104,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $reassign_id, $post->post_author );
 	}
 
-	protected function check_user_data( $user, $data ) {
+	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->user_login, $data['username'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
@@ -103,26 +116,38 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar'] );
 		$this->assertEquals( $user->description, $data['description'] );
 		$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered'] );
+
+		if ( 'view' == $context ) {
+			$this->assertEquals( $user->roles, $data['roles'] );
+			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+
+			$this->assertEquals( false, $data['email'] );
+			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
+		}
+		if ( 'edit' == $context ) {
+			$this->assertEquals( $user->user_email, $data['email'] );
+			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+		}
 	}
 
-	protected function check_get_users_response( $response ) {
+	protected function check_get_users_response( $response, $context = 'view' ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data()[0];
 		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data );
+		$this->check_user_data( $userdata, $data, $context );
 	}
 
-	protected function check_get_user_response( $response ) {
+	protected function check_get_user_response( $response, $context = 'view' ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data );
+		$this->check_user_data( $userdata, $data, $context );
 	}
 
 	protected function allow_user_to_manage_multisite() {
