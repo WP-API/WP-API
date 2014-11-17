@@ -24,11 +24,9 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		parent::setUp();
 
-		$this->markTestSkipped( "Needs to be revisited after dust has settled on develop" );
-
 		// Allow for a plugin to insert a different class to handle requests.
-		$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_JSON_Server');
-		$wp_json_server = new $wp_json_server_class;
+		$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_Test_Spy_JSON_Server');
+		$this->server = $wp_json_server = new $wp_json_server_class;
 	}
 
 	/**
@@ -108,4 +106,130 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->markTestIncomplete('Missing test implementation.');
 	}
 
+	/**
+	 * Pass a capability which the user does not have, this should 
+	 * result in a 403 error
+	 */
+	function test_json_route_capability_authorization_fails() {
+		
+		register_json_route( 'test-ns', '/test', array(
+			'method'       => 'GET',
+			'callback'     => '__return_null',
+			'should_exist' => false,
+			'capability'   => 'invalid_capability'
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
+		$result = $this->server->dispatch( $request );
+
+		$this->assertTrue( is_wp_error( $result ) );
+
+		$error_data = $result->get_error_data();
+		$this->assertEquals( $error_data['status'], 403 );
+	}
+
+	/**
+	 * An editor should be able to get access to an route with the
+	 * edit_posts capability
+	 */
+	function test_json_route_capability_authorization() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'GET',
+			'callback'     => '__return_null',
+			'should_exist' => false,
+			'capability'   => 'edit_posts'
+		) );
+
+		$editor = $this->factory->user->create( array( 'role' => 'editor' ) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
+		
+		wp_set_current_user( $editor );
+
+		$result = $this->server->dispatch( $request );
+
+		$this->assertFalse( is_wp_error( $result ) );
+	}
+
+	/**
+	 * An "Allow" HTTP header should be sent with a request
+	 * for all available methods on that route
+	 */
+	function test_allow_header_sent() {
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'GET',
+			'callback'     => '__return_null',
+			'should_exist' => false
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
+
+		$result = $this->server->dispatch( $request );
+
+		$this->assertFalse( is_wp_error( $result ) );
+
+		$sent_headers = $this->server->get_sent_headers();
+		$this->assertEquals( $sent_headers['Allow'], 'GET' );
+	}
+
+	/**
+	 * The "Allow" HTTP header should include all available
+	 * methods that can be sent to a route.
+	 */
+	function test_allow_header_sent_with_multiple_methods() {
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'GET',
+			'callback'     => '__return_null',
+			'should_exist' => false
+		) );
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'POST',
+			'callback'     => '__return_null',
+			'should_exist' => false
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
+
+		$result = $this->server->dispatch( $request );
+
+		$this->assertFalse( is_wp_error( $result ) );
+
+		$sent_headers = $this->server->get_sent_headers();
+		$this->assertEquals( $sent_headers['Allow'], 'GET, POST' );
+	}
+
+	/**
+	 * The "Allow" HTTP header should NOT include other methods
+	 * which the user does not have access to.
+	 */
+	function test_allow_header_send_only_permitted_methods() {
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'GET',
+			'callback'     => '__return_null',
+			'should_exist' => false,
+			'capability'   => 'invalid_capability'
+		) );
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'      => 'POST',
+			'callback'     => '__return_null',
+			'should_exist' => false
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
+
+		$result = $this->server->dispatch( $request );
+
+		$this->assertTrue( is_wp_error( $result ) );
+
+		$error_data = $result->get_error_data();
+		$this->assertEquals( $error_data['status'], 403 );
+
+		$sent_headers = $this->server->get_sent_headers();
+		$this->assertEquals( $sent_headers['Allow'], 'POST' );
+	}
 }
