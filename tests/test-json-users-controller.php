@@ -34,9 +34,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 
 		$request = new WP_JSON_Request;
 		$response = $this->endpoint->get_items( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->check_get_users_response( $response );
 	}
 
 	public function test_get_user() {
@@ -46,9 +44,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'id', $user_id );
 		$response = $this->endpoint->get_item( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->check_get_user_response( $response );
 	}
 
 	public function test_delete_user() {
@@ -88,13 +84,45 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
-
-		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
 
 		// Check that the post has been updated correctly
 		$post = get_post( $test_post );
 		$this->assertEquals( $reassign_id, $post->post_author );
+	}
+
+	protected function check_user_data( $user, $data ) {
+		$this->assertEquals( $user->ID, $data['id'] );
+		$this->assertEquals( $user->user_login, $data['username'] );
+		$this->assertEquals( $user->display_name, $data['name'] );
+		$this->assertEquals( $user->first_name, $data['first_name'] );
+		$this->assertEquals( $user->last_name, $data['last_name' ] );
+		$this->assertEquals( $user->nickname, $data['nickname'] );
+		$this->assertEquals( $user->user_nicename, $data['slug'] );
+		$this->assertEquals( $user->user_url, $data['url'] );
+		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar'] );
+		$this->assertEquals( $user->description, $data['description'] );
+		$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered'] );
+	}
+
+	protected function check_get_users_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data()[0];
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data );
+	}
+
+	protected function check_get_user_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data );
 	}
 
 	protected function allow_user_to_manage_multisite() {
