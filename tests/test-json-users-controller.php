@@ -52,6 +52,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 	}
 
 	public function test_delete_user() {
+		$this->allow_user_to_manage_multisite();
+
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
@@ -64,6 +66,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 	}
 
 	public function test_delete_user_reassign() {
+		$this->allow_user_to_manage_multisite();
+
 		// Test with a new user, to avoid any complications
 		$user_id = $this->factory->user->create();
 		$reassign_id = $this->factory->user->create();
@@ -91,5 +95,16 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		// Check that the post has been updated correctly
 		$post = get_post( $test_post );
 		$this->assertEquals( $reassign_id, $post->post_author );
+	}
+
+	protected function allow_user_to_manage_multisite() {
+		wp_set_current_user( $this->user );
+		$user = wp_get_current_user();
+
+		if ( is_multisite() ) {
+			update_site_option( 'site_admins', array( $user->user_login ) );
+		}
+
+		return;
 	}
 }
