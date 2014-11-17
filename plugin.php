@@ -273,6 +273,16 @@ function create_initial_json_routes() {
 			),
 		),
 	) );
+
+	register_json_route( 'wp', '/users/me', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_current_item' ),
+		'args'            => array(
+			'context'          => array(
+				'required'         => false,
+			),
+		)
+	));
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 

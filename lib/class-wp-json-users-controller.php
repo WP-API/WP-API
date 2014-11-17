@@ -61,6 +61,35 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the current user
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function get_current_item( $request ) {
+		$current_user_id = get_current_user_id();
+		if ( empty( $current_user_id ) ) {
+			return new WP_Error( 'json_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
+		}
+
+		$response = $this->get_item( array(
+			'id'      => $current_user_id,
+			'context' => $request['context'],
+		));
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response = json_ensure_response( $response );
+		$data = $response->get_data();
+
+		$response->header( 'Location', $data['_links']['self']['href'] );
+		$response->set_status( 302 );
+
+		return $response;
+	}
+
+	/**
 	 * Create a single user
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
