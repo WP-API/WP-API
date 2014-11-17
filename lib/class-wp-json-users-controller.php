@@ -134,6 +134,40 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Delete a single user
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function delete_item( $request ) {
+		$id = (int) $request['id'];
+		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
+
+		if ( ! current_user_can( 'delete_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => 403 ) );
+		}
+
+		$user = get_userdata( $id );
+		if ( ! $user ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $reassign ) ) {
+			if ( $reassign === $id || ! get_userdata( $reassign ) ) {
+				return new WP_Error( 'json_user_invalid_reassign', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		$result = wp_delete_user( $id, $reassign );
+
+		if ( ! $result ) {
+			return new WP_Error( 'json_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
+		} else {
+			return array( 'message' => __( 'Deleted user' ) );
+		}
+	}
+
+	/**
 	 * Prepare a single user output for response
 	 *
 	 * @param obj $item User object

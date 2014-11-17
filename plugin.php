@@ -208,6 +208,18 @@ function create_initial_json_routes() {
 				),
 			),
 		),
+		array(
+			'methods'         => 'DELETE',
+			'callback'        => array( $controller, 'delete_item' ),
+			'args'            => array(
+				'id'              => array(
+					'required'        => true,
+				),
+				'reassign'        => array(
+					'required'        => false,
+				),
+			),
+		),
 	) );
 
 	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
@@ -261,7 +273,6 @@ function create_initial_json_routes() {
 			),
 		),
 	) );
-
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 
