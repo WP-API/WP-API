@@ -75,6 +75,17 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
+	public function test_create_user_missing_params() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request;
+		$request->set_param( 'username', 'test_user' );
+
+		$response = $this->endpoint->create_item( $request );
+		$this->assertInstanceOf( 'WP_Error', $response );
+	}
+
 	public function test_delete_user() {
 		$this->allow_user_to_manage_multisite();
 
