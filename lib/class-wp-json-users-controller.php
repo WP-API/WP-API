@@ -17,7 +17,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$prepared_args = array();
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'ASC';
+		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'asc';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_text_field( $request['orderby'] ) : 'user_login';
 		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
 		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0;
@@ -223,5 +223,4 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
 	}
-
 }
