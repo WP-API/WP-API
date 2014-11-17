@@ -492,7 +492,7 @@ class WP_JSON_Server {
 
 				// check capabilties specified on the route.
 				if ( empty( $allowed_methods[$method] ) ) {
-					return new WP_Error( 'json_forbidden', __( 'You don\'t have permission to do this.' ), array( 'status' => 401 ) );
+					return new WP_Error( 'json_forbidden', __( 'You don\'t have permission to do this.' ), array( 'status' => 403 ) );
 				}
 
 				if ( ! is_callable( $callback ) ) {
