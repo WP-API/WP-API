@@ -256,7 +256,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		// required arguments.
 		$prepared_user->user_email = sanitize_email( $request['email'] );
 		$prepared_user->user_login = sanitize_user( $request['username'] );
-		$prepared_user->password = $request['password'];
+		$prepared_user->user_pass = $request['password'];
 
 		if ( isset( $request['id'] ) ) {
 			$prepared_user->ID = absint( $request['id'] );
