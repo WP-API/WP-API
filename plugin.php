@@ -203,7 +203,7 @@ function create_initial_json_routes() {
 				'role'            => array(
 					'required'        => false,
 				),
-				'URL'       => array(
+				'url'             => array(
 					'required'        => false,
 				),
 			),
@@ -267,7 +267,7 @@ function create_initial_json_routes() {
 				'role'            => array(
 					'required'        => false,
 				),
-				'URL'       => array(
+				'url'             => array(
 					'required'        => false,
 				),
 			),

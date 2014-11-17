@@ -282,8 +282,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		if ( isset( $request['role'] ) ) {
 			$prepared_user->role = sanitize_text_field( $request['role'] );
 		}
-		if ( isset( $request['URL'] ) ) {
-			$prepared_user->user_url = esc_url_raw( $request['URL'] );
+		if ( isset( $request['url'] ) ) {
+			$prepared_user->user_url = esc_url_raw( $request['url'] );
 		}
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
