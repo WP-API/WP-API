@@ -90,15 +90,37 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
-	public function test_create_user_missing_params() {
-		$this->allow_user_to_manage_multisite();
+	public function test_update_user() {
+		$user_id = $this->factory->user->create( array(
+			'user_email' => 'test@example.com',
+			'user_pass' => 'sjflsfls',
+			'user_login' => 'test_update',
+			'first_name' => 'Old Name',
+		));
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
-		$request->set_param( 'username', 'test_user' );
+		$userdata = get_userdata( $user_id );
+		$pw_before = $userdata->user_pass;
 
-		$response = $this->endpoint->create_item( $request );
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$request = new WP_JSON_Request;
+		$request->set_param( 'id', $user_id );
+		$request->set_param( 'email', $userdata->user_email );
+		$request->set_param( 'username', $userdata->user_login );
+		$request->set_param( 'first_name', 'New Name' );
+
+		$response = $this->endpoint->update_item( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( 'New Name', $new_data['first_name'] );
+		$user = get_userdata( $user_id );
+		$this->assertEquals( 'New Name', $user->first_name );
+
+		// Check that we haven't inadvertently changed the user's password,
+		// as per https://core.trac.wordpress.org/ticket/21429
+		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
 	public function test_delete_user() {
