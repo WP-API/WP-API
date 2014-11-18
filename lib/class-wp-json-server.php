@@ -445,6 +445,31 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Check that all required parameters are present in the request.
+	 *
+	 * @param WP_JSON_Request $request Request with parameters to check.
+	 * @return true|WP_Error
+	 */
+	protected function check_required_parameters( $request ) {
+		$attributes = $request->get_attributes();
+		$required = array();
+
+		foreach ( $attributes['args'] as $key => $arg ) {
+			$param = $request->get_param( $key );
+
+			if ( true == $arg['required'] && empty( $param ) ) {
+				$required[] = $key;
+			}
+		}
+
+		if ( ! empty( $required ) ) {
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required) ), array( 'status' => 400 ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
@@ -505,6 +530,11 @@ class WP_JSON_Server {
 
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
+
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
+					return $check_required;
+				}
 
 				/**
 				 * Allow plugins to override dispatching the request
