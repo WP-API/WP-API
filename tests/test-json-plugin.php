@@ -140,4 +140,60 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		$this->assertTrue( in_array( 'json_route', $wp->public_query_vars ) );
 	}
 
+	public function test_route_method() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+		) );
+
+		// Check both routes exist
+		$routes = $GLOBALS['wp_json_server']->get_routes();
+		
+		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
+	}
+
+	/**
+	 * The 'methods' arg should accept a single value as well as array
+	 */
+	public function test_route_method_string() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => 'GET',
+			'callback' => '__return_null',
+		) );
+
+		// Check both routes exist
+		$routes = $GLOBALS['wp_json_server']->get_routes();
+		
+		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
+	}
+
+	/**
+	 * The 'methods' arg should accept a single value as well as array
+	 */
+	public function test_route_method_array() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => array( 'GET', 'POST' ),
+			'callback' => '__return_null',
+		) );
+
+		// Check both routes exist
+		$routes = $GLOBALS['wp_json_server']->get_routes();
+		
+		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
+	}
+
+	/**
+	 * The 'methods' arg should a comma seperated string
+	 */
+	public function test_route_method_comma_seperated() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => 'GET,POST',
+			'callback' => '__return_null',
+		) );
+
+		// Check both routes exist
+		$routes = $GLOBALS['wp_json_server']->get_routes();
+		
+		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
+	}
 }
