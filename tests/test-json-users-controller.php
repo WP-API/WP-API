@@ -97,6 +97,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 			'user_login' => 'test_update',
 			'first_name' => 'Old Name',
 		));
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$userdata = get_userdata( $user_id );
@@ -131,6 +132,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 
 		$request = new WP_JSON_Request;
 		$request->set_param( 'id', $user_id );
+
 		$response = $this->endpoint->delete_item( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
