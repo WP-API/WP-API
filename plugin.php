@@ -238,13 +238,13 @@ function create_initial_json_routes() {
 					'required'        => true,
 				),
 				'email'           => array(
-					'required'        => true,
+					'required'        => false,
 				),
 				'username'        => array(
-					'required'        => true,
+					'required'        => false,
 				),
 				'password'        => array(
-					'required'        => true,
+					'required'        => false,
 				),
 				'name'            => array(
 					'required'        => false,
