@@ -452,13 +452,18 @@ class WP_JSON_Server {
 	 */
 	protected function check_required_parameters( $request ) {
 		$attributes = $request->get_attributes();
+		$required = array();
 
 		foreach ( $attributes['args'] as $key => $arg ) {
 			$param = $request->get_param( $key );
 
 			if ( true == $arg['required'] && empty( $param ) ) {
-				return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter %s' ), $key ), array( 'status' => 400 ) );
+				$required[] = $key;
 			}
+		}
+
+		if ( ! empty( $required ) ) {
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required) ), array( 'status' => 400 ) );
 		}
 
 		return true;
