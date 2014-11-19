@@ -214,7 +214,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
-			'avatar'      => json_get_avatar_url( $user->user_email ),
+			'avatar'      => json_get_avatar_url( $user->ID ),
 			'description' => $user->description,
 			'registered'  => date( 'c', strtotime( $user->user_registered ) ),
 		);
