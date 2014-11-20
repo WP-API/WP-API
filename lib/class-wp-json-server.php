@@ -433,11 +433,14 @@ class WP_JSON_Server {
 				// Allow comma-separated HTTP methods
 				if ( is_string( $handler['methods'] ) ) {
 					$methods = explode( ',', $handler['methods'] );
-					$handler['methods'] = array();
-					foreach ( $methods as $method ) {
-						$method = strtoupper( trim( $method ) );
-						$handler['methods'][ $method ] = true;
-					}
+				} else if ( is_array( $handler['methods'] ) ) {
+					$methods = $handler['methods'];
+				}
+
+				$handler['methods'] = array();
+				foreach ( $methods as $method ) {
+					$method = strtoupper( trim( $method ) );
+					$handler['methods'][ $method ] = true;
 				}
 			}
 		}
