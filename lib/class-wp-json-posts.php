@@ -229,7 +229,7 @@ class WP_JSON_Posts {
 		}
 
 		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page' );
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
 		// Filter and flip for querying
