@@ -710,6 +710,7 @@ class WP_JSON_Posts {
 			'comment_status' => $post['comment_status'],
 			'ping_status'    => $post['ping_status'],
 			'sticky'         => ( $post['post_type'] === 'post' && is_sticky( $post['ID'] ) ),
+			'post_class'     => get_post_class( $post['ID'] ),
 		);
 
 		$post_fields_raw = array(
