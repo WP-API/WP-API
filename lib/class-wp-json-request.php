@@ -61,14 +61,26 @@ class WP_JSON_Request implements ArrayAccess {
 	protected $attributes = array();
 
 	/**
+	 * Have we parsed the JSON data yet?
+	 *
+	 * Allows lazy-parsing of JSON data where possible.
+	 *
+	 * @var boolean
+	 */
+	protected $parsed_json = false;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct( $method = '', $route = '', $attributes = array() ) {
 		$this->params = array(
-			'URL' => array(),
-			'GET'  => array(),
-			'POST' => array(),
+			'URL'   => array(),
+			'GET'   => array(),
+			'POST'  => array(),
 			'FILES' => array(),
+
+			// See parse_json_params
+			'JSON'  => null,
 		);
 
 		$this->set_method( $method );
@@ -221,31 +233,89 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Get the content-type of the request
+	 *
+	 * @return array Map containing 'value' and 'parameters' keys
+	 */
+	public function get_content_type() {
+		$value = $this->get_header( 'content-type' );
+		if ( empty( $value ) ) {
+			return null;
+		}
+
+		$parameters = '';
+		if ( strpos( $value, ';' ) ) {
+			list( $value, $parameters ) = explode( ';', $value, 2 );
+		}
+
+		$value = strtolower( $value );
+		if ( strpos( $value, '/' ) === false ) {
+			return null;
+		}
+
+		// Parse type and subtype out
+		list( $type, $subtype ) = explode( '/', $value, 2 );
+
+		$data = compact( 'value', 'type', 'subtype', 'parameters' );
+		$data = array_map( 'trim', $data );
+
+		return $data;
+	}
+
+	/**
+	 * Get the parameter priority order
+	 *
+	 * Used when checking parameters in {@see get_param}.
+	 *
+	 * @return string[] List of types to check, in order of priority
+	 */
+	protected function get_parameter_order() {
+		$order = array();
+
+		if ( ! empty( $this->attributes['accept_json'] ) ) {
+			$order[] = 'JSON';
+
+			// Psst, load JSON in if we need to.
+			$this->parse_json_params();
+		}
+
+		if ( $this->method === 'POST' ) {
+			$order[] = 'POST';
+		}
+
+		$order[] = 'GET';
+		$order[] = 'URL';
+
+		/**
+		 * Alter the parameter checking order
+		 *
+		 * The order affects which parameters are checked when using
+		 * {@see get_param} and family. This acts similarly to PHP's
+		 * `request_order` setting.
+		 *
+		 * @param string[] $order List of types to check, in order of priority
+		 * @param WP_JSON_Request $this Request object
+		 */
+		return apply_filters( 'json_request_parameter_order', $order, $this );
+	}
+
+	/**
 	 * Get a parameter from the request
 	 *
 	 * @param string $key Parameter name
 	 * @return mixed|null Value if set, null otherwise
 	 */
 	public function get_param( $key ) {
-		switch ( $this->method ) {
-			case 'POST':
-				if ( isset( $this->params['POST'][ $key ] ) ) {
-					return $this->params['POST'][ $key ];
-				}
+		$order = $this->get_parameter_order();
 
-				
-
-			default:
-				if ( isset( $this->params['GET'][ $key ] ) ) {
-					return $this->params['GET'][ $key ];
-				}
-
-				if ( isset( $this->params['URL'][ $key ] ) ) {
-					return $this->params['URL'][ $key ];
-				}
-
-				return null;
+		foreach ( $order as $type ) {
+			// Do we have the parameter for this type?
+			if ( isset( $this->params[ $type ][ $key ] ) ) {
+				return $this->params[ $type ][ $key ];
+			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -364,6 +434,49 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Set body content
+	 *
+	 * @param string $data Binary data from the request body
+	 */
+	public function set_body( $data ) {
+		$this->body = $data;
+
+		// Enable lazy parsing
+		$this->parsed_json = false;
+		$this->params['JSON'] = null;
+	}
+
+	/**
+	 * Parse the JSON parameters
+	 *
+	 * Avoids parsing the JSON data until we need to access it.
+	 */
+	protected function parse_json_params() {
+		if ( $this->parsed_json ) {
+			return;
+		}
+		$this->parsed_json = true;
+
+		// Check that we actually got JSON
+		$content_type = $this->get_content_type();
+		if ( empty( $content_type ) || $content_type['value'] !== 'application/json' ) {
+			return;
+		}
+
+		$params = json_decode( $this->get_body(), true );
+
+		// Check for a parsing error
+		//
+		// Note that due to WP's JSON compatibility functions, json_last_error
+		// might not be defined: https://core.trac.wordpress.org/ticket/27799
+		if ( $params === null && ( ! function_exists( 'json_last_error' ) || json_last_error() === JSON_ERROR_NONE ) ) {
+			return;
+		}
+
+		$this->params['JSON'] = $params;
+	}
+
+	/**
 	 * Get route that matched the request
 	 *
 	 * @return string Route matching regex
@@ -408,13 +521,15 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @return boolean
 	 */
 	public function offsetExists( $offset ) {
-		switch ( $this->method ) {
-			case 'POST':
-				return isset( $this->params['POST'][ $offset ] );
+		$order = $this->get_parameter_order();
 
-			default:
-				return isset( $this->params['GET'][ $offset ] );
+		foreach ( $order as $type ) {
+			if ( isset( $this->params[ $type ][ $offset ] ) ) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 
 	/**
@@ -444,14 +559,11 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @param mixed $value Parameter value
 	 */
 	public function offsetUnset( $offset ) {
-		switch ( $this->method ) {
-			case 'POST':
-				unset( $this->params['POST'][ $offset ] );
-				break;
+		$order = $this->get_parameter_order();
 
-			default:
-				unset( $this->params['GET'][ $offset ] );
-				break;
+		// Remove the offset from every group
+		foreach ( $order as $type ) {
+			unset( $this->params[ $type ][ $offset] );
 		}
 	}
 }
