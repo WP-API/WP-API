@@ -456,8 +456,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		if ( ! empty( $data['featured_image'] ) ) {
 			// Already verified in preinsert_check()
 			$thumbnail = $this->get_post( $data['featured_image'], 'child' );
+			$thumbnail = json_ensure_response($thumbnail);
+			$thumbnailData = $thumbnail->get_data();
 
-			set_post_thumbnail( $post['ID'], $thumbnail->get_data()['ID'] );
+			set_post_thumbnail( $post['ID'], $thumbnailData['ID'] );
 		}
 	}
 
