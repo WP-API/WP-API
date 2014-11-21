@@ -205,6 +205,7 @@ class WP_JSON_Server {
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
 		$request->set_headers( $this->get_headers( $_SERVER ) );
+		$request->set_body( $this->get_raw_data() );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
@@ -465,10 +466,13 @@ class WP_JSON_Server {
 		$attributes = $request->get_attributes();
 		$required = array();
 
-		foreach ( $attributes['args'] as $key => $arg ) {
-			$param = $request->get_param( $key );
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
 
-			if ( true == $arg['required'] && empty( $param ) ) {
+		foreach ( $attributes['args'] as $key => $arg ) {
+			if ( true === $arg['required'] && ! isset( $request[ $key ] ) ) {
 				$required[] = $key;
 			}
 		}
