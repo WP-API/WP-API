@@ -42,7 +42,7 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
 
-include_once( dirname( __FILE__ ) . 'extras.php' );
+include_once( dirname( __FILE__ ) . '/extras.php' );
 
 
 /**
