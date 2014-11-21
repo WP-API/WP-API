@@ -107,6 +107,29 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Canonicalize header name
+	 *
+	 * Ensures that header names are always treated the same regardless of
+	 * source. Header names are always case insensitive.
+	 *
+	 * Note that we treat `-` (dashes) and `_` (underscores) as the same
+	 * character, as per header parsing rules in both Apache and nginx.
+	 *
+	 * @link http://stackoverflow.com/q/18185366
+	 * @link http://wiki.nginx.org/Pitfalls#Missing_.28disappearing.29_HTTP_headers
+	 * @link http://nginx.org/en/docs/http/ngx_http_core_module.html#underscores_in_headers
+	 *
+	 * @param string $key Header name
+	 * @return string Canonicalized name
+	 */
+	protected function canonicalize_header_name( $key ) {
+		$key = strtolower( $key );
+		$key = str_replace( '-', '_', $key );
+
+		return $key;
+	}
+
+	/**
 	 * Get header from request
 	 *
 	 * If the header has multiple values, they will be concatenated with a comma
@@ -117,7 +140,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @return string|null String value if set, null otherwise
 	 */
 	public function get_header( $key ) {
-		$key = strtolower( $key );
+		$key = $this->canonicalize_header_name( $key );
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
 			return null;
@@ -133,7 +156,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @return array|null List of string values if set, null otherwise
 	 */
 	public function get_header_as_array( $key ) {
-		$key = strtolower( $key );
+		$key = $this->canonicalize_header_name( $key );
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
 			return null;
@@ -149,7 +172,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @param string|string[] $value Header value, or list of values
 	 */
 	public function set_header( $key, $value ) {
-		$key = strtolower( $key );
+		$key = $this->canonicalize_header_name( $key );
 		$value = (array) $value;
 
 		$this->headers[ $key ] = $value;
@@ -162,7 +185,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @param string|string[] $value Header value, or list of values
 	 */
 	public function add_header( $key, $value ) {
-		$key = strtolower( $key );
+		$key = $this->canonicalize_header_name( $key );
 		$value = (array) $value;
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
