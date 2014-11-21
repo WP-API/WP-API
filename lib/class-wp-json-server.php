@@ -246,6 +246,11 @@ class WP_JSON_Server {
 		 */
 		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
 
+		// Wrap the response in an envelope if asked for
+		if ( isset( $_GET['_envelope'] ) ) {
+			$result = $this->envelope_response( $result, isset( $_GET['_embed'] ) );
+		}
+
 		// Send extra data from response objects
 		$headers = $result->get_headers();
 		$this->send_headers( $headers );
@@ -383,6 +388,36 @@ class WP_JSON_Server {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Wrap the response in an envelope
+	 *
+	 * The enveloping technique is used to work around browser/client
+	 * compatibility issues. Essentially, it converts the full HTTP response to
+	 * data instead.
+	 *
+	 * @param WP_JSON_Response $response Response object
+	 * @param boolean $embed Should we embed links?
+	 * @return WP_JSON_Response New reponse with wrapped data
+	 */
+	protected function envelope_response( $response, $embed ) {
+		$envelope = array(
+			'body'    => $this->response_to_data( $response, $embed ),
+			'status'  => $response->get_status(),
+			'headers' => $response->get_headers(),
+		);
+
+		/**
+		 * Alter the enveloped form of a response
+		 *
+		 * @param array $envelope Envelope data
+		 * @param WP_JSON_Response $response Original response data
+		 */
+		$envelope = apply_filters( 'json_envelope_response', $envelope, $response );
+
+		// Ensure it's still a response
+		return json_ensure_response( $envelope );
 	}
 
 	/**
