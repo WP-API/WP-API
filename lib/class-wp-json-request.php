@@ -447,6 +447,18 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Get parameters from a JSON-formatted body
+	 *
+	 * @return array Parameter map of key to value
+	 */
+	public function get_json_params() {
+		// Ensure the parameters have been parsed out
+		$this->parse_json_params();
+
+		return $this->params['JSON'];
+	}
+
+	/**
 	 * Parse the JSON parameters
 	 *
 	 * Avoids parsing the JSON data until we need to access it.
