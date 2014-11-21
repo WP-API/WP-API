@@ -134,7 +134,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @param string $key Header name
 	 * @return string Canonicalized name
 	 */
-	protected function canonicalize_header_name( $key ) {
+	public static function canonicalize_header_name( $key ) {
 		$key = strtolower( $key );
 		$key = str_replace( '-', '_', $key );
 
