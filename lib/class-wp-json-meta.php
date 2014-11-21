@@ -2,10 +2,6 @@
 /**
  * Metadata base class.
  */
-
-/**
- * Metadata base class.
- */
 abstract class WP_JSON_Meta {
 	/**
 	 * Base route name.
