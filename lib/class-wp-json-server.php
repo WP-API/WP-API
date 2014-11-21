@@ -238,6 +238,14 @@ class WP_JSON_Server {
 			$result = $this->error_to_response( $result );
 		}
 
+		/**
+		 * Allow modifying the response before returning
+		 *
+		 * @param WP_JSON_Response $result
+		 * @param WP_JSON_Request $request
+		 */
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
+
 		// Send extra data from response objects
 		$headers = $result->get_headers();
 		$this->send_headers( $headers );
