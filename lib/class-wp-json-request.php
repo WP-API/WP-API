@@ -469,7 +469,7 @@ class WP_JSON_Request implements ArrayAccess {
 		//
 		// Note that due to WP's JSON compatibility functions, json_last_error
 		// might not be defined: https://core.trac.wordpress.org/ticket/27799
-		if ( $params === null && ( ! function_exists( 'json_last_error' ) || json_last_error() === JSON_ERROR_NONE ) ) {
+		if ( $params === null && ( ! function_exists( 'json_last_error' ) || json_last_error() !== JSON_ERROR_NONE ) ) {
 			return;
 		}
 
