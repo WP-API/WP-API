@@ -59,6 +59,13 @@ class WP_JSON_Server {
 	protected $endpoints = array();
 
 	/**
+	 * The matched route for the request. Only populated after dispatch() is called
+	 * 
+	 * @var string
+	 */
+	protected $matched_route = null;
+
+	/**
 	 * Instantiate the server
 	 */
 	public function __construct() {
@@ -245,7 +252,7 @@ class WP_JSON_Server {
 		 * @param WP_JSON_Response $result
 		 * @param WP_JSON_Request $request
 		 */
-		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request, $this );
 
 		// Send extra data from response objects
 		$headers = $result->get_headers();
@@ -509,30 +516,11 @@ class WP_JSON_Server {
 					continue;
 				}
 
-				$allowed_methods = array();
-
-				// get the allowed methods across the routes
-				foreach ( $handlers as $_handler ) {
-					foreach ( $_handler['methods'] as $handler_method => $value ) {
-
-						if ( ! empty( $_handler['capability'] ) ) {
-							$allowed_methods[$handler_method] = (bool) array_filter( array_map( 'current_user_can', (array) $_handler['capability'] ) );
-						} else {
-							$allowed_methods[$handler_method] = true;
-						}
-					}
-				}
-
-				// strip out all the methods that are not allowed (false values)
-				$allowed_methods = array_filter( $allowed_methods );
-
-				if ( $allowed_methods ) {
-					$this->send_header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
-				}
+				$this->matched_route = $route;
 
 				// check capabilties specified on the route.
-				if ( empty( $allowed_methods[$method] ) ) {
-					return new WP_Error( 'json_forbidden', __( 'You don\'t have permission to do this.' ), array( 'status' => 403 ) );
+				if ( ! empty( $handler['capability'] ) && ! array_filter( array_map( 'current_user_can', (array) $handler['capability'] ) ) ) {
+					return new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
 				}
 
 				if ( ! is_callable( $callback ) ) {
@@ -690,7 +678,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
@@ -790,5 +778,21 @@ class WP_JSON_Server {
 		}
 
 		return $headers;
+	}
+
+	/**
+	 * Get all the handlers for the current route
+	 * 
+	 * @return array
+	 */
+	public function get_matched_handlers() {
+
+		if ( ! $this->matched_route ) {
+			return array();
+		}
+
+		$routes = $this->get_routes();
+
+		return $routes[$this->matched_route];
 	}
 }

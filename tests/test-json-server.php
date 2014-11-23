@@ -27,6 +27,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		// Allow for a plugin to insert a different class to handle requests.
 		$wp_json_server_class = apply_filters('wp_json_server_class', 'WP_Test_Spy_JSON_Server');
 		$this->server = $wp_json_server = new $wp_json_server_class;
+		do_action( 'wp_json_server_before_serve' );
 	}
 
 	/**
@@ -167,6 +168,8 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		$result = $this->server->dispatch( $request );
 
+		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
+		
 		$this->assertFalse( is_wp_error( $result ) );
 
 		$sent_headers = $this->server->get_sent_headers();
@@ -194,6 +197,8 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
 
 		$result = $this->server->dispatch( $request );
+
+		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
 
 		$this->assertFalse( is_wp_error( $result ) );
 
@@ -223,6 +228,8 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
 
 		$result = $this->server->dispatch( $request );
+
+		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
 
 		$this->assertTrue( is_wp_error( $result ) );
 

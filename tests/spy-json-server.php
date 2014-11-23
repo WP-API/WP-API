@@ -27,7 +27,7 @@ class WP_Test_Spy_JSON_Server extends WP_JSON_Server {
 	 * @param  string $key
 	 * @param  string $value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 
 		$this->sent_headers[$key] = $value;
 
