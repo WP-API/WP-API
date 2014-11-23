@@ -205,6 +205,7 @@ class WP_JSON_Server {
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
 		$request->set_headers( $this->get_headers( $_SERVER ) );
+		$request->set_body( $this->get_raw_data() );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
@@ -237,6 +238,14 @@ class WP_JSON_Server {
 		if ( is_wp_error( $result ) ) {
 			$result = $this->error_to_response( $result );
 		}
+
+		/**
+		 * Allow modifying the response before returning
+		 *
+		 * @param WP_JSON_Response $result
+		 * @param WP_JSON_Request $request
+		 */
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
 
 		// Send extra data from response objects
 		$headers = $result->get_headers();
@@ -433,15 +442,46 @@ class WP_JSON_Server {
 				// Allow comma-separated HTTP methods
 				if ( is_string( $handler['methods'] ) ) {
 					$methods = explode( ',', $handler['methods'] );
-					$handler['methods'] = array();
-					foreach ( $methods as $method ) {
-						$method = strtoupper( trim( $method ) );
-						$handler['methods'][ $method ] = true;
-					}
+				} else if ( is_array( $handler['methods'] ) ) {
+					$methods = $handler['methods'];
+				}
+
+				$handler['methods'] = array();
+				foreach ( $methods as $method ) {
+					$method = strtoupper( trim( $method ) );
+					$handler['methods'][ $method ] = true;
 				}
 			}
 		}
 		return $endpoints;
+	}
+
+	/**
+	 * Check that all required parameters are present in the request.
+	 *
+	 * @param WP_JSON_Request $request Request with parameters to check.
+	 * @return true|WP_Error
+	 */
+	protected function check_required_parameters( $request ) {
+		$attributes = $request->get_attributes();
+		$required = array();
+
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
+		foreach ( $attributes['args'] as $key => $arg ) {
+			if ( true === $arg['required'] && ! isset( $request[ $key ] ) ) {
+				$required[] = $key;
+			}
+		}
+
+		if ( ! empty( $required ) ) {
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required) ), array( 'status' => 400 ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -531,6 +571,11 @@ class WP_JSON_Server {
 
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
+
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
+					return $check_required;
+				}
 
 				/**
 				 * Allow plugins to override dispatching the request

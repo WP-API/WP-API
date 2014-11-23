@@ -21,6 +21,13 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Create one item from the collection
+	 */
+	public function create_item( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
 	 * Update one item from the collection
 	 */
 	public function update_item( $request ) {
