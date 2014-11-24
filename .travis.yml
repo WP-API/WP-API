@@ -13,6 +13,15 @@ env:
     - WP_VERSION=latest WP_MULTISITE=0
     - WP_VERSION=latest WP_MULTISITE=1
 
+matrix:
+  exclude:
+    - php: 5.2
+      env: WP_VERSION=latest WP_MULTISITE=1
+    - php: 5.3
+      env: WP_VERSION=latest WP_MULTISITE=1
+    - php: 5.4
+      env: WP_VERSION=latest WP_MULTISITE=1
+
 # Clones WordPress and configures our testing environment.
 before_script:
     - bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION 
