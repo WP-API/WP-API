@@ -162,19 +162,20 @@ class WP_JSON_Posts {
 
 		$response = new WP_JSON_Response();
 
-		$post = $this->prepare_post( $post, $context );
-		if ( is_wp_error( $post ) ) {
-			return $post;
+		$data = $this->prepare_post( $post, $context );
+		if ( is_wp_error( $data ) ) {
+			return $data;
 		}
 
-		foreach ( $post['_links'] as $rel => $data ) {
-			$other = $data;
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
 			unset( $other['href'] );
-			$response->link_header( $rel, $data['href'], $other );
+			$response->add_link( $rel, $attributes['href'], $other );
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-		$response->set_data( $post );
+		$response->set_data( $data );
 
 		return $response;
 	}
@@ -228,7 +229,7 @@ class WP_JSON_Posts {
 		}
 
 		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page' );
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
 		// Filter and flip for querying
@@ -804,41 +805,48 @@ class WP_JSON_Posts {
 			}
 		}
 
-		// Entity meta
-		$links = array(
-			'self'       => array(
-				'href' => json_url( '/posts/' . $post['ID'] ),
-			),
-			'author'     => array(
-				'href' => json_url( '/users/' . $post['post_author'] ),
-			),
-			'collection' => array(
-				'href' => json_url( '/posts' ),
-			),
-		);
-
-		if ( 'view-revision' != $context ) {
-			$links['replies']         = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
-			);
-			$links['version-history'] = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-			);
-		}
-
-		$_post['_links'] = $links;
-
-		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['_links']['up'] = array(
-				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
-			);
-		}
-
 		$GLOBALS['post'] = $previous_post;
 		if ( $previous_post ) {
 			setup_postdata( $previous_post );
 		}
 		return apply_filters( 'json_prepare_post', $_post, $post, $context );
+	}
+
+	/**
+	 * Prepare links for the request
+	 *
+	 * @param array $post Post data
+	 * @return array Links for the given post
+	 */
+	protected function prepare_links( $post ) {
+		// Entity meta
+		$links = array(
+			'self'            => array(
+				'href' => json_url( '/posts/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+				'embeddable' => true,
+			),
+			'collection'      => array(
+				'href' => json_url( '/posts' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			),
+		);
+
+		if ( ! empty( $post['post_parent'] ) ) {
+			$links['up'] = array(
+				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+				'embeddable' => true,
+			);
+		}
+
+		return $links;
 	}
 
 	/**

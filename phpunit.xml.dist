@@ -24,6 +24,7 @@
 		</blacklist>
 		<whitelist>
 			<directory suffix=".php">./lib</directory>
+			<file>./plugin.php</file>
 		</whitelist>
 	</filter>
 </phpunit>
