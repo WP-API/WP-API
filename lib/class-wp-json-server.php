@@ -209,7 +209,7 @@ class WP_JSON_Server {
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( strtoupper( $_GET['_method'] ) );
+			$request->set_method( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
