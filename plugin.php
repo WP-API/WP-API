@@ -727,17 +727,29 @@ function json_handle_options_request( $response, $handler, $request ) {
  */
 function json_send_allow_header( $response, $request, $server ) {
 
-	$handlers = $server->get_matched_handlers();
+	$matched_route = $server->get_endpoints_for_path( $request->get_route() );
+
+	if ( ! $matched_route ) {
+		return $response;
+
+	}
 
 	$allowed_methods = array();
 
 	// get the allowed methods across the routes
-	foreach ( $handlers as $_handler ) {
+	foreach ( $matched_route['endpoints'] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
 			if ( ! empty( $_handler['capability'] ) ) {
-				$allowed_methods[$handler_method] = (bool) array_filter( array_map( 'current_user_can', (array) $_handler['capability'] ) );
-			} else {
+
+				foreach ( (array) $_handler['capability'] as $capability ) {
+					if ( ! current_user_can( $capability ) ) {
+						$allowed_methods[$handler_method] = false;
+					}
+				}
+			}
+
+			if ( ! isset( $allowed_methods[$handler_method] ) ) {
 				$allowed_methods[$handler_method] = true;
 			}
 		}
@@ -747,8 +759,10 @@ function json_send_allow_header( $response, $request, $server ) {
 	$allowed_methods = array_filter( $allowed_methods );
 
 	if ( $allowed_methods ) {
-		$server->send_header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
 	}
+
+	return $response;
 }
 
 if ( ! function_exists( 'json_last_error_msg' ) ):

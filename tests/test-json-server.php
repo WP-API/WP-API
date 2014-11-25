@@ -172,7 +172,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		
 		$this->assertFalse( is_wp_error( $result ) );
 
-		$sent_headers = $this->server->get_sent_headers();
+		$sent_headers = $result->get_headers();
 		$this->assertEquals( $sent_headers['Allow'], 'GET' );
 	}
 
@@ -198,11 +198,11 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		$result = $this->server->dispatch( $request );
 
-		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
-
 		$this->assertFalse( is_wp_error( $result ) );
 
-		$sent_headers = $this->server->get_sent_headers();
+		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
+
+		$sent_headers = $result->get_headers();
 		$this->assertEquals( $sent_headers['Allow'], 'GET, POST' );
 	}
 
@@ -229,14 +229,16 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		$result = $this->server->dispatch( $request );
 
-		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
-
 		$this->assertTrue( is_wp_error( $result ) );
 
 		$error_data = $result->get_error_data();
+		$result = $this->server->error_to_response( $result );
+
+		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
+
 		$this->assertEquals( $error_data['status'], 403 );
 
-		$sent_headers = $this->server->get_sent_headers();
+		$sent_headers = $result->get_headers();
 		$this->assertEquals( $sent_headers['Allow'], 'POST' );
 	}
 }
