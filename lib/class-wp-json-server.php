@@ -501,85 +501,86 @@ class WP_JSON_Server {
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
-		foreach ( $this->get_routes() as $route => $handlers ) {
-			foreach ( $handlers as $handler ) {
-				$callback  = $handler['callback'];
-				$supported = $handler['methods'];
+		$matched_route = $this->get_endpoints_for_path( $path );
 
-				if ( empty( $handler['methods'][ $method ] ) ) {
-					continue;
-				}
+		if ( ! $matched_route ) {
+			return new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) );
+		}
 
-				$match = preg_match( '@^' . $route . '$@i', $path, $args );
+		foreach ( $matched_route['endpoints'] as $handler ) {
+			$callback  = $handler['callback'];
+			$supported = $handler['methods'];
+			$args      = $matched_route['args'];
 
-				if ( ! $match ) {
-					continue;
-				}
-
-				$this->matched_route = $route;
-
-				// check capabilties specified on the route.
-				if ( ! empty( $handler['capability'] ) && ! array_filter( array_map( 'current_user_can', (array) $handler['capability'] ) ) ) {
-					return new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
-				}
-
-				if ( ! is_callable( $callback ) ) {
-					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
-				}
-
-				/*
-				if ( ! empty( $handler['accept_json'] ) ) {
-					$raw_data = $this->get_raw_data();
-					$data = json_decode( $raw_data, true );
-
-					// test for json_decode() error
-					$json_error_message = $this->get_json_last_error();
-					if ( $json_error_message ) {
-
-						$data = array();
-						parse_str( $raw_data, $data );
-
-						if ( empty( $data ) ) {
-
-							return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
-						}
-					}
-
-					if ( $data !== null ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				} elseif ( ! empty( $handler['accept_raw'] ) ) {
-					$data = $this->get_raw_data();
-
-					if ( ! empty( $data ) ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				}
-				*/
-
-				$request->set_url_params( $args );
-				$request->set_attributes( $handler );
-
-				$check_required = $this->check_required_parameters( $request );
-				if ( is_wp_error( $check_required ) ) {
-					return $check_required;
-				}
-
-				/**
-				 * Allow plugins to override dispatching the request
-				 *
-				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-				 * @param WP_JSON_Request $request
-				 */
-				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
-
-				// Allow plugins to halt the request via this filter
-				if ( $dispatch_result !== null ) {
-					return json_ensure_response( $dispatch_result );
-				}
-
-				return json_ensure_response( call_user_func( $callback, $request ) );
+			if ( empty( $handler['methods'][ $method ] ) ) {
+				continue;
 			}
+
+			// check capabilties specified on the route.
+			if ( ! empty( $handler['capability'] ) ) {
+				foreach ( (array) $handler['capability'] as $capability ) {
+					if ( ! current_user_can( $capability ) ) {
+						return new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
+					}
+				}
+			}
+
+			if ( ! is_callable( $callback ) ) {
+				return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
+			}
+
+			/*
+			if ( ! empty( $handler['accept_json'] ) ) {
+				$raw_data = $this->get_raw_data();
+				$data = json_decode( $raw_data, true );
+
+				// test for json_decode() error
+				$json_error_message = $this->get_json_last_error();
+				if ( $json_error_message ) {
+
+					$data = array();
+					parse_str( $raw_data, $data );
+
+					if ( empty( $data ) ) {
+
+						return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+					}
+				}
+
+				if ( $data !== null ) {
+					$args = array_merge( $args, array( 'data' => $data ) );
+				}
+			} elseif ( ! empty( $handler['accept_raw'] ) ) {
+				$data = $this->get_raw_data();
+
+				if ( ! empty( $data ) ) {
+					$args = array_merge( $args, array( 'data' => $data ) );
+				}
+			}
+			*/
+
+			$request->set_url_params( $args );
+			$request->set_attributes( $handler );
+
+			$check_required = $this->check_required_parameters( $request );
+			if ( is_wp_error( $check_required ) ) {
+				return $check_required;
+			}
+
+			/**
+			 * Allow plugins to override dispatching the request
+			 *
+			 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+			 * @param WP_JSON_Request $request
+			 */
+			$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+
+			// Allow plugins to halt the request via this filter
+			if ( $dispatch_result !== null ) {
+				return json_ensure_response( $dispatch_result );
+			}
+
+			return json_ensure_response( call_user_func( $callback, $request ) );
 		}
 
 		return new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) );
@@ -783,16 +784,24 @@ class WP_JSON_Server {
 	/**
 	 * Get all the handlers for the current route
 	 * 
-	 * @return array
+	 * @return array [ endpoints => array, args => array, route => string ]
 	 */
-	public function get_matched_handlers() {
-
-		if ( ! $this->matched_route ) {
-			return array();
-		}
+	public function get_endpoints_for_path( $path ) {
 
 		$routes = $this->get_routes();
 
-		return $routes[$this->matched_route];
+		foreach ( $routes as $route => $handlers ) {
+			$match = preg_match( '@^' . $route . '$@i', $path, $args );
+
+			if ( $match ) {
+				return array( 
+					'endpoints' => $handlers,
+					'route'     => $route,
+					'args'      => $args
+				);
+			}
+		}
+
+		return array();
 	}
 }
