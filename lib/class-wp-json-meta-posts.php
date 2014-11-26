@@ -23,12 +23,8 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	 */
 	protected function check_edit_permission( $post ) {
 		$post_type = get_post_type_object( $post['post_type'] );
-
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
+		
+		return current_user_can( $post_type->cap->edit_post, $post['ID'] );
 	}
 
 	/**
