@@ -152,7 +152,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'status'         => $post->post_status,
 			'type'           => $post->post_type,
 			'format'         => get_post_format( $post->ID ),
-			'status'         => $post->post_status,
 			'parent'         => (int) $post->post_parent,
 			'slug'           => $post->post_name,
 			'link'           => get_permalink( $post->ID ),
@@ -185,6 +184,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'guid'         => array(
 					'raw'          => $post->guid,
 				),
+				'status'       => $post->post_status,
 				'password'     => $this->prepare_password_response( $post->post_password ),
 				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
 				'modified_gmt' => $this->prepare_date_response( $post->modified_gmt ),
