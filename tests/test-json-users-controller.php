@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	/**
 	 * This function is run before each method
 	 */
@@ -29,7 +29,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
 	}
 
-	public function test_get_users() {
+	public function test_get_items() {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request;
@@ -37,7 +37,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->check_get_users_response( $response );
 	}
 
-	public function test_get_user() {
+	public function test_get_item() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
