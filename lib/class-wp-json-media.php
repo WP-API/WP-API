@@ -102,7 +102,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $post
 	 * @return array
 	 */
-	protected function prepare_post( $post, $context = 'single' ) {
+	public function prepare_post( $post, $context = 'single' ) {
 		$data = parent::prepare_post( $post, $context );
 
 		if ( is_wp_error( $data ) || $post['post_type'] !== 'attachment' ) {
@@ -216,7 +216,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $data = null, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {

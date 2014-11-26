@@ -649,7 +649,7 @@ class WP_JSON_Posts {
 	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
-	protected function prepare_post( $post, $context = 'view' ) {
+	public function prepare_post( $post, $context = 'view' ) {
 		// Holds the data for this post.
 		$_post = array( 'id' => (int) $post['ID'] );
 
