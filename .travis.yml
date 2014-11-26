@@ -6,19 +6,13 @@ language: php
 php:
     - 5.2
     - 5.3
-    - 5.4
     - 5.5
 
 env:
     - WP_VERSION=latest WP_MULTISITE=0
-    - WP_VERSION=latest WP_MULTISITE=1
 
 matrix:
-  exclude:
-    - php: 5.2
-      env: WP_VERSION=latest WP_MULTISITE=1
-    - php: 5.3
-      env: WP_VERSION=latest WP_MULTISITE=1
+  include:
     - php: 5.4
       env: WP_VERSION=latest WP_MULTISITE=1
 
