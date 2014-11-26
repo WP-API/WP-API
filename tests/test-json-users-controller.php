@@ -48,6 +48,15 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_user_response( $response, 'view' );
 	}
 
+	public function test_prepare_item() {
+		wp_set_current_user( $this->user );
+		$request = new WP_JSON_Request;
+		$request->set_param( 'context', 'edit' );
+		$user = get_user_by( 'id', get_current_user_id() );
+		$data = $this->endpoint->prepare_item_for_response( $user, $request );
+		$this->check_get_user_response( $data, 'edit' );
+	}
+
 	public function test_get_user_with_edit_context() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
