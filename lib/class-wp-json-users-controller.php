@@ -30,7 +30,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$users = $users->results;
-		foreach ( $users as  &$user ) {
+		foreach ( $users as &$user ) {
 			$user = $this->prepare_item_for_response( $user, $request );
 		}
 
