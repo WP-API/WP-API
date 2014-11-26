@@ -16,6 +16,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->endpoint = new WP_JSON_Terms_Controller();
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_register_routes() {
 		global $wp_json_server;
 		$wp_json_server = new WP_JSON_Server;
@@ -32,6 +35,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', '' );
@@ -39,6 +45,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_get_term() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', 'category' );
@@ -47,6 +56,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_get_term_invalid_taxonomy() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', 'invalid-taxonomy' );
@@ -55,6 +67,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_get_term_invalid_term() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', 'category' );
@@ -63,6 +78,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_prepare_taxonomy_term() {
 		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
@@ -70,6 +88,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->check_taxonomy_term( $term, $data );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	public function test_prepare_taxonomy_term_child() {
 		$child = $this->factory->category->create( array(
 			'parent' => 1,
@@ -83,6 +104,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 1, $data['parent'] );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	protected function check_get_taxonomy_terms_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -100,6 +124,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $categories[0]->count, $data[0]['count']);
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	protected function check_taxonomy_term( $term, $data ) {
 		$this->assertEquals( $term->term_id, $data['id'] );
 		$this->assertEquals( $term->name, $data['name'] );
@@ -108,6 +135,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $term->count, $data['count'] );
 	}
 
+	/**
+	 * @group json-terms
+	 */
 	protected function check_get_taxonomy_term_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -118,4 +148,5 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$category = get_term( 1, 'category' );
 		$this->check_taxonomy_term( $category, $data );
 	}
+
 }
