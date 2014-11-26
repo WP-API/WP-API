@@ -28,5 +28,5 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 require $test_root . '/includes/bootstrap.php';
 
 // Helper classes
-require_once dirname( __FILE__ ) . '/test-json-testcase.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-json-testcase.php';
 require_once dirname( __FILE__ ) . '/spy-json-server.php';
