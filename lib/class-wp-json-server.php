@@ -164,7 +164,7 @@ class WP_JSON_Server {
 	 */
 	public function serve_request( $path = null ) {
 		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
-		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -497,7 +497,6 @@ class WP_JSON_Server {
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
-				$supported = $handler['methods'];
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;

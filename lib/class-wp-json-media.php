@@ -43,7 +43,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * Overrides the $type to set to 'attachment', then passes through to the post
 	 * endpoints.
 	 *
-	 * @see WP_JSON_Posts::get_posts()
+	 * @see WP_JSON_Posts::get_multiple()
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = 'attachment', $page = 1 ) {
 		if ( $type !== 'attachment' ) {
@@ -57,7 +57,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			add_filter( 'query_vars', array( $this, 'allow_status_query' ) );
 		}
 
-		$posts = parent::get_posts( $filter, $context, 'attachment', $page );
+		$posts = parent::get_multiple( $filter, $context, 'attachment', $page );
 
 		return $posts;
 	}
@@ -78,7 +78,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	/**
 	 * Retrieve a attachment
 	 *
-	 * @see WP_JSON_Posts::get_post()
+	 * @see WP_JSON_Posts::get()
 	 */
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
@@ -93,7 +93,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::get_post( $id, $context );
+		return parent::get( $id, $context );
 	}
 
 	/**
@@ -159,7 +159,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	/**
 	 * Edit a attachment
 	 *
-	 * @see WP_JSON_Posts::edit_post()
+	 * @see WP_JSON_Posts::update()
 	 */
 	public function edit_post( $id, $data, $_headers = array() ) {
 		$id = (int) $id;
@@ -178,13 +178,13 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::edit_post( $id, $data, $_headers );
+		return parent::update( $id, $data, $_headers );
 	}
 
 	/**
 	 * Delete a attachment
 	 *
-	 * @see WP_JSON_Posts::delete_post()
+	 * @see WP_JSON_Posts::delete()
 	 */
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
@@ -199,7 +199,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::delete_post( $id, $force );
+		return parent::delete( $id, $force );
 	}
 
 	/**
@@ -216,7 +216,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $data = null, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {
@@ -273,7 +273,6 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// Construct the attachment array
-		$post_data  = array();
 		$attachment = array(
 			'post_mime_type' => $type,
 			'guid'           => $url,
