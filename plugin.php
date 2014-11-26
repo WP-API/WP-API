@@ -38,6 +38,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
@@ -78,6 +79,32 @@ function register_json_route( $namespace, $route, $args = array(), $override = f
  * Register default JSON API routes
  */
 function create_initial_json_routes() {
+
+	/*
+	 * Posts
+	 */
+	$controller = new WP_JSON_Posts_Controller;
+	register_json_route( 'wp', '/posts', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'post_type'       => array(
+				'required'        => false,
+			),
+			'page'            => array(
+				'required'        => false,
+			),
+		),
+	) );
+	register_json_route( 'wp', '/posts/(?P<id>[\d]+)', array(
+		'methods'         => 'GET',
+		'callback'        => array( $controller, 'get_item' ),
+		'args'            => array(
+			'context'          => array(
+				'required'         => false,
+			),
+		),
+	) );
 
 	/*
 	 * Taxonomies
