@@ -87,9 +87,7 @@ function create_initial_json_routes() {
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
-			'post_type'          => array(
-				'required'   => false,
-			),
+			'post_type'          => false,
 		),
 	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
@@ -105,15 +103,9 @@ function create_initial_json_routes() {
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
-			'search'          => array(
-				'required'       => false,
-			),
-			'per_page'        => array(
-				'required'       => false,
-			),
-			'page'            => array(
-				'required'       => false,
-			)
+			'search'          => false,
+			'per_page'        => false,
+			'page'            => false,
 		)
 	));
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
@@ -125,18 +117,10 @@ function create_initial_json_routes() {
 			'methods'    => 'POST',
 			'callback'   => array( $controller, 'update_item' ),
 			'args'       => array(
-				'name'           => array(
-					'required'   => false,
-				),
-				'description'    => array(
-					'required'   => false,
-				),
-				'slug'           => array(
-					'required'   => false,
-				),
-				'parent'         => array(
-					'required'   => false,
-				),
+				'name'           => false,
+				'description'    => false,
+				'slug'           => false,
+				'parent'         => false,
 			),
 		),
 		array(
@@ -154,72 +138,36 @@ function create_initial_json_routes() {
 			'methods'         => 'GET',
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
-				'context'          => array(
-					'required'         => false,
-				),
-				'order'            => array(
-					'required'         => false,
-				),
-				'orderby'          => array(
-					'required'         => false,
-				),
-				'per_page'         => array(
-					'required'         => false,
-				),
-				'page'             => array(
-					'required'         => false,
-				),
+				'context'          => false,
+				'order'            => false,
+				'orderby'          => false,
+				'per_page'         => false,
+				'page'             => false,
 			),
 		),
 		array(
 			'methods'         => 'POST',
 			'callback'        => array( $controller, 'create_item' ),
 			'args'            => array(
-				'email'           => array(
-					'required'        => true,
-				),
-				'username'        => array(
-					'required'        => true,
-				),
-				'password'        => array(
-					'required'        => true,
-				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
+				'email'           => true,
+				'username'        => true,
+				'password'        => true,
+				'name'            => false,
+				'first_name'      => false,
+				'last_name'       => false,
+				'nickname'        => false,
+				'slug'            => false,
+				'description'     => false,
+				'role'            => false,
+				'url'             => false,
 			),
 		),
 		array(
 			'methods'         => 'DELETE',
 			'callback'        => array( $controller, 'delete_item' ),
 			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
-				'reassign'        => array(
-					'required'        => false,
-				),
+				'id'              => true,
+				'reassign'        => false,
 			),
 		),
 	) );
@@ -228,50 +176,24 @@ function create_initial_json_routes() {
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_item' ),
 		'args'            => array(
-			'context'          => array(
-				'required'         => false,
-			),
+			'context'          => false,
 		),
 		array(
-			'methods'         => 'PUT',
-			'callback'        => array( $controller, 'update_item' ),
-			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
-				'email'           => array(
-					'required'        => false,
-				),
-				'username'        => array(
-					'required'        => false,
-				),
-				'password'        => array(
-					'required'        => false,
-				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
+			'methods'  => 'PUT',
+			'callback' => array( $controller, 'update_item' ),
+			'args'     => array(
+				'id'          => true,
+				'email'       => false,
+				'username'    => false,
+				'password'    => false,
+				'name'        => false,
+				'first_name'  => false,
+				'last_name'   => false,
+				'nickname'    => false,
+				'slug'        => false,
+				'description' => false,
+				'role'        => false,
+				'url'         => false,
 			),
 		),
 	) );
@@ -280,9 +202,7 @@ function create_initial_json_routes() {
 		'methods'         => 'GET',
 		'callback'        => array( $controller, 'get_current_item' ),
 		'args'            => array(
-			'context'          => array(
-				'required'         => false,
-			),
+			'context'          => false,
 		)
 	));
 }
