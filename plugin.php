@@ -85,14 +85,70 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Posts_Controller;
 	register_json_route( 'wp', '/posts', array(
-		'methods'         => 'GET',
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'post_type'       => array(
-				'required'        => false,
+		array(
+			'methods'         => 'GET',
+			'callback'        => array( $controller, 'get_items' ),
+			'args'            => array(
+				'post_type'       => array(
+					'required'        => false,
+				),
+				'page'            => array(
+					'required'        => false,
+				),
 			),
-			'page'            => array(
-				'required'        => false,
+		),
+		array(
+			'methods'         => 'POST',
+			'callback'        => array( $controller, 'create_item' ),
+			'args'            => array(
+				'title'          => array(
+					'required'       => true,
+				),
+				'content'        => array(
+					'required'       => true,
+				),
+				'excerpt'        => array(
+					'required'       => true,
+				),
+				'type'           => array(
+					'required'       => false,
+				),
+				'status'         => array(
+					'required'       => false,
+				),
+				'date'           => array(
+					'required'       => false,
+				),
+				'date_gmt'       => array(
+					'required'       => false,
+				),
+				'name'           => array(
+					'required'       => false,
+				),
+				'format'    => array(
+					'required'       => false,
+				),
+				'author'         => array(
+					'required'       => false,
+				),
+				'password'       => array(
+					'required'       => false,
+				),
+				'parent'         => array(
+					'required'       => false,
+				),
+				'menu_order'     => array(
+					'required'       => false,
+				),
+				'comment_status' => array(
+					'required'       => false,
+				),
+				'ping_status'    => array(
+					'required'       => false,
+				),
+				'sticky'         => array(
+					'required'       => false,
+				),
 			),
 		),
 	) );
