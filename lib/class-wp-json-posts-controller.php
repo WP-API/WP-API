@@ -67,6 +67,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		foreach ( $posts as &$post ) {
+			if ( ! $this->check_read_permission( $post ) ) {
+				continue;
+			}
+
 			$post = $this->prepare_item_for_response( $post, $request );
 		}
 
@@ -90,9 +94,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		// @TODO: Add read permission check.
+		if ( ! $this->check_read_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+		}
+
 		$post = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $post );
+
 		// @ TODO: Add links.
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
@@ -271,4 +279,60 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	protected function prepare_item_for_database( $request ) {
 
 	}
+
+	/**
+	 * Check if we can read a post
+	 *
+	 * Correctly handles posts with the inherit status.
+	 * 
+	 * @param obj $post Post object
+	 * @return bool Can we read it?
+	 */
+	protected function check_read_permission( $post ) {
+		$post_type = get_post_type_object( $post->post_type );
+
+		// Ensure the post type can be read
+		if ( ! $post_type->show_in_json ) {
+			return false;
+		}
+
+		// Can we read the post?
+		if ( 'publish' === $post->post_status || current_user_can( $post_type->cap->read_post, $post->ID ) ) {
+			return true;
+		}
+
+		// Can we read the parent if we're inheriting?
+		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
+			$parent = get_post( $post->post_parent );
+
+			if ( $this->check_read_permission( $parent ) ) {
+				return true;
+			}
+		}
+
+		// If we don't have a parent, but the status is set to inherit, assume
+		// it's published (as per get_post_status())
+		if ( 'inherit' === $post->post_status ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if we can edit a post
+	 * 
+	 * @param obj $post Post object
+	 * @return bool Can we edit it?
+	 */
+	protected function check_edit_permission( $post ) {
+		$post_type = get_post_type_object( $post->post_type );
+
+		if ( ! current_user_can( $post_type->cap->edit_post, $post->ID ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
 }
