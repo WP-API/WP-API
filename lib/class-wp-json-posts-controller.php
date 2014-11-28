@@ -29,7 +29,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
 		/**
-		* If the user has the correct permissions, also allow use of internal 
+		* If the user has the correct permissions, also allow use of internal
 		* query parameters, which are only undesirable on the frontend.
 		*
 		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
@@ -114,7 +114,36 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function create_item( $request ) {
+		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 
+		if ( ! empty( $request['id'] ) ) {
+			return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
+		}
+
+		$post = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$post_id = wp_insert_post( $post );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		$post->ID = $post_id;
+		$this->handle_sticky_posts( $sticky );
+
+		do_action( 'json_insert_post', $post, $request );
+
+		$response = $this->get_item( array(
+			'id' => $post_id,
+			'context' => 'edit',
+		) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
+
+		return $response;
 	}
 
 	/**
@@ -277,14 +306,187 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return obj $prepared_post Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
+		$prepared_post = new stdClass;
 
+		// ID
+		if ( isset( $request['id'] ) ) {
+			$prepared_post->ID = absint( $request['id'] );
+		}
+
+		// Post title
+		if ( isset( $request['title'] ) ) {
+			$prepared_post->post_title = $request['title'];
+		}
+
+		// Post content
+		if ( ! empty( $request['content'] ) ) {
+			if ( is_string( $request['content'] ) ) {
+				$prepared_post->post_content = $request['content'];
+			}
+			elseif ( ! empty( $request['content']['raw'] ) ) {
+				$prepared_post->post_content = $request['content']['raw'];
+			}
+		}
+
+		// Post excerpt
+		if ( ! empty( $request['excerpt'] ) ) {
+			if ( is_string( $request['excerpt'] ) ) {
+				$prepared_post->post_excerpt = $request['excerpt'];
+			}
+			elseif ( ! empty( $request['excerpt']['raw'] ) ) {
+				$prepared_post->post_excerpt = $request['excerpt']['raw'];
+			}
+		}
+
+		// Post type
+		if ( ! empty( $request['type'] ) ) {
+			// Changing post type
+			if ( ! get_post_type_object( $request['type'] ) ) {
+				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
+			}
+
+			$prepared_post->post_type = $request['type'];
+		} elseif ( empty( $request['id'] ) ) {
+			// Creating new post, use default type
+			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
+		}
+
+		// Post status
+		if ( isset( $request['status'] ) ) {
+			$prepared_post->post_status = $request['status'];
+
+			switch ( $prepared_post->post_status ) {
+				case 'draft':
+				case 'pending':
+					break;
+				case 'private':
+					if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+						return new WP_Error( 'json_cannot_create_private', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
+					}
+					break;
+				case 'publish':
+				case 'future':
+					if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+						return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
+					}
+					break;
+				default:
+					if ( ! get_post_status_object( $prepared_post->post_status ) ) {
+						$post->post_status = 'draft';
+					}
+					break;
+			}
+		}
+
+		// Post date
+		if ( ! empty( $request['date'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['date'] );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
+			}
+		} elseif ( ! empty( $request['date_gmt'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['date_gmt'], true );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
+			}
+		}
+		// Post slug
+		if ( isset( $request['name'] ) ) {
+			$prepared_post->post_name = $request['name'];
+		}
+
+		// Author
+		if ( ! empty( $request['author'] ) ) {
+			// Allow passing an author object
+			if ( is_object( $request['author'] ) ) {
+				if ( empty( $request['author']->id ) ) {
+					return new WP_Error( 'json_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
+				}
+				$request['author'] = (int) $request['author']->id;
+			} else {
+				$request['author'] = (int) $request['author'];
+			}
+
+			// Only check edit others' posts if we are another user
+			if ( $request['author'] !== get_current_user_id() ) {
+				if ( ! current_user_can( $prepared_post->post_type->cap->edit_others_posts ) ) {
+					return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
+				}
+
+				$author = get_userdata( $request['author'] );
+
+				if ( ! $author ) {
+					return new WP_Error( 'json_invalid_author', __( 'Invalid author ID.' ), array( 'status' => 400 ) );
+				}
+			}
+
+			$prepared_post->post_author = $request['author'];
+		}
+
+		// Post password
+		if ( ! empty( $request['password'] ) ) {
+			$prepared_post->post_password = $request['password'];
+
+			if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+				return new WP_Error( 'json_cannot_create_password_protected', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
+			}
+		}
+
+		// Parent
+		if ( ! empty( $request['parent'] ) ) {
+			$parent = get_post( $request['parent'] );
+			if ( empty( $parent ) ) {
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
+			}
+
+			$prepared_post->post_parent = $parent->ID;
+		}
+
+		// Menu order
+		if ( ! empty( $request['menu_order'] ) ) {
+			$prepared_post->menu_order = $request['menu_order'];
+		}
+
+		// Comment status
+		if ( ! empty( $request['comment_status'] ) ) {
+			$prepared_post->comment_status = $request['comment_status'];
+		}
+
+		// Ping status
+		if ( ! empty( $request['ping_status'] ) ) {
+			$prepared_post->ping_status = $request['ping_status'];
+		}
+
+		// Post format
+		if ( ! empty( $request['format'] ) ) {
+			$formats = get_post_format_slugs();
+
+			if ( ! in_array( $request['format'], $formats ) ) {
+				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
+			}
+			$prepared_post->post_format = $request['format'];
+		}
+
+		return apply_filters( 'json_pre_insert_post', $prepared_post, $request );
+	}
+
+	protected function handle_sticky_posts( $sticky, $post_id ) {
+		if ( isset( $sticky ) ) {
+			if ( $sticky ) {
+				stick_post( $post_id );
+			} else {
+				unstick_post( $post_id );
+			}
+		}
 	}
 
 	/**
 	 * Check if we can read a post
 	 *
 	 * Correctly handles posts with the inherit status.
-	 * 
+	 *
 	 * @param obj $post Post object
 	 * @return bool Can we read it?
 	 */
@@ -321,7 +523,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if we can edit a post
-	 * 
+	 *
 	 * @param obj $post Post object
 	 * @return bool Can we edit it?
 	 */
