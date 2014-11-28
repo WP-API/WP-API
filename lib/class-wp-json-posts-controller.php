@@ -26,14 +26,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		global $wp;
-		// Allow the same as normal WP
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
-		// If the user has the correct permissions, also allow use of internal
-		// query parameters, which are only undesirable on the frontend
-		//
-		// To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
-
+		/**
+		* If the user has the correct permissions, also allow use of internal 
+		* query parameters, which are only undesirable on the frontend.
+		*
+		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
+		*/
 		if ( current_user_can( $post_type->cap->edit_posts ) ) {
 			$private = apply_filters( 'json_private_query_vars', $wp->private_query_vars );
 			$valid_vars = array_merge( $valid_vars, $private );
