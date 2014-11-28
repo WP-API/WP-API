@@ -472,6 +472,13 @@ class WP_JSON_Server {
 		}
 
 		foreach ( $attributes['args'] as $key => $arg ) {
+			// Short-syntax
+			if ( is_bool( $arg ) ) {
+				$arg = array(
+					'required' => $arg,
+				);
+			}
+
 			if ( true === $arg['required'] && ! isset( $request[ $key ] ) ) {
 				$required[] = $key;
 			}
