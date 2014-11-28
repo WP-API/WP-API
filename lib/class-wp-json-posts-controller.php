@@ -372,7 +372,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					break;
 				default:
 					if ( ! get_post_status_object( $prepared_post->post_status ) ) {
-						$post->post_status = 'draft';
+						$prepared_post->post_status = 'draft';
 					}
 					break;
 			}
