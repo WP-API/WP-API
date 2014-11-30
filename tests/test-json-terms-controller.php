@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	/**
 	 * This function is run before each method
 	 */
@@ -25,7 +25,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', $routes );
 	}
 
-	public function test_get_terms() {
+	public function test_get_items() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', 'category' );
 		$response = $this->endpoint->get_items( $request );
@@ -39,7 +39,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
-	public function test_get_term() {
+	public function test_get_item() {
 		$request = new WP_JSON_Request;
 		$request->set_param( 'taxonomy', 'category' );
 		$request->set_param( 'id', 1 );
@@ -63,7 +63,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
-	public function test_prepare_taxonomy_term() {
+	public function test_prepare_item() {
 		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
 		$data = $this->endpoint->prepare_item_for_response( $term, $request );

@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	/**
 	 * This function is run before each method
 	 */
@@ -29,7 +29,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
 	}
 
-	public function test_get_users() {
+	public function test_get_items() {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request;
@@ -37,7 +37,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 		$this->check_get_users_response( $response );
 	}
 
-	public function test_get_user() {
+	public function test_get_item() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
@@ -46,6 +46,15 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_TestCase {
 
 		$response = $this->endpoint->get_item( $request );
 		$this->check_get_user_response( $response, 'view' );
+	}
+
+	public function test_prepare_item() {
+		wp_set_current_user( $this->user );
+		$request = new WP_JSON_Request;
+		$request->set_param( 'context', 'edit' );
+		$user = get_user_by( 'id', get_current_user_id() );
+		$data = $this->endpoint->prepare_item_for_response( $user, $request );
+		$this->check_get_user_response( $data, 'edit' );
 	}
 
 	public function test_get_user_with_edit_context() {

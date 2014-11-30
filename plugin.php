@@ -308,11 +308,13 @@ function create_initial_json_routes() {
 	) );
 
 	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
-		'methods'         => 'GET',
-		'callback'        => array( $controller, 'get_item' ),
-		'args'            => array(
-			'context'          => array(
-				'required'         => false,
+		array(
+			'methods'         => 'GET',
+			'callback'        => array( $controller, 'get_item' ),
+			'args'            => array(
+				'context'          => array(
+					'required'         => false,
+				),
 			),
 		),
 		array(

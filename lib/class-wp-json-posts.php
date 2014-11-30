@@ -365,7 +365,7 @@ class WP_JSON_Posts {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! current_user_can( $post_type->cap->delete_post, $id ) ) {
+		if ( empty( $post_type ) || ! current_user_can( $post_type->cap->delete_post, $id ) ) {
 			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -394,7 +394,7 @@ class WP_JSON_Posts {
 		$post_type = get_post_type_object( $post['post_type'] );
 
 		// Ensure the post type can be read
-		if ( ! $post_type->show_in_json ) {
+		if ( empty( $post_type ) || ! $post_type->show_in_json ) {
 			return false;
 		}
 
@@ -429,11 +429,7 @@ class WP_JSON_Posts {
 	protected function check_edit_permission( $post ) {
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
+		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post['ID'] );
 	}
 
 	/**
@@ -558,7 +554,7 @@ class WP_JSON_Posts {
 			$type = get_post_type_object( $type );
 		}
 
-		if ( $type->show_in_json === false ) {
+		if ( empty( $type ) || $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
 		}
 
@@ -649,7 +645,7 @@ class WP_JSON_Posts {
 	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
-	protected function prepare_post( $post, $context = 'view' ) {
+	public function prepare_post( $post, $context = 'view' ) {
 		// Holds the data for this post.
 		$_post = array( 'id' => (int) $post['ID'] );
 
@@ -1132,8 +1128,6 @@ class WP_JSON_Posts {
 			'id'   => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
 		);
-
-		$post = (array) get_post( $fields['post'] );
 
 		// Content
 		$fields['content'] = array(

@@ -41,8 +41,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		if ( is_wp_error( $taxonomy ) ) {
 			return $taxonomy;
 		}
-		
-		$term = get_term_by( 'id', $request['id'], $request['taxonomy'] ); 
+
+		$term = get_term_by( 'term_taxonomy_id', $request['id'], $request['taxonomy'] );
 		if ( ! $term ) {
 			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -108,7 +108,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		return array(
-			'id'           => (int) $item->term_id,
+			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
 			'name'         => $item->name,
