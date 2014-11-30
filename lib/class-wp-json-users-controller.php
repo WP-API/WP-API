@@ -116,7 +116,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$user->ID = $user_id;
 		do_action( 'json_insert_user', $user, $request, false );
 
-		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = $this->get_item( array(
+			'id'      => $user_id,
+			'context' => 'edit',
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
@@ -154,7 +157,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		do_action( 'json_insert_user', $user, $request, false );
 
-		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = $this->get_item( array(
+			'id'      => $user_id,
+			'context' => 'edit',
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
