@@ -380,6 +380,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Post status
 		if ( isset( $request['status'] ) ) {
+			$post_type = get_post_type_object( $prepared_post->post_type );
 			$prepared_post->post_status = $request['status'];
 
 			switch ( $prepared_post->post_status ) {
@@ -387,13 +388,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				case 'pending':
 					break;
 				case 'private':
-					if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 						return new WP_Error( 'json_cannot_create_private', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
 					}
 					break;
 				case 'publish':
 				case 'future':
-					if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 						return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
 					}
 					break;
@@ -438,7 +439,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 			// Only check edit others' posts if we are another user
 			if ( $request['author'] !== get_current_user_id() ) {
-				if ( ! current_user_can( $prepared_post->post_type->cap->edit_others_posts ) ) {
+				if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 					return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
 				}
 
@@ -456,7 +457,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $request['password'] ) ) {
 			$prepared_post->post_password = $request['password'];
 
-			if ( ! current_user_can( $prepared_post->post_type->cap->publish_posts ) ) {
+			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 				return new WP_Error( 'json_cannot_create_password_protected', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
 			}
 		}
