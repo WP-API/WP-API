@@ -195,8 +195,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single post output for response
 	 *
-	 * @param obj $item Post object
-	 * @param obj $request Request object
+	 * @param WP_Post $post Post object
+	 * @param WP_JSON_Request $request Request object
+	 * @return array $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
@@ -328,7 +329,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single post for create or update
 	 *
-	 * @param array $request Request object
+	 * @param WP_JSON_Request $request Request object
 	 * @return obj $prepared_post Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
