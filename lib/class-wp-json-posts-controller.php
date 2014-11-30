@@ -16,13 +16,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$prepared_args['post_type'] = array();
 
 		foreach ( (array) $request['post_type'] as $type ) {
-			$post_type = get_post_type_object( $type );
-
-			if ( ! ( (bool) $post_type ) || ! $post_type->show_in_json ) {
+			if ( ! $this->check_is_post_type_allowed( $type ) ) {
 				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type ), array( 'status' => 403 ) );
 			}
 
-			$prepared_args['post_type'][] = $post_type->name;
+			$prepared_args['post_type'][] = $type;
 		}
 
 		global $wp;
@@ -510,6 +508,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 	}
 
+	protected function check_is_post_type_allowed( $post_type ) {
+		if ( ! is_object( $post_type ) ) {
+			$post_type = get_post_type_object( $post_type );
+		}
+
+		if ( ! empty( $post_type ) && true === $post_type->show_in_json ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * Check if we can read a post
 	 *
@@ -521,11 +531,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	protected function check_read_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
 
-		// Ensure the post type can be read
-		if ( ! $post_type->show_in_json ) {
+		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
 			return false;
 		}
-
 		// Can we read the post?
 		if ( 'publish' === $post->post_status || current_user_can( $post_type->cap->read_post, $post->ID ) ) {
 			return true;
