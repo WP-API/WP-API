@@ -136,9 +136,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		do_action( 'json_insert_post', $post, $request );
 
 		$response = $this->get_item( array(
-			'id' => $post_id,
+			'id'      => $post_id,
 			'context' => 'edit',
-		) );
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
@@ -176,7 +176,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		do_action( 'json_insert_post', $post, $request, false );
 
-		$response = $this->get_item( array( 'id' => $post_id, 'context' => 'edit' ) );
+		$response = $this->get_item( array(
+			'id'      => $post_id,
+			'context' => 'edit',
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
