@@ -334,7 +334,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * Prepare a single post for create or update
 	 *
 	 * @param WP_JSON_Request $request Request object
-	 * @return obj $prepared_post Post object
+	 * @return WP_Error|obj $prepared_post Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post = new stdClass;
@@ -381,10 +381,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
 		}
+		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status
 		if ( isset( $request['status'] ) ) {
-			$post_type = get_post_type_object( $prepared_post->post_type );
 			$prepared_post->post_status = $request['status'];
 
 			switch ( $prepared_post->post_status ) {
