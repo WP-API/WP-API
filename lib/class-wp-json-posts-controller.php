@@ -99,8 +99,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post = $this->prepare_item_for_response( $post, $request );
-		$response = json_ensure_response( $post );
 
+		$response = json_ensure_response( $post );
 		// @ TODO: Add links.
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
@@ -154,14 +154,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
-
-		if ( ! current_user_can( 'edit_post', $id ) ) {
-			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
-		}
-
 		$post = get_post( $id );
+
 		if ( ! $post ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Post ID is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! $this->check_edit_permission( $post ) ) {
+			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
 		$post = $this->prepare_item_for_database( $request );
@@ -235,7 +235,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' === $request['context'] ) {
-			// @TODO: Add edit permission check.
 
 			$data_raw = array(
 				'title'        => array(
