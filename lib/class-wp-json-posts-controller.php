@@ -32,7 +32,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		*
 		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
 		*/
-		if ( current_user_can( $post_type->cap->edit_posts ) ) {
+		if ( current_user_can( 'edit_posts' ) ) {
 			$private = apply_filters( 'json_private_query_vars', $wp->private_query_vars );
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
