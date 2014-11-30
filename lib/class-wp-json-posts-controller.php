@@ -9,7 +9,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * Get all posts
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array();
@@ -82,7 +82,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * Get a single post
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -109,7 +109,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * Create a single post
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function create_item( $request ) {
 		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
@@ -148,7 +148,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * Update a single post
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
