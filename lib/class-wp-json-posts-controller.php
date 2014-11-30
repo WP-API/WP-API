@@ -153,7 +153,35 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_item( $request ) {
+		$id = (int) $request['id'];
 
+		if ( ! current_user_can( 'edit_post', $id ) ) {
+			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
+		}
+
+		$post = get_post( $id );
+		if ( ! $post ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Post ID is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		$post = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
+
+		$post_id = wp_update_post( $post );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		do_action( 'json_insert_post', $post, $request, false );
+
+		$response = $this->get_item( array( 'id' => $post_id, 'context' => 'edit' ) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
+
+		return $response;
 	}
 
 	/**
