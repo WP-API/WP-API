@@ -51,14 +51,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// check above
 		unset( $valid_vars['post_type'] );
 
+		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
-			if ( isset( $filter[ $var ] ) ) {
-				$prepared_args[ $var ] = apply_filters( 'json_query_var-' . $var, $filter[ $var ] );
+			if ( isset( $prepared_args[ $var ] ) ) {
+				$query_args[ $var ] = apply_filters( 'json_query_var-' . $var, $prepared_args[ $var ] );
 			}
 		}
 
 		$posts_query = new WP_Query();
-		$posts = $posts_query->query( $prepared_args );
+		$posts = $posts_query->query( $query_args );
 		if ( is_wp_error( $posts ) ) {
 			return $posts;
 		}
