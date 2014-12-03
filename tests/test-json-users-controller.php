@@ -89,6 +89,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request;
+		$request->set_method( 'POST' );
 		$request->set_param( 'username', 'test_user' );
 		$request->set_param( 'password', 'test_password' );
 		$request->set_param( 'email', 'test@example.com' );
@@ -113,6 +114,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$pw_before = $userdata->user_pass;
 
 		$request = new WP_JSON_Request;
+		$request->set_method( 'POST' );
 		$request->set_param( 'id', $user_id );
 		$request->set_param( 'email', $userdata->user_email );
 		$request->set_param( 'username', $userdata->user_login );
