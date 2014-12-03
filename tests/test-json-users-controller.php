@@ -149,9 +149,53 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
 		$this->assertEquals( $pw_before, $user->user_pass );
+	}
 
-		$userdata = get_userdata( $new_data['id'] );
-		$this->check_user_data( $userdata, $new_data, 'edit' );
+	public function test_json_update_user() {
+		/**
+		 * JSON PUT Handling is not yet implemented.
+		 * See https://github.com/WP-API/WP-API/issues/671
+		 */
+		$this->markTestSkipped( 'Missing JSON PUT request handling.' );
+
+		$user_id = $this->factory->user->create( array(
+			'user_email' => 'testjson2@example.com',
+			'user_pass'  => 'sjflsfl3sdjls',
+			'user_login' => 'test_json_update',
+			'first_name' => 'Old Name',
+			'last_name'  => 'Original Last',
+		));
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'id'         => $user_id,
+			'username'   => 'test_json_update',
+			'email'      => 'testjson2@example.com',
+			'first_name' => 'JSON Name',
+			'last_name'  => 'New Last',
+		);
+
+		$userdata = get_userdata( $user_id );
+		$pw_before = $userdata->user_pass;
+
+		$request = new WP_JSON_Request;
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_method( 'POST' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->endpoint->update_item( $request );
+		$this->check_add_edit_user_response( $response );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( 'New Name', $new_data['first_name'] );
+		$user = get_userdata( $user_id );
+		$this->assertEquals( 'New Name', $user->first_name );
+
+		// Check that we haven't inadvertently changed the user's password,
+		// as per https://core.trac.wordpress.org/ticket/21429
+		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
 	public function test_delete_user() {
