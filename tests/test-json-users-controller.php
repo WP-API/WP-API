@@ -95,10 +95,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_param( 'email', 'test@example.com' );
 
 		$response = $this->endpoint->create_item( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
-		$this->check_get_user_response( $response, 'edit' );
+		$this->check_add_edit_user_response( $response );
 	}
 
 	public function test_update_user() {
@@ -122,9 +119,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_param( 'first_name', 'New Name' );
 
 		$response = $this->endpoint->update_item( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 201, $response->get_status() );
-		$this->check_get_user_response( $response, 'edit' );
+		$this->check_add_edit_user_response( $response );
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
@@ -135,6 +130,9 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
 		$this->assertEquals( $pw_before, $user->user_pass );
+
+		$userdata = get_userdata( $new_data['id'] );
+		$this->check_user_data( $userdata, $new_data, 'edit' );
 	}
 
 	public function test_delete_user() {
@@ -227,6 +225,16 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
 		$this->check_user_data( $userdata, $data, $context );
+	}
+
+	protected function check_add_edit_user_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'edit' );
 	}
 
 	protected function allow_user_to_manage_multisite() {
