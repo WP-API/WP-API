@@ -98,6 +98,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
+		$this->check_get_user_response( $response, 'edit' );
 	}
 
 	public function test_update_user() {
@@ -123,6 +124,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->endpoint->update_item( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$this->assertEquals( 201, $response->get_status() );
+		$this->check_get_user_response( $response, 'edit' );
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
