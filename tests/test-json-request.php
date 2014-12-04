@@ -212,4 +212,18 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
 		}
 	}
+
+	public function test_parameter_merging() {
+		$this->request_with_parameters();
+
+		$this->request->set_method( 'POST' );
+
+		$expected = array(
+			'source' => 'body',
+			'has_url_params' => true,
+			'has_query_params' => true,
+			'has_body_params' => true,
+		);
+		$this->assertEquals( $expected, $this->request->get_params() );
+	}
 }

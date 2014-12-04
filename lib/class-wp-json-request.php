@@ -348,6 +348,26 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Get merged parameters from the request
+	 *
+	 * The equivalent of {@see get_param}, but returns all parameters for the
+	 * request. Handles merging all the available values into a single array.
+	 *
+	 * @return array Map of key to value
+	 */
+	public function get_params() {
+		$order = $this->get_parameter_order();
+		$order = array_reverse( $order, true );
+
+		$params = array();
+		foreach ( $order as $type ) {
+			$params = array_merge( $params, $this->params[ $type ] );
+		}
+
+		return $params;
+	}
+
+	/**
 	 * Get parameters from the route itself
 	 *
 	 * These are parsed from the URL using the regex.
