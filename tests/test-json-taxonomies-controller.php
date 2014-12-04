@@ -63,6 +63,18 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
+	public function test_create_item() {
+		/** Taxonomies can't be created **/
+	}
+
+	public function test_update_item() {
+		/** Taxonomies can't be updated **/
+	}
+
+	public function test_delete_item() {
+		/** Taxonomies can't be deleted **/
+	}
+
 	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
 		$data = $this->endpoint->prepare_item_for_response( $tax, new WP_JSON_Request );

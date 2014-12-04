@@ -83,7 +83,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
 	}
 
-	public function test_create_user() {
+	public function test_create_item() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
@@ -114,7 +114,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_add_edit_user_response( $response );
 	}
 
-	public function test_update_user() {
+	public function test_update_item() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'test@example.com',
 			'user_pass' => 'sjflsfls',
@@ -191,7 +191,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
-	public function test_delete_user() {
+	public function test_delete_item() {
 		$this->allow_user_to_manage_multisite();
 
 		$user_id = $this->factory->user->create();
