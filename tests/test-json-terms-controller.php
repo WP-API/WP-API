@@ -44,6 +44,19 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
+	public function test_create_item() {
+
+	}
+
+	public function test_update_item() {
+
+
+	}
+
+	public function test_delete_item() {
+
+	}
+
 	public function test_prepare_item() {
 		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
