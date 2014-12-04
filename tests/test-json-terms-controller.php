@@ -110,7 +110,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function test_update_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy' );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy/9999999' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
