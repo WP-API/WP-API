@@ -524,7 +524,7 @@ class WP_JSON_Request implements ArrayAccess {
 		// Amazingly, parse_str follows magic quote rules. Sigh.
 		// NOTE: Do not refactor to use `wp_unslash`.
 		if ( get_magic_quotes_gpc() ) {
-			$params = stripslashes( $params );
+			$params = stripslashes_deep( $params );
 		}
 
 		// Add to the POST parameters stored internally. If a user has already
