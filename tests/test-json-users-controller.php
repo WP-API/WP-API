@@ -147,12 +147,6 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_json_update_user() {
-		/**
-		 * JSON PUT Handling is not yet implemented.
-		 * See https://github.com/WP-API/WP-API/issues/671
-		 */
-		$this->markTestSkipped( 'Missing JSON PUT request handling.' );
-
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'testjson2@example.com',
 			'user_pass'  => 'sjflsfl3sdjls',
@@ -173,7 +167,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$userdata = get_userdata( $user_id );
 		$pw_before = $userdata->user_pass;
 
-		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( $params ) );
 
@@ -182,9 +176,11 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
-		$this->assertEquals( 'New Name', $new_data['first_name'] );
+		$this->assertEquals( 'JSON Name', $new_data['first_name'] );
+		$this->assertEquals( 'New Last', $new_data['last_name'] );
 		$user = get_userdata( $user_id );
-		$this->assertEquals( 'New Name', $user->first_name );
+		$this->assertEquals( 'JSON Name', $user->first_name );
+		$this->assertEquals( 'New Last', $user->last_name );
 
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
