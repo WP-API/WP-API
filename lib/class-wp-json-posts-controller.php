@@ -49,10 +49,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
 		$valid_vars = array_flip( $valid_vars );
 
-		// Exclude the post_type query var to avoid dodging the permission
-		// check above
-		unset( $valid_vars['post_type'] );
-
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
 			if ( isset( $prepared_args[ $var ] ) ) {
