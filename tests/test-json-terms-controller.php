@@ -8,6 +8,16 @@
  */
 class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 
+	public function setUp() {
+		parent::setUp();
+		$this->administrator = $this->factory->user->create( array(
+			'role' => 'administrator',
+		) );
+		$this->subscriber = $this->factory->user->create( array(
+			'role' => 'subscriber',
+		) );
+	}
+
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)', $routes );
@@ -45,6 +55,34 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_item() {
+		wp_set_current_user( $this->administrator );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'My Awesome Term', $data['name'] );
+	}
+
+	public function test_create_item_invalid_taxonomy() {
+		wp_set_current_user( $this->administrator );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy' );
+		$request->set_param( 'name', 'Invalid Taxonomy' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
+	}
+
+	public function test_create_item_incorrect_permissions() {
+		wp_set_current_user( $this->subscriber );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
+		$request->set_param( 'name', 'Incorrect permissions' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_create', $response, 404 );
+	}
+
+	public function test_create_item_missing_arguments() {
 
 	}
 

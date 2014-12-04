@@ -53,6 +53,35 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Create a single term for a taxonomy
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function create_item( $request ) {
+
+		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
+		if ( is_wp_error( $taxonomy ) ) {
+			return $taxonomy;
+		}
+
+		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
+			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
+		}
+
+		$name = sanitize_text_field( $request['name'] );
+		$args = array();
+		// @todo handle arguments
+
+		$term = wp_insert_term( $name, $request['taxonomy'], $args );
+		if ( is_wp_error( $term ) ) {
+			return $term;
+		}
+		return self::get_item( array( 'id' => $term['term_taxonomy_id'], 'taxonomy' => $request['taxonomy'] ) );
+	}
+
+	/**
 	 * Update a single term from a taxonomy
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
