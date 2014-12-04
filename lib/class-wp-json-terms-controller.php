@@ -88,6 +88,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_item( $request ) {
+
+		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
+		if ( is_wp_error( $taxonomy ) ) {
+			return $taxonomy;
+		}
+
+		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		if ( ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
+			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit terms.' ), array( 'status' => 403 ) );
+		}
+
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
 			$prepared_args['name'] = sanitize_text_field( $request['name'] );
