@@ -19,7 +19,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->post_obj = get_post( $this->post_id );
 
 		$this->fake_server = $this->getMock( 'WP_JSON_Server', null );
-		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
+		$this->endpoint = new WP_JSON_Posts();
 	}
 
 	protected function set_data( $args = array() ) {
@@ -354,7 +354,7 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 	}
 
 	function test_create_page_with_invalid_parent() {
-		$parent = $this->factory->post->create(array(
+		$this->factory->post->create(array(
 			'type' => 'page',
 		));
 		$data = $this->set_data(array(
@@ -536,7 +536,6 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
-		$headers = $response->get_headers();
 
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );

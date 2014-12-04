@@ -1,7 +1,7 @@
 <?php
 
 class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
-	
+
 	/**
 	 * Get all public taxonomies
 	 *
@@ -50,12 +50,12 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 		if ( $taxonomy->public === false ) {
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 		}
-		$base_url = '/taxonomies/' . $taxonomy->name;
+
 		$data = array(
-			'name'		 => $taxonomy->label,
-			'slug'		 => $taxonomy->name,
-			'labels'	   => $taxonomy->labels,
-			'types'		=> $taxonomy->object_type,
+			'name'         => $taxonomy->label,
+			'slug'         => $taxonomy->name,
+			'labels'       => $taxonomy->labels,
+			'types'        => $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 		);

@@ -205,10 +205,11 @@ class WP_JSON_Server {
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
 		$request->set_headers( $this->get_headers( $_SERVER ) );
+		$request->set_body( $this->get_raw_data() );
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( strtoupper( $_GET['_method'] ) );
+			$request->set_method( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
@@ -500,16 +501,20 @@ class WP_JSON_Server {
 		$attributes = $request->get_attributes();
 		$required = array();
 
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
 		foreach ( $attributes['args'] as $key => $arg ) {
 			$param = $request->get_param( $key );
-
-			if ( true == $arg['required'] && empty( $param ) ) {
+			if ( true === $arg['required'] && null === $param ) {
 				$required[] = $key;
 			}
 		}
 
 		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required) ), array( 'status' => 400 ) );
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
 		}
 
 		return true;
