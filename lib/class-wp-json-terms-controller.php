@@ -115,7 +115,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
 		}
 
-		$update = wp_update_term( (int) $request['id'], $request['taxonomy'], $prepared_args );
+		// Get the actual term_id
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
+		$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
 		if ( is_wp_error( $update ) ) {
 			return $update;
 		}
