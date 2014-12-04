@@ -1,0 +1,174 @@
+<?php
+
+/**
+ * Unit tests covering WP_JSON_Posts_Controller functionality.
+ *
+ * @package WordPress
+ * @subpackage JSON API
+ */
+class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
+
+	public function setUp() {
+		parent::setUp();
+
+		$this->post_id = $this->factory->post->create();
+
+		$this->endpoint = new WP_JSON_Posts_Controller;
+		$this->server = $GLOBALS['wp_json_server'];
+	}
+
+	public function test_register_routes() {
+		global $wp_json_server;
+		$wp_json_server = new WP_JSON_Server;
+		do_action( 'wp_json_server_before_serve' );
+		$routes = $wp_json_server->get_routes();
+		$this->assertArrayHasKey( '/wp/posts', $routes );
+		$this->assertArrayHasKey( '/wp/posts/(?P<id>[\d]+)', $routes );
+	}
+
+	public function test_get_items() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->check_get_posts_response( $response );
+	}
+
+	public function test_get_item() {
+		$post_id = $this->factory->post->create();
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_get_post_response( $response, 'view' );
+	}
+
+	public function test_create_item() {
+
+	}
+
+	public function test_update_item() {
+
+	}
+
+	public function test_delete_item() {
+
+	}
+
+	public function test_prepare_item() {
+
+	}
+
+	protected function check_post_data( $post, $data, $context ) {
+		$this->assertEquals( $post->ID, $data['id'] );
+		$this->assertEquals( $post->post_name, $data['slug'] );
+		$this->assertEquals( $post->post_status, $data['status'] );
+		$this->assertEquals( $post->post_author, $data['author'] );
+		$this->assertArrayHasKey( 'parent', $data );
+		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
+		$this->assertEquals( $post->menu_order, $data['menu_order'] );
+		$this->assertEquals( $post->comment_status, $data['comment_status'] );
+		$this->assertEquals( $post->ping_status, $data['ping_status'] );
+		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+
+		if ( $post->post_password ) {
+
+		}
+
+		// Check post parent.
+		if ( $post->post_parent ) {
+			if ( is_int( $data['parent'] ) ) {
+				$this->assertEquals( $post->post_parent, $data['parent'] );
+			}
+			else {
+				$this->assertEquals( $post->post_parent, $data['parent']['id'] );
+				$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+			}
+		}
+		else {
+			$this->assertEmpty( $data['parent'] );
+		}
+
+		// Check post format.
+		$post_format = get_post_format( $post->ID );
+		if ( empty( $post_format ) ) {
+			$this->assertEquals( 'standard', $data['format'] );
+		} else {
+			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
+		}
+
+		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+			$this->assertNull( $data['date'] );
+		}
+		else {
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
+		}
+		if ( '0000-00-00 00:00:00' === $post->post_modified ) {
+			$this->assertNull( $data['modified'] );
+		}
+		else {
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+		}
+
+		// Check filtered values.
+		$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
+		// TODO: apply content filter for more accurate testing.
+		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+		// TODO: apply excerpt filter for more accurate testing.
+		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
+
+		if ( 'edit' == $context ) {
+			$this->assertEquals( $post->post_title, $data['title']['raw'] );
+			$this->assertEquals( $post->post_content, $data['content']['raw'] );
+			$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
+			$this->assertEquals( $post->guid, $data['guid']['raw'] );
+			$this->assertEquals( $post->post_status, $data['status'] );
+			$this->assertEquals( $post->post_password, $data['password'] );
+
+			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
+				$this->assertNull( $data['date_gmt'] );
+			}
+			else {
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+			}
+
+			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
+				$this->assertNull( $data['modified_gmt'] );
+			}
+			else {
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
+			}
+		}
+	}
+
+	protected function check_get_posts_response( $response, $context = 'view' ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$all_data = $response->get_data();
+		$data = $all_data[0];
+		$post = get_post( $data['id'] );
+		$this->check_post_data( $post, $data, $context );
+	}
+
+	protected function check_get_post_response( $response, $context = 'view' ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$post = get_post( $data['id'] );
+		$this->check_post_data( $post, $data, $context );
+	}
+
+	protected function check_add_edit_post_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$post = get_post( $data['id'] );
+		$this->check_post_data( $post, $data, 'edit' );
+	}
+
+}
