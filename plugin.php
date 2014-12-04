@@ -86,7 +86,7 @@ function create_initial_json_routes() {
 	$controller = new WP_JSON_Posts_Controller;
 	register_json_route( 'wp', '/posts', array(
 		array(
-			'methods'         => 'GET',
+			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
 				'post_type'       => array(
@@ -98,7 +98,7 @@ function create_initial_json_routes() {
 			),
 		),
 		array(
-			'methods'         => 'POST',
+			'methods'         => WP_JSON_Server::CREATABLE,
 			'callback'        => array( $controller, 'create_item' ),
 			'args'            => array(
 				'title'          => array(
@@ -153,7 +153,7 @@ function create_initial_json_routes() {
 		),
 	) );
 	register_json_route( 'wp', '/posts/(?P<id>[\d]+)', array(
-		'methods'         => 'GET',
+		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_item' ),
 		'args'            => array(
 			'context'          => array(
