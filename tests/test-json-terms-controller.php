@@ -79,7 +79,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_create', $response, 404 );
+		$this->assertErrorResponse( 'json_user_cannot_create', $response, 403 );
 	}
 
 	public function test_create_item_missing_arguments() {
