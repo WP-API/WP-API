@@ -102,19 +102,39 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Terms_Controller;
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'search'          => array(
-				'required'       => false,
+		array(
+			'methods'  => WP_JSON_Server::READABLE,
+			'callback' => array( $controller, 'get_items' ),
+			'args'     => array(
+				'search'   => array(
+					'required' => false,
+				),
+				'per_page' => array(
+					'required' => false,
+				),
+				'page'     => array(
+					'required' => false,
+				),
 			),
-			'per_page'        => array(
-				'required'       => false,
+		),
+		array(
+			'methods'     => WP_JSON_Server::CREATABLE,
+			'callback'    => array( $controller, 'create_item' ),
+			'args'        => array(
+				'name'        => array(
+					'required'    => true,
+				),
+				'description' => array(
+					'required'    => false,
+				),
+				'slug'        => array(
+					'required'    => false,
+				),
+				'parent_id'   => array(
+					'required'    => false,
+				),
 			),
-			'page'            => array(
-				'required'       => false,
-			)
-		)
+		),
 	));
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 		array(
@@ -134,7 +154,7 @@ function create_initial_json_routes() {
 				'slug'           => array(
 					'required'   => false,
 				),
-				'parent'         => array(
+				'parent_id'      => array(
 					'required'   => false,
 				),
 			),
