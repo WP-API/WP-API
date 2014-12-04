@@ -70,6 +70,13 @@ class WP_JSON_Request implements ArrayAccess {
 	protected $parsed_json = false;
 
 	/**
+	 * Have we parsed body data yet?
+	 *
+	 * @var boolean
+	 */
+	protected $parsed_body = false;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct( $method = '', $route = '', $attributes = array() ) {
@@ -276,7 +283,14 @@ class WP_JSON_Request implements ArrayAccess {
 			$this->parse_json_params();
 		}
 
-		if ( $this->method === 'POST' ) {
+		// Ensure we parse the body data
+		$body = $this->get_body();
+		if ( $this->method !== 'POST' && ! empty( $body ) ) {
+			$this->parse_body_params();
+		}
+
+		$accepts_body_data = array( 'POST', 'PUT', 'PATCH' );
+		if ( in_array( $this->method, $accepts_body_data ) ) {
 			$order[] = 'POST';
 		}
 
@@ -440,6 +454,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Enable lazy parsing
 		$this->parsed_json = false;
+		$this->parsed_body = false;
 		$this->params['JSON'] = null;
 	}
 
@@ -483,6 +498,38 @@ class WP_JSON_Request implements ArrayAccess {
 		}
 
 		$this->params['JSON'] = $params;
+	}
+
+	/**
+	 * Parse body parameters.
+	 *
+	 * Parses out URL-encoded bodies for request methods that aren't supported
+	 * natively by PHP. In PHP 5.x, only POST has these parsed automatically.
+	 */
+	protected function parse_body_params() {
+		if ( $this->parsed_body ) {
+			return;
+		}
+		$this->parsed_body = true;
+
+		// Check that we got URL-encoded. Treat a missing content-type as
+		// URL-encoded for maximum compatibility
+		$content_type = $this->get_content_type();
+		if ( ! empty( $content_type ) && $content_type['value'] !== 'application/x-www-form-urlencoded' ) {
+			return;
+		}
+
+		parse_str( $this->get_body(), $params );
+
+		// Amazingly, parse_str follows magic quote rules. Sigh.
+		// NOTE: Do not refactor to use `wp_unslash`.
+		if ( get_magic_quotes_gpc() ) {
+			$params = stripslashes( $params );
+		}
+
+		// Add to the POST parameters stored internally. If a user has already
+		// set these manually (via `set_body_params`), don't override them.
+		$this->params['POST'] = array_merge( $params, $this->params['POST'] );
 	}
 
 	/**
