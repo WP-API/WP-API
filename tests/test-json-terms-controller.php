@@ -102,6 +102,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_param( 'description', 'New Description' );
 		$request->set_param( 'slug', 'new-slug' );
 		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'New Name', $data['name'] );
 		$this->assertEquals( 'New Description', $data['description'] );
