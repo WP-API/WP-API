@@ -107,13 +107,22 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @param WP_JSON_Request $request
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+
+		$parent_id = 0;
+		if ( $item->parent ) {
+			$parent_term = get_term_by( 'id', (int) $item->parent, $item->taxonomy );
+			if ( $parent_term ) {
+				$parent_id = $parent_term->term_taxonomy_id;
+			}
+		}
+
 		return array(
 			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
 			'name'         => $item->name,
 			'slug'         => $item->slug,
-			'parent'       => (int) $item->parent,
+			'parent_id'    => (int) $parent_id,
 		);
 	}
 
