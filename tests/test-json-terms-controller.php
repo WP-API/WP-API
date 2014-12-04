@@ -83,7 +83,10 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_item_missing_arguments() {
-
+		wp_set_current_user( $this->administrator );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_missing_callback_param', $response, 400 );
 	}
 
 	public function test_update_item() {
