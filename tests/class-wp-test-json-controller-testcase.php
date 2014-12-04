@@ -15,6 +15,12 @@ abstract class WP_Test_JSON_Controller_Testcase extends WP_Test_JSON_TestCase {
 
 	abstract public function test_get_item();
 
+	abstract public function test_create_item();
+
+	abstract public function test_update_item();
+
+	abstract public function test_delete_item();
+
 	abstract public function test_prepare_item();
 
 }
