@@ -402,7 +402,7 @@ class WP_JSON_Server {
 	 * @param boolean $embed Should we embed links?
 	 * @return WP_JSON_Response New reponse with wrapped data
 	 */
-	protected function envelope_response( $response, $embed ) {
+	public function envelope_response( $response, $embed ) {
 		$envelope = array(
 			'body'    => $this->response_to_data( $response, $embed ),
 			'status'  => $response->get_status(),
