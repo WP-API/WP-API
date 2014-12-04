@@ -89,9 +89,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function update_item( $request ) {
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
+		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
+		if ( is_wp_error( $term ) ) {
+			return $term;
 		}
 
 		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
