@@ -18,6 +18,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		$this->endpoint = new WP_JSON_Users_Controller();
+		$this->server = $GLOBALS['wp_json_server'];
 	}
 
 	public function test_register_routes() {
@@ -32,8 +33,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_items() {
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
-		$response = $this->endpoint->get_items( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/users' );
+		$response = $this->server->dispatch( $request );
 		$this->check_get_users_response( $response );
 	}
 
@@ -41,10 +42,9 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
-		$request->set_param( 'id', $user_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 
-		$response = $this->endpoint->get_item( $request );
+		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'view' );
 	}
 
@@ -61,20 +61,19 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
-		$request->set_param( 'id', $user_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 		$request->set_param( 'context', 'edit' );
 
-		$response = $this->endpoint->get_item( $request );
+		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'edit' );
 	}
 
 	public function test_get_current_user() {
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
+		$request = new WP_JSON_Request( 'GET', '/wp/users/me' );
 
-		$response = $this->endpoint->get_current_item( $request );
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$this->assertEquals( 302, $response->get_status() );
 
@@ -84,22 +83,38 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
 	}
 
-	public function test_create_user() {
+	public function test_create_item() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
 		$request->set_param( 'username', 'test_user' );
 		$request->set_param( 'password', 'test_password' );
 		$request->set_param( 'email', 'test@example.com' );
 
-		$response = $this->endpoint->create_item( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_user_response( $response );
 	}
 
-	public function test_update_user() {
+	public function test_json_create_user() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'username' => 'test_json_user',
+			'password' => 'test_json_password',
+			'email'    => 'testjson@example.com',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_user_response( $response );
+	}
+
+	public function test_update_item() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'test@example.com',
 			'user_pass' => 'sjflsfls',
@@ -112,15 +127,13 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$userdata = get_userdata( $user_id );
 		$pw_before = $userdata->user_pass;
 
-		$request = new WP_JSON_Request;
-		$request->set_param( 'id', $user_id );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/users/%d', $user_id ) );
 		$request->set_param( 'email', $userdata->user_email );
 		$request->set_param( 'username', $userdata->user_login );
 		$request->set_param( 'first_name', 'New Name' );
 
-		$response = $this->endpoint->update_item( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_user_response( $response );
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
@@ -133,16 +146,60 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
-	public function test_delete_user() {
+	public function test_json_update_user() {
+		/**
+		 * JSON PUT Handling is not yet implemented.
+		 * See https://github.com/WP-API/WP-API/issues/671
+		 */
+		$this->markTestSkipped( 'Missing JSON PUT request handling.' );
+
+		$user_id = $this->factory->user->create( array(
+			'user_email' => 'testjson2@example.com',
+			'user_pass'  => 'sjflsfl3sdjls',
+			'user_login' => 'test_json_update',
+			'first_name' => 'Old Name',
+			'last_name'  => 'Original Last',
+		));
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'username'   => 'test_json_update',
+			'email'      => 'testjson2@example.com',
+			'first_name' => 'JSON Name',
+			'last_name'  => 'New Last',
+		);
+
+		$userdata = get_userdata( $user_id );
+		$pw_before = $userdata->user_pass;
+
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/users/%d', $user_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_user_response( $response );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( 'New Name', $new_data['first_name'] );
+		$user = get_userdata( $user_id );
+		$this->assertEquals( 'New Name', $user->first_name );
+
+		// Check that we haven't inadvertently changed the user's password,
+		// as per https://core.trac.wordpress.org/ticket/21429
+		$this->assertEquals( $pw_before, $user->user_pass );
+	}
+
+	public function test_delete_item() {
 		$this->allow_user_to_manage_multisite();
 
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_JSON_Request;
-		$request->set_param( 'id', $user_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
 
-		$response = $this->endpoint->delete_item( $request );
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
@@ -164,10 +221,9 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		// Delete our test user, and reassign to the new author
 		wp_set_current_user( $this->user );
-		$request = new WP_JSON_Request;
-		$request->set_param( 'id', $user_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
 		$request->set_param( 'reassign', $reassign_id );
-		$response = $this->endpoint->delete_item( $request );
+		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -223,6 +279,16 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
 		$this->check_user_data( $userdata, $data, $context );
+	}
+
+	protected function check_add_edit_user_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'edit' );
 	}
 
 	protected function allow_user_to_manage_multisite() {
