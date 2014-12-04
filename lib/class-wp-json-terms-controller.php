@@ -132,13 +132,20 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_item( $request ) {
-		
-		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
+
+		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
 
-		// @todo delete the term
+		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		if ( ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
+			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete terms.' ), array( 'status' => 403 ) );
+		}
+
+		// Get the actual term_id
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
+		wp_delete_term( $term->term_id, $term->taxonomy );
 
 	}
 

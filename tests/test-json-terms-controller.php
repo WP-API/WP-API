@@ -134,7 +134,33 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_delete_item() {
+		wp_set_current_user( $this->administrator );
+		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/' . $term->term_taxonomy_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
 
+	public function test_delete_item_invalid_taxonomy() {
+		wp_set_current_user( $this->administrator );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/invalid-taxonomy/9999999' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
+	}
+
+	public function test_delete_item_invalid_term() {
+		wp_set_current_user( $this->administrator );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/9999999' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
+	}
+
+	public function test_delete_item_incorrect_permissions() {
+		wp_set_current_user( $this->subscriber );
+		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/' . $term->term_taxonomy_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
 	}
 
 	public function test_prepare_item() {
