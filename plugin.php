@@ -174,6 +174,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'         => WP_JSON_Server::CREATABLE,
 			'callback'        => array( $controller, 'create_item' ),
+			'accept_json'     => true,
 			'args'            => array(
 				'email'           => array(
 					'required'        => true,
@@ -237,6 +238,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'         => WP_JSON_Server::EDITABLE,
 			'callback'        => array( $controller, 'update_item' ),
+			'accept_json'     => true,
 			'args'            => array(
 				'id'              => array(
 					'required'        => true,
