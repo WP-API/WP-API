@@ -7,66 +7,48 @@
  * @subpackage JSON API
  */
 class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
-	/**
-	 * This function is run before each method
-	 */
-	public function setUp() {
-		parent::setUp();
-
-		$this->endpoint = new WP_JSON_Terms_Controller();
-	}
 
 	public function test_register_routes() {
-		global $wp_json_server;
-		$wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
-		$routes = $wp_json_server->get_routes();
+		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)', $routes );
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', $routes );
 	}
 
 	public function test_get_items() {
-		$request = new WP_JSON_Request;
-		$request->set_param( 'taxonomy', 'category' );
-		$response = $this->endpoint->get_items( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category' );
+		$response = $this->server->dispatch( $request );
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
 	public function test_get_terms_invalid_taxonomy() {
-		$request = new WP_JSON_Request;
-		$request->set_param( 'taxonomy', '' );
-		$response = $this->endpoint->get_items( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_item() {
-		$request = new WP_JSON_Request;
-		$request->set_param( 'taxonomy', 'category' );
-		$request->set_param( 'id', 1 );
-		$response = $this->endpoint->get_item( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/1' );
+		$response = $this->server->dispatch( $request );
 		$this->check_get_taxonomy_term_response( $response );
 	}
 
 	public function test_get_term_invalid_taxonomy() {
-		$request = new WP_JSON_Request;
-		$request->set_param( 'taxonomy', 'invalid-taxonomy' );
-		$request->set_param( 'id', 2 );
-		$response = $this->endpoint->get_item( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy/1' );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_term_invalid_term() {
-		$request = new WP_JSON_Request;
-		$request->set_param( 'taxonomy', 'category' );
-		$request->set_param( 'id', 2 );
-		$response = $this->endpoint->get_item( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/2' );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
 	public function test_prepare_item() {
 		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
-		$data = $this->endpoint->prepare_item_for_response( $term, $request );
+		$endpoint = new WP_JSON_Terms_Controller;
+		$data = $endpoint->prepare_item_for_response( $term, $request );
 		$this->check_taxonomy_term( $term, $data );
 	}
 
@@ -77,7 +59,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request;
 		$term = get_term( $child, 'category' );
-		$data = $this->endpoint->prepare_item_for_response( $term, $request );
+		$endpoint = new WP_JSON_Terms_Controller;
+		$data = $endpoint->prepare_item_for_response( $term, $request );
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertEquals( 1, $data['parent'] );
