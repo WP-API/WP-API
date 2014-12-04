@@ -473,7 +473,7 @@ class WP_JSON_Server {
 
 		foreach ( $attributes['args'] as $key => $arg ) {
 			$param = $request->get_param( $key );
-			if ( true === $arg['required'] && ! empty( $param ) ) {
+			if ( true === $arg['required'] && null === $param ) {
 				$required[] = $key;
 			}
 		}
