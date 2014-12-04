@@ -150,6 +150,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return $user;
 		}
 
+		// Ensure we're operating on the same user we already checked
+		$user->ID = $id;
+
 		$user_id = wp_update_user( $user );
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
