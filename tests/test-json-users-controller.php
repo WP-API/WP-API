@@ -127,10 +127,13 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$userdata = get_userdata( $user_id );
 		$pw_before = $userdata->user_pass;
 
-		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/users/%d', $user_id ) );
-		$request->set_param( 'email', $userdata->user_email );
-		$request->set_param( 'username', $userdata->user_login );
-		$request->set_param( 'first_name', 'New Name' );
+		$_POST['email'] = $userdata->user_email;
+		$_POST['username'] = $userdata->user_login;
+		$_POST['first_name'] = 'New Name';
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/users/%d', $user_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $_POST );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
