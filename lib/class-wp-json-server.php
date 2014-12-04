@@ -479,7 +479,7 @@ class WP_JSON_Server {
 		}
 
 		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
 		}
 
 		return true;
