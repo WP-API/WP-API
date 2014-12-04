@@ -59,8 +59,6 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'My Awesome Term' );
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'My Awesome Term', $data['name'] );
