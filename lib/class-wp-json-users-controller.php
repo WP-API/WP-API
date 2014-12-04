@@ -260,11 +260,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return obj $prepared_user User object
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$request_params = $request->get_json_params();
-		if ( empty( $request_params ) ) {
-			$request_params = $request->get_body_params();
-		}
-
+		$request_params = $request->get_params();
 		$prepared_user = new stdClass;
 
 		// required arguments.
