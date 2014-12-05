@@ -373,9 +373,11 @@ class WP_JSON_Server {
 					parse_str( $query, $query_params );
 
 					// Ensure magic quotes are stripped
+					// @codeCoverageIgnoreStart
 					if ( get_magic_quotes_gpc() ) {
 						$query_params = stripslashes_deep( $query_params );
 					}
+					// @codeCoverageIgnoreEnd
 				}
 				$request = new WP_JSON_Request( 'GET', $route );
 
@@ -755,6 +757,8 @@ class WP_JSON_Server {
 	 * Prepares response data to be serialized to JSON
 	 *
 	 * This supports the JsonSerializable interface for PHP 5.2-5.3 as well.
+	 *
+	 * @codeCoverageIgnore This is a compatibility shim.
 	 *
 	 * @param mixed $data Native representation
 	 * @return array|string Data ready for `json_encode()`
