@@ -80,4 +80,39 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $message, $data[0]['message'] );
 	}
 
+	public function test_json_error() {
+		$data = array(
+			array(
+				'code'    => 'wp-api-test-error',
+				'message' => 'Message text',
+			)
+		);
+		$expected = json_encode( $data );
+		$response = $this->server->json_error( 'wp-api-test-error', 'Message text' );
+
+		$this->assertEquals( $expected, $response );
+	}
+
+	public function test_json_error_with_status() {
+		$stub = $this->getMockBuilder( 'WP_Test_Spy_JSON_Server' )
+		             ->setMethods( array( 'set_status' ) )
+		             ->getMock();
+
+		$stub->expects( $this->once() )
+		     ->method( 'set_status' )
+		     ->with( $this->equalTo( 400 ) );
+
+		$data = array(
+			array(
+				'code'    => 'wp-api-test-error',
+				'message' => 'Message text',
+			)
+		);
+		$expected = json_encode( $data );
+
+		$response = $stub->json_error( 'wp-api-test-error', 'Message text', 400 );
+
+		$this->assertEquals( $expected, $response );
+	}
+
 }
