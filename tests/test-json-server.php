@@ -165,4 +165,92 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		// Ensure the context is set to embed when requesting
 		$this->assertEquals( 'embed', $embedded_data['parameters']['context'] );
 	}
+
+	/**
+	 * @depends test_link_embedding
+	 */
+	public function test_link_embedding_self() {
+		// Register our testing route
+		$this->server->register_route( '/test/embeddable', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'embedded_response_callback' ),
+		) );
+		$response = new WP_JSON_Response();
+
+		// 'self' should be ignored
+		$response->add_link( 'self', json_url( '/test/notembeddable' ), array( 'embeddable' => true ) );
+
+		$data = $this->server->response_to_data( $response, true );
+
+		$this->assertArrayNotHasKey( '_embedded', $data );
+	}
+
+	/**
+	 * @depends test_link_embedding
+	 */
+	public function test_link_embedding_params() {
+		// Register our testing route
+		$this->server->register_route( '/test/embeddable', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'embedded_response_callback' ),
+		) );
+
+		$response = new WP_JSON_Response();
+		$response->add_link( 'alternate', json_url( '/test/embeddable?parsed_params=yes' ), array( 'embeddable' => true ) );
+
+		$data = $this->server->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_embedded', $data );
+		$this->assertArrayHasKey( 'alternate', $data['_embedded'] );
+
+		$this->assertEquals( 200, $data['_embedded']['alternate'][0]->get_status() );
+		$data = $data['_embedded']['alternate'][0]->get_data();
+
+		$this->assertEquals( 'yes', $data['parameters']['parsed_params'] );
+	}
+
+	/**
+	 * @depends test_link_embedding_params
+	 */
+	public function test_link_embedding_error() {
+		// Register our testing route
+		$this->server->register_route( '/test/embeddable', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'embedded_response_callback' ),
+		) );
+
+		$response = new WP_JSON_Response();
+		$response->add_link( 'up', json_url( '/test/embeddable?error=1' ), array( 'embeddable' => true ) );
+
+		$data = $this->server->response_to_data( $response, true );
+
+		$this->assertArrayHasKey( '_embedded', $data );
+		$this->assertArrayHasKey( 'up', $data['_embedded'] );
+
+		// Check that errors are embedded correctly
+		$up = $data['_embedded']['up'];
+		$this->assertCount( 1, $up );
+		$this->assertInstanceOf( 'WP_JSON_Response', $up[0] );
+		$this->assertEquals( 403, $up[0]->get_status() );
+
+		$up_data = $up[0]->get_data();
+		$this->assertEquals( 'wp-api-test-error', $up_data[0]['code'] );
+		$this->assertEquals( 'Test message',      $up_data[0]['message'] );
+	}
+
+	public function embedded_response_callback( $request ) {
+		$params = $request->get_params();
+
+		if ( isset( $params['error'] ) ) {
+			return new WP_Error( 'wp-api-test-error', 'Test message', array( 'status' => 403 ) );
+		}
+
+		$data = array(
+			'hello' => true,
+			'parameters' => $params,
+		);
+
+		return $data;
+	}
+
 }
