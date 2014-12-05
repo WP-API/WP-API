@@ -45,4 +45,39 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $headers, $enveloped['headers'] );
 	}
 
+	public function test_error_to_response() {
+		$code    = 'wp-api-test-error';
+		$message = 'Test error message for the API';
+		$error   = new WP_Error( $code, $message );
+
+		$response = $this->server->error_to_response( $error );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+
+		// Make sure we default to a 500 error
+		$this->assertEquals( 500, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+
+		$this->assertEquals( $code,    $data[0]['code'] );
+		$this->assertEquals( $message, $data[0]['message'] );
+	}
+
+	public function test_error_to_response_with_status() {
+		$code    = 'wp-api-test-error';
+		$message = 'Test error message for the API';
+		$error   = new WP_Error( $code, $message, array( 'status' => 400 ) );
+
+		$response = $this->server->error_to_response( $error );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+
+		$this->assertEquals( 400, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+
+		$this->assertEquals( $code,    $data[0]['code'] );
+		$this->assertEquals( $message, $data[0]['message'] );
+	}
+
 }
