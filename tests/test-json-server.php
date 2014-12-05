@@ -115,4 +115,54 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $expected, $response );
 	}
 
+	public function test_response_to_data_links() {
+		$response = new WP_JSON_Response();
+		$response->add_link( 'self', 'http://example.com/' );
+		$response->add_link( 'alternate', 'http://example.org/', array( 'type' => 'application/xml' ) );
+
+		$data = $this->server->response_to_data( $response, false );
+		$this->assertArrayHasKey( '_links', $data );
+
+		$self = array(
+			'href' => 'http://example.com/',
+		);
+		$this->assertEquals( $self, $data['_links']['self'][0] );
+
+		$alternate = array(
+			'href' => 'http://example.org/',
+			'type' => 'application/xml',
+		);
+		$this->assertEquals( $alternate, $data['_links']['alternate'][0] );
+	}
+
+	public function test_link_embedding() {
+		// Register our testing route
+		$this->server->register_route( '/test/embeddable', array(
+			'methods' => 'GET',
+			'callback' => array( $this, 'embedded_response_callback' ),
+		) );
+		$response = new WP_JSON_Response();
+
+		// External links should be ignored
+		$response->add_link( 'alternate', 'http://not-api.example.com/', array( 'embeddable' => true ) );
+
+		// All others should be embedded
+		$response->add_link( 'alternate', json_url( '/test/embeddable' ), array( 'embeddable' => true ) );
+
+		$data = $this->server->response_to_data( $response, true );
+		$this->assertArrayHasKey( '_embedded', $data );
+
+		$alternate = $data['_embedded']['alternate'];
+		$this->assertCount( 2, $alternate );
+		$this->assertEmpty( $alternate[0] );
+
+		$this->assertInstanceOf( 'WP_JSON_Response', $alternate[1] );
+		$this->assertEquals( 200, $alternate[1]->get_status() );
+
+		$embedded_data = $alternate[1]->get_data();
+		$this->assertTrue( $embedded_data['hello'] );
+
+		// Ensure the context is set to embed when requesting
+		$this->assertEquals( 'embed', $embedded_data['parameters']['context'] );
+	}
 }
