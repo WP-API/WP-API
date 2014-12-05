@@ -61,6 +61,21 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_post_response( $response, 'view' );
 	}
 
+	public function test_prepare_item() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'administrator',
+		) );
+		$post_id = $this->factory->post->create();
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_get_post_response( $response, 'edit' );
+	}
+
 	public function test_create_item() {
 
 	}
@@ -73,14 +88,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	}
 
-	public function test_prepare_item() {
-
-	}
 
 	protected function check_post_data( $post, $data, $context ) {
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( $post->post_status, $data['status'] );
 		$this->assertEquals( $post->post_author, $data['author'] );
 		$this->assertArrayHasKey( 'parent', $data );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
