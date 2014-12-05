@@ -32,6 +32,26 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_posts_response( $response );
 	}
 
+	public function test_get_items_type_param() {
+		$params = array(
+			'post_type' => 'page',
+		);
+		$page_id = $this->factory->post->create_many( 8, $params );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request->set_query_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$all_data = $response->get_data();
+		$this->assertEquals( 8, count( $all_data ) );
+		foreach ( $all_data as $post ) {
+			$this->assertEquals( 'page', $post['type'] );
+		}
+	}
+
 	public function test_get_item() {
 		$post_id = $this->factory->post->create();
 
