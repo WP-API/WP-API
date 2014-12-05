@@ -254,7 +254,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'status'       => $post->post_status,
 				'password'     => $this->prepare_password_response( $post->post_password ),
 				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-				'modified_gmt' => $this->prepare_date_response( $post->modified_gmt ),
+				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
 			);
 
 			$data = array_merge_recursive( $data, $data_raw );
