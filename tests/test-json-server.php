@@ -238,6 +238,20 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 'Test message',      $up_data[0]['message'] );
 	}
 
+	/**
+	 * Ensure embedding is a no-op without links in the data
+	 */
+	public function test_link_embedding_without_links() {
+		$data = array(
+			'untouched' => 'data',
+		);
+		$result = $this->server->embed_links( $data );
+
+		$this->assertArrayNotHasKey( '_links', $data );
+		$this->assertArrayNotHasKey( '_embedded', $data );
+		$this->assertEquals( 'data', $data['untouched'] );
+	}
+
 	public function embedded_response_callback( $request ) {
 		$params = $request->get_params();
 
