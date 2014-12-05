@@ -363,7 +363,7 @@ class WP_JSON_Server {
 				}
 
 				// Run through our internal routing and serve
-				$route = substr( $item['href'], strlen( $api_root ) );
+				$route = substr( $item['href'], strlen( untrailingslashit( $api_root ) ) );
 				$request = new WP_JSON_Request( 'GET', $route );
 
 				// Embedded resources get passed context=embed
