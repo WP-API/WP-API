@@ -218,7 +218,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'excerpt'        => array(
 				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
 			),
-			'status'         => $post->post_status,
 			'type'           => $post->post_type,
 			'format'         => get_post_format( $post->ID ),
 			'parent'         => (int) $post->post_parent,
@@ -259,11 +258,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 
 			$data = array_merge_recursive( $data, $data_raw );
-		}
 
-		// Consider future posts as published
-		if ( 'future' == $data['status'] ) {
-			$data['status'] = 'publish';
+			// Consider future posts as published
+			if ( 'future' == $data['status'] ) {
+				$data['status'] = 'publish';
+			}
 		}
 
 		// Fill in blank post format
