@@ -364,10 +364,24 @@ class WP_JSON_Server {
 
 				// Run through our internal routing and serve
 				$route = substr( $item['href'], strlen( untrailingslashit( $api_root ) ) );
+				$query_params = array();
+
+				// Parse out URL query parameters
+				$query = parse_url( $route, PHP_URL_QUERY );
+				if ( ! empty( $query ) ) {
+					$route = str_replace( '?' . $query, '', $route );
+					parse_str( $query, $query_params );
+
+					// Ensure magic quotes are stripped
+					if ( get_magic_quotes_gpc() ) {
+						$query_params = stripslashes_deep( $query_params );
+					}
+				}
 				$request = new WP_JSON_Request( 'GET', $route );
 
 				// Embedded resources get passed context=embed
-				$request->set_query_params( array( 'context' => 'embed' ) );
+				$query_params['context'] = 'embed';
+				$request->set_query_params( $query_params );
 
 				$response = $this->dispatch( $request );
 				if ( is_wp_error( $response ) ) {
