@@ -110,7 +110,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
 		 *
-		 * do_action( 'json_insert_post', $post, $request );
+		 * do_action( 'json_insert_post', $post, $request, true );
 		 */
 
 		$response = $this->get_item( array(
@@ -152,7 +152,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post_id;
 		}
 
-		do_action( 'json_insert_post', $post, $request, false );
+		/**
+		 * @TODO: Enable json_insert_post() action after
+		 * Media Controller has been migrated to new style.
+		 *
+		 * do_action( 'json_insert_post', $post, $request );
+		 */
 
 		$response = $this->get_item( array(
 			'id'      => $post_id,
