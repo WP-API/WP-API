@@ -208,7 +208,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	protected function check_add_edit_post_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
+
 		$this->assertEquals( 201, $response->get_status() );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Location', $headers );
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
