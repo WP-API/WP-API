@@ -104,7 +104,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post->ID = $post_id;
-		$this->handle_sticky_posts( $sticky );
+		$this->handle_sticky_posts( $sticky, $post_id );
 
 		/**
 		 * @TODO: Enable json_insert_post() action after
