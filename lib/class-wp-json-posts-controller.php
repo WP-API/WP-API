@@ -106,7 +106,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post->ID = $post_id;
 		$this->handle_sticky_posts( $sticky );
 
-		do_action( 'json_insert_post', $post, $request );
+		/**
+		 * @TODO: Enable json_insert_post() action after
+		 * Media Controller has been migrated to new style.
+		 *
+		 * do_action( 'json_insert_post', $post, $request );
+		 */
 
 		$response = $this->get_item( array(
 			'id'      => $post_id,
@@ -245,8 +250,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$data['parent'] = null;
 		}
 
-		// @TODO: reconnect the json_prepare_post filter after all related routes are finished converting to new structure.
-		// return apply_filters( 'json_prepare_post', $data, $post, $request );
+		/**
+		 * @TODO: reconnect the json_prepare_post() filter after all related
+		 * routes are finished converting to new structure.
+		 *
+		 * return apply_filters( 'json_prepare_post', $data, $post, $request );
+		 */
 
 		return $data;
 	}
@@ -478,7 +487,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$prepared_post->post_format = $request_params['format'];
 		}
 
-		return apply_filters( 'json_pre_insert_post', $prepared_post, $request );
+		/**
+		 * @TODO: reconnect the json_pre_insert_post() filter after all related
+		 * routes are finished converting to new structure.
+		 *
+		 * return apply_filters( 'json_pre_insert_post', $prepared_post, $request_params );
+		 */
+
+		return $prepared_post;
 	}
 
 	protected function handle_status_param( $post_status, $post_type ) {
