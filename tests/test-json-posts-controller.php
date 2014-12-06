@@ -90,7 +90,27 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_post_response( $response );
+	}
 
+	public function test_create_sticky() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
+		wp_set_current_user( $user_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request->set_param( 'title', 'New Post' );
+		$request->set_param( 'content', rand_str() );
+		$request->set_param( 'excerpt', rand_str() );
+		$request->set_param( 'sticky', true );
+
+		$response = $this->server->dispatch( $request );
+
+		// Check that the post is sticky
+		$new_data = $response->get_data();
+		$this->assertEquals( true, $new_data['sticky'] );
+		$post = get_post( $new_data['id'] );
+		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
 	public function test_update_item() {
@@ -99,6 +119,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function test_delete_item() {
 
+	}
+
+	public function tearDown() {
+		global $wp_json_server;
+
+		parent::tearDown();
+
+		$wp_json_server = null;
 	}
 
 
