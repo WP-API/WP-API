@@ -39,7 +39,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$request->set_query_params( array(
-			'type' => 'page'
+			'type' => 'page',
 		) );
 		$response = $this->server->dispatch( $request );
 
@@ -78,6 +78,18 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_item() {
+		$user_id = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
+		wp_set_current_user( $user_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request->set_param( 'title', 'New Post' );
+		$request->set_param( 'content', rand_str() );
+		$request->set_param( 'excerpt', rand_str() );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_post_response( $response );
 
 	}
 
