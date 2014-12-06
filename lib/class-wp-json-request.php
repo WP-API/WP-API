@@ -361,7 +361,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		$params = array();
 		foreach ( $order as $type ) {
-			$params = array_merge( $params, $this->params[ $type ] );
+			$params = array_merge( $params, (array) $this->params[ $type ] );
 		}
 
 		return $params;
