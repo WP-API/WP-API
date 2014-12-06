@@ -33,13 +33,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_get_items_type_param() {
-		$params = array(
+		$this->factory->post->create_many( 8, array(
 			'post_type' => 'page',
-		);
-		$page_id = $this->factory->post->create_many( 8, $params );
+		) );
 
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
-		$request->set_query_params( $params );
+		$request->set_query_params( array(
+			'type' => 'page'
+		) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );

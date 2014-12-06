@@ -89,7 +89,7 @@ function create_initial_json_routes() {
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
-				'post_type'       => array(
+				'type'            => array(
 					'required'        => false,
 				),
 				'page'            => array(

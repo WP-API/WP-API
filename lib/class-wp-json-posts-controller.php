@@ -12,16 +12,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_items( $request ) {
-		$request_params = $request->get_query_params();
-
-		$prepared_args = (array) $request_params;
+		$prepared_args = (array) $request->get_query_params();
 		$prepared_args['post_type'] = array();
-		$prepared_args['paged'] = isset( $request_params['page'] ) ? absint( $request_params['page'] ) : 1;
+		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
 		unset( $prepared_args['page'] );
+
 		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
 
-		if ( ! empty( $request_params['post_type'] ) ) {
-			foreach ( (array) $request_params['post_type'] as $type ) {
+		if ( ! empty( $prepared_args['type'] ) ) {
+			foreach ( (array) $prepared_args['type'] as $type ) {
 				if ( ! $this->check_is_post_type_allowed( $type ) ) {
 					return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type ), array( 'status' => 403 ) );
 				}
@@ -29,6 +28,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				$prepared_args['post_type'][] = $type;
 			}
 		}
+		unset( $prepared_args['type'] );
 
 		global $wp;
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
@@ -540,7 +540,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$post_type = get_post_type_object( $post_type );
 		}
 
-		if ( ! empty( $post_type ) && true === $post_type->show_in_json ) {
+		if ( ! empty( $post_type ) && $post_type->show_in_json ) {
 			return true;
 		}
 
