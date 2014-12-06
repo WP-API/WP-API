@@ -30,34 +30,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 		unset( $prepared_args['type'] );
 
-		global $wp;
-		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
-
-		/**
-		* If the user has the correct permissions, also allow use of internal
-		* query parameters, which are only undesirable on the frontend.
-		*
-		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
-		*/
-		if ( current_user_can( 'edit_posts' ) ) {
-			$private = apply_filters( 'json_private_query_vars', $wp->private_query_vars );
-			$valid_vars = array_merge( $valid_vars, $private );
-		}
-		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
-		$valid_vars = array_merge( $valid_vars, $json_valid );
-
-		// Filter and flip for querying
-		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
-		$valid_vars = array_flip( $valid_vars );
-
-		$query_args = array();
-		foreach ( $valid_vars as $var => $index ) {
-			if ( isset( $prepared_args[ $var ] ) ) {
-				$query_args[ $var ] = apply_filters( 'json_query_var-' . $var, $prepared_args[ $var ] );
-			}
-		}
-
+		$query_args = $this->prepare_items_query( $prepared_args );
 		$posts_query = new WP_Query();
 		$posts = $posts_query->query( $query_args );
 		if ( is_wp_error( $posts ) ) {
@@ -278,6 +251,45 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// return apply_filters( 'json_prepare_post', $data, $post, $request );
 
 		return $data;
+	}
+
+	/**
+	 * Determine the allowed query_vars for a get_items() response and
+	 * prepare for WP_Query.
+	 *
+	 * @param array $prepared_args
+	 * @return array $query_args
+	 */
+	protected function prepare_items_query( $prepared_args = array() ) {
+		global $wp;
+		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
+
+		/**
+		* If the user has the correct permissions, also allow use of internal
+		* query parameters, which are only undesirable on the frontend.
+		*
+		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
+		*/
+		if ( current_user_can( 'edit_posts' ) ) {
+			$private = apply_filters( 'json_private_query_vars', $wp->private_query_vars );
+			$valid_vars = array_merge( $valid_vars, $private );
+		}
+		// Define our own in addition to WP's normal vars
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
+		$valid_vars = array_merge( $valid_vars, $json_valid );
+
+		// Filter and flip for querying
+		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
+		$valid_vars = array_flip( $valid_vars );
+
+		$query_args = array();
+		foreach ( $valid_vars as $var => $index ) {
+			if ( isset( $prepared_args[ $var ] ) ) {
+				$query_args[ $var ] = apply_filters( 'json_query_var-' . $var, $prepared_args[ $var ] );
+			}
+		}
+
+		return $query_args;
 	}
 
 	/**
