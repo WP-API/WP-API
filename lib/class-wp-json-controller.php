@@ -7,6 +7,7 @@ abstract class WP_JSON_Controller {
 	 * Get a collection of items
 	 *
 	 * @param WP_JSON_Request $request Full data about the request
+	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_items( $request ) {
 		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
