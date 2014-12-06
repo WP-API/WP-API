@@ -178,8 +178,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
-		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
-
 		$data = array(
 			'id'             => $post->ID,
 			'title'          => array(
