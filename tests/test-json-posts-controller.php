@@ -111,6 +111,26 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_post_response( $response, 'edit' );
 	}
 
+	function test_get_post_revisions() {
+		wp_set_current_user( $this->editor_id );
+
+		wp_update_post( array( 'post_content' => 'This content is better.', 'ID' => $this->post_id ) );
+		wp_update_post( array( 'post_content' => 'This content is marvelous.', 'ID' => $this->post_id ) );
+		$revisions = wp_get_post_revisions( $this->post_id );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+		$response = json_ensure_response( $response );
+		$response_data = $response->get_data();
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertCount( 2, $response_data );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( $this->editor_id );
 

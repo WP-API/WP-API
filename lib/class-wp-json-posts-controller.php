@@ -81,6 +81,42 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get revisions for a specific post.
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 */
+	public function get_item_revisions( $request ) {
+		$request->set_query_params( array(
+			'context' => 'view-revision',
+		) );
+
+		$id = (int) $request['id'];
+		$parent = get_post( $id );
+
+		if ( empty( $id ) || empty( $parent->ID ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_edit_permission( $parent ) ) {
+			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
+		}
+
+		// Todo: Query args filter for wp_get_post_revisions
+		$revisions = wp_get_post_revisions( $id );
+
+		$struct = array();
+		foreach ( $revisions as $revision ) {
+			$struct[] = $this->prepare_item_for_response( $revision, $request );
+		}
+
+		$response = json_ensure_response( $struct );
+		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+
+		return $response;
+	}
+
+	/**
 	 * Create a single post
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
@@ -242,6 +278,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'modified'       => $this->prepare_date_response( $post->post_modified ),
 
 		);
+
+		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
+			/**
+			 * Avoid nesting too deeply.
+			 *
+			 * This gives post + post-extended + meta for the main post,
+			 * post + meta for the parent and just meta for the grandparent
+			 */
+			$parent = get_post( $post->post_parent );
+			$data['parent'] = $this->prepare_item_for_response( $parent, array( 'context' => 'embed',
+			) );
+		}
 
 		if ( 'edit' === $request['context'] ) {
 
