@@ -40,8 +40,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$request->set_query_params( array(
 			'type'           => 'page',
-			'page'           => 4,
-			'posts_per_page' => 2,
+			'page'           => 2,
+			'posts_per_page' => 4,
 		) );
 		$response = $this->server->dispatch( $request );
 
