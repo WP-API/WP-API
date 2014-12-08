@@ -1,6 +1,6 @@
 <?php
 
-class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function setUp() {
 		parent::setUp();
@@ -17,7 +17,7 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( '/wp/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
 	}
 
-	public function test_get_taxonomies() {
+	public function test_get_items() {
 		$request = new WP_JSON_Request;
 		$request->set_method( 'GET' );
 		$response = $this->endpoint->get_items( $request );
@@ -47,7 +47,7 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_TestCase {
 		}
 	}
 
-	public function test_get_taxonomy() {
+	public function test_get_item() {
 		$request = new WP_JSON_Request;
 		$request->set_method( 'GET' );
 		$request->set_param( 'taxonomy', 'category' );
@@ -63,7 +63,19 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
-	public function test_prepare_taxonomy() {
+	public function test_create_item() {
+		/** Taxonomies can't be created **/
+	}
+
+	public function test_update_item() {
+		/** Taxonomies can't be updated **/
+	}
+
+	public function test_delete_item() {
+		/** Taxonomies can't be deleted **/
+	}
+
+	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
 		$data = $this->endpoint->prepare_item_for_response( $tax, new WP_JSON_Request );
 		$this->check_taxonomy_object( $tax, $data );

@@ -186,4 +186,44 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		// JSON should be ignored
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
 	}
+
+	/**
+	 * PUT requests don't get $_POST automatically parsed, so ensure that
+	 * WP_JSON_Request does it for us.
+	 */
+	public function test_parameters_for_put() {
+		$data = array(
+			'foo' => 'bar',
+			'alot' => array(
+				'of' => 'parameters',
+			),
+			'list' => array(
+				'of',
+				'cool',
+				'stuff'
+			),
+		);
+
+		$this->request->set_method( 'PUT' );
+		$this->request->set_body_params( array() );
+		$this->request->set_body( http_build_query( $data ) );
+
+		foreach ( $data as $key => $expected_value ) {
+			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
+		}
+	}
+
+	public function test_parameter_merging() {
+		$this->request_with_parameters();
+
+		$this->request->set_method( 'POST' );
+
+		$expected = array(
+			'source' => 'body',
+			'has_url_params' => true,
+			'has_query_params' => true,
+			'has_body_params' => true,
+		);
+		$this->assertEquals( $expected, $this->request->get_params() );
+	}
 }

@@ -30,7 +30,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$users = $users->results;
-		foreach ( $users as  &$user ) {
+		foreach ( $users as &$user ) {
 			$user = $this->prepare_item_for_response( $user, $request );
 		}
 
@@ -116,7 +116,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$user->ID = $user_id;
 		do_action( 'json_insert_user', $user, $request, false );
 
-		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = $this->get_item( array(
+			'id'      => $user_id,
+			'context' => 'edit',
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
@@ -147,6 +150,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return $user;
 		}
 
+		// Ensure we're operating on the same user we already checked
+		$user->ID = $id;
+
 		$user_id = wp_update_user( $user );
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
@@ -154,7 +160,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		do_action( 'json_insert_user', $user, $request, false );
 
-		$response = $this->get_item( array( 'id' => $user_id ) );
+		$response = $this->get_item( array(
+			'id'      => $user_id,
+			'context' => 'edit',
+		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/users/' . $user_id ) );
@@ -251,46 +260,47 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return obj $prepared_user User object
 	 */
 	protected function prepare_item_for_database( $request ) {
+		$request_params = $request->get_params();
 		$prepared_user = new stdClass;
 
 		// required arguments.
-		if ( isset( $request['email'] ) ) {
-			$prepared_user->user_email = sanitize_email( $request['email'] );
+		if ( isset( $request_params['email'] ) ) {
+			$prepared_user->user_email = sanitize_email( $request_params['email'] );
 		}
-		if ( isset( $request['username'] ) ) {
-			$prepared_user->user_login = sanitize_user( $request['username'] );
+		if ( isset( $request_params['username'] ) ) {
+			$prepared_user->user_login = sanitize_user( $request_params['username'] );
 		}
-		if ( isset( $request['password'] ) ) {
-			$prepared_user->user_pass = $request['password'];
+		if ( isset( $request_params['password'] ) ) {
+			$prepared_user->user_pass = $request_params['password'];
 		}
 
 		// optional arguments.
-		if ( isset( $request['id'] ) ) {
-			$prepared_user->ID = absint( $request['id'] );
+		if ( isset( $request_params['id'] ) ) {
+			$prepared_user->ID = absint( $request_params['id'] );
 		}
-		if ( isset( $request['name'] ) ) {
-			$prepared_user->display_name = sanitize_text_field( $request['name'] );
+		if ( isset( $request_params['name'] ) ) {
+			$prepared_user->display_name = sanitize_text_field( $request_params['name'] );
 		}
-		if ( isset( $request['first_name'] ) ) {
-			$prepared_user->first_name = sanitize_text_field( $request['first_name'] );
+		if ( isset( $request_params['first_name'] ) ) {
+			$prepared_user->first_name = sanitize_text_field( $request_params['first_name'] );
 		}
-		if ( isset( $request['last_name'] ) ) {
-			$prepared_user->last_name = sanitize_text_field( $request['last_name'] );
+		if ( isset( $request_params['last_name'] ) ) {
+			$prepared_user->last_name = sanitize_text_field( $request_params['last_name'] );
 		}
-		if ( isset( $request['nickname'] ) ) {
-			$prepared_user->nickname = sanitize_text_field( $request['nickname'] );
+		if ( isset( $request_params['nickname'] ) ) {
+			$prepared_user->nickname = sanitize_text_field( $request_params['nickname'] );
 		}
-		if ( isset( $request['slug'] ) ) {
-			$prepared_user->user_nicename = sanitize_title( $request['slug'] );
+		if ( isset( $request_params['slug'] ) ) {
+			$prepared_user->user_nicename = sanitize_title( $request_params['slug'] );
 		}
-		if ( isset( $request['description'] ) ) {
-			$prepared_user->description = wp_filter_post_kses( $request['description'] );
+		if ( isset( $request_params['description'] ) ) {
+			$prepared_user->description = wp_filter_post_kses( $request_params['description'] );
 		}
-		if ( isset( $request['role'] ) ) {
-			$prepared_user->role = sanitize_text_field( $request['role'] );
+		if ( isset( $request_params['role'] ) ) {
+			$prepared_user->role = sanitize_text_field( $request_params['role'] );
 		}
-		if ( isset( $request['url'] ) ) {
-			$prepared_user->user_url = esc_url_raw( $request['url'] );
+		if ( isset( $request_params['url'] ) ) {
+			$prepared_user->user_url = esc_url_raw( $request_params['url'] );
 		}
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );

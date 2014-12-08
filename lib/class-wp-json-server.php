@@ -216,7 +216,7 @@ class WP_JSON_Server {
 
 		// Compatibility for clients that can't use PUT/PATCH/DELETE
 		if ( isset( $_GET['_method'] ) ) {
-			$request->set_method( strtoupper( $_GET['_method'] ) );
+			$request->set_method( $_GET['_method'] );
 		}
 
 		$result = $this->check_authentication();
@@ -253,6 +253,11 @@ class WP_JSON_Server {
 		 * @param WP_JSON_Request $request
 		 */
 		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request, $this );
+
+		// Wrap the response in an envelope if asked for
+		if ( isset( $_GET['_envelope'] ) ) {
+			$result = $this->envelope_response( $result, isset( $_GET['_embed'] ) );
+		}
 
 		// Send extra data from response objects
 		$headers = $result->get_headers();
@@ -394,6 +399,36 @@ class WP_JSON_Server {
 	}
 
 	/**
+	 * Wrap the response in an envelope
+	 *
+	 * The enveloping technique is used to work around browser/client
+	 * compatibility issues. Essentially, it converts the full HTTP response to
+	 * data instead.
+	 *
+	 * @param WP_JSON_Response $response Response object
+	 * @param boolean $embed Should we embed links?
+	 * @return WP_JSON_Response New reponse with wrapped data
+	 */
+	public function envelope_response( $response, $embed ) {
+		$envelope = array(
+			'body'    => $this->response_to_data( $response, $embed ),
+			'status'  => $response->get_status(),
+			'headers' => $response->get_headers(),
+		);
+
+		/**
+		 * Alter the enveloped form of a response
+		 *
+		 * @param array $envelope Envelope data
+		 * @param WP_JSON_Response $response Original response data
+		 */
+		$envelope = apply_filters( 'json_envelope_response', $envelope, $response );
+
+		// Ensure it's still a response
+		return json_ensure_response( $envelope );
+	}
+
+	/**
 	 * Register a route to the server
 	 *
 	 * @param string $route
@@ -479,13 +514,14 @@ class WP_JSON_Server {
 		}
 
 		foreach ( $attributes['args'] as $key => $arg ) {
-			if ( true === $arg['required'] && ! isset( $request[ $key ] ) ) {
+			$param = $request->get_param( $key );
+			if ( true === $arg['required'] && null === $param ) {
 				$required[] = $key;
 			}
 		}
 
 		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s) %s' ), implode( ', ', $required) ), array( 'status' => 400 ) );
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
 		}
 
 		return true;

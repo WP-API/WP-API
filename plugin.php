@@ -84,7 +84,7 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Taxonomies_Controller;
 	register_json_route( 'wp', '/taxonomies', array(
-		'methods'         => 'GET',
+		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
 			'post_type'          => array(
@@ -93,7 +93,7 @@ function create_initial_json_routes() {
 		),
 	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => 'GET',
+		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_item' ),
 	) );
 
@@ -102,27 +102,47 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Terms_Controller;
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => 'GET',
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'search'          => array(
-				'required'       => false,
+		array(
+			'methods'  => WP_JSON_Server::READABLE,
+			'callback' => array( $controller, 'get_items' ),
+			'args'     => array(
+				'search'   => array(
+					'required' => false,
+				),
+				'per_page' => array(
+					'required' => false,
+				),
+				'page'     => array(
+					'required' => false,
+				),
 			),
-			'per_page'        => array(
-				'required'       => false,
+		),
+		array(
+			'methods'     => WP_JSON_Server::CREATABLE,
+			'callback'    => array( $controller, 'create_item' ),
+			'args'        => array(
+				'name'        => array(
+					'required'    => true,
+				),
+				'description' => array(
+					'required'    => false,
+				),
+				'slug'        => array(
+					'required'    => false,
+				),
+				'parent_id'   => array(
+					'required'    => false,
+				),
 			),
-			'page'            => array(
-				'required'       => false,
-			)
-		)
+		),
 	));
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 		array(
-			'methods'    => 'GET',
+			'methods'    => WP_JSON_Server::READABLE,
 			'callback'   => array( $controller, 'get_item' ),
 		),
 		array(
-			'methods'    => 'POST',
+			'methods'    => WP_JSON_Server::EDITABLE,
 			'callback'   => array( $controller, 'update_item' ),
 			'args'       => array(
 				'name'           => array(
@@ -134,13 +154,13 @@ function create_initial_json_routes() {
 				'slug'           => array(
 					'required'   => false,
 				),
-				'parent'         => array(
+				'parent_id'      => array(
 					'required'   => false,
 				),
 			),
 		),
 		array(
-			'methods'    => 'DELETE',
+			'methods'    => WP_JSON_Server::DELETABLE,
 			'callback'   => array( $controller, 'delete_item' ),
 		),
 	) );
@@ -151,7 +171,7 @@ function create_initial_json_routes() {
 	$controller = new WP_JSON_Users_Controller;
 	register_json_route( 'wp', '/users', array(
 		array(
-			'methods'         => 'GET',
+			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
 				'context'          => array(
@@ -172,8 +192,9 @@ function create_initial_json_routes() {
 			),
 		),
 		array(
-			'methods'         => 'POST',
+			'methods'         => WP_JSON_Server::CREATABLE,
 			'callback'        => array( $controller, 'create_item' ),
+			'accept_json'     => true,
 			'args'            => array(
 				'email'           => array(
 					'required'        => true,
@@ -211,7 +232,7 @@ function create_initial_json_routes() {
 			),
 		),
 		array(
-			'methods'         => 'DELETE',
+			'methods'         => WP_JSON_Server::DELETABLE,
 			'callback'        => array( $controller, 'delete_item' ),
 			'args'            => array(
 				'id'              => array(
@@ -225,16 +246,19 @@ function create_initial_json_routes() {
 	) );
 
 	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
-		'methods'         => 'GET',
-		'callback'        => array( $controller, 'get_item' ),
-		'args'            => array(
-			'context'          => array(
-				'required'         => false,
+		array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $controller, 'get_item' ),
+			'args'            => array(
+				'context'          => array(
+					'required'         => false,
+				),
 			),
 		),
 		array(
-			'methods'         => 'PUT',
+			'methods'         => WP_JSON_Server::EDITABLE,
 			'callback'        => array( $controller, 'update_item' ),
+			'accept_json'     => true,
 			'args'            => array(
 				'id'              => array(
 					'required'        => true,
@@ -274,10 +298,22 @@ function create_initial_json_routes() {
 				),
 			),
 		),
+		array(
+			'methods' => WP_JSON_Server::DELETABLE,
+			'callback' => array( $controller, 'delete_item' ),
+			'args' => array(
+				'id' => array(
+					'required' => true,
+				),
+				'reassign' => array(
+					'required' => false,
+				),
+			),
+		),
 	) );
 
 	register_json_route( 'wp', '/users/me', array(
-		'methods'         => 'GET',
+		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_current_item' ),
 		'args'            => array(
 			'context'          => array(

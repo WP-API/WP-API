@@ -24,7 +24,7 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 		$this->revision_id = wp_save_post_revision( $this->post_id );
 
 		$this->fake_server = $this->getMock('WP_JSON_Server');
-		$this->endpoint = new WP_JSON_Posts( $this->fake_server );
+		$this->endpoint = new WP_JSON_Posts();
 
 	}
 
