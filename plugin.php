@@ -321,6 +321,51 @@ function create_initial_json_routes() {
 			),
 		)
 	));
+
+	/**
+	 * Comments
+	 */
+	$controller = new WP_JSON_Comments_Controller;
+	register_json_route( 'wp', '/comments', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'post_id'     => array( 
+				'required' => false
+			),
+			'user_id'     => array( 
+				'required' => false
+			),
+			'per_page'    => array( 
+				'required' => false
+			),
+			'page'        => array( 
+				'required' => false
+			),
+			'status'      => array(
+				'required' => false
+			)
+		)
+	));
+
+	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+
+		array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $controller, 'get_item' )
+		),
+		array(
+			'methods'         => WP_JSON_Server::EDITABLE,
+			'callback'        => array( $controller, 'update_item' ),
+			'args'            => array(
+				
+			)
+		),
+		array(
+			'methods'         => WP_JSON_Server::DELETABLE,
+			'callback'        => array( $controller, 'delete_item' )
+		)
+	) );
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 
