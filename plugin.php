@@ -727,17 +727,19 @@ function json_handle_options_request( $response, $handler, $request ) {
  */
 function json_send_allow_header( $response, $request, $server ) {
 
-	$matched_route = $server->get_endpoints_for_path( $request->get_route() );
+	$matched_route = $response->get_matched_route();
 
 	if ( ! $matched_route ) {
 		return $response;
 
 	}
 
+	$routes = $server->get_routes();
+
 	$allowed_methods = array();
 
 	// get the allowed methods across the routes
-	foreach ( $matched_route['endpoints'] as $_handler ) {
+	foreach ( $routes[$matched_route] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
 			if ( ! empty( $_handler['capability'] ) ) {
