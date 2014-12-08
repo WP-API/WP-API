@@ -57,6 +57,28 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function create_item( $request ) {
 		
+		$args = array(
+			'comment_post_ID'      => $request['post_id'],
+			'comment_author'       => isset( $request['author'] ) ? $request['author'] : '',
+			'comment_author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
+			'comment_author_url'   => isset( $request['author_url'] ) ? $request['author_url'] : '',
+			'comment_author_IP'    => isset( $request['author_ip'] ) ? $request['author_ip'] : '',
+		);
+
+		$comment_id = wp_insert_comment( $args );
+
+		if ( ! $comment_id ) {
+			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.') );
+		}
+
+		$response = $this->get_item( array(
+			'id'      => $comment_id,
+			'context' => 'edit',
+		));
+
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 	}
 	/**
 	 * Prepare a single user output for response
