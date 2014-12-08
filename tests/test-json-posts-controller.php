@@ -114,9 +114,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
-		$request->set_param( 'title', 'New Post' );
-		$request->set_param( 'content', rand_str() );
-		$request->set_param( 'excerpt', rand_str() );
+		$params = $this->set_post_data();
+		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_post_response( $response );
@@ -126,10 +125,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
-		$request->set_param( 'title', 'New Post' );
-		$request->set_param( 'content', rand_str() );
-		$request->set_param( 'excerpt', rand_str() );
-		$request->set_param( 'sticky', true );
+		$params = $this->set_post_data( array(
+			'sticky' => true,
+		) );
+		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
 
@@ -275,6 +274,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->check_post_data( $post, $data, 'edit' );
+	}
+
+	protected function set_post_data( $args = array() ) {
+		$defaults = array(
+			'title'   => rand_str(),
+			'content' => rand_str(),
+			'excerpt' => rand_str(),
+			'name'    => 'test',
+			'status'  => 'publish',
+			'author'  => $this->author_id,
+		);
+
+		return wp_parse_args( $args, $defaults );
 	}
 
 }
