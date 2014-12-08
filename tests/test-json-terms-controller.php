@@ -30,7 +30,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
-	public function test_get_items_filter_args() {
+	public function test_get_items_orderby_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
 		/*
