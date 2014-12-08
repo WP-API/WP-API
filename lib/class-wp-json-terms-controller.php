@@ -17,8 +17,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0; 
 		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
 
-		// get_terms() does a taxonomy validation check for us
-		$terms = get_terms( $request['taxonomy'], $prepared_args );
+		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
+		if ( is_wp_error( $taxonomy ) ) {
+			return $taxonomy;
+		}
+
+		$terms = get_terms( $taxonomy, $prepared_args );
 		if ( is_wp_error( $terms ) ) {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
@@ -42,7 +46,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return $taxonomy;
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', $request['id'], $request['taxonomy'] );
+		$term = get_term_by( 'term_taxonomy_id', $request['id'], $taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -65,7 +69,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return $taxonomy;
 		}
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
 			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
 		}
@@ -179,11 +183,15 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * Check that the taxonomy is valid
 	 *
 	 * @param string
-	 * @return true|WP_Error
+	 * @return string|WP_Error
 	 */
 	protected function check_valid_taxonomy( $taxonomy ) {
+
+		if ( 'tag' === $taxonomy ) {
+			$taxonomy = 'post_tag';
+		}
 		if ( get_taxonomy( $taxonomy ) ) {
-			return true;
+			return $taxonomy;
 		} else {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
