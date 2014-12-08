@@ -217,6 +217,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'X-WP-Total', $headers );
+		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
+
 		$all_data = $response->get_data();
 		$data = $all_data[0];
 		$post = get_post( $data['id'] );
