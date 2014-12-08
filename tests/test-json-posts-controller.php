@@ -12,7 +12,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		parent::setUp();
 
 		$this->post_id = $this->factory->post->create();
-		$this->author_id = $this->factory->user->create( array(
+
+		$this->editor_id = $this->factory->user->create( array(
 			'role' => 'editor',
 		) );
 
@@ -101,7 +102,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_prepare_item() {
-		wp_set_current_user( $this->author_id );
+		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array( 'context' => 'edit' ) );
@@ -111,7 +112,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_item() {
-		wp_set_current_user( $this->author_id );
+		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data();
@@ -122,7 +123,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_post_sticky() {
-		wp_set_current_user( $this->author_id );
+		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
@@ -144,6 +145,15 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_delete_item() {
+		$post_id = $this->factory->post->create();
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $post_id ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
 
 	}
 

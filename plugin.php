@@ -220,12 +220,24 @@ function create_initial_json_routes() {
 				),
 			),
 		),
+		array(
+			'methods'  => WP_JSON_Server::DELETABLE,
+			'callback' => array( $controller, 'delete_item' ),
+			'args'     => array(
+				'id'       => array(
+					'required' => true,
+				),
+				'force'    => array(
+					'required' => false,
+				),
+			),
+		),
 	) );
 
 	/*
 	 * Taxonomies
 	 */
-	$controller = new WP_JSON_Taxonomies_Controller;
+    $controller = new WP_JSON_Taxonomies_Controller;
 	register_json_route( 'wp', '/taxonomies', array(
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_items' ),

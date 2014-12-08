@@ -177,7 +177,33 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_item( $request ) {
+		$id = (int) $request['id'];
+		$force = isset( $request['force'] ) ? (bool) $request['force']: false;
 
+		$post = get_post( $id );
+
+		if ( empty( $id ) || empty( $post->ID ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$post_type = get_post_type_object( $post->post_type );
+
+		if ( empty( $post_type ) || ! current_user_can( $post_type->cap->delete_post, $id ) ) {
+			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
+		}
+
+		$result = wp_delete_post( $id, $force );
+
+		if ( ! $result ) {
+			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted post' ) );
+		} else {
+			// TODO: return a HTTP 202 here instead
+			return array( 'message' => __( 'Deleted post' ) );
+		}
 	}
 
 	/**
