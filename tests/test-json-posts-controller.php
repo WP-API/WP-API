@@ -293,7 +293,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'excerpt' => rand_str(),
 			'name'    => 'test',
 			'status'  => 'publish',
-			'author'  => $this->author_id,
+			'author'  => $this->editor_id,
 		);
 
 		return wp_parse_args( $args, $defaults );
