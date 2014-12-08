@@ -32,22 +32,29 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_posts_response( $response );
 	}
 
-	public function test_get_items_type_param() {
+	public function test_get_items_params() {
 		$this->factory->post->create_many( 8, array(
 			'post_type' => 'page',
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$request->set_query_params( array(
-			'type' => 'page',
+			'type'           => 'page',
+			'page'           => 4,
+			'posts_per_page' => 2,
 		) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+
+		$headers = $response->get_headers();
+		$this->assertEquals( 8, $headers['X-WP-Total'] );
+		$this->assertEquals( 2, $headers['X-WP-TotalPages'] );
+
 		$all_data = $response->get_data();
-		$this->assertEquals( 8, count( $all_data ) );
+		$this->assertEquals( 4, count( $all_data ) );
 		foreach ( $all_data as $post ) {
 			$this->assertEquals( 'page', $post['type'] );
 		}
