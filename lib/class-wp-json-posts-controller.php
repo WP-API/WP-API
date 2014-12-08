@@ -281,6 +281,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$data['parent'] = null;
 		}
 
+		$data['_links'] = $this->prepare_links( $post );
+
 		/**
 		 * @TODO: reconnect the json_prepare_post() filter after all related
 		 * routes are finished converting to new structure.
@@ -651,6 +653,43 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type = get_post_type_object( $post->post_type );
 
 		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post->ID );
+	}
+
+	/**
+	 * Prepare links for the request
+	 *
+	 * @param WP_Post $post Post object
+	 * @return array Links for the given post
+	 */
+	protected function prepare_links( $post ) {
+		// Entity meta
+		$links = array(
+			'self'            => array(
+				'href' => json_url( '/wp/posts/' . $post->ID ),
+			),
+			'author'          => array(
+				'href' => json_url( '/wp/users/' . $post->post_author ),
+				'embeddable' => true,
+			),
+			'collection'      => array(
+				'href' => json_url( '/wp/posts' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/wp/posts/' . $post->ID . '/revisions' ),
+			),
+		);
+
+		if ( ! empty( $post->post_parent ) ) {
+			$links['up'] = array(
+				'href' => json_url( '/wp/posts/' . (int) $post->post_parent ),
+				'embeddable' => true,
+			);
+		}
+
+		return $links;
 	}
 
 }
