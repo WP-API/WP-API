@@ -21,10 +21,14 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		$args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $args['number'] : 0; 
-			
+
 		$comments = get_comments( $args );
 
-		return array_map( array( $this, 'prepare_item_for_response' ), $comments );
+		foreach ( $comments as &$comment ) {
+			$comment = $this->prepare_item_for_response( $comment, $request );
+		}
+
+		return $comments;
 	}
 
 	/**
