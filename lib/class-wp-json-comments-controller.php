@@ -40,7 +40,13 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
 
-		get_comment()
+		$comment = get_comment( $id );
+
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		$data = $this->prepare_item_for_response( $comment, $response );
 	}
 
 	/**
