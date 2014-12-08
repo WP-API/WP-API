@@ -33,13 +33,13 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_items_filter_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
-		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
 		/*
 		 * Tests:
 		 * - orderby
 		 * - order
 		 * - per_page
 		 */
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
 		$request->set_param( 'orderby', 'name' );
 		$request->set_param( 'order', 'desc' );
 		$request->set_param( 'per_page', 1 );
@@ -48,6 +48,15 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Banana', $data[0]['name'] );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
 	public function test_get_terms_invalid_taxonomy() {
