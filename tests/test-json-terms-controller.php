@@ -30,6 +30,24 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
+	public function test_get_items_filter_args() {
+		$tag1 = $this->factory->tag->create( array( 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'Banana' ) );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		/*
+		 * Tests:
+		 * - orderby
+		 * - order
+		 * - per_page
+		 */
+		$request->set_param( 'filter', array( 'orderby' => 'name', 'order' => 'desc', 'per_page' => 1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Banana', $data[0]['name'] );
+	}
+
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
