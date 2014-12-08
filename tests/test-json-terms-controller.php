@@ -59,6 +59,28 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
+	public function test_get_items_search_args() {
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		/*
+		 * Tests:
+		 * - search
+		 */
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'search', 'App' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'search', 'Garbage' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 0, count( $data ) );
+	}
+
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
