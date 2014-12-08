@@ -31,8 +31,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_get_items_filter_args() {
-		$tag1 = $this->factory->tag->create( array( 'Apple' ) );
-		$tag2 = $this->factory->tag->create( array( 'Banana' ) );
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
 		/*
 		 * Tests:
@@ -40,7 +40,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		 * - order
 		 * - per_page
 		 */
-		$request->set_param( 'filter', array( 'orderby' => 'name', 'order' => 'desc', 'per_page' => 1 ) );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
