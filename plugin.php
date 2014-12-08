@@ -115,6 +115,12 @@ function create_initial_json_routes() {
 				'page'     => array(
 					'required' => false,
 				),
+				'order'    => array(
+					'required' => false,
+					),
+				'orderby'  => array(
+					'required' => false,
+					),
 			),
 		),
 		array(
