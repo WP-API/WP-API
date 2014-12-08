@@ -60,24 +60,50 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		}
 	}
 
-	public function test_get_item() {
-		$post_id = $this->factory->post->create();
+	public function test_get_items_invalid_type() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request->set_query_params( array(
+			'type' => 'foo',
+		) );
 
-		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_post_type', $response, 403 );
+	}
+
+	public function test_get_item() {
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_get_post_response( $response, 'view' );
+	}
+
+	public function test_get_item_invalid_id() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts/100' );
+		$request->set_query_params( array(
+			'type' => 'foo',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+	}
+
+	public function test_get_item_context_invalid_permission() {
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_query_params( array(
+			'context' => 'edit',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
 	public function test_prepare_item() {
 		$user_id = $this->factory->user->create( array(
 			'role' => 'administrator',
 		) );
-		$post_id = $this->factory->post->create();
-
 		wp_set_current_user( $user_id );
 
-		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array( 'context' => 'edit' ) );
 
 		$response = $this->server->dispatch( $request );
