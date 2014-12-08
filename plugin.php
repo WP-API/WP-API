@@ -260,9 +260,6 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'update_item' ),
 			'accept_json'     => true,
 			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
 				'email'           => array(
 					'required'        => false,
 				),
