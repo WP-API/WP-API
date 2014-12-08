@@ -12,6 +12,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		parent::setUp();
 
 		$this->post_id = $this->factory->post->create();
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
 
 		$this->endpoint = new WP_JSON_Posts_Controller;
 		$this->server = $GLOBALS['wp_json_server'];
@@ -32,7 +35,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_posts_response( $response );
 	}
 
-	public function test_get_items_params() {
+	public function test_get_posts_params() {
 		$this->factory->post->create_many( 8, array(
 			'post_type' => 'page',
 		) );
@@ -77,7 +80,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_post_response( $response, 'view' );
 	}
 
-	public function test_get_item_invalid_id() {
+	public function test_get_post_invalid_id() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts/100' );
 		$request->set_query_params( array(
 			'type' => 'foo',
@@ -87,7 +90,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_item_context_invalid_permission() {
+	public function test_get_post_context_invalid_permission() {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array(
 			'context' => 'edit',
@@ -98,10 +101,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_prepare_item() {
-		$user_id = $this->factory->user->create( array(
-			'role' => 'administrator',
-		) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array( 'context' => 'edit' ) );
@@ -111,10 +111,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_item() {
-		$user_id = $this->factory->user->create( array(
-			'role' => 'editor',
-		) );
-		wp_set_current_user( $user_id );
+		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$request->set_param( 'title', 'New Post' );
@@ -125,11 +122,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_add_edit_post_response( $response );
 	}
 
-	public function test_create_sticky() {
-		$user_id = $this->factory->user->create( array(
-			'role' => 'editor',
-		) );
-		wp_set_current_user( $user_id );
+	public function test_create_post_sticky() {
+		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$request->set_param( 'title', 'New Post' );
