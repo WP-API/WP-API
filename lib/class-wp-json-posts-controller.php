@@ -72,9 +72,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post = $this->prepare_item_for_response( $post, $request );
-
 		$response = json_ensure_response( $post );
-		// @ TODO: Add links.
+
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
+			unset( $other['href'] );
+			$response->add_link( $rel, $attributes['href'], $other );
+		}
+
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $response;
@@ -332,8 +338,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( 0 == $data['parent'] ) {
 			$data['parent'] = null;
 		}
-
-		$data['_links'] = $this->prepare_links( $post );
 
 		/**
 		 * @TODO: reconnect the json_prepare_post() filter after all related
