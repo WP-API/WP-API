@@ -109,10 +109,14 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'description', 'This term is so awesome.' );
+		$request->set_param( 'slug', 'so-awesome' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'My Awesome Term', $data['name'] );
+		$this->assertEquals( 'This term is so awesome.', $data['description'] );
+		$this->assertEquals( 'so-awesome', $data['slug'] );
 	}
 
 	public function test_create_item_invalid_taxonomy() {

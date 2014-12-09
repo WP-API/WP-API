@@ -78,7 +78,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 		$name = sanitize_text_field( $request['name'] );
 		$args = array();
-		// @todo handle arguments
+		if ( isset( $request['description'] ) ) {
+			$args['description'] = wp_filter_post_kses( $request['description'] );
+		}
+		if ( isset( $request['slug'] ) ) {
+			$args['slug'] = sanitize_title( $request['slug'] );
+		}
 
 		$term = wp_insert_term( $name, $request['taxonomy'], $args );
 		if ( is_wp_error( $term ) ) {
