@@ -169,6 +169,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'         => WP_JSON_Server::EDITABLE,
 			'callback'        => array( $controller, 'update_item' ),
+			'accept_json'     => true,
 			'args'            => array(
 				'title'          => array(
 					'required'       => false,
