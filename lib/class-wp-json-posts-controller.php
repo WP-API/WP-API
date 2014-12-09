@@ -18,13 +18,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		unset( $prepared_args['page'] );
 
 		if ( ! empty( $prepared_args['type'] ) ) {
+			$not_allowed = array();
+
 			foreach ( (array) $prepared_args['type'] as $type ) {
 				if ( ! $this->check_is_post_type_allowed( $type ) ) {
-					return new WP_Error( 'json_invalid_post_type', sprintf( __( 'The post type "%s" is not valid' ), $type ), array( 'status' => 403 ) );
+					$not_allowed[] = $type;
 				}
-
-				$prepared_args['post_type'][] = $type;
 			}
+
+			if ( ! empty( $not_allowed ) ) {
+				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'Invalid post type(s): %s' ), implode( ', ', $not_allowed ) ), array( 'status' => 403 ) );
+			}
+
+			$prepared_args['post_type'] = $prepared_args['type'];
 		}
 		unset( $prepared_args['type'] );
 
