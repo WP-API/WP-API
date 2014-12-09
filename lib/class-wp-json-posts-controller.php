@@ -134,6 +134,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post;
 		}
 
+		if ( ! $this->check_create_permission( $post ) ) {
+			return new WP_Error( 'json_post_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
+		}
+
 		$post_id = wp_insert_post( $post );
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
@@ -619,7 +623,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// Only check edit others' posts if we are another user
 		if ( $post_author !== get_current_user_id() ) {
 			if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-				return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to edit posts as this user.' ), array( 'status' => 401 ) );
+				return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to create or edit posts as this user.' ), array( 'status' => 401 ) );
 			}
 
 			$author = get_userdata( $post_author );
@@ -701,6 +705,23 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type = get_post_type_object( $post->post_type );
 
 		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post->ID );
+	}
+
+	/**
+	 * Check if we can create a post
+	 *
+	 * @param obj $post Post object
+	 * @return bool Can we create it?
+	 */
+	protected function check_create_permission( $post ) {
+		$post_type = get_post_type_object( $post->post_type );
+
+		if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
