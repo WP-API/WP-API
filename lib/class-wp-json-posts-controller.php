@@ -36,10 +36,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
 		$query_args = $this->prepare_items_query( $prepared_args );
+
 		$posts_query = new WP_Query();
 		$posts = $posts_query->query( $query_args );
-		if ( is_wp_error( $posts ) ) {
-			return $posts;
+		if ( 0 === $posts_query->found_posts ) {
+			return new WP_Error( 'json_invalid_query', __( 'Invalid post query.' ), array( 'status' => 404 ) );
 		}
 
 		foreach ( $posts as &$post ) {

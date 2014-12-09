@@ -43,6 +43,16 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_posts_response( $response );
 	}
 
+	public function test_get_items_invalid_query() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request->set_query_params( array(
+			'type'           => 'post',
+			'year'           => 2008,
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_query', $response, 404 );
+	}
+
 	public function test_get_posts_params() {
 		$this->factory->post->create_many( 8, array(
 			'post_type' => 'page',
