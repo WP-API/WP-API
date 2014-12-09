@@ -714,7 +714,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	protected function check_edit_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
 
-		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post->ID );
+		if ( ! current_user_can( $post_type->cap->edit_post, $post->ID ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
