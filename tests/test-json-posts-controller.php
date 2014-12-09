@@ -53,6 +53,25 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_invalid_query', $response, 404 );
 	}
 
+	public function test_get_items_status_invalid_permissions() {
+		$draft_id = $this->factory->post->create( array(
+			'post_title'  => 'Still a WIP',
+			'post_status' => 'draft',
+		) );
+		wp_set_current_user( 0 );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$all_data = $response->get_data();
+		foreach ( $all_data as $post ) {
+			$this->assertNotEquals( $draft_id, $post['id'] );
+		}
+	}
+
 	public function test_get_posts_params() {
 		$this->factory->post->create_many( 8, array(
 			'post_type' => 'page',
