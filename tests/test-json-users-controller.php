@@ -252,11 +252,23 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( false, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
+
+		if ( 'view' !== $context && 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'data', $data );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+		}
+
 		if ( 'edit' == $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
 			$this->assertEquals( $user->user_login, $data['username'] );
 		}
+
+		if ( 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
+			$this->assertArrayNotHasKey( 'username', $data );
+		}
+
 	}
 
 	protected function check_get_users_response( $response, $context = 'view' ) {
