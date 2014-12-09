@@ -16,6 +16,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->editor_id = $this->factory->user->create( array(
 			'role' => 'editor',
 		) );
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
 
 		$this->endpoint = new WP_JSON_Posts_Controller;
 		$this->server = $GLOBALS['wp_json_server'];
@@ -160,8 +163,190 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
+	public function test_create_post_invalid_author_without_permissions() {
+		wp_set_current_user( $this->author_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data();
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
+	}
+
+	public function test_create_post_without_permission() {
+		$user = wp_get_current_user();
+		$user->add_cap( 'edit_posts', false );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'draft',
+			'author' => $user->ID,
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_cannot_create', $response, 403 );
+	}
+
+	public function test_create_post_draft() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'draft',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'draft', $data['status'] );
+		$this->assertEquals( 'draft', $new_post->post_status );
+	}
+
+	public function test_create_post_private() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'private',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'private', $data['status'] );
+		$this->assertEquals( 'private', $new_post->post_status );
+	}
+
+	public function test_create_post_publish_without_permission() {
+		wp_set_current_user( $this->author_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'publish',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
+	}
+
+	public function test_create_post_invalid_status() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'teststatus',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'draft', $data['status'] );
+		$this->assertEquals( 'draft', $new_post->post_status );
+	}
+
+	public function test_create_post_invalid_type() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'type' => 'testposttype',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
+	}
+
+	public function test_create_post_invalid_author() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'author' => -1,
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
+	}
+
+	public function test_create_post_invalid_author_without_permission() {
+		wp_set_current_user( $this->author_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'author' => $this->editor_id,
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
+	}
+
+	public function test_create_post_custom_date() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'date' => '2010-01-01T02:00:00Z',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
+		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	public function test_create_post_custom_date_with_timezone() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'date' => '2010-01-01T02:00:00-10:00',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
+		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
 	public function test_update_item() {
 
+	}
+
+	public function test_update_post_invalid_permission() {
+		wp_set_current_user( $this->editor_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'edit_published_posts', false );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data(  array( 'id' => $this->post_id ) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -314,6 +499,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'name'    => 'test',
 			'status'  => 'publish',
 			'author'  => $this->editor_id,
+			'type'    => 'post',
 		);
 
 		return wp_parse_args( $args, $defaults );
