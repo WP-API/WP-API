@@ -138,8 +138,21 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$params = $this->set_post_data();
 		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_post_response( $response );
+	}
+
+	public function test_json_create_item() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data();
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_post_response( $response );
