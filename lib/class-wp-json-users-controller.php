@@ -216,7 +216,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$data = array(
 			'id'          => $user->ID,
-			'username'    => $user->user_login,
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
@@ -235,6 +234,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		if ( 'edit' === $request['context'] ) {
+			$data['username']           = $user->user_login;
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
 			$data['email']              = $user->user_email;

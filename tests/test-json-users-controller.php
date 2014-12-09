@@ -235,7 +235,6 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
-		$this->assertEquals( $user->user_login, $data['username'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
 		$this->assertEquals( $user->last_name, $data['last_name' ] );
@@ -256,6 +255,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		if ( 'edit' == $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( $user->user_login, $data['username'] );
 		}
 	}
 
