@@ -25,9 +25,13 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		global $wp_json_server;
 		$wp_json_server = new WP_JSON_Server;
 		do_action( 'wp_json_server_before_serve' );
+
 		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/users', $routes );
+		$this->assertCount( 2, $routes['/wp/users'] );
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
+		$this->assertCount( 3, $routes['/wp/users/(?P<id>[\d]+)'] );
+		$this->assertArrayHasKey( '/wp/users/me', $routes );
 	}
 
 	public function test_get_items() {
