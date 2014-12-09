@@ -150,6 +150,12 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return $user;
 		}
 
+		if ( ! empty( $user->user_email ) && $existing_user = get_user_by( 'email', $user->user_email ) ) {
+			if ( $existing_user->ID !== $id ) {
+				return new WP_Error( 'json_user_invalid_email', __( 'Email address is invalid.' ), array( 'status' => 400 ) );
+			}
+		}
+
 		// Ensure we're operating on the same user we already checked
 		$user->ID = $id;
 
