@@ -224,13 +224,13 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			'url'         => $user->user_url,
 			'avatar'      => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'registered'  => date( 'c', strtotime( $user->user_registered ) ),
 		);
 
 		if ( 'view' === $request['context'] || 'edit' === $request['context'] ) {
-			$data['roles']        = $user->roles;
-			$data['capabilities'] = $user->allcaps;
-			$data['email']        = false;
+			$data['roles']              = $user->roles;
+			$data['capabilities']       = $user->allcaps;
+			$data['email']              = false;
+			$data['registered_date']    = date( 'c', strtotime( $user->user_registered ) );
 		}
 
 		if ( 'edit' === $request['context'] ) {

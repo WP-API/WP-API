@@ -243,11 +243,11 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered'] );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
 			$this->assertEquals( false, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
@@ -256,6 +256,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		if ( 'view' !== $context && 'edit' !== $context ) {
 			$this->assertArrayNotHasKey( 'data', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'registered', $data );
 		}
 
 		if ( 'edit' == $context ) {
