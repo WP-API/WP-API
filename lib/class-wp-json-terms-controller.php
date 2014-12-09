@@ -176,7 +176,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		return array(
+		$data = array(
 			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
@@ -184,6 +184,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'slug'         => $item->slug,
 			'parent_id'    => (int) $parent_id,
 		);
+		return apply_filters( 'json_prepare_term', $data, $item, $request );
 	}
 
 	/**
