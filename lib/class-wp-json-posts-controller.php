@@ -714,6 +714,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	protected function check_edit_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
 
+		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+			return false;
+		}
+
 		if ( ! current_user_can( $post_type->cap->edit_post, $post->ID ) ) {
 			return false;
 		}
@@ -729,6 +733,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	protected function check_create_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
+
+		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
+			return false;
+		}
 
 		if ( ! current_user_can( $post_type->cap->create_posts ) || ! current_user_can( $post_type->cap->edit_posts ) ) {
 
