@@ -17,8 +17,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
 		unset( $prepared_args['page'] );
 
-		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
-
 		if ( ! empty( $prepared_args['type'] ) ) {
 			foreach ( (array) $prepared_args['type'] as $type ) {
 				if ( ! $this->check_is_post_type_allowed( $type ) ) {
@@ -30,6 +28,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 		unset( $prepared_args['type'] );
 
+		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
 		$query_args = $this->prepare_items_query( $prepared_args );
 		$posts_query = new WP_Query();
 		$posts = $posts_query->query( $query_args );
