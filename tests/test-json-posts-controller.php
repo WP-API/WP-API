@@ -173,6 +173,22 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertCount( 2, $response_data );
 	}
 
+	public function test_get_post_revisions_invalid_id() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts/100/revisions' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+	}
+
+	function test_get_post_revisions_invalid_permissions() {
+		wp_update_post( array( 'post_content' => 'This content is always changing.', 'ID' => $this->post_id ) );
+
+		wp_set_current_user( 0 );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_view', $response, 403 );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( $this->editor_id );
 
@@ -460,13 +476,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	}
 
-	public function tearDown() {
-		global $wp_json_server;
+	// public function tearDown() {
+	// 	global $wp_json_server;
 
-		parent::tearDown();
+	// 	parent::tearDown();
 
-		$wp_json_server = null;
-	}
+	// 	$wp_json_server = null;
+	// }
 
 
 	protected function check_post_data( $post, $data, $context ) {
