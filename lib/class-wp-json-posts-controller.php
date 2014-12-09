@@ -70,8 +70,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		$post = $this->prepare_item_for_response( $post, $request );
-		$response = json_ensure_response( $post );
+		$data = $this->prepare_item_for_response( $post, $request );
+		$response = json_ensure_response( $data );
 
 		$links = $this->prepare_links( $post );
 		foreach ( $links as $rel => $attributes ) {
