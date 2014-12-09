@@ -184,6 +184,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'slug'         => $item->slug,
 			'parent_id'    => (int) $parent_id,
 		);
+
+		if ( ! empty( $parent_term ) ) {
+			$data['_links'] = array(
+				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
+				);
+		}
+
 		return apply_filters( 'json_prepare_term', $data, $item, $request );
 	}
 
