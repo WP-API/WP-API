@@ -292,9 +292,6 @@ function create_initial_json_routes() {
 			'methods' => WP_JSON_Server::DELETABLE,
 			'callback' => array( $controller, 'delete_item' ),
 			'args' => array(
-				'id' => array(
-					'required' => true,
-				),
 				'reassign' => array(
 					'required' => false,
 				),
