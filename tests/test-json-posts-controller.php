@@ -329,7 +329,53 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_update_item() {
+		wp_set_current_user( $this->editor_id );
 
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data( array(
+			'id'    => $this->post_id,
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_post_response( $response );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( $this->post_id, $new_data['id'] );
+		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
+		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
+		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$post = get_post( $this->post_id );
+		$this->assertEquals( $params['title'], $post->post_title );
+		$this->assertEquals( $params['content'], $post->post_content );
+		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
+	}
+
+	public function test_json_update_post() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_post_data( array(
+			'id'    => $this->post_id,
+		) );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->check_add_edit_post_response( $response );
+
+		// Check that the name has been updated correctly
+		$new_data = $response->get_data();
+		$this->assertEquals( $this->post_id, $new_data['id'] );
+		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
+		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
+		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$post = get_post( $this->post_id );
+		$this->assertEquals( $params['title'], $post->post_title );
+		$this->assertEquals( $params['content'], $post->post_content );
+		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
 	}
 
 	public function test_update_post_invalid_permission() {
