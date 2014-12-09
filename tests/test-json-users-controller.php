@@ -153,6 +153,18 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
+	public function test_update_item_existing_email() {
+		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
+		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
+		$request->set_param( 'email', 'testjson@example.com' );
+		$response = $this->server->dispatch( $request );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
 	public function test_json_update_user() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'testjson2@example.com',
