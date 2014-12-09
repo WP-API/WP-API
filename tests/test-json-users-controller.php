@@ -161,8 +161,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
 		$request->set_param( 'email', 'testjson@example.com' );
 		$response = $this->server->dispatch( $request );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_invalid_email', $response->get_error_code() );
 	}
 
 	public function test_json_update_user() {
