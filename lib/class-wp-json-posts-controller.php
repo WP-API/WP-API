@@ -297,7 +297,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			 * post + meta for the parent and just meta for the grandparent
 			 */
 			$parent = get_post( $post->post_parent );
-			$data['parent'] = $this->prepare_item_for_response( $parent, array( 'context' => 'embed',
+			$data['parent'] = $this->prepare_item_for_response( $parent, array(
+				'context' => 'embed',
 			) );
 		}
 
