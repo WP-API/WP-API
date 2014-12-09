@@ -116,12 +116,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_post_response( $response, 'view' );
 	}
 
+	public function test_get_post_invalid_permission() {
+		$draft_id = $this->factory->post->create( array(
+			'post_status' => 'draft',
+		) );
+		wp_set_current_user( 0 );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $draft_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+	}
+
 	public function test_get_post_invalid_id() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts/100' );
-		$request->set_query_params( array(
-			'type' => 'foo',
-		) );
-
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
