@@ -55,7 +55,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function test_get_items_status_invalid_permissions() {
 		$draft_id = $this->factory->post->create( array(
-			'post_title'  => 'Still a WIP',
 			'post_status' => 'draft',
 		) );
 		wp_set_current_user( 0 );
