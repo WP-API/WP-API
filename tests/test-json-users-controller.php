@@ -239,28 +239,41 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
-		$this->assertEquals( $user->user_login, $data['username'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
 		$this->assertEquals( $user->last_name, $data['last_name' ] );
 		$this->assertEquals( $user->nickname, $data['nickname'] );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
-		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar'] );
+		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered'] );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
 			$this->assertEquals( false, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
+
+		if ( 'view' !== $context && 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'data', $data );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'registered', $data );
+		}
+
 		if ( 'edit' == $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( $user->user_login, $data['username'] );
 		}
+
+		if ( 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
+			$this->assertArrayNotHasKey( 'username', $data );
+		}
+
 	}
 
 	protected function check_get_users_response( $response, $context = 'view' ) {

@@ -216,25 +216,25 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$data = array(
 			'id'          => $user->ID,
-			'username'    => $user->user_login,
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
-			'avatar'      => json_get_avatar_url( $user->user_email ),
+			'avatar_url'  => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'registered'  => date( 'c', strtotime( $user->user_registered ) ),
 		);
 
 		if ( 'view' === $request['context'] || 'edit' === $request['context'] ) {
-			$data['roles']        = $user->roles;
-			$data['capabilities'] = $user->allcaps;
-			$data['email']        = false;
+			$data['roles']              = $user->roles;
+			$data['capabilities']       = $user->allcaps;
+			$data['email']              = false;
+			$data['registered_date']    = date( 'c', strtotime( $user->user_registered ) );
 		}
 
 		if ( 'edit' === $request['context'] ) {
+			$data['username']           = $user->user_login;
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
 			$data['email']              = $user->user_email;
