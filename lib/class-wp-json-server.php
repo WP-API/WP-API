@@ -583,6 +583,16 @@ class WP_JSON_Server {
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );
 
+				$defaults = array();
+
+				foreach ( $handler['args'] as $arg => $options ) {
+					if ( isset( $options['default'] ) ) {
+						$defaults[$arg] = $options['default'];
+					}
+				}
+
+				$request->set_default_params( $defaults );
+
 				$check_required = $this->check_required_parameters( $request );
 				if ( is_wp_error( $check_required ) ) {
 					return $check_required;
