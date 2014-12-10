@@ -719,11 +719,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return false;
 		}
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $post->ID ) ) {
-			return false;
-		}
-
-		return true;
+		return current_user_can( $post_type->cap->edit_post, $post->ID );
 	}
 
 	/**
