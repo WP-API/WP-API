@@ -57,7 +57,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 		}
 
-		return self::prepare_item_for_response( $user, $request );
+		return $this->prepare_item_for_response( $user, $request );
 	}
 
 	/**
