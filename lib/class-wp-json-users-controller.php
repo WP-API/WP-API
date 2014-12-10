@@ -149,6 +149,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_email', __( 'Email address is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
+			return new WP_Error( 'json_user_invalid_argument', __( "User slug isn't editable" ), array( 'status' => 400 ) );
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $user ) ) {
 			return $user;
