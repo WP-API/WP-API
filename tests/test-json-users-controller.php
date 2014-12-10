@@ -179,6 +179,19 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'json_user_invalid_argument', $response->get_error_code() );
 	}
 
+	public function test_update_item_existing_nicename() {
+		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
+		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
+		$request->set_param( 'slug', 'test_json_user' );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_invalid_slug', $response->get_error_code() );
+	}
+
 	public function test_json_update_user() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'testjson2@example.com',
