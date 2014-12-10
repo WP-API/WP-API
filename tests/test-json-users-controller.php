@@ -156,6 +156,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_update_item_existing_email() {
 		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
 		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
