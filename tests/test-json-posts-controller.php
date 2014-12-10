@@ -473,7 +473,22 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+	}
 
+	public function test_delete_post_invalid_id() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'DELETE', '/wp/posts/100' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+	}
+
+	public function test_delete_post_invalid_permission() {
+		wp_set_current_user( $this->author_id );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
 	}
 
 	// public function tearDown() {
