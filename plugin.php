@@ -239,7 +239,7 @@ function create_initial_json_routes() {
 	/*
 	 * Taxonomies
 	 */
-    $controller = new WP_JSON_Taxonomies_Controller;
+	$controller = new WP_JSON_Taxonomies_Controller;
 	register_json_route( 'wp', '/taxonomies', array(
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_items' ),
