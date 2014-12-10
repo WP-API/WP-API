@@ -123,7 +123,7 @@ class WP_JSON_Server {
 		$data = array();
 		foreach ( (array) $error->errors as $code => $messages ) {
 			foreach ( (array) $messages as $message ) {
-				$data[] = array( 'code' => $code, 'message' => $message );
+				$data[] = array( 'code' => $code, 'message' => $message, 'data' => $error->get_error_data( $code ) );
 			}
 		}
 		$response = new WP_JSON_Response( $data, $status );

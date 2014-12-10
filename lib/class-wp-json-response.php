@@ -172,10 +172,10 @@ class WP_JSON_Response extends WP_HTTP_Response {
 
 		if ( is_array( $this->get_data() ) ) {
 			foreach ( $this->get_data() as $err ) {
-				$error->add( $err['code'], $err['message'] );
+				$error->add( $err['code'], $err['message'], $err['data'] );
 			}
 		} else {
-			$error->add( $this->get_status() );
+			$error->add( $this->get_status(), '', array( 'status' => $this->get_status() ) );
 		}
 
 		return $error;
