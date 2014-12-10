@@ -84,7 +84,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_item() {
@@ -96,13 +96,13 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_term_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy/1' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_term_invalid_term() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/2' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
 	public function test_create_item() {
@@ -124,7 +124,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_create_item_incorrect_permissions() {
@@ -132,14 +132,14 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'json_user_cannot_create', $response, 403 );
 	}
 
 	public function test_create_item_missing_arguments() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy' );
+		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_missing_callback_param', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -167,7 +167,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/invalid-taxonomy/9999999' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_update_item_invalid_term() {
@@ -175,7 +175,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category/9999999' );
 		$request->set_param( 'name', 'Invalid Term' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
 	public function test_update_item_incorrect_permissions() {
@@ -184,7 +184,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -199,14 +199,14 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/invalid-taxonomy/9999999' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_delete_item_invalid_term() {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/9999999' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
 	public function test_delete_item_incorrect_permissions() {
@@ -214,7 +214,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
 	}
 
 	public function test_prepare_item() {
