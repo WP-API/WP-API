@@ -2,7 +2,8 @@
 /**
  * Custom Post Type base class
  *
- * A sensible base for custom post type APIs
+ * @package WordPress
+ * @subpackage JSON API
  */
 
 /**
