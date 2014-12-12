@@ -5,12 +5,6 @@
  * @package WordPress
  * @subpackage JSON API
  */
-
-/**
- * Custom Post Type base class
- *
- * A sensible base for custom post type APIs
- */
 abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	/**
 	 * Base route name
