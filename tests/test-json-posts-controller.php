@@ -463,6 +463,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
+	public function test_update_post_change_type() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'type'  => 'foo',
+		) );
+		$request->set_body_params( $params );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_change_post_type', $response, 400 );
+	}
+
 	public function test_delete_item() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->editor_id );
