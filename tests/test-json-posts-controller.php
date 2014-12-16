@@ -365,6 +365,40 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
 	}
 
+	public function test_create_post_with_password() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'password' => 'testing',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( $new_post->post_password, $data['password'] );
+	}
+
+	public function test_create_post_with_password_invalid_permission() {
+		wp_set_current_user( $this->author_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'password' => 'testing',
+			'author'   => $this->author_id,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
+	}
+
 	public function test_create_post_custom_date() {
 		wp_set_current_user( $this->editor_id );
 
