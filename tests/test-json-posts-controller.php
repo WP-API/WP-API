@@ -567,7 +567,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
 
 		if ( $post->post_password ) {
-
+			$this->assertEquals( $post->post_password, $data['password'] );
 		}
 
 		// Check post parent.
