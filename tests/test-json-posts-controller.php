@@ -443,8 +443,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->check_add_edit_post_response( $response );
-
-		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
 		$this->assertEquals( $this->post_id, $new_data['id'] );
 		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
@@ -466,8 +464,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->check_add_edit_post_response( $response );
-
-		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
 		$this->assertEquals( $this->post_id, $new_data['id'] );
 		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
@@ -483,7 +479,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->editor_id );
 		$user = wp_get_current_user();
 		$user->add_cap( 'edit_published_posts', false );
-
 		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
 		$user->get_role_caps();
 		$user->update_user_level_from_caps();
