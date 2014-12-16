@@ -401,9 +401,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$params = $this->set_post_data( array(
-			'id'    => $this->post_id,
-		) );
+		$params = $this->set_post_data();
 		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
@@ -426,9 +424,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_post_data( array(
-			'id'    => $this->post_id,
-		) );
+		$params = $this->set_post_data();
 		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
