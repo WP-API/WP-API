@@ -459,6 +459,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
+	public function test_update_post_invalid_id() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', 100 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 400 );
+	}
+
 	public function test_update_post_change_type() {
 		wp_set_current_user( $this->editor_id );
 
