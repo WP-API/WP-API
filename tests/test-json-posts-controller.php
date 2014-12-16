@@ -40,6 +40,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_items() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$response = $this->server->dispatch( $request );
+
 		$this->check_get_posts_response( $response );
 	}
 
@@ -50,6 +51,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'year'           => 2008,
 		) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_invalid_query', $response, 404 );
 	}
 
@@ -61,6 +63,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
@@ -104,15 +107,15 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_query_params( array(
 			'type' => 'foo',
 		) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_invalid_post_type', $response, 403 );
 	}
 
 	public function test_get_item() {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_get_post_response( $response, 'view' );
 	}
 
@@ -124,12 +127,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $draft_id ) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
 	}
 
 	public function test_get_post_invalid_id() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts/100' );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
@@ -138,8 +143,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_query_params( array(
 			'context' => 'edit',
 		) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
@@ -148,8 +153,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array( 'context' => 'edit' ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_get_post_response( $response, 'edit' );
 	}
 
@@ -161,13 +166,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$revisions = wp_get_post_revisions( $this->post_id );
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-
 		$response = json_ensure_response( $response );
-		$response_data = $response->get_data();
 
+		$response_data = $response->get_data();
 		// Check that we succeeded
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertCount( 2, $response_data );
@@ -176,16 +180,17 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_get_post_revisions_invalid_id() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts/100/revisions' );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
 	function test_get_post_revisions_invalid_permissions() {
 		wp_update_post( array( 'post_content' => 'This content is always changing.', 'ID' => $this->post_id ) );
-
 		wp_set_current_user( 0 );
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_cannot_view', $response, 403 );
 	}
 
@@ -196,8 +201,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$params = $this->set_post_data();
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_add_edit_post_response( $response );
 	}
 
@@ -208,8 +213,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->add_header( 'content-type', 'application/json' );
 		$params = $this->set_post_data();
 		$request->set_body( json_encode( $params ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_add_edit_post_response( $response );
 	}
 
@@ -221,10 +226,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'sticky' => true,
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
 
-		// Check that the post is sticky
 		$new_data = $response->get_data();
 		$this->assertEquals( true, $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
@@ -237,8 +240,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data();
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
 	}
 
@@ -252,8 +255,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'author' => $user->ID,
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_cannot_create', $response, 403 );
 	}
 
@@ -265,8 +268,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'status' => 'draft',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'draft', $data['status'] );
@@ -281,8 +284,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'status' => 'private',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'private', $data['status'] );
@@ -302,8 +305,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'status' => 'publish',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
@@ -315,8 +318,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'status' => 'teststatus',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'draft', $data['status'] );
@@ -331,8 +334,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'type' => 'testposttype',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
 	}
 
@@ -344,8 +347,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'author' => -1,
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_invalid_author', $response, 400 );
 	}
 
@@ -357,8 +360,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'author' => $this->editor_id,
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 401 );
 	}
 
@@ -370,8 +373,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'date' => '2010-01-01T02:00:00Z',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
@@ -387,8 +390,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'date' => '2010-01-01T02:00:00-10:00',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
@@ -403,8 +406,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$params = $this->set_post_data();
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_add_edit_post_response( $response );
 
 		// Check that the name has been updated correctly
@@ -426,8 +429,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->add_header( 'content-type', 'application/json' );
 		$params = $this->set_post_data();
 		$request->set_body( json_encode( $params ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->check_add_edit_post_response( $response );
 
 		// Check that the name has been updated correctly
@@ -452,10 +455,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$user->update_user_level_from_caps();
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
-		$params = $this->set_post_data(  array( 'id' => $this->post_id ) );
+		$params = $this->set_post_data();
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
@@ -464,6 +467,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', 100 ) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 400 );
 	}
 
@@ -475,8 +479,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'type'  => 'foo',
 		) );
 		$request->set_body_params( $params );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_cannot_change_post_type', $response, 400 );
 	}
 
@@ -485,8 +489,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $post_id ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
@@ -497,6 +501,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'DELETE', '/wp/posts/100' );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
@@ -505,17 +510,16 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
 	}
 
-	// public function tearDown() {
-	// 	global $wp_json_server;
+	public function tearDown() {
+		global $wp_json_server;
 
-	// 	parent::tearDown();
-
-	// 	$wp_json_server = null;
-	// }
-
+		parent::tearDown();
+		$wp_json_server = null;
+	}
 
 	protected function check_post_data( $post, $data, $context ) {
 		$this->assertEquals( $post->ID, $data['id'] );
