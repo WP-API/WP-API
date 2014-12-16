@@ -451,57 +451,56 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|obj $prepared_post Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$request_params = $request->get_params();
 		$prepared_post = new stdClass;
 
 		// ID
-		if ( isset( $request_params['id'] ) ) {
-			$prepared_post->ID = absint( $request_params['id'] );
+		if ( isset( $request['id'] ) ) {
+			$prepared_post->ID = absint( $request['id'] );
 		}
 
 		// Post title
-		if ( isset( $request_params['title'] ) ) {
-			$prepared_post->post_title = wp_kses_post( $request_params['title'] );
+		if ( isset( $request['title'] ) ) {
+			$prepared_post->post_title = wp_kses_post( $request['title'] );
 		}
 
 		// Post content
-		if ( ! empty( $request_params['content'] ) ) {
-			if ( is_string( $request_params['content'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request_params['content'] );
+		if ( ! empty( $request['content'] ) ) {
+			if ( is_string( $request['content'] ) ) {
+				$prepared_post->post_content = wp_kses_post( $request['content'] );
 			}
-			elseif ( ! empty( $request_params['content']['raw'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request_params['content']['raw'] );
+			elseif ( ! empty( $request['content']['raw'] ) ) {
+				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
 			}
 		}
 
 		// Post excerpt
-		if ( ! empty( $request_params['excerpt'] ) ) {
-			if ( is_string( $request_params['excerpt'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request_params['excerpt'] );
+		if ( ! empty( $request['excerpt'] ) ) {
+			if ( is_string( $request['excerpt'] ) ) {
+				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
 			}
-			elseif ( ! empty( $request_params['excerpt']['raw'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request_params['excerpt']['raw'] );
+			elseif ( ! empty( $request['excerpt']['raw'] ) ) {
+				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
 			}
 		}
 
 		// Post type
-		if ( ! empty( $request_params['type'] ) ) {
-			$request_params['type'] = sanitize_text_field( $request_params['type'] );
+		if ( ! empty( $request['type'] ) ) {
+			$request['type'] = sanitize_text_field( $request['type'] );
 			// Changing post type
-			if ( ! get_post_type_object( $request_params['type'] ) ) {
+			if ( ! get_post_type_object( $request['type'] ) ) {
 				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 			}
 
-			$prepared_post->post_type = $request_params['type'];
-		} elseif ( empty( $request_params['id'] ) ) {
+			$prepared_post->post_type = $request['type'];
+		} elseif ( empty( $request['id'] ) ) {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
 		}
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status
-		if ( isset( $request_params['status'] ) ) {
-			$status = $this->handle_status_param( $request_params['status'], $post_type );
+		if ( isset( $request['status'] ) ) {
+			$status = $this->handle_status_param( $request['status'], $post_type );
 			if ( is_wp_error( $status ) ) {
 				return $status;
 			}
@@ -510,27 +509,27 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post date
-		if ( ! empty( $request_params['date'] ) ) {
-			$date_data = json_get_date_with_gmt( $request_params['date'] );
+		if ( ! empty( $request['date'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
-		} elseif ( ! empty( $request_params['date_gmt'] ) ) {
-			$date_data = json_get_date_with_gmt( $request_params['date_gmt'], true );
+		} elseif ( ! empty( $request['date_gmt'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
 		}
 		// Post slug
-		if ( isset( $request_params['name'] ) ) {
-			$prepared_post->post_name = sanitize_title( $request_params['name'] );
+		if ( isset( $request['name'] ) ) {
+			$prepared_post->post_name = sanitize_title( $request['name'] );
 		}
 
 		// Author
-		if ( ! empty( $request_params['author'] ) ) {
-			$author = $this->handle_author_param( $request_params['author'], $post_type );
+		if ( ! empty( $request['author'] ) ) {
+			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
 			}
@@ -539,8 +538,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post password
-		if ( ! empty( $request_params['password'] ) ) {
-			$prepared_post->post_password = $request_params['password'];
+		if ( ! empty( $request['password'] ) ) {
+			$prepared_post->post_password = $request['password'];
 
 			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 				return new WP_Error( 'json_cannot_create_password_protected', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
@@ -548,8 +547,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Parent
-		if ( ! empty( $request_params['parent'] ) ) {
-			$parent = get_post( (int) $request_params['parent'] );
+		if ( ! empty( $request['parent'] ) ) {
+			$parent = get_post( (int) $request['parent'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
 			}
@@ -558,36 +557,36 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Menu order
-		if ( ! empty( $request_params['menu_order'] ) ) {
-			$prepared_post->menu_order = (int) $request_params['menu_order'];
+		if ( ! empty( $request['menu_order'] ) ) {
+			$prepared_post->menu_order = (int) $request['menu_order'];
 		}
 
 		// Comment status
-		if ( ! empty( $request_params['comment_status'] ) ) {
-			$prepared_post->comment_status = sanitize_text_field( $request_params['comment_status'] );
+		if ( ! empty( $request['comment_status'] ) ) {
+			$prepared_post->comment_status = sanitize_text_field( $request['comment_status'] );
 		}
 
 		// Ping status
-		if ( ! empty( $request_params['ping_status'] ) ) {
-			$prepared_post->ping_status = sanitize_text_field( $request_params['ping_status'] );
+		if ( ! empty( $request['ping_status'] ) ) {
+			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
 		// Post format
-		if ( ! empty( $request_params['format'] ) ) {
-			$request_params['format'] = sanitize_text_field( $request_params['format'] );
+		if ( ! empty( $request['format'] ) ) {
+			$request['format'] = sanitize_text_field( $request['format'] );
 			$formats = get_post_format_slugs();
 
-			if ( ! in_array( $request_params['format'], $formats ) ) {
+			if ( ! in_array( $request['format'], $formats ) ) {
 				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
 			}
-			$prepared_post->post_format = $request_params['format'];
+			$prepared_post->post_format = $request['format'];
 		}
 
 		/**
 		 * @TODO: reconnect the json_pre_insert_post() filter after all related
 		 * routes are finished converting to new structure.
 		 *
-		 * return apply_filters( 'json_pre_insert_post', $prepared_post, $request_params );
+		 * return apply_filters( 'json_pre_insert_post', $prepared_post, $request );
 		 */
 
 		return $prepared_post;
