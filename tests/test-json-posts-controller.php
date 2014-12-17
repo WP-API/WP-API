@@ -305,6 +305,25 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'private', $new_post->post_status );
 	}
 
+	public function test_create_post_private_without_permission() {
+		wp_set_current_user( $this->author_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'private',
+			'author' => $this->author_id,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_cannot_create_private', $response, 403 );
+	}
+
 	public function test_create_post_publish_without_permission() {
 		wp_set_current_user( $this->author_id );
 		$user = wp_get_current_user();
