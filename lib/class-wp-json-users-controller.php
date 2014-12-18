@@ -57,7 +57,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 		}
 
-		return self::prepare_item_for_response( $user, $request );
+		return $this->prepare_item_for_response( $user, $request );
 	}
 
 	/**
@@ -145,6 +145,18 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'User ID is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		if ( email_exists( $request['email'] ) && $request['email'] !== $user->user_email ) {
+			return new WP_Error( 'json_user_invalid_email', __( 'Email address is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
+			return new WP_Error( 'json_user_invalid_argument', __( "Username isn't editable" ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $request['slug'] ) && $request['slug'] !== $user->user_nicename && get_user_by( 'slug', $request['slug'] ) ) {
+			return new WP_Error( 'json_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $user ) ) {
 			return $user;
@@ -216,25 +228,25 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$data = array(
 			'id'          => $user->ID,
-			'username'    => $user->user_login,
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
-			'avatar'      => json_get_avatar_url( $user->user_email ),
+			'avatar_url'  => json_get_avatar_url( $user->user_email ),
 			'description' => $user->description,
-			'registered'  => date( 'c', strtotime( $user->user_registered ) ),
 		);
 
 		if ( 'view' === $request['context'] || 'edit' === $request['context'] ) {
-			$data['roles']        = $user->roles;
-			$data['capabilities'] = $user->allcaps;
-			$data['email']        = false;
+			$data['roles']              = $user->roles;
+			$data['capabilities']       = $user->allcaps;
+			$data['email']              = false;
+			$data['registered_date']    = date( 'c', strtotime( $user->user_registered ) );
 		}
 
 		if ( 'edit' === $request['context'] ) {
+			$data['username']           = $user->user_login;
 			// The user's specific caps should only be needed if you're editing
 			// the user, as allcaps should handle most uses
 			$data['email']              = $user->user_email;
