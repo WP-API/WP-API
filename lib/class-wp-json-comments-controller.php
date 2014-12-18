@@ -14,15 +14,18 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 
 		$args = array(
-			'number'  => isset( $request['per_page'] ) ? (int) $request['per_page'] : 10,
-			'post_id' => isset( $request['post_id'] ) ? (int) $request['post_id'] : 0,
-			'user_id' => isset( $request['user_id'] ) ? (int) $request['user_id'] : '',
-			'status'  => isset( $request['status'] ) ? (int) $request['status'] : '',
+			'number'  => $request['per_page'] ? absint( $request['per_page'] ) : 0,
+			'post_id' => absint( $request['post_id'] ),
+			'user_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
+			'status'  => sanitize_key( $request['status'] ),
 		);
 
-		$args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $args['number'] : 0; 
+		$args['offset'] = $args['number'] * ( absint( $request['page'] ) - 1 );
 
 		$comments = get_comments( $args );
+
+		$query = new WP_Comment_Query;
+		$comments = $query->query( $args );
 
 		foreach ( $comments as &$comment ) {
 			$comment = $this->prepare_item_for_response( $comment, $request );
@@ -132,14 +135,14 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		if ( (int) $comment->comment_parent ) {
 			$links['parent'] = array(
 				'href' => json_url( '/wp/comments/' . $comment->comment_parent )
-			)
+			);
 		}
 
 		// Author
 		if ( (int) $comment->user_id !== 0 ) {
 			$links['author'] = array(
 				'href' => json_url( '/wp/users/' . $comment->user_id )
-			)
+			);
 		} else {
 			// to do handle comment with no auther user
 		}
