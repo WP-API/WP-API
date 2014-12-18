@@ -106,6 +106,11 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 			'has_json_params' => true,
 		) );
 		$this->request->set_body( $json_data );
+
+		$this->request->set_default_params( array(
+			'source'             => 'defaults',
+			'has_default_params' => true,
+		) );
 	}
 
 	public function test_parameter_order() {
@@ -120,6 +125,7 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		// the stack works)
 		$this->assertTrue( $this->request->get_param( 'has_url_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_query_params' ) );
+		$this->assertTrue( $this->request->get_param( 'has_default_params' ) );
 
 		// POST and JSON parameters shouldn't be parsed
 		$this->assertEmpty( $this->request->get_param( 'has_body_params' ) );
@@ -141,6 +147,7 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		$this->assertTrue( $this->request->get_param( 'has_url_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_query_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_body_params' ) );
+		$this->assertTrue( $this->request->get_param( 'has_default_params' ) );
 
 		// JSON shouldn't be parsed
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
@@ -162,6 +169,7 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		$this->assertTrue( $this->request->get_param( 'has_query_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_body_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_json_params' ) );
+		$this->assertTrue( $this->request->get_param( 'has_default_params' ) );
 	}
 
 	public function test_parameter_order_json_invalid() {
@@ -182,6 +190,7 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		$this->assertTrue( $this->request->get_param( 'has_url_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_query_params' ) );
 		$this->assertTrue( $this->request->get_param( 'has_body_params' ) );
+		$this->assertTrue( $this->request->get_param( 'has_default_params' ) );
 
 		// JSON should be ignored
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
@@ -219,10 +228,11 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		$this->request->set_method( 'POST' );
 
 		$expected = array(
-			'source' => 'body',
-			'has_url_params' => true,
-			'has_query_params' => true,
-			'has_body_params' => true,
+			'source'             => 'body',
+			'has_url_params'     => true,
+			'has_query_params'   => true,
+			'has_body_params'    => true,
+			'has_default_params' => true
 		);
 		$this->assertEquals( $expected, $this->request->get_params() );
 	}
