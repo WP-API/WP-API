@@ -754,7 +754,6 @@ function json_send_allow_header( $response, $request, $server ) {
 
 	if ( ! $matched_route ) {
 		return $response;
-
 	}
 
 	$routes = $server->get_routes();
@@ -765,16 +764,12 @@ function json_send_allow_header( $response, $request, $server ) {
 	foreach ( $routes[$matched_route] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
-			if ( ! empty( $_handler['capability'] ) ) {
+			if ( ! empty( $_handler['permission_callback'] ) ) {
 
-				foreach ( (array) $_handler['capability'] as $capability ) {
-					if ( ! current_user_can( $capability ) ) {
-						$allowed_methods[$handler_method] = false;
-					}
-				}
-			}
+				$permission = call_user_func( $_handler['permission_callback'], $request );
 
-			if ( ! isset( $allowed_methods[$handler_method] ) ) {
+				$allowed_methods[$handler_method] = true === $permission;
+			} else {
 				$allowed_methods[$handler_method] = true;
 			}
 		}

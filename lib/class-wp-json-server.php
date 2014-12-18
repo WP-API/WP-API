@@ -59,13 +59,6 @@ class WP_JSON_Server {
 	protected $endpoints = array();
 
 	/**
-	 * The matched route for the request. Only populated after dispatch() is called
-	 * 
-	 * @var string
-	 */
-	protected $matched_route = null;
-
-	/**
 	 * Instantiate the server
 	 */
 	public function __construct() {
@@ -130,7 +123,7 @@ class WP_JSON_Server {
 		$data = array();
 		foreach ( (array) $error->errors as $code => $messages ) {
 			foreach ( (array) $messages as $message ) {
-				$data[] = array( 'code' => $code, 'message' => $message );
+				$data[] = array( 'code' => $code, 'message' => $message, 'data' => $error->get_error_data( $code ) );
 			}
 		}
 		$response = new WP_JSON_Response( $data, $status );
@@ -377,9 +370,6 @@ class WP_JSON_Server {
 				$request->set_query_params( array( 'context' => 'embed' ) );
 
 				$response = $this->dispatch( $request );
-				if ( is_wp_error( $response ) ) {
-					$response = $this->error_to_response( $response );
-				}
 
 				$embeds[] = $response;
 			}
@@ -553,15 +543,6 @@ class WP_JSON_Server {
 					continue;
 				}
 
-				// check capabilties specified on the route.
-				if ( ! empty( $handler['capability'] ) ) {
-					foreach ( (array) $handler['capability'] as $capability ) {
-						if ( ! current_user_can( $capability ) ) {
-							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
-						}
-					}
-				}
-
 				if ( ! is_callable( $callback ) ) {
 					$response = new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
@@ -601,24 +582,40 @@ class WP_JSON_Server {
 					$request->set_url_params( $args );
 					$request->set_attributes( $handler );
 
-					$check_required = $this->check_required_parameters( $request );
-					if ( is_wp_error( $check_required ) ) {
-						$response = $check_required;
+					// check permission specified on the route.
+					if ( ! empty( $handler['permission_callback'] ) ) {
+						$permission = call_user_func( $handler['permission_callback'], $request );
+
+						if ( is_wp_error( $permission ) ) {
+							$response = $permission;
+						} else if ( false === $permission || null === $permission ) {
+							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
+						}
 					}
 
-					/**
-					 * Allow plugins to override dispatching the request
-					 *
-					 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-					 * @param WP_JSON_Request $request
-					 */
-					$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+					if ( ! is_wp_error( $response ) ) {
 
-					// Allow plugins to halt the request via this filter
-					if ( $dispatch_result !== null ) {
-						$response = $dispatch_result;
-					} else {
-						$response = call_user_func( $callback, $request );
+						$check_required = $this->check_required_parameters( $request );
+
+						if ( is_wp_error( $check_required ) ) {
+							$response = $check_required;
+						} else {
+
+							/**
+							 * Allow plugins to override dispatching the request
+							 *
+							 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+							 * @param WP_JSON_Request $request
+							 */
+							$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+
+							// Allow plugins to halt the request via this filter
+							if ( $dispatch_result !== null ) {
+								$response = $dispatch_result;
+							} else {
+								$response = call_user_func( $callback, $request );
+							}
+						}
 					}
 				}
 

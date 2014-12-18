@@ -148,4 +148,36 @@ class WP_JSON_Response extends WP_HTTP_Response {
 	public function set_matched_handler( $handler ) {
 		$this->matched_handler = $handler;
 	}
+
+	/**
+	 * Check if the response is an error, i.e. >= 400 response code
+	 * 
+	 * @return boolean
+	 */
+	public function is_error() {
+		return $this->get_status() >= 400;
+	}
+
+	/**
+	 * Get a WP_Error object from the response's 
+	 * 
+	 * @return WP_Error|null on not an errored response
+	 */
+	public function as_error() {
+		if ( ! $this->is_error() ) {
+			return null;
+		}
+
+		$error = new WP_Error;
+
+		if ( is_array( $this->get_data() ) ) {
+			foreach ( $this->get_data() as $err ) {
+				$error->add( $err['code'], $err['message'], $err['data'] );
+			}
+		} else {
+			$error->add( $this->get_status(), '', array( 'status' => $this->get_status() ) );
+		}
+
+		return $error;
+	}
 }

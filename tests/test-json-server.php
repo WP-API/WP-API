@@ -10,7 +10,10 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
-		$this->server = new WP_JSON_Server();
+		global $wp_json_server;
+		$this->server = $wp_json_server = new WP_JSON_Server();
+
+		do_action( 'wp_json_server_before_serve', $this->server );
 	}
 
 	public function test_envelope() {
@@ -55,13 +58,13 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'method'       => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'capability'   => 'invalid_capability'
+			'permission_callback' => array( $this, 'permission_denied' )
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
 		$result = $this->server->dispatch( $request );
 
-		$this->assertEquals( $result->get_status(), 403 );
+		$this->assertEquals( 403, $result->get_status() );
 	}
 
 	/**
@@ -73,7 +76,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'capability'   => 'edit_posts'
+			'permission_callback' => array( $this, 'permission_allowed' )
 		) );
 
 		$editor = $this->factory->user->create( array( 'role' => 'editor' ) );
@@ -104,7 +107,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$result = $this->server->dispatch( $request );
 
 		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
-		
+
 		$this->assertFalse( $result->get_status() !== 200 );
 
 		$sent_headers = $result->get_headers();
@@ -151,7 +154,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'capability'   => 'invalid_capability'
+			'permission_callback' => array( $this, 'permission_denied' )
 		) );
 
 		register_json_route( 'test-ns', '/test', array(
@@ -170,5 +173,13 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 
 		$sent_headers = $result->get_headers();
 		$this->assertEquals( $sent_headers['Allow'], 'POST' );
+	}
+
+	function permission_allowed() {
+		return true;
+	}
+
+	function permission_denied() {
+		return new WP_Error( 'forbidden', 'You are not allowed to do this', array( 'status' => 403 ) );
 	}
 }
