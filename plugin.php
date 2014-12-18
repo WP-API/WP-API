@@ -41,6 +41,7 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-comments-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -318,19 +319,24 @@ function create_initial_json_routes() {
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
 			'post_id'     => array( 
-				'required' => false
+				'required' => false,
+				'default'  => null
 			),
 			'user_id'     => array( 
-				'required' => false
+				'required' => false,
+				'default'  => null
 			),
 			'per_page'    => array( 
-				'required' => false
+				'required' => false,
+				'default'  => 10
 			),
 			'page'        => array( 
-				'required' => false
+				'required' => false,
+				'default'  => 1
 			),
 			'status'      => array(
-				'required' => false
+				'required' => false,
+				'default'  => 'approve'
 			)
 		)
 	));
@@ -344,9 +350,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'         => WP_JSON_Server::EDITABLE,
 			'callback'        => array( $controller, 'update_item' ),
-			'args'            => array(
-				
-			)
+			'args'            => array()
 		),
 		array(
 			'methods'         => WP_JSON_Server::DELETABLE,
