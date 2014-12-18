@@ -579,18 +579,18 @@ class WP_JSON_Server {
 
 				if ( ! is_wp_error( $response ) ) {
 
-				$request->set_url_params( $args );
-				$request->set_attributes( $handler );
-				
-				$defaults = array();
+					$request->set_url_params( $args );
+					$request->set_attributes( $handler );
+					
+					$defaults = array();
 
-				foreach ( $handler['args'] as $arg => $options ) {
-					if ( isset( $options['default'] ) ) {
-						$defaults[$arg] = $options['default'];
+					foreach ( $handler['args'] as $arg => $options ) {
+						if ( isset( $options['default'] ) ) {
+							$defaults[$arg] = $options['default'];
+						}
 					}
-				}
 
-				$request->set_default_params( $defaults );
+					$request->set_default_params( $defaults );
 
 					// check permission specified on the route.
 					if ( ! empty( $handler['permission_callback'] ) ) {
@@ -605,22 +605,22 @@ class WP_JSON_Server {
 
 					if ( ! is_wp_error( $response ) ) {
 
-				$check_required = $this->check_required_parameters( $request );
+						$check_required = $this->check_required_parameters( $request );
 
-				if ( is_wp_error( $check_required ) ) {
+						if ( is_wp_error( $check_required ) ) {
 							$response = $check_required;
 						} else {
 
-				/**
-				 * Allow plugins to override dispatching the request
-				 *
-				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-				 * @param WP_JSON_Request $request
-				 */
-				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+							/**
+							 * Allow plugins to override dispatching the request
+							 *
+							 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+							 * @param WP_JSON_Request $request
+							 */
+							$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
 
-				// Allow plugins to halt the request via this filter
-				if ( $dispatch_result !== null ) {
+							// Allow plugins to halt the request via this filter
+							if ( $dispatch_result !== null ) {
 								$response = $dispatch_result;
 							} else {
 								$response = call_user_func( $callback, $request );
