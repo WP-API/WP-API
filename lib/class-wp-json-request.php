@@ -89,7 +89,7 @@ class WP_JSON_Request implements ArrayAccess {
 			// See parse_json_params
 			'JSON'  => null,
 
-			'DEFAULTS' => array()
+			'defaults' => array()
 		);
 
 		$this->set_method( $method );
@@ -298,7 +298,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		$order[] = 'GET';
 		$order[] = 'URL';
-		$order[] = 'DEFAULTS';
+		$order[] = 'defaults';
 
 		/**
 		 * Alter the parameter checking order
@@ -466,7 +466,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @return array Parameter map of key to value
 	 */
 	public function get_default_params() {
-		return $this->params['DEFAULTS'];
+		return $this->params['defaults'];
 	}
 
 	/**
@@ -477,7 +477,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 * @param array $params Parameter map of key to value
 	 */
 	public function set_default_params( $params ) {
-		$this->params['DEFAULTS'] = $params;
+		$this->params['defaults'] = $params;
 	}
 
 	/**
