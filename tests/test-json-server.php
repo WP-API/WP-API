@@ -13,7 +13,6 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		global $wp_json_server;
 
 		$this->server = $wp_json_server = new WP_JSON_Server;
-
 	}
 
 	public function test_envelope() {
