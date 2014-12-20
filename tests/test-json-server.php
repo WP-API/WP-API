@@ -85,4 +85,20 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->assertEquals( '123', $request['foo'] );
 	}
 
+	public function test_optional_param() {
+		register_json_route( 'optional', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(),
+			),
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/optional/test' );
+		$request->set_query_params( array() );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'foo', $request );
+	}
 }
