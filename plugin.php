@@ -91,14 +91,9 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
 				'context'          => array(
-					'required'         => false,
 				),
-				'type'            => array(
-					'required'        => false,
-				),
-				'page'            => array(
-					'required'        => false,
-				),
+				'type'            => array(),
+				'page'            => array(),
 			),
 		),
 		array(
@@ -115,45 +110,19 @@ function create_initial_json_routes() {
 				'excerpt'        => array(
 					'required'       => true,
 				),
-				'type'           => array(
-					'required'       => false,
-				),
-				'status'         => array(
-					'required'       => false,
-				),
-				'date'           => array(
-					'required'       => false,
-				),
-				'date_gmt'       => array(
-					'required'       => false,
-				),
-				'name'           => array(
-					'required'       => false,
-				),
-				'format'    => array(
-					'required'       => false,
-				),
-				'author'         => array(
-					'required'       => false,
-				),
-				'password'       => array(
-					'required'       => false,
-				),
-				'parent'         => array(
-					'required'       => false,
-				),
-				'menu_order'     => array(
-					'required'       => false,
-				),
-				'comment_status' => array(
-					'required'       => false,
-				),
-				'ping_status'    => array(
-					'required'       => false,
-				),
-				'sticky'         => array(
-					'required'       => false,
-				),
+				'type'           => array(),
+				'status'         => array(),
+				'date'           => array(),
+				'date_gmt'       => array(),
+				'name'           => array(),
+				'format'         => array(),
+				'author'         => array(),
+				'password'       => array(),
+				'parent'         => array(),
+				'menu_order'     => array(),
+				'comment_status' => array(),
+				'ping_status'    => array(),
+				'sticky'         => array(),
 			),
 		),
 	) );
@@ -163,7 +132,6 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'get_item' ),
 			'args'            => array(
 				'context'          => array(
-					'required'         => false,
 				),
 			),
 		),
@@ -172,63 +140,29 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'update_item' ),
 			'accept_json'     => true,
 			'args'            => array(
-				'title'          => array(
-					'required'       => false,
-				),
-				'content'        => array(
-					'required'       => false,
-				),
-				'excerpt'        => array(
-					'required'       => false,
-				),
-				'type'           => array(
-					'required'       => false,
-				),
-				'status'         => array(
-					'required'       => false,
-				),
-				'date'           => array(
-					'required'       => false,
-				),
-				'date_gmt'       => array(
-					'required'       => false,
-				),
-				'name'           => array(
-					'required'       => false,
-				),
-				'format'    => array(
-					'required'       => false,
-				),
-				'author'         => array(
-					'required'       => false,
-				),
-				'password'       => array(
-					'required'       => false,
-				),
-				'parent'         => array(
-					'required'       => false,
-				),
-				'menu_order'     => array(
-					'required'       => false,
-				),
-				'comment_status' => array(
-					'required'       => false,
-				),
-				'ping_status'    => array(
-					'required'       => false,
-				),
-				'sticky'         => array(
-					'required'       => false,
-				),
+				'title'          => array(),
+				'content'        => array(),
+				'excerpt'        => array(),
+				'type'           => array(),
+				'status'         => array(),
+				'date'           => array(),
+				'date_gmt'       => array(),
+				'name'           => array(),
+				'format'         => array(),
+				'author'         => array(),
+				'password'       => array(),
+				'parent'         => array(),
+				'menu_order'     => array(),
+				'comment_status' => array(),
+				'ping_status'    => array(),
+				'sticky'         => array(),
 			),
 		),
 		array(
 			'methods'  => WP_JSON_Server::DELETABLE,
 			'callback' => array( $controller, 'delete_item' ),
 			'args'     => array(
-				'force'    => array(
-					'required' => false,
-				),
+				'force'    => array(),
 			),
 		),
 	) );
