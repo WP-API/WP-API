@@ -11,7 +11,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		parent::setUp();
 
 		global $wp_json_server;
-		
+
 		$this->server = $wp_json_server = new WP_JSON_Server;
 
 	}
@@ -55,10 +55,9 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'callback' => '__return_null',
 			'args'     => array(
 				'foo'  => array(
-					'required' => false,
-					'default'  => 'bar'
-				)
-			)
+					'default'  => 'bar',
+				),
+			),
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
@@ -74,10 +73,9 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'callback' => '__return_null',
 			'args'     => array(
 				'foo'  => array(
-					'required' => false,
-					'default'  => 'bar'
-				)
-			)
+					'default'  => 'bar',
+				),
+			),
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
