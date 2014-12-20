@@ -38,6 +38,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-base-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
