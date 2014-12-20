@@ -91,6 +91,7 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
 				'context'          => array(
+					'default'      => 'view',
 				),
 				'type'            => array(),
 				'page'            => array(),
@@ -132,6 +133,7 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'get_item' ),
 			'args'            => array(
 				'context'          => array(
+					'default'      => 'view',
 				),
 			),
 		),
