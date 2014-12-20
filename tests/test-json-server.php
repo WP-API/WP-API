@@ -66,7 +66,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->assertEquals( 'bar', $request['foo'] );
 	}
 
-	public function test_default_param_is_overriden() {
+	public function test_default_param_is_overridden() {
 
 		register_json_route( 'test-ns', '/test', array(
 			'methods'  => array( 'GET' ),
