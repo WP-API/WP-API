@@ -272,6 +272,12 @@ function create_initial_json_routes() {
 				'page'     => array(
 					'required' => false,
 				),
+				'order'    => array(
+					'required' => false,
+					),
+				'orderby'  => array(
+					'required' => false,
+					),
 			),
 		),
 		array(
@@ -388,20 +394,7 @@ function create_initial_json_routes() {
 				),
 			),
 		),
-		array(
-			'methods'         => WP_JSON_Server::DELETABLE,
-			'callback'        => array( $controller, 'delete_item' ),
-			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
-				'reassign'        => array(
-					'required'        => false,
-				),
-			),
-		),
 	) );
-
 	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
 		array(
 			'methods'         => WP_JSON_Server::READABLE,
@@ -417,9 +410,6 @@ function create_initial_json_routes() {
 			'callback'        => array( $controller, 'update_item' ),
 			'accept_json'     => true,
 			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
 				'email'           => array(
 					'required'        => false,
 				),
@@ -459,9 +449,6 @@ function create_initial_json_routes() {
 			'methods' => WP_JSON_Server::DELETABLE,
 			'callback' => array( $controller, 'delete_item' ),
 			'args' => array(
-				'id' => array(
-					'required' => true,
-				),
 				'reassign' => array(
 					'required' => false,
 				),

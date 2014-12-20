@@ -30,6 +30,57 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
+	public function test_get_items_orderby_args() {
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		/*
+		 * Tests:
+		 * - orderby
+		 * - order
+		 * - per_page
+		 */
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Banana', $data[0]['name'] );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
+	}
+
+	public function test_get_items_search_args() {
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		/*
+		 * Tests:
+		 * - search
+		 */
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'search', 'App' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'search', 'Garbage' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 0, count( $data ) );
+	}
+
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
@@ -58,10 +109,14 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'description', 'This term is so awesome.' );
+		$request->set_param( 'slug', 'so-awesome' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'My Awesome Term', $data['name'] );
+		$this->assertEquals( 'This term is so awesome.', $data['description'] );
+		$this->assertEquals( 'so-awesome', $data['slug'] );
 	}
 
 	public function test_create_item_invalid_taxonomy() {
@@ -182,6 +237,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertEquals( 1, $data['parent_id'] );
+		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {

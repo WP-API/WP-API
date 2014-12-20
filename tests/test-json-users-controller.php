@@ -25,9 +25,13 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		global $wp_json_server;
 		$wp_json_server = new WP_JSON_Server;
 		do_action( 'wp_json_server_before_serve' );
+
 		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/users', $routes );
+		$this->assertCount( 2, $routes['/wp/users'] );
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
+		$this->assertCount( 3, $routes['/wp/users/(?P<id>[\d]+)'] );
+		$this->assertArrayHasKey( '/wp/users/me', $routes );
 	}
 
 	public function test_get_items() {
@@ -149,6 +153,45 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
+	public function test_update_item_existing_email() {
+		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
+		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
+		$request->set_param( 'email', 'testjson@example.com' );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_invalid_email', $response->get_error_code() );
+	}
+
+	public function test_update_item_username_attempt() {
+		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
+		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
+		$request->set_param( 'username', 'test_json_user' );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_invalid_argument', $response->get_error_code() );
+	}
+
+	public function test_update_item_existing_nicename() {
+		$user1 = $this->factory->user->create( array( 'user_login' => 'test_json_user', 'user_email' => 'testjson@example.com' ) );
+		$user2 = $this->factory->user->create( array( 'user_login' => 'test_json_user2', 'user_email' => 'testjson2@example.com' ) );
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
+		$request->set_param( 'slug', 'test_json_user' );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertEquals( 'json_user_invalid_slug', $response->get_error_code() );
+	}
+
 	public function test_json_update_user() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'testjson2@example.com',
@@ -235,28 +278,41 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
-		$this->assertEquals( $user->user_login, $data['username'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
 		$this->assertEquals( $user->last_name, $data['last_name' ] );
 		$this->assertEquals( $user->nickname, $data['nickname'] );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
-		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar'] );
+		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered'] );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
 			$this->assertEquals( false, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
+
+		if ( 'view' !== $context && 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'data', $data );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'registered', $data );
+		}
+
 		if ( 'edit' == $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( $user->user_login, $data['username'] );
 		}
+
+		if ( 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
+			$this->assertArrayNotHasKey( 'username', $data );
+		}
+
 	}
 
 	protected function check_get_users_response( $response, $context = 'view' ) {
