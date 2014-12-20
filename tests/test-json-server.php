@@ -99,6 +99,6 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 		$this->assertInstanceOf( 'WP_JSON_Response', $response );
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertArrayNotHasKey( 'foo', $request );
+		$this->assertArrayNotHasKey( 'foo', (array) $request );
 	}
 }
