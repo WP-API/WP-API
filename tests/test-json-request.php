@@ -222,6 +222,28 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_json_parameters_for_put() {
+		$data = array(
+			'foo' => 'bar',
+			'alot' => array(
+				'of' => 'parameters',
+			),
+			'list' => array(
+				'of',
+				'cool',
+				'stuff',
+			),
+		);
+
+		$this->request->set_method( 'PUT' );
+		$this->request->add_header( 'content-type', 'application/json' );
+		$this->request->set_body( json_encode( $data ) );
+
+		foreach ( $data as $key => $expected_value ) {
+			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
+		}
+	}
+
 	public function test_parameter_merging() {
 		$this->request_with_parameters();
 
