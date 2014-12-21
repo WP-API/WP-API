@@ -222,7 +222,7 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_json_parameters_for_put() {
+	public function test_parameters_for_json_put() {
 		$data = array(
 			'foo' => 'bar',
 			'alot' => array(
