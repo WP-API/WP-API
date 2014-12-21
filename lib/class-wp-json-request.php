@@ -277,13 +277,9 @@ class WP_JSON_Request implements ArrayAccess {
 	 */
 	protected function get_parameter_order() {
 		$order = array();
+		$order[] = 'JSON';
 
-		if ( ! empty( $this->attributes['accept_json'] ) ) {
-			$order[] = 'JSON';
-
-			// Psst, load JSON in if we need to.
-			$this->parse_json_params();
-		}
+		$this->parse_json_params();
 
 		// Ensure we parse the body data
 		$body = $this->get_body();
