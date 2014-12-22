@@ -68,7 +68,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( 'edit' === $request['context'] && ! $this->check_edit_permission( $post ) ) {
+		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		} elseif ( ! $this->check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
@@ -107,7 +107,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $parent ) ) {
+		if ( ! $this->check_update_permission( $parent ) ) {
 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
 		}
 
@@ -187,7 +187,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Post ID is invalid.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $post ) ) {
+		if ( ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
@@ -625,7 +625,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	 * @param obj $post Post object
 	 * @return bool Can we edit it?
 	 */
-	protected function check_edit_permission( $post ) {
+	protected function check_update_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
 
 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
