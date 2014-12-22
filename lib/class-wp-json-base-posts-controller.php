@@ -217,6 +217,9 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return $post_id;
 		}
 
+		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
+		$this->handle_sticky_posts( $sticky, $post_id );
+
 		/**
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
