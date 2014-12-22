@@ -98,43 +98,43 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	public function create_item( $request ) {
 		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 
-			if ( ! empty( $request['id'] ) ) {
-				return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
-			}
+		if ( ! empty( $request['id'] ) ) {
+			return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
+		}
 
-			$post = $this->prepare_item_for_database( $request );
-			if ( is_wp_error( $post ) ) {
-				return $post;
-			}
+		$post = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $post ) ) {
+			return $post;
+		}
 
-			if ( ! $this->check_create_permission( $post ) ) {
-				return new WP_Error( 'json_post_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
-			}
+		if ( ! $this->check_create_permission( $post ) ) {
+			return new WP_Error( 'json_post_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
+		}
 
-			$post_id = wp_insert_post( $post, true );
-			if ( is_wp_error( $post_id ) ) {
-				return $post_id;
-			}
+		$post_id = wp_insert_post( $post, true );
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
 
-			$post->ID = $post_id;
-			$this->handle_sticky_posts( $sticky, $post_id );
+		$post->ID = $post_id;
+		$this->handle_sticky_posts( $sticky, $post_id );
 
-			/**
-			 * @TODO: Enable json_insert_post() action after
-			 * Media Controller has been migrated to new style.
-			 *
-			 * do_action( 'json_insert_post', $post, $request, true );
-			 */
+		/**
+		 * @TODO: Enable json_insert_post() action after
+		 * Media Controller has been migrated to new style.
+		 *
+		 * do_action( 'json_insert_post', $post, $request, true );
+		 */
 
-			$response = $this->get_item( array(
-				'id'      => $post_id,
-				'context' => 'edit',
-			) );
-			$response = json_ensure_response( $response );
-			$response->set_status( 201 );
-			$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
+		$response = $this->get_item( array(
+			'id'      => $post_id,
+			'context' => 'edit',
+		) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/posts/' . $post_id ) );
 
-			return $response;
+		return $response;
 	}
 
 	/**
