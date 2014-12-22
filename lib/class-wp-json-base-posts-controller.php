@@ -159,6 +159,10 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		$post->ID = $post_id;
 		$this->handle_sticky_posts( $sticky, $post_id );
 
+		if ( ! empty( $request['format'] ) ) {
+			$this->handle_format_param( $request['format'], $post );
+		}
+
 		/**
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -197,6 +201,10 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 
 		if ( $request['type'] != $post->post_type ) {
 			return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $request['format'] ) ) {
+			$this->handle_format_param( $request['format'], $post );
 		}
 
 		$post = $this->prepare_item_for_database( $request );
@@ -476,17 +484,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
-		// Post format
-		if ( ! empty( $request['format'] ) ) {
-			$request['format'] = sanitize_text_field( $request['format'] );
-			$formats = get_post_format_slugs();
-
-			if ( ! in_array( $request['format'], $formats ) ) {
-				return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
-			}
-			$prepared_post->post_format = $request['format'];
-		}
-
 		/**
 		 * @TODO: reconnect the json_pre_insert_post() filter after all related
 		 * routes are finished converting to new structure.
@@ -563,6 +560,23 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		return $post_author;
+	}
+
+	/**
+	 * Determine if a post format should be set from format param.
+	 *
+	 * @param string $post_format
+	 * @param object $post
+	 */
+	protected function handle_format_param( $post_format, $post ) {
+		$post_format = sanitize_text_field( $post_format );
+
+		$formats = get_post_format_slugs();
+		if ( ! in_array( $post_format, $formats ) ) {
+			return new WP_Error( 'json_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
+		}
+
+		return set_post_format( $post, $post_format );
 	}
 
 	/**
