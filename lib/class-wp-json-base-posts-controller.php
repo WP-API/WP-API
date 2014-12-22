@@ -497,6 +497,13 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		return $prepared_post;
 	}
 
+	/**
+	 * Determine validity and normalize provided status param.
+	 *
+	 * @param string $post_status
+	 * @param object $post_type
+	 * @return WP_Error|string $post_status
+	 */
 	protected function handle_status_param( $post_status, $post_type ) {
 		$post_status = sanitize_text_field( $post_status );
 
@@ -525,6 +532,13 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		return $post_status;
 	}
 
+	/**
+	 * Determine validity and normalize provided author param.
+	 *
+	 * @param object|integer $post_author
+	 * @param object $post_type
+	 * @return WP_Error|integer $post_author
+	 */
 	protected function handle_author_param( $post_author, $post_type ) {
 		if ( is_object( $post_author ) ) {
 			if ( empty( $post_author->id ) ) {
@@ -551,6 +565,12 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		return $post_author;
 	}
 
+	/**
+	 * Determine if a post should be stuck or unstuck from sticky param.
+	 *
+	 * @param boolean $sticky
+	 * @param integer $post_id
+	 */
 	protected function handle_sticky_posts( $sticky, $post_id ) {
 		if ( isset( $sticky ) ) {
 			if ( $sticky ) {
@@ -561,6 +581,12 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		}
 	}
 
+	/**
+	 * Check if a given post type should be viewed or managed.
+	 *
+	 * @param object|string $post_type
+	 * @return bool Is post type allowed?
+	 */
 	protected function check_is_post_type_allowed( $post_type ) {
 		if ( ! is_object( $post_type ) ) {
 			$post_type = get_post_type_object( $post_type );
