@@ -260,17 +260,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Prepare a single post output for response
-	 *
-	 * @param WP_Post $post Post object
-	 * @param WP_JSON_Request $request Request object
-	 * @return array $data
-	 */
-	public function prepare_item_for_response( $post, $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
-	}
-
-	/**
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
