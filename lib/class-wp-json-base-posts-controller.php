@@ -316,7 +316,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
 
 		if ( empty( $excerpt ) ) {
-			return null;
+			return '';
 		}
 
 		return $excerpt;
