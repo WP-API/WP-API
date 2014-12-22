@@ -371,6 +371,22 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_invalid_post_type', $response, 400 );
 	}
 
+	public function test_create_post_with_format() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'format' => 'gallery',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'gallery', $data['format'] );
+		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
+	}
+
 	public function test_create_post_invalid_author() {
 		wp_set_current_user( $this->editor_id );
 
@@ -585,6 +601,22 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'json_cannot_change_post_type', $response, 400 );
+	}
+
+	public function test_update_post_with_format() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'format' => 'gallery',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'gallery', $data['format'] );
+		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
 	}
 
 	public function test_delete_item() {
