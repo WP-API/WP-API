@@ -87,9 +87,7 @@ function create_initial_json_routes() {
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
-			'post_type'          => array(
-				'required'   => false,
-			),
+			'post_type'          => array(),
 		),
 	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
@@ -106,21 +104,11 @@ function create_initial_json_routes() {
 			'methods'  => WP_JSON_Server::READABLE,
 			'callback' => array( $controller, 'get_items' ),
 			'args'     => array(
-				'search'   => array(
-					'required' => false,
-				),
-				'per_page' => array(
-					'required' => false,
-				),
-				'page'     => array(
-					'required' => false,
-				),
-				'order'    => array(
-					'required' => false,
-					),
-				'orderby'  => array(
-					'required' => false,
-					),
+				'search'   => array(),
+				'per_page' => array(),
+				'page'     => array(),
+				'order'    => array(),
+				'orderby'  => array(),
 			),
 		),
 		array(
@@ -130,15 +118,9 @@ function create_initial_json_routes() {
 				'name'        => array(
 					'required'    => true,
 				),
-				'description' => array(
-					'required'    => false,
-				),
-				'slug'        => array(
-					'required'    => false,
-				),
-				'parent_id'   => array(
-					'required'    => false,
-				),
+				'description' => array(),
+				'slug'        => array(),
+				'parent_id'   => array(),
 			),
 		),
 	));
@@ -151,18 +133,10 @@ function create_initial_json_routes() {
 			'methods'    => WP_JSON_Server::EDITABLE,
 			'callback'   => array( $controller, 'update_item' ),
 			'args'       => array(
-				'name'           => array(
-					'required'   => false,
-				),
-				'description'    => array(
-					'required'   => false,
-				),
-				'slug'           => array(
-					'required'   => false,
-				),
-				'parent_id'      => array(
-					'required'   => false,
-				),
+				'name'           => array(),
+				'description'    => array(),
+				'slug'           => array(),
+				'parent_id'      => array(),
 			),
 		),
 		array(
@@ -180,21 +154,11 @@ function create_initial_json_routes() {
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_items' ),
 			'args'            => array(
-				'context'          => array(
-					'required'         => false,
-				),
-				'order'            => array(
-					'required'         => false,
-				),
-				'orderby'          => array(
-					'required'         => false,
-				),
-				'per_page'         => array(
-					'required'         => false,
-				),
-				'page'             => array(
-					'required'         => false,
-				),
+				'context'          => array(),
+				'order'            => array(),
+				'orderby'          => array(),
+				'per_page'         => array(),
+				'page'             => array(),
 			),
 		),
 		array(
@@ -210,30 +174,14 @@ function create_initial_json_routes() {
 				'password'        => array(
 					'required'        => true,
 				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
+				'name'            => array(),
+				'first_name'      => array(),
+				'last_name'       => array(),
+				'nickname'        => array(),
+				'slug'            => array(),
+				'description'     => array(),
+				'role'            => array(),
+				'url'             => array(),
 			),
 		),
 	) );
@@ -242,57 +190,31 @@ function create_initial_json_routes() {
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_item' ),
 			'args'            => array(
-				'context'          => array(
-					'required'         => false,
-				),
+				'context'          => array(),
 			),
 		),
 		array(
 			'methods'         => WP_JSON_Server::EDITABLE,
 			'callback'        => array( $controller, 'update_item' ),
 			'args'            => array(
-				'email'           => array(
-					'required'        => false,
-				),
-				'username'        => array(
-					'required'        => false,
-				),
-				'password'        => array(
-					'required'        => false,
-				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
+				'email'           => array(),
+				'username'        => array(),
+				'password'        => array(),
+				'name'            => array(),
+				'first_name'      => array(),
+				'last_name'       => array(),
+				'nickname'        => array(),
+				'slug'            => array(),
+				'description'     => array(),
+				'role'            => array(),
+				'url'             => array(),
 			),
 		),
 		array(
 			'methods' => WP_JSON_Server::DELETABLE,
 			'callback' => array( $controller, 'delete_item' ),
 			'args' => array(
-				'reassign' => array(
-					'required' => false,
-				),
+				'reassign' => array(),
 			),
 		),
 	) );
@@ -301,9 +223,7 @@ function create_initial_json_routes() {
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_current_item' ),
 		'args'            => array(
-			'context'          => array(
-				'required'         => false,
-			),
+			'context'          => array(),
 		)
 	));
 }
