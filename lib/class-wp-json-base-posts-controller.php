@@ -107,6 +107,10 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		if ( ! post_type_supports( $parent->post_type, 'revisions' ) ) {
+			return new WP_Error( 'json_no_support', __( 'Revisions are not supported for this post.' ), array( 'status' => 404 ) );
+		}
+
 		if ( ! $this->check_update_permission( $parent ) ) {
 			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
 		}
