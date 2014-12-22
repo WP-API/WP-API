@@ -1,6 +1,6 @@
 <?php
 
-abstract class WP_JSON_Base_Posts_Controller {
+abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Get a collection of posts
