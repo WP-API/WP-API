@@ -377,10 +377,10 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		// Post title
 		if ( ! empty( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['title'] );
+				$prepared_post->post_title = wp_kses_post( $request['title'] );
 			}
 			elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['title']['raw'] );
+				$prepared_post->post_title = wp_kses_post( $request['title']['raw'] );
 			}
 		}
 
