@@ -565,6 +565,27 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
 	}
 
+	public function test_json_update_post_raw() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$params = $this->set_raw_post_data();
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_create_update_post_response( $response );
+		$new_data = $response->get_data();
+		$this->assertEquals( $this->post_id, $new_data['id'] );
+		$this->assertEquals( $params['title']['raw'], $new_data['title']['raw'] );
+		$this->assertEquals( $params['content']['raw'], $new_data['content']['raw'] );
+		$this->assertEquals( $params['excerpt']['raw'], $new_data['excerpt']['raw'] );
+		$post = get_post( $this->post_id );
+		$this->assertEquals( $params['title']['raw'], $post->post_title );
+		$this->assertEquals( $params['content']['raw'], $post->post_content );
+		$this->assertEquals( $params['excerpt']['raw'], $post->post_excerpt );
+	}
+
 	public function test_update_post_without_permisson() {
 		wp_set_current_user( $this->editor_id );
 		$user = wp_get_current_user();
@@ -804,6 +825,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		);
 
 		return wp_parse_args( $args, $defaults );
+	}
+
+	protected function set_raw_post_data( $args = array() ) {
+		return wp_parse_args( $args, $this->set_post_data( array(
+			'title'   => array(
+				'raw' => rand_str()
+			),
+			'content' => array(
+				'raw' => rand_str()
+			),
+			'excerpt' => array(
+				'raw' => rand_str()
+			),
+		) ) );
 	}
 
 }
