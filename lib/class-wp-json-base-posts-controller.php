@@ -203,10 +203,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $request['format'] ) ) {
-			$this->handle_format_param( $request['format'], $post );
-		}
-
 		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -215,6 +211,10 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		$post_id = wp_update_post( $post, true );
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
+		}
+
+		if ( ! empty( $request['format'] ) ) {
+			$this->handle_format_param( $request['format'], $post );
 		}
 
 		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
