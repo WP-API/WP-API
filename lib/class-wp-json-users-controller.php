@@ -34,7 +34,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			$user = $this->prepare_item_for_response( $user, $request );
 		}
 
-		return $users;
+		$response = json_ensure_response( $users );
+
+		return $response;
 	}
 
 	/**
@@ -57,7 +59,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 		}
 
-		return $this->prepare_item_for_response( $user, $request );
+		$user = $this->prepare_item_for_response( $user, $request );
+		$response = json_ensure_response( $user );
+
+		return $response;
 	}
 
 	/**
