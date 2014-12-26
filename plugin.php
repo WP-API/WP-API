@@ -634,8 +634,8 @@ function json_ensure_request( $request ) {
  * immediately check for this value.
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return WP_Error|WP_HTTP_ResponseInterface WP_Error if present, WP_HTTP_ResponseInterface
- *                                            instance otherwise.
+ * @return mixed WP_Error if present, WP_HTTP_ResponseInterface if instance,
+ *               otherwise WP_JSON_Response.
  */
 function json_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
