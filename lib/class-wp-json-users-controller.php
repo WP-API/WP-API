@@ -273,8 +273,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single user for create or update
 	 *
-	 * @param array $request Request object
-	 * @return obj $prepared_user User object
+	 * @param WP_JSON_Request $request Request object
+	 * @return object $prepared_user User object
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$request_params = $request->get_params();
