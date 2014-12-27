@@ -91,10 +91,21 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
+		$params = array(
+			'username'    => 'test_user',
+			'password'    => 'test_password',
+			'email'       => 'test@example.com',
+			'name'        => 'Test User',
+			'nickname'    => 'testuser',
+			'slug'        => 'test-user',
+			'role'        => 'editor',
+			'description' => 'New API User',
+			'url'         => 'http://example.com',
+		);
+
 		$request = new WP_JSON_Request( 'POST', '/wp/users' );
-		$request->set_param( 'username', 'test_user' );
-		$request->set_param( 'password', 'test_password' );
-		$request->set_param( 'email', 'test@example.com' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
