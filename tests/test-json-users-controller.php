@@ -104,6 +104,14 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
 	}
 
+	public function test_get_current_user_without_permission() {
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', '/wp/users/me' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_not_logged_in', $response, 401 );
+	}
+
 	public function test_create_item() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
