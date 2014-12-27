@@ -790,7 +790,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		// TODO: apply content filter for more accurate testing.
 		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
 		// TODO: apply excerpt filter for more accurate testing.
-		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		$this->assertEquals( apply_filters( 'the_excerpt', get_the_excerpt() ), $data['excerpt']['rendered'] );
 		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
 
 		if ( 'edit' == $context ) {
@@ -818,6 +818,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
+		global $post;
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
@@ -828,7 +830,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$all_data = $response->get_data();
 		$data = $all_data[0];
+
 		$post = get_post( $data['id'] );
+
+		setup_postdata( $post );
+
 		$this->check_post_data( $post, $data, $context );
 	}
 

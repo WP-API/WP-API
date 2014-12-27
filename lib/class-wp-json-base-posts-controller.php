@@ -70,6 +70,8 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		setup_postdata( $post );
+
 		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		} elseif ( ! $this->check_read_permission( $post ) ) {
