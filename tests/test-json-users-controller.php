@@ -355,17 +355,39 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_delete_item() {
-		$this->allow_user_to_manage_multisite();
-
 		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function test_delete_user_without_permission() {
+		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->editor );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
+	}
+
+	public function test_delete_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'DELETE', '/wp/users/100' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_id', $response, 400 );
 	}
 
 	public function test_delete_user_reassign() {
@@ -395,6 +417,19 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		// Check that the post has been updated correctly
 		$post = get_post( $test_post );
 		$this->assertEquals( $reassign_id, $post->post_author );
+	}
+
+	public function test_delete_user_invalid_reassign_id() {
+		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request->set_param( 'reassign', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_reassign', $response, 400 );
 	}
 
 	protected function check_user_data( $user, $data, $context ) {
