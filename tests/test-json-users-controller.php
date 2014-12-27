@@ -185,6 +185,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_create_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$params = array(
@@ -335,6 +336,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_update_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$params = array(
