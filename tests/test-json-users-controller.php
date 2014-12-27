@@ -17,6 +17,10 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			'role' => 'administrator',
 		) );
 
+		$this->editor = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
+
 		$this->endpoint = new WP_JSON_Users_Controller();
 		$this->server = $GLOBALS['wp_json_server'];
 	}
@@ -152,6 +156,41 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
+	}
+
+	public function test_create_user_without_permission() {
+		wp_set_current_user( $this->editor );
+
+		$params = array(
+			'username' => 'homersimpson',
+			'password' => 'stupidsexyflanders',
+			'email'    => 'chunkylover53@aol.com',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
+	}
+
+	public function test_create_user_invalid_id() {
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'id'       => '156',
+			'username' => 'lisasimpson',
+			'password' => 'DavidHasselhoff',
+			'email'    => 'smartgirl63_\@yahoo.com',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_exists', $response, 400 );
 	}
 
 	public function test_update_item() {
