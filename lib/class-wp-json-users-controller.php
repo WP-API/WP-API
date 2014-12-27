@@ -103,9 +103,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
 
 		$user_id = wp_insert_user( $user );
 		if ( is_wp_error( $user_id ) ) {
@@ -157,9 +154,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
 
 		// Ensure we're operating on the same user we already checked
 		$user->ID = $id;
