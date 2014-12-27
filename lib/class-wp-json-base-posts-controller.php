@@ -61,6 +61,8 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_item( $request ) {
+		global $post;
+
 		$id = (int) $request['id'];
 		$post = get_post( $id );
 
