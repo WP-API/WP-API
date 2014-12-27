@@ -61,6 +61,23 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_user_response( $data, 'edit' );
 	}
 
+	public function test_get_user_invalid_id() {
+		wp_set_current_user( $this->user );
+		$request = new WP_JSON_Request( 'GET', '/wp/users/100' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_id', $response, 404 );
+	}
+
+	public function test_get_item_without_permission() {
+		wp_set_current_user( 0 );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+	}
+
 	public function test_get_user_with_edit_context() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
