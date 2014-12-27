@@ -544,12 +544,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
 	}
 
-	public function test_json_update_post() {
+	public function test_json_update_post( $args = array() ) {
 		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_post_data();
+		$params = $this->set_post_data( $args );
 		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
@@ -565,12 +565,30 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $params['excerpt'], $post->post_excerpt );
 	}
 
-	public function test_json_update_post_raw() {
+	public function test_json_update_post_empty_title() {
+		$this->test_json_update_post( array(
+			'title' => ''
+		) );
+	}
+
+	public function test_json_update_post_empty_content() {
+		$this->test_json_update_post( array(
+			'content' => ''
+		) );
+	}
+
+	public function test_json_update_post_empty_excerpt() {
+		$this->test_json_update_post( array(
+			'excerpt' => ''
+		) );
+	}
+
+	public function test_json_update_post_raw( $args = array() ) {
 		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$params = $this->set_raw_post_data();
+		$params = $this->set_raw_post_data( $args );
 		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
@@ -584,6 +602,30 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $params['title']['raw'], $post->post_title );
 		$this->assertEquals( $params['content']['raw'], $post->post_content );
 		$this->assertEquals( $params['excerpt']['raw'], $post->post_excerpt );
+	}
+
+	public function test_json_update_post_raw_empty_title() {
+		$this->test_json_update_post_raw( array(
+			'title' => array(
+				'raw' => ''
+			)
+		) );
+	}
+
+	public function test_json_update_post_raw_empty_content() {
+		$this->test_json_update_post_raw( array(
+			'content' => array(
+				'raw' => ''
+			)
+		) );
+	}
+
+	public function test_json_update_post_raw_empty_excerpt() {
+		$this->test_json_update_post_raw( array(
+			'excerpt' => array(
+				'raw' => ''
+			)
+		) );
 	}
 
 	public function test_update_post_without_permisson() {

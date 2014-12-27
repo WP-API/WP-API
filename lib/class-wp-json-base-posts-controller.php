@@ -375,33 +375,24 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post title
-		if ( ! empty( $request['title'] ) ) {
-			if ( is_string( $request['title'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title'] );
-			}
-			elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title']['raw'] );
-			}
+		if ( isset( $request['title'] ) ) {
+			$prepared_post->post_title = wp_kses_post(
+				isset( $request['title']['raw'] ) ? $request['title']['raw'] : $request['title']
+			);
 		}
 
 		// Post content
-		if ( ! empty( $request['content'] ) ) {
-			if ( is_string( $request['content'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content'] );
-			}
-			elseif ( ! empty( $request['content']['raw'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
-			}
+		if ( isset( $request['content'] ) ) {
+			$prepared_post->post_content = wp_kses_post(
+				isset( $request['content']['raw'] ) ? $request['content']['raw'] : $request['content']
+			);
 		}
 
 		// Post excerpt
-		if ( ! empty( $request['excerpt'] ) ) {
-			if ( is_string( $request['excerpt'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
-			}
-			elseif ( ! empty( $request['excerpt']['raw'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
-			}
+		if ( isset( $request['excerpt'] ) ) {
+			$prepared_post->post_excerpt = wp_kses_post(
+				isset( $request['excerpt']['raw'] ) ? $request['excerpt']['raw'] : $request['excerpt']
+			);
 		}
 
 		// Post type
@@ -417,6 +408,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
 		}
+
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status
@@ -443,6 +435,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
 		}
+
 		// Post slug
 		if ( isset( $request['name'] ) ) {
 			$prepared_post->post_name = sanitize_title( $request['name'] );
