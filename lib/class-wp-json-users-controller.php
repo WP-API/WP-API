@@ -225,8 +225,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single user output for response
 	 *
-	 * @param obj $item User object
-	 * @param obj $request Request object
+	 * @param object $user User object
+	 * @param WP_JSON_Request $request Request object
+	 * @return array $data Response data
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
