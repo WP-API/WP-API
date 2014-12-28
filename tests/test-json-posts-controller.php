@@ -787,9 +787,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		// Check filtered values.
 		$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
-		// TODO: apply content filter for more accurate testing.
-		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
-		// TODO: apply excerpt filter for more accurate testing.
+		$this->assertEquals( apply_filters( 'the_content', $post->post_content ), $data['content']['rendered'] );
 		$this->assertEquals( apply_filters( 'the_excerpt', get_the_excerpt() ), $data['excerpt']['rendered'] );
 		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
 
