@@ -13,6 +13,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Base_Posts_Controller {
 	 * @return array $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
+		$GLOBALS['post'] = $post;
+		setup_postdata( $post );
+
 		$data = array(
 			'id'             => $post->ID,
 			'title'          => array(
