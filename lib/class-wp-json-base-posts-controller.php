@@ -336,17 +336,24 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Check any post or modified date and prepare it for single post output
+	 * Check the post_date_gmt or modified_gmt and prepare any post or
+	 * modified date for single post output.
 	 *
-	 * @param string       $date
-	 * @return string|null $date
+	 * @param string       $date_gmt
+	 * @param string|null  $date
+	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
-	protected function prepare_date_response( $date ) {
-		if ( '0000-00-00 00:00:00' === $date ) {
+	protected function prepare_date_response( $date_gmt, $date = null ) {
+		if ( '0000-00-00 00:00:00' === $date_gmt ) {
 			return null;
 		}
 
-		return json_mysql_to_rfc3339( $date );
+		if ( isset( $date ) ) {
+
+			return json_mysql_to_rfc3339( $date );
+		}
+
+		return json_mysql_to_rfc3339( $date_gmt );
 	}
 
 	protected function prepare_password_response( $password ) {

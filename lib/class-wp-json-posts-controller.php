@@ -40,8 +40,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Base_Posts_Controller {
 			'ping_status'    => $post->ping_status,
 			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
 			'menu_order'     => (int) $post->menu_order,
-			'date'           => $this->prepare_date_response( $post->post_date ),
-			'modified'       => $this->prepare_date_response( $post->post_modified ),
+			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 
 		);
 
