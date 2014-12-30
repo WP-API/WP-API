@@ -45,16 +45,15 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
-		$current_user_id = get_current_user_id();
-
-		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
-		}
-
 		$user = get_userdata( $id );
 
-		if ( empty( $user->ID ) ) {
-			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+		if ( empty( $id ) || empty( $user->ID ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
+		}
+
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
 		return $this->prepare_item_for_response( $user, $request );
@@ -104,9 +103,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
 
 		$user_id = wp_insert_user( $user );
 		if ( is_wp_error( $user_id ) ) {
@@ -158,9 +154,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$user = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $user ) ) {
-			return $user;
-		}
 
 		// Ensure we're operating on the same user we already checked
 		$user->ID = $id;
