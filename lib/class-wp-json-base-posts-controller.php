@@ -61,12 +61,16 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_item( $request ) {
+		global $post;
+
 		$id = (int) $request['id'];
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
+
+		setup_postdata( $post );
 
 		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
@@ -375,31 +379,28 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post title
-		if ( ! empty( $request['title'] ) ) {
+		if ( isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title'] );
-			}
-			elseif ( ! empty( $request['title']['raw'] ) ) {
+			} else if ( isset( $request['title']['raw'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title']['raw'] );
 			}
 		}
 
 		// Post content
-		if ( ! empty( $request['content'] ) ) {
+		if ( isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content'] );
-			}
-			elseif ( ! empty( $request['content']['raw'] ) ) {
+			} else if ( isset( $request['content']['raw'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
 			}
 		}
 
 		// Post excerpt
-		if ( ! empty( $request['excerpt'] ) ) {
+		if ( isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
-			}
-			elseif ( ! empty( $request['excerpt']['raw'] ) ) {
+			} else if ( isset( $request['excerpt']['raw'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
 			}
 		}
@@ -417,6 +418,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
 		}
+
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status
@@ -443,6 +445,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
 		}
+
 		// Post slug
 		if ( isset( $request['name'] ) ) {
 			$prepared_post->post_name = sanitize_title( $request['name'] );
