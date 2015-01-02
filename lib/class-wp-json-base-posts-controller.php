@@ -74,10 +74,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 403 ) );
-		}
-
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
@@ -641,11 +637,15 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	 * @return bool Can we read it?
 	 */
 	protected function check_read_permission( $post ) {
-		$post_type = get_post_type_object( $post->post_type );
+		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
+			return false;
+		}
 
+		$post_type = get_post_type_object( $post->post_type );
 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
 			return false;
 		}
+
 		// Can we read the post?
 		if ( 'publish' === $post->post_status || current_user_can( $post_type->cap->read_post, $post->ID ) ) {
 			return true;
