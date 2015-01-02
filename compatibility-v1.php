@@ -28,13 +28,36 @@ function json_v1_compatible_routes( $routes ) {
 		}
 
 		foreach ( $route as &$handler ) {
-			$methods = isset( $handler[1] ) ? $handler[1] : WP_JSON_Server::METHOD_GET;
-
-			$handler = array(
+			$newhandler = array(
 				'callback'  => $handler[0],
-				'methods'   => $methods,
 				'v1_compat' => true,
 			);
+
+			if ( isset( $handler[1] ) && is_string( $handler[1] ) ) {
+				$methods = explode( ',', $handler[1] );
+				foreach ( $methods as $method ) {
+					$method = strtoupper( trim( $method ) );
+					switch ($method) {
+						case 'HIDDEN_ENDPOINT':
+							$newhandler[ 'show_in_index' ] = false;
+							break;
+						case 'ACCEPT_JSON':
+							$newhandler[ 'accept_json' ] = true;
+							break;
+						case 'ACCEPT_RAW':
+							$newhandler[ 'accept_raw' ] = true;
+							break;
+						default:
+							$newhandler[ 'methods' ][ $method ] = true;
+					}
+
+				}
+			} else {
+				$newhandlers[ 'methods' ] = WP_JSON_Server::METHOD_GET;
+			}
+
+
+			$handler = $newhandler;
 		}
 	}
 
@@ -64,6 +87,16 @@ function json_v1_compatible_dispatch( $result, $request ) {
 	$args = array_merge( $request->get_url_params(), $request->get_query_params() );
 	if ( $request->get_method() === 'POST' ) {
 		$args = array_merge( $args, $request->get_body_params() );
+	}
+	$data = null;
+	if ( true === $params['accept_json'] ) {
+		$data = $request->get_json();
+	} elseif ( true === $params['accept_raw'] ) {
+		$data = $request->get_body();
+	}
+
+	if ( ! empty( $data ) ) {
+		$args = array_merge( $args, array( 'data' => $data ) );
 	}
 
 	$args = json_v1_sort_callback_params( $params['callback'], $args );

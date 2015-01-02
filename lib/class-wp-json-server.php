@@ -29,14 +29,17 @@ class WP_JSON_Server {
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
+	 * For v1 backwards compatibility
 	 */
-	const ACCEPT_RAW = 64;
-	const ACCEPT_JSON = 128;
+	const ACCEPT_RAW = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0, ACCEPT_RAW";
+	const ACCEPT_JSON = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0, ACCEPT_JSON";
+	//const ACCEPT_RAW = 64;
+	//const ACCEPT_JSON = 128;
 
 	/**
 	 * Should we hide this endpoint from the index?
 	 */
-	const HIDDEN_ENDPOINT = 256;
+	const HIDDEN_ENDPOINT = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0, HIDDEN_ENDPOINT";
 
 	/**
 	 * Map of HTTP verbs to constants
@@ -211,6 +214,7 @@ class WP_JSON_Server {
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
 		}
+		$request->set_raw_data( $this->get_raw_data() );
 
 		$result = $this->check_authentication();
 
@@ -548,36 +552,6 @@ class WP_JSON_Server {
 				if ( ! is_callable( $callback ) ) {
 					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
-
-				/*
-				if ( ! empty( $handler['accept_json'] ) ) {
-					$raw_data = $this->get_raw_data();
-					$data = json_decode( $raw_data, true );
-
-					// test for json_decode() error
-					$json_error_message = $this->get_json_last_error();
-					if ( $json_error_message ) {
-
-						$data = array();
-						parse_str( $raw_data, $data );
-
-						if ( empty( $data ) ) {
-
-							return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
-						}
-					}
-
-					if ( $data !== null ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				} elseif ( ! empty( $handler['accept_raw'] ) ) {
-					$data = $this->get_raw_data();
-
-					if ( ! empty( $data ) ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				}
-				*/
 
 				$request->set_url_params( $args );
 				$request->set_attributes( $handler );

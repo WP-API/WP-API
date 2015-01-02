@@ -44,6 +44,13 @@ class WP_JSON_Request implements ArrayAccess {
 	protected $body = null;
 
 	/**
+	 * JSON Decoded data
+	 *
+	 * @var array Decoded array of JSON data
+	 */
+	protected $json_body = null;
+
+	/**
 	 * Route matched for the request
 	 *
 	 * @var string
@@ -662,5 +669,41 @@ class WP_JSON_Request implements ArrayAccess {
 		foreach ( $order as $type ) {
 			unset( $this->params[ $type ][ $offset] );
 		}
+	}
+
+	public function set_raw_data( $data = null ) {
+		if ( ! empty( $data ) ) {
+			$this->body = $data;
+			return true;
+		}
+		return false;
+	}
+
+	public function get_json() {
+		if ( null !== $this->json_body ) {
+			return $this->json_body;
+		}
+		if ( ! empty( $this->body ) ) {
+			$data = json_decode( $this->body, true );
+
+			// @todo Make get_json_last_error accessible
+			/*
+			// test for json_decode() error
+			$json_error_message = $this->get_json_last_error();
+			if ( $json_error_message ) {
+
+				$data = array();
+				parse_str( $raw_data, $data );
+
+				if ( empty( $data ) ) {
+					return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
+				}
+			}
+			*/
+			$this->json_body = $data;
+
+			return $data;
+		}
+		return false;
 	}
 }
