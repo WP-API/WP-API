@@ -8,8 +8,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Get all users
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_items( $request ) {
 		if ( ! current_user_can( 'list_users' ) ) {
@@ -42,8 +42,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Get a single user
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -68,8 +68,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Get the current user
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_current_item( $request ) {
 		$current_user_id = get_current_user_id();
@@ -97,8 +97,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Create a single user
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function create_item( $request ) {
 		if ( ! current_user_can( 'create_users' ) ) {
@@ -135,8 +135,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Update a single user
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -191,8 +191,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Delete a single user
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return mixed WP_Error or WP_JSON_Response
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -225,9 +225,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single user output for response
 	 *
-	 * @param object $user User object
-	 * @param WP_JSON_Request $request Request object
-	 * @return array $data Response data
+	 * @param object $user User object.
+	 * @param WP_JSON_Request $request Request object.
+	 * @return array $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
@@ -274,8 +274,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single user for create or update
 	 *
-	 * @param WP_JSON_Request $request Request object
-	 * @return object $prepared_user User object
+	 * @param WP_JSON_Request $request Request object.
+	 * @return object $prepared_user User object.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_user = new stdClass;
