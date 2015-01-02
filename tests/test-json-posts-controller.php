@@ -148,6 +148,16 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
+	public function test_get_post_with_password_without_permisson() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => 'always$inthebananastand',
+		) );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+	}
+
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
 
