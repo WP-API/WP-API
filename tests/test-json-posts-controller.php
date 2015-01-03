@@ -586,6 +586,21 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $params['excerpt']['raw'], $post->post_excerpt );
 	}
 
+	public function test_update_post_without_extra_params() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data();
+		unset( $params['type'] );
+		unset( $params['name'] );
+		unset( $params['author'] );
+		unset( $params['status'] );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_create_update_post_response( $response );
+	}
+
 	public function test_update_post_without_permisson() {
 		wp_set_current_user( $this->editor_id );
 		$user = wp_get_current_user();
