@@ -315,4 +315,33 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
 	}
+
+	/**
+	 * Get the schema for a User
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array(
+			'title'                => 'User',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'The unique identifier for a User.',
+					'type'         => 'integer',
+					),
+				'name'             => array(
+					'description'  => 'The display name for the User.',
+					'type'         => 'string',
+					),
+				'email'            => array(
+					'description'  => 'The email address for the User.',
+					'type'         => 'string',
+					'format'       => 'email',
+					),
+				),
+			'required'             => array( 'name', 'email' ),
+			);
+	}
+
 }
