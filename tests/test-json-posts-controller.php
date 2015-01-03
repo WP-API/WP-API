@@ -310,6 +310,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
+		// Confirm dates are null
+		$this->assertNull( $data['date_gmt'] );
+		$this->assertNull( $data['modified_gmt'] );
+		$this->assertNull( $data['date'] );
+		$this->assertNull( $data['modified'] );
 	}
 
 	public function test_create_post_private() {
