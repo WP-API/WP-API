@@ -230,9 +230,21 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'The name for the term.',
 					'type'         => 'string',
 					),
+				'slug'             => array(
+					'description'  => 'The slug for the term.',
+					'type'         => 'string',
+					),
 				'description'      => array(
 					'description'  => 'The description for the term.',
 					'type'         => 'string',
+					),
+				'count'            => array(
+					'description'  => 'Number of published posts for the term.',
+					'type'         => 'integer',
+					),
+				'parent_id'        => array(
+					'description'  => 'The unique identifier for the parent of a term.',
+					'type'         => 'integer',
 					),
 				),
 			'required'             => array( 'name' ),
