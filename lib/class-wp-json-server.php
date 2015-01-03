@@ -464,6 +464,7 @@ class WP_JSON_Server {
 			'accept_json'   => false,
 			'accept_raw'    => false,
 			'show_in_index' => true,
+			'args'          => array(),
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
