@@ -749,13 +749,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
 		}
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		}
 		else {
 			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
 		}
-		if ( '0000-00-00 00:00:00' === $post->post_modified ) {
+		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified'] );
 		}
 		else {
