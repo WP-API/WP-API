@@ -416,6 +416,9 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		} elseif ( empty( $request['id'] ) ) {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
+		} else {
+			// Updating a post, use previous type.
+			$prepared_post->post_type = get_post_type( $request['id'] );
 		}
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
