@@ -2,6 +2,8 @@
 
 abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 
+	protected $post_type;
+
 	/**
 	 * Get a collection of posts
 	 *
@@ -716,15 +718,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	public function prepare_item_for_response( $post, $request ) {
 		$data = array(
 			'id'             => $post->ID,
-			'title'          => array(
-				'rendered'       => get_the_title( $post->ID ),
-			),
-			'content'        => array(
-				'rendered'       => apply_filters( 'the_content', $post->post_content ),
-			),
-			'excerpt'        => array(
-				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
-			),
 			'type'           => $post->post_type,
 			'format'         => get_post_format( $post->ID ),
 			'parent'         => (int) $post->post_parent,
@@ -743,6 +736,34 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 
 		);
 
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['title'] ) ) {
+			$data['title'] = array(
+				'rendered'       => get_the_title( $post->ID ),
+			);
+			if ( 'edit' === $request['context'] ) {
+				$data['title']['raw'] = $post->post_title;
+			}
+		}
+
+		if ( ! empty( $schema['properties']['content'] ) ) {
+			$data['content'] = array(
+				'rendered'       => apply_filters( 'the_content', $post->post_content ),
+			);
+			if ( 'edit' === $request['context'] ) {
+				$data['content']['raw'] = $post->post_content;
+			}
+		}
+
+		if ( ! empty( $schema['properties']['excerpt'] ) ) {
+			$data['excerpt'] = array(
+				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
+			);
+			if ( 'edit' === $request['context'] ) {
+				$data['excerpt']['raw'] = $post->post_excerpt;
+			}
+		}
+
 		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
 			/**
 			 * Avoid nesting too deeply.
@@ -759,15 +780,6 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		if ( 'edit' === $request['context'] ) {
 
 			$data_raw = array(
-				'title'        => array(
-					'raw'          => $post->post_title,
-				),
-				'content'      => array(
-					'raw'          => $post->post_content,
-				),
-				'excerpt'      => array(
-					'raw'          => $post->post_excerpt,
-				),
 				'guid'         => array(
 					'raw'          => $post->guid,
 				),
@@ -839,5 +851,64 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		return $links;
+	}
+
+	/**
+	 * Get the schema for a Post
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'title'                => 'Post',
+			'type'                 => 'object',
+			/*
+			 * Base properties for every Post
+			 */
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'The unique identifier for a Post.',
+					'type'         => 'integer',
+					),
+				),
+			);
+
+		$post_type_attributes = array(
+			'title',
+			'editor',
+			);
+		foreach( $post_type_attributes as $attribute ) {
+			if ( ! post_type_supports( $this->post_type, $attribute ) ) {
+				continue;
+			}
+
+			switch( $attribute ) {
+
+				case 'title':
+					$schema['properties']['title'] = array(
+						'description'     => 'The title for the Post.',
+						'type'            => 'string',
+						);
+					break;
+
+				case 'editor':
+					$schema['properties']['content'] = array(
+						'description'     => 'The content for the Post.',
+						'type'            => 'string',
+						);
+					break;
+
+				case 'excerpt':
+					$schema['properties']['excerpt'] = array(
+						'description'     => 'The excerpt for the Post.',
+						'type'            => 'string',
+						);
+					break;
+
+			}
+
+		}
+
+		return $schema;
 	}
 }
