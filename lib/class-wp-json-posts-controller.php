@@ -719,7 +719,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = array(
 			'id'             => $post->ID,
 			'type'           => $post->post_type,
-			'format'         => get_post_format( $post->ID ),
 			'parent'         => (int) $post->post_parent,
 			'slug'           => $post->post_name,
 			'link'           => get_permalink( $post->ID ),
@@ -764,6 +763,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
+		if ( ! empty( $schema['properties']['format'] ) ) {
+			$format = get_post_format( $post->ID );
+			if ( empty( $format ) ) {
+				$format = 'standard';
+			}
+			$data['format'] = $format;
+		}
+
 		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
 			/**
 			 * Avoid nesting too deeply.
@@ -795,11 +802,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( 'future' == $data['status'] ) {
 				$data['status'] = 'publish';
 			}
-		}
-
-		// Fill in blank post format
-		if ( empty( $data['format'] ) ) {
-			$data['format'] = 'standard';
 		}
 
 		if ( 0 == $data['parent'] ) {
@@ -909,6 +911,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description'     => 'The excerpt for the Post.',
 						'type'            => 'string',
+						);
+					break;
+
+				case 'post-formats':
+					$schema['properties']['format'] = array(
+						'description'     => 'The format for the post',
+						'type'            => 'string',
+						'enum'            => get_post_format_slugs(),
 						);
 					break;
 
