@@ -1,8 +1,8 @@
 <?php
 
-abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
+class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
-	protected $post_type;
+	public $post_type;
 
 	/**
 	 * Get a collection of posts
