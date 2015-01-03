@@ -876,6 +876,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type_attributes = array(
 			'title',
 			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'page-attributes',
+			'post-formats',
 			);
 		foreach( $post_type_attributes as $attribute ) {
 			if ( ! post_type_supports( $this->post_type, $attribute ) ) {
