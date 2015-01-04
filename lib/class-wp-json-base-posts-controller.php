@@ -199,7 +199,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
-		if ( $request['type'] != $post->post_type ) {
+		if ( isset( $request['type'] ) && $request['type'] != $post->post_type ) {
 			return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
 		}
 
@@ -416,6 +416,9 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		} elseif ( empty( $request['id'] ) ) {
 			// Creating new post, use default type
 			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
+		} else {
+			// Updating a post, use previous type.
+			$prepared_post->post_type = get_post_type( $request['id'] );
 		}
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
