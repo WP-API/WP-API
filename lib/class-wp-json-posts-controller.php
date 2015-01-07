@@ -978,6 +978,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['title'] = array(
 						'description'     => 'The title for the Post.',
 						'type'            => 'string',
+						'required'        => true,
 						);
 					break;
 
@@ -985,6 +986,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['content'] = array(
 						'description'     => 'The content for the Post.',
 						'type'            => 'string',
+						'required'        => true,
 						);
 					break;
 
@@ -998,6 +1000,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description'     => 'The excerpt for the Post.',
 						'type'            => 'string',
+						'required'        => true,
 						);
 					break;
 
