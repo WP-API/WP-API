@@ -890,6 +890,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'type'         => 'integer',
 					),
 				),
+				'type'             => array(
+					'description'  => 'An alphanumeric identifier for a Post unique to its type.',
+					'type'         => 'string',
+					),
+				'slug'             => array(
+					'description'  => 'An alphanumeric identifier for a Post unique to its type.',
+					'type'         => 'string',
+					),
+				'link'             => array(
+					'description'  => 'URL to the Post.',
+					'type'         => 'string',
+					),
 			);
 
 		$post_type_attributes = array(
