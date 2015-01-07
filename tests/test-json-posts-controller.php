@@ -287,8 +287,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'draft',
-			'author' => $user->ID,
+			'status'    => 'draft',
+			'author_id' => $user->ID,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -343,8 +343,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'private',
-			'author' => $this->author_id,
+			'status'    => 'private',
+			'author_id' => $this->author_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -420,7 +420,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => -1,
+			'author_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -433,7 +433,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => $this->editor_id,
+			'author_id' => $this->editor_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -466,9 +466,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'password' => 'testing',
-			'author'   => $this->author_id,
-			'status'   => 'draft',
+			'password'  => 'testing',
+			'author_id' => $this->author_id,
+			'status'    => 'draft',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -482,10 +482,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
-			'parent' => $page_id,
+			'type'      => 'page',
+			'parent_id' => $page_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -506,10 +506,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_create_page_with_invalid_parent() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
-			'parent' => -1,
+			'type'      => 'page',
+			'parent_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -522,7 +522,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00Z',
+			'published_date' => '2010-01-01T02:00:00Z',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -539,7 +539,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00-10:00',
+			'published_date' => '2010-01-01T02:00:00-10:00',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -870,13 +870,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
-			'title'   => rand_str(),
-			'content' => rand_str(),
-			'excerpt' => rand_str(),
-			'name'    => 'test',
-			'status'  => 'publish',
-			'author'  => $this->editor_id,
-			'type'    => 'post',
+			'title'     => rand_str(),
+			'content'   => rand_str(),
+			'excerpt'   => rand_str(),
+			'name'      => 'test',
+			'status'    => 'publish',
+			'author_id' => $this->editor_id,
+			'type'      => 'post',
 		);
 
 		return wp_parse_args( $args, $defaults );

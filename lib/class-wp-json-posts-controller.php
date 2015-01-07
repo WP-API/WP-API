@@ -138,7 +138,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function create_item( $request ) {
-		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
@@ -159,9 +158,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post->ID = $post_id;
-		$this->handle_sticky_posts( $sticky, $post_id );
 
-		if ( ! empty( $request['format'] ) ) {
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['sticky'] ) ) {
+			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
+			$this->handle_sticky_posts( $sticky, $post_id );
+		}
+
+		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
@@ -215,12 +219,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post_id;
 		}
 
-		if ( ! empty( $request['format'] ) ) {
-			$this->handle_format_param( $request['format'], $post );
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['sticky'] ) ) {
+			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
+			$this->handle_sticky_posts( $sticky, $post_id );
 		}
 
-		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-		$this->handle_sticky_posts( $sticky, $post_id );
+		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
+			$this->handle_format_param( $request['format'], $post );
+		}
 
 		/**
 		 * @TODO: Enable json_insert_post() action after
@@ -377,6 +384,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post = new stdClass;
+		$schema = $this->get_item_schema();
 
 		// ID
 		if ( isset( $request['id'] ) ) {
@@ -384,7 +392,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post title
-		if ( ! empty( $request['title'] ) ) {
+		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title'] );
 			}
@@ -394,7 +402,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post content
-		if ( ! empty( $request['content'] ) ) {
+		if ( ! empty( $schema['properties']['content'] ) && ! empty( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content'] );
 			}
@@ -404,7 +412,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post excerpt
-		if ( ! empty( $request['excerpt'] ) ) {
+		if ( ! empty( $schema['properties']['excerpt'] ) && ! empty( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
 			}
@@ -442,14 +450,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post date
-		if ( ! empty( $request['date'] ) ) {
-			$date_data = json_get_date_with_gmt( $request['date'] );
+		if ( ! empty( $request['published_date'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['published_date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
-		} elseif ( ! empty( $request['date_gmt'] ) ) {
-			$date_data = json_get_date_with_gmt( $request['date_gmt'], true );
+		} elseif ( ! empty( $request['published_date_gmt'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['published_date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
@@ -461,8 +469,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $request['author'] ) ) {
-			$author = $this->handle_author_param( $request['author'], $post_type );
+		if ( ! empty( $schema['properties']['author_id'] ) && ! empty( $request['author_id'] ) ) {
+			$author = $this->handle_author_param( $request['author_id'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
 			}
@@ -480,8 +488,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Parent
-		if ( ! empty( $request['parent'] ) ) {
-			$parent = get_post( (int) $request['parent'] );
+		if ( ! empty( $schema['properties']['parent_id'] ) && ! empty( $request['parent_id'] ) ) {
+			$parent = get_post( (int) $request['parent_id'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
 			}
@@ -495,12 +503,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Comment status
-		if ( ! empty( $request['comment_status'] ) ) {
+		if ( ! empty( $schema['properties']['comment_status'] ) && ! empty( $request['comment_status'] ) ) {
 			$prepared_post->comment_status = sanitize_text_field( $request['comment_status'] );
 		}
 
 		// Ping status
-		if ( ! empty( $request['ping_status'] ) ) {
+		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
 			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
