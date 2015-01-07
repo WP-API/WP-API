@@ -907,6 +907,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					),
 			);
 
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( $post_type_obj->hierarchical ) {
+			$schema['properties']['parent_id'] = array(
+				'description'      => 'The ID for the parent of the Post.',
+				'type'             => 'integer',
+				);
+		}
+
 		$post_type_attributes = array(
 			'title',
 			'editor',

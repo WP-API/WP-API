@@ -737,10 +737,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	protected function check_post_data( $post, $data, $context ) {
+		$post_type_obj = get_post_type_object( $post->post_type );
+
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( $post->post_author, $data['author_id'] );
-		$this->assertArrayHasKey( 'parent', $data );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		$this->assertEquals( $post->comment_status, $data['comment_status'] );
@@ -748,17 +749,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
 
 		// Check post parent.
-		if ( $post->post_parent ) {
-			if ( is_int( $data['parent'] ) ) {
-				$this->assertEquals( $post->post_parent, $data['parent'] );
+		if ( $post_type_obj->hierarchical ) {
+			$this->assertArrayHasKey( 'parent', $data );
+			if ( $post->post_parent ) {
+				if ( is_int( $data['parent'] ) ) {
+					$this->assertEquals( $post->post_parent, $data['parent'] );
+				}
+				else {
+					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
+					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				}
 			}
 			else {
-				$this->assertEquals( $post->post_parent, $data['parent']['id'] );
-				$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				$this->assertEmpty( $data['parent'] );
 			}
-		}
-		else {
-			$this->assertEmpty( $data['parent'] );
 		}
 
 		// Check post format.
