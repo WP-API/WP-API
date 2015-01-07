@@ -742,8 +742,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'guid'           => array(
 				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'comment_status' => $post->comment_status,
-			'ping_status'    => $post->ping_status,
 			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
 			'menu_order'     => (int) $post->menu_order,
 			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
@@ -781,6 +779,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( 'edit' === $request['context'] ) {
 				$data['excerpt']['raw'] = $post->post_excerpt;
 			}
+		}
+
+		if ( ! empty( $schema['properties']['comment_status'] ) ) {
+			$data['comment_status'] = ( 'open' === $post->comment_status ) ? 'open' : 'closed';
+		}
+
+		if ( ! empty( $schema['properties']['ping_status'] ) ) {
+			$data['ping_status'] = ( 'open' === $post->ping_status ) ? 'open' : 'closed';
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) ) {
@@ -957,6 +963,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description'     => 'The excerpt for the Post.',
 						'type'            => 'string',
+						);
+					break;
+
+				case 'comments':
+					$schema['properties']['comment_status'] = array(
+						'description'     => 'Whether or not comments are open on the Post.',
+						'type'            => 'string',
+						'enum'            => array( 'open', 'closed' ),
+						);
+					$schema['properties']['ping_status'] = array(
+						'description'     => 'Whether or not the Post can be pinged.',
+						'type'            => 'string',
+						'enum'            => array( 'open', 'closed' ),
 						);
 					break;
 
