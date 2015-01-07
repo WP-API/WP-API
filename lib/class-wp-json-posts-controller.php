@@ -742,7 +742,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'guid'           => array(
 				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'author'         => (int) $post->post_author,
 			'comment_status' => $post->comment_status,
 			'ping_status'    => $post->ping_status,
 			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
@@ -769,6 +768,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( 'edit' === $request['context'] ) {
 				$data['content']['raw'] = $post->post_content;
 			}
+		}
+
+		if ( ! empty( $schema['properties']['author_id'] ) ) {
+			$data['author_id'] = (int) $post->post_author;
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
@@ -935,6 +938,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'type'            => 'string',
 						);
 					break;
+
+				case 'author':
+					$schema['properties']['author_id'] = array(
+						'description'     => 'The ID for the author of the Post.',
+						'type'            => 'integer',
+						);
 
 				case 'excerpt':
 					$schema['properties']['excerpt'] = array(

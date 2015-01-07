@@ -739,7 +739,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	protected function check_post_data( $post, $data, $context ) {
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( $post->post_author, $data['author'] );
+		$this->assertEquals( $post->post_author, $data['author_id'] );
 		$this->assertArrayHasKey( 'parent', $data );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		$this->assertEquals( $post->menu_order, $data['menu_order'] );
