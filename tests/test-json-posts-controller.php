@@ -773,6 +773,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
 		}
 
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+			$this->assertArrayHasKey( 'featured_image_id', $data );
+		}
+
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		}

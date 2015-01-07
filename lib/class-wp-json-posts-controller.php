@@ -781,6 +781,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
+		if ( ! empty( $schema['properties']['featured_image_id'] ) ) {
+			$data['featured_image_id'] = get_post_thumbnail_id( $post->ID );
+		}
+
 		if ( ! empty( $schema['properties']['comment_status'] ) ) {
 			$data['comment_status'] = ( 'open' === $post->comment_status ) ? 'open' : 'closed';
 		}
@@ -963,6 +967,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description'     => 'The excerpt for the Post.',
 						'type'            => 'string',
+						);
+					break;
+
+				case 'thumbnail':
+					$schema['properties']['featured_image_id'] = array(
+						'description'     => 'A featured image for the Post.',
+						'type'            => 'integer',
 						);
 					break;
 
