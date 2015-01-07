@@ -869,27 +869,36 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array Links for the given post
 	 */
 	protected function prepare_links( $post ) {
+
+		$schema = $this->get_item_schema();
+
 		// Entity meta
 		$links = array(
 			'self'            => array(
 				'href' => json_url( '/wp/posts/' . $post->ID ),
 			),
-			'author'          => array(
-				'href' => json_url( '/wp/users/' . $post->post_author ),
-				'embeddable' => true,
-			),
 			'collection'      => array(
 				'href' => json_url( '/wp/posts' ),
-			),
-			'replies'         => array(
-				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
 			),
 			'version-history' => array(
 				'href' => json_url( '/wp/posts/' . $post->ID . '/revisions' ),
 			),
 		);
 
-		if ( ! empty( $post->post_parent ) ) {
+		if ( ! empty( $schema['properties']['author_id'] ) ) {
+			$links['author']  = array(
+				'href' => json_url( '/wp/users/' . $post->post_author ),
+				'embeddable' => true,
+			);
+		}
+
+		if ( ! empty( $schema['properties']['comments'] ) ) {
+			$links['comments'] = array(
+				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
+			);
+		}
+
+		if ( ! empty( $schema['properties']['parent_id'] ) && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
 				'href' => json_url( '/wp/posts/' . (int) $post->post_parent ),
 				'embeddable' => true,
