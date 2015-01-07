@@ -2,7 +2,14 @@
 
 class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
-	public $post_type;
+	protected $post_type;
+
+	/**
+	 * @param string $post_type
+	 */
+	public function __construct( $post_type ) {
+		$this->post_type = $post_type;
+	}
 
 	/**
 	 * Get a collection of posts

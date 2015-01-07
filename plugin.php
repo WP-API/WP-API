@@ -84,8 +84,7 @@ function create_initial_json_routes() {
 	 * Posts
 	 */
 	foreach( get_post_types( array( 'public' => true ) ) as $post_type ) {
-		$controller = new WP_JSON_Posts_Controller;
-		$controller->post_type = $post_type;
+		$controller = new WP_JSON_Posts_Controller( $post_type );
 		$base = $post_type . 's';
 		register_json_route( 'wp', '/' . $base, array(
 			array(
