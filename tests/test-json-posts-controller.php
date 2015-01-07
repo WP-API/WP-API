@@ -148,6 +148,29 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
+	public function test_get_post_with_password() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => 'always$inthebananastand',
+		) );
+
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_get_post_response( $response, 'view' );
+	}
+
+	public function test_get_post_with_password_without_permisson() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => 'always$inthebananastand',
+		) );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+	}
+
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
 
@@ -287,6 +310,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
+		// Confirm dates are null
+		$this->assertNull( $data['date_gmt'] );
+		$this->assertNull( $data['modified_gmt'] );
+		$this->assertNull( $data['date'] );
+		$this->assertNull( $data['modified'] );
 	}
 
 	public function test_create_post_private() {
@@ -719,10 +747,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $post->ping_status, $data['ping_status'] );
 		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
 
-		if ( $post->post_password ) {
-			$this->assertEquals( $post->post_password, $data['password'] );
-		}
-
 		// Check post parent.
 		if ( $post->post_parent ) {
 			if ( is_int( $data['parent'] ) ) {
@@ -745,13 +769,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
 		}
 
-		if ( '0000-00-00 00:00:00' === $post->post_date ) {
+		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		}
 		else {
 			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
 		}
-		if ( '0000-00-00 00:00:00' === $post->post_modified ) {
+		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified'] );
 		}
 		else {
@@ -762,8 +786,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
 		// TODO: apply content filter for more accurate testing.
 		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
-		// TODO: apply excerpt filter for more accurate testing.
-		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		if ( empty( $post->post_password ) ) {
+			// TODO: apply excerpt filter for more accurate testing.
+			$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		} else {
+			$this->assertEquals( 'There is no excerpt because this is a protected post.', $data['excerpt']['rendered'] );
+		}
+
 		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
 
 		if ( 'edit' == $context ) {
