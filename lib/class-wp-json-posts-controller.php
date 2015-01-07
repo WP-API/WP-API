@@ -744,8 +744,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			),
 			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
 			'menu_order'     => (int) $post->menu_order,
-			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'published_date' => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified_date'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 
 		);
 
@@ -817,13 +817,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( 'edit' === $request['context'] ) {
 
 			$data_raw = array(
-				'guid'         => array(
-					'raw'          => $post->guid,
+				'guid'               => array(
+					'raw'            => $post->guid,
 				),
-				'status'       => $post->post_status,
-				'password'     => $this->prepare_password_response( $post->post_password ),
-				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+				'status'             => $post->post_status,
+				'password'           => $this->prepare_password_response( $post->post_password ),
+				'published_date_gmt' => $this->prepare_date_response( $post->post_date_gmt ),
+				'modified_date_gmt'  => $this->prepare_date_response( $post->post_modified_gmt ),
 			);
 
 			$data = array_merge_recursive( $data, $data_raw );
@@ -914,6 +914,16 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'link'             => array(
 					'description'  => 'URL to the Post.',
 					'type'         => 'string',
+					),
+				'published_date'   => array(
+					'description'  => 'The date the Post was published.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+					),
+				'modified_date'    => array(
+					'description'  => 'The date the Post was last modified.',
+					'type'         => 'string',
+					'format'       => 'date-time',
 					),
 			);
 

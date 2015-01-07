@@ -311,10 +311,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
 		// Confirm dates are null
-		$this->assertNull( $data['date_gmt'] );
-		$this->assertNull( $data['modified_gmt'] );
-		$this->assertNull( $data['date'] );
-		$this->assertNull( $data['modified'] );
+		$this->assertNull( $data['published_date_gmt'] );
+		$this->assertNull( $data['modified_date_gmt'] );
+		$this->assertNull( $data['published_date'] );
+		$this->assertNull( $data['modified_date'] );
 	}
 
 	public function test_create_post_private() {
@@ -530,7 +530,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T02:00:00', $data['published_date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -547,7 +547,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T12:00:00', $data['published_date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -778,16 +778,16 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		}
 
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
+			$this->assertNull( $data['published_date'] );
 		}
 		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['published_date'] );
 		}
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-			$this->assertNull( $data['modified'] );
+			$this->assertNull( $data['modified_date'] );
 		}
 		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified_date'] );
 		}
 
 		// Check filtered values.
@@ -812,17 +812,17 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( $post->post_password, $data['password'] );
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-				$this->assertNull( $data['date_gmt'] );
+				$this->assertNull( $data['published_date_gmt'] );
 			}
 			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['published_date_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$this->assertNull( $data['modified_gmt'] );
+				$this->assertNull( $data['modified_date_gmt'] );
 			}
 			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_date_gmt'] );
 			}
 		}
 	}
