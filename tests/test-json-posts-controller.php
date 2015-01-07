@@ -20,7 +20,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'role' => 'author',
 		) );
 
-		$this->endpoint = new WP_JSON_Posts_Controller;
 		$this->server = $GLOBALS['wp_json_server'];
 	}
 
