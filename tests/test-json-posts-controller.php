@@ -743,12 +743,15 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( $post->post_author, $data['author_id'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
-		$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		$this->assertEquals( $post->comment_status, $data['comment_status'] );
 		$this->assertEquals( $post->ping_status, $data['ping_status'] );
 
 		if ( 'post' === $post->post_type ) {
 			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
+
+		if ( post_type_supports( $post->post_type, 'menu_order' ) ) {
+			$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		}
 
 		// Check post parent.

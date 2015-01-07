@@ -750,7 +750,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'guid'           => array(
 				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'menu_order'     => (int) $post->menu_order,
 			'published_date' => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified_date'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 
@@ -802,6 +801,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['ping_status'] ) ) {
 			$data['ping_status'] = ( 'open' === $post->ping_status ) ? 'open' : 'closed';
+		}
+
+		if ( ! empty( $schema['properties']['menu_order'] ) ) {
+			$data['menu_order'] = (int) $post->menu_order;
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) ) {
@@ -1015,6 +1018,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description'     => 'Whether or not the Post can be pinged.',
 						'type'            => 'string',
 						'enum'            => array( 'open', 'closed' ),
+						);
+					break;
+
+				case 'page-attributes':
+					$schema['properties']['menu_order'] = array(
+						'description'     => 'The order of the Post in relation to other Posts of its type.',
+						'type'            => 'integer',
 						);
 					break;
 
