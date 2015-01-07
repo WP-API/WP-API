@@ -742,7 +742,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'guid'           => array(
 				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
 			'menu_order'     => (int) $post->menu_order,
 			'published_date' => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified_date'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
@@ -783,6 +782,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['featured_image_id'] ) ) {
 			$data['featured_image_id'] = get_post_thumbnail_id( $post->ID );
+		}
+
+		if ( ! empty( $schema['properties']['sticky'] ) ) {
+			$data['sticky'] = (bool) is_sticky( $post->ID );
 		}
 
 		if ( ! empty( $schema['properties']['comment_status'] ) ) {
@@ -932,6 +935,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['parent_id'] = array(
 				'description'      => 'The ID for the parent of the Post.',
 				'type'             => 'integer',
+				);
+		}
+
+		if ( 'post' === $this->post_type ) {
+			$schema['properties']['sticky'] = array(
+				'description'      => 'Whether or not the Post should be treated as sticky.',
+				'type'             => 'bool',
 				);
 		}
 

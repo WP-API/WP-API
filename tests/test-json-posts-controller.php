@@ -746,7 +746,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		$this->assertEquals( $post->comment_status, $data['comment_status'] );
 		$this->assertEquals( $post->ping_status, $data['ping_status'] );
-		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+
+		if ( 'post' === $post->post_type ) {
+			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
 
 		// Check post parent.
 		if ( $post_type_obj->hierarchical ) {
