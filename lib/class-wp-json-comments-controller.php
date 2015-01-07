@@ -14,15 +14,13 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 
 		$args = array(
-			'number'  => $request['per_page'] ? absint( $request['per_page'] ) : 0,
+			'number'  => absint( $request['per_page'] ),
 			'post_id' => absint( $request['post_id'] ),
 			'user_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
 			'status'  => sanitize_key( $request['status'] ),
 		);
 
 		$args['offset'] = $args['number'] * ( absint( $request['page'] ) - 1 );
-
-		$comments = get_comments( $args );
 
 		$query = new WP_Comment_Query;
 		$comments = $query->query( $args );
@@ -49,7 +47,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		$data = $this->prepare_item_for_response( $comment, $response );
+		return $this->prepare_item_for_response( $comment, $request );
 	}
 
 	/**
@@ -91,8 +89,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$fields = array(
-			'id'   => (int) $comment->comment_ID,
-			'post' => (int) $comment->comment_post_ID,
+			'id'      => (int) $comment->comment_ID,
+			'post_id' => (int) $comment->comment_post_ID,
 		);
 
 		$links = array();
@@ -153,7 +151,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href' => json_url( sprintf( '/comments/%d', (int) $comment->comment_parent ) ),
+				'href' => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
 			);
 		}
 
