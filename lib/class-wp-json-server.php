@@ -164,7 +164,7 @@ class WP_JSON_Server {
 	 */
 	public function serve_request( $path = null ) {
 		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
-		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -461,6 +461,7 @@ class WP_JSON_Server {
 			'accept_json'   => false,
 			'accept_raw'    => false,
 			'show_in_index' => true,
+			'args'          => array(),
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
@@ -504,8 +505,9 @@ class WP_JSON_Server {
 		}
 
 		foreach ( $attributes['args'] as $key => $arg ) {
+
 			$param = $request->get_param( $key );
-			if ( true === $arg['required'] && null === $param ) {
+			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
 				$required[] = $key;
 			}
 		}
@@ -531,7 +533,6 @@ class WP_JSON_Server {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
-				$response = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
@@ -579,23 +580,33 @@ class WP_JSON_Server {
 
 				if ( ! is_wp_error( $response ) ) {
 
-					$request->set_url_params( $args );
-					$request->set_attributes( $handler );
+				$request->set_url_params( $args );
+				$request->set_attributes( $handler );
 
-					$check_required = $this->check_required_parameters( $request );
-					if ( is_wp_error( $check_required ) ) {
+				$defaults = array();
+
+				foreach ( $handler['args'] as $arg => $options ) {
+					if ( isset( $options['default'] ) ) {
+						$defaults[$arg] = $options['default'];
+					}
+				}
+
+				$request->set_default_params( $defaults );
+
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
 						$response = $check_required;
 					} else {
-						/**
-						 * Allow plugins to override dispatching the request
-						 *
-						 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-						 * @param WP_JSON_Request $request
-						 */
-						$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+				/**
+				 * Allow plugins to override dispatching the request
+				 *
+				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+				 * @param WP_JSON_Request $request
+				 */
+				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
 
-						// Allow plugins to halt the request via this filter
-						if ( $dispatch_result !== null ) {
+				// Allow plugins to halt the request via this filter
+				if ( $dispatch_result !== null ) {
 							$response = $dispatch_result;
 						} else {
 							$response = call_user_func( $callback, $request );

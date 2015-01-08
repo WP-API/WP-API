@@ -149,7 +149,6 @@ The following query variables are available to the API:
 * `taxonomy`
 * `term`
 * `cpage`
-* `post_type`
 * `posts_per_page`
 
 In addition, the following are available when authenticated as a user with

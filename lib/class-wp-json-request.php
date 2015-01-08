@@ -88,6 +88,8 @@ class WP_JSON_Request implements ArrayAccess {
 
 			// See parse_json_params
 			'JSON'  => null,
+
+			'defaults' => array()
 		);
 
 		$this->set_method( $method );
@@ -275,13 +277,9 @@ class WP_JSON_Request implements ArrayAccess {
 	 */
 	protected function get_parameter_order() {
 		$order = array();
+		$order[] = 'JSON';
 
-		if ( ! empty( $this->attributes['accept_json'] ) ) {
-			$order[] = 'JSON';
-
-			// Psst, load JSON in if we need to.
-			$this->parse_json_params();
-		}
+		$this->parse_json_params();
 
 		// Ensure we parse the body data
 		$body = $this->get_body();
@@ -296,6 +294,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		$order[] = 'GET';
 		$order[] = 'URL';
+		$order[] = 'defaults';
 
 		/**
 		 * Alter the parameter checking order
@@ -453,6 +452,28 @@ class WP_JSON_Request implements ArrayAccess {
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
+	}
+
+	/**
+	 * Get default parameters
+	 *
+	 * These are the parameters set in the route registration
+	 *
+	 * @return array Parameter map of key to value
+	 */
+	public function get_default_params() {
+		return $this->params['defaults'];
+	}
+
+	/**
+	 * Set default parameters
+	 *
+	 * These are the parameters set in the route registration
+	 *
+	 * @param array $params Parameter map of key to value
+	 */
+	public function set_default_params( $params ) {
+		$this->params['defaults'] = $params;
 	}
 
 	/**

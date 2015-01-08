@@ -17,6 +17,10 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			'role' => 'administrator',
 		) );
 
+		$this->editor = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
+
 		$this->endpoint = new WP_JSON_Users_Controller();
 		$this->server = $GLOBALS['wp_json_server'];
 	}
@@ -42,6 +46,15 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_users_response( $response );
 	}
 
+	public function test_get_items_without_permission() {
+		wp_set_current_user( $this->editor );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/users' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+	}
+
 	public function test_get_item() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
@@ -59,6 +72,23 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$user = get_user_by( 'id', get_current_user_id() );
 		$data = $this->endpoint->prepare_item_for_response( $user, $request );
 		$this->check_get_user_response( $data, 'edit' );
+	}
+
+	public function test_get_user_invalid_id() {
+		wp_set_current_user( $this->user );
+		$request = new WP_JSON_Request( 'GET', '/wp/users/100' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_id', $response, 404 );
+	}
+
+	public function test_get_item_without_permission() {
+		wp_set_current_user( $this->editor );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
 	}
 
 	public function test_get_user_with_edit_context() {
@@ -87,14 +117,33 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
 	}
 
+	public function test_get_current_user_without_permission() {
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', '/wp/users/me' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_not_logged_in', $response, 401 );
+	}
+
 	public function test_create_item() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
+		$params = array(
+			'username'    => 'test_user',
+			'password'    => 'test_password',
+			'email'       => 'test@example.com',
+			'name'        => 'Test User',
+			'nickname'    => 'testuser',
+			'slug'        => 'test-user',
+			'role'        => 'editor',
+			'description' => 'New API User',
+			'url'         => 'http://example.com',
+		);
+
 		$request = new WP_JSON_Request( 'POST', '/wp/users' );
-		$request->set_param( 'username', 'test_user' );
-		$request->set_param( 'password', 'test_password' );
-		$request->set_param( 'email', 'test@example.com' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
@@ -116,6 +165,42 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
+	}
+
+	public function test_create_user_without_permission() {
+		wp_set_current_user( $this->editor );
+
+		$params = array(
+			'username' => 'homersimpson',
+			'password' => 'stupidsexyflanders',
+			'email'    => 'chunkylover53@aol.com',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
+	}
+
+	public function test_create_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'id'       => '156',
+			'username' => 'lisasimpson',
+			'password' => 'DavidHasselhoff',
+			'email'    => 'smartgirl63_\@yahoo.com',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_exists', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -233,18 +318,76 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
-	public function test_delete_item() {
-		$this->allow_user_to_manage_multisite();
+	public function test_update_user_without_permission() {
+		wp_set_current_user( $this->editor );
 
+		$params = array(
+			'username' => 'homersimpson',
+			'password' => 'stupidsexyflanders',
+			'email'    => 'chunkylover53@aol.com',
+		);
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/users/%d', $this->user ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
+	}
+
+	public function test_update_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'id'       => '156',
+			'username' => 'lisasimpson',
+			'password' => 'DavidHasselhoff',
+			'email'    => 'smartgirl63_\@yahoo.com',
+		);
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/users/%d', $this->editor ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_id', $response, 400 );
+	}
+
+	public function test_delete_item() {
 		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
-
 		$response = $this->server->dispatch( $request );
+
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function test_delete_user_without_permission() {
+		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->editor );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
+	}
+
+	public function test_delete_user_invalid_id() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'DELETE', '/wp/users/100' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_id', $response, 400 );
 	}
 
 	public function test_delete_user_reassign() {
@@ -274,6 +417,19 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		// Check that the post has been updated correctly
 		$post = get_post( $test_post );
 		$this->assertEquals( $reassign_id, $post->post_author );
+	}
+
+	public function test_delete_user_invalid_reassign_id() {
+		$user_id = $this->factory->user->create();
+
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request->set_param( 'reassign', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_user_invalid_reassign', $response, 400 );
 	}
 
 	protected function check_user_data( $user, $data, $context ) {
