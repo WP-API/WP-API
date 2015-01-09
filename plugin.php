@@ -86,6 +86,8 @@ function create_initial_json_routes() {
 	foreach( get_post_types( array( 'public' => true ) ) as $post_type ) {
 		$controller = new WP_JSON_Posts_Controller( $post_type );
 		$base = $post_type . 's';
+		$schema = $controller->get_item_schema();
+
 		register_json_route( 'wp', '/' . $base, array(
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
@@ -102,30 +104,7 @@ function create_initial_json_routes() {
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $controller, 'create_item' ),
 				'accept_json'     => true,
-				'args'            => array(
-					'title'          => array(
-						'required'       => true,
-					),
-					'content'        => array(
-						'required'       => true,
-					),
-					'excerpt'        => array(
-						'required'       => true,
-					),
-					'type'           => array(),
-					'status'         => array(),
-					'date'           => array(),
-					'date_gmt'       => array(),
-					'name'           => array(),
-					'format'         => array(),
-					'author'         => array(),
-					'password'       => array(),
-					'parent'         => array(),
-					'menu_order'     => array(),
-					'comment_status' => array(),
-					'ping_status'    => array(),
-					'sticky'         => array(),
-				),
+				'args'            => $schema['properties'],
 			),
 		) );
 		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
@@ -142,24 +121,7 @@ function create_initial_json_routes() {
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $controller, 'update_item' ),
 				'accept_json'     => true,
-				'args'            => array(
-					'title'          => array(),
-					'content'        => array(),
-					'excerpt'        => array(),
-					'type'           => array(),
-					'status'         => array(),
-					'date'           => array(),
-					'date_gmt'       => array(),
-					'name'           => array(),
-					'format'         => array(),
-					'author'         => array(),
-					'password'       => array(),
-					'parent'         => array(),
-					'menu_order'     => array(),
-					'comment_status' => array(),
-					'ping_status'    => array(),
-					'sticky'         => array(),
-				),
+				'args'            => $schema['properties'],
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,
