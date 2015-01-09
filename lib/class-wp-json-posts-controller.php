@@ -931,31 +931,31 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'The unique identifier for a Post.',
 					'type'         => 'integer',
-					),
 				),
 				'type'             => array(
 					'description'  => 'An alphanumeric identifier for a Post unique to its type.',
 					'type'         => 'string',
-					),
+				),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for a Post unique to its type.',
 					'type'         => 'string',
-					),
+				),
 				'link'             => array(
 					'description'  => 'URL to the Post.',
 					'type'         => 'string',
-					),
+				),
 				'published_date'   => array(
 					'description'  => 'The date the Post was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					),
+				),
 				'modified_date'    => array(
 					'description'  => 'The date the Post was last modified.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					),
-			);
+				),
+			),
+		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical ) {
