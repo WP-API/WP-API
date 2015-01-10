@@ -866,7 +866,7 @@
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
-				this.constructor.__super__.initialize.apply( this, arguments );
+				BaseCollection.prototype.initialize.apply( this, arguments );
 
 				if ( options && options.post ) {
 					this.post = options.post;
@@ -914,7 +914,7 @@
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
-				this.constructor.__super__.initialize.apply( this, arguments );
+				BaseCollection.prototype.initialize.apply( this, arguments );
 
 				if ( typeof options !== 'undefined' ) {
 					if ( options.type ) {
@@ -966,7 +966,7 @@
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
-				this.constructor.__super__.initialize.apply( this, arguments );
+				BaseCollection.prototype.initialize.apply( this, arguments );
 
 				if ( options && options.parent ) {
 					this.parent = options.parent;

@@ -14,6 +14,8 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->server = $wp_json_server = new WP_JSON_Server();
 
 		do_action( 'wp_json_server_before_serve', $this->server );
+
+		$this->server = $wp_json_server = new WP_JSON_Server;
 	}
 
 	public function test_envelope() {
@@ -49,11 +51,11 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Pass a capability which the user does not have, this should 
+	 * Pass a capability which the user does not have, this should
 	 * result in a 403 error
 	 */
 	function test_json_route_capability_authorization_fails() {
-		
+
 		register_json_route( 'test-ns', '/test', array(
 			'method'       => 'GET',
 			'callback'     => '__return_null',
@@ -82,7 +84,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$editor = $this->factory->user->create( array( 'role' => 'editor' ) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
-		
+
 		wp_set_current_user( $editor );
 
 		$result = $this->server->dispatch( $request );
@@ -168,7 +170,7 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$result = $this->server->dispatch( $request );
 
 		apply_filters( 'json_post_dispatch', $result, $request, $this->server );
-		
+
 		$this->assertEquals( $result->get_status(), 403 );
 
 		$sent_headers = $result->get_headers();
@@ -190,10 +192,9 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 			'callback' => '__return_null',
 			'args'     => array(
 				'foo'  => array(
-					'required' => false,
-					'default'  => 'bar'
-				)
-			)
+					'default'  => 'bar',
+				),
+			),
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
@@ -202,17 +203,16 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->assertEquals( 'bar', $request['foo'] );
 	}
 
-	public function test_default_param_is_overriden() {
+	public function test_default_param_is_overridden() {
 
 		register_json_route( 'test-ns', '/test', array(
 			'methods'  => array( 'GET' ),
 			'callback' => '__return_null',
 			'args'     => array(
 				'foo'  => array(
-					'required' => false,
-					'default'  => 'bar'
-				)
-			)
+					'default'  => 'bar',
+				),
+			),
 		) );
 
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
@@ -222,4 +222,20 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->assertEquals( '123', $request['foo'] );
 	}
 
+	public function test_optional_param() {
+		register_json_route( 'optional', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(),
+			),
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/optional/test' );
+		$request->set_query_params( array() );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'foo', (array) $request );
+	}
 }

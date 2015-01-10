@@ -129,20 +129,20 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 	 * Overrides the $type to set to $this->type, then passes through to the
 	 * post endpoints.
 	 *
-	 * @see WP_JSON_Posts::get_posts()
+	 * @see WP_JSON_Posts::get_multiple()
 	 */
 	public function get_posts( $filter = array(), $context = 'view', $type = null, $page = 1 ) {
 		if ( ! empty( $type ) && $type !== $this->type ) {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::get_posts( $filter, $context, $this->type, $page );
+		return parent::get_multiple( $filter, $context, $this->type, $page );
 	}
 
 	/**
 	 * Retrieve a post
 	 *
-	 * @see WP_JSON_Posts::get_post()
+	 * @see WP_JSON_Posts::get()
 	 */
 	public function get_post( $id, $context = 'view' ) {
 		$id = (int) $id;
@@ -157,18 +157,16 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::get_post( $id, $context );
+		return parent::get( $id, $context );
 	}
 
 	/**
 	 * Edit a post
 	 *
-	 * @see WP_JSON_Posts::edit_post()
+	 * @see WP_JSON_Posts::update()
 	 */
 	function edit_post( $id, $data, $_headers = array() ) {
-		$id = (int) $id;
-
-		if ( empty( $id ) ) {
+		if ( ! $id ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
@@ -182,13 +180,13 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::edit_post( $id, $data, $_headers );
+		return parent::update( $id, $data, $_headers );
 	}
 
 	/**
 	 * Delete a post
 	 *
-	 * @see WP_JSON_Posts::delete_post()
+	 * @see WP_JSON_Posts::delete()
 	 */
 	public function delete_post( $id, $force = false ) {
 		$id = (int) $id;
@@ -203,7 +201,7 @@ abstract class WP_JSON_CustomPostType extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::delete_post( $id, $force );
+		return parent::delete( $id, $force );
 	}
 
 	/**
