@@ -533,6 +533,7 @@ class WP_JSON_Server {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
+				$response  = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
