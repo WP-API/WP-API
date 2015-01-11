@@ -247,8 +247,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
 		$request->set_param( 'email', 'testjson@example.com' );
 		$response = $this->server->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 'json_user_invalid_email', $response->get_error_code() );
+		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertEquals( 'json_user_invalid_email', $response->as_error()->get_error_code() );
 	}
 
 	public function test_update_item_username_attempt() {
@@ -260,8 +260,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
 		$request->set_param( 'username', 'test_json_user' );
 		$response = $this->server->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 'json_user_invalid_argument', $response->get_error_code() );
+		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertEquals( 'json_user_invalid_argument', $response->as_error()->get_error_code() );
 	}
 
 	public function test_update_item_existing_nicename() {
@@ -273,8 +273,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'PUT', '/wp/users/' . $user2 );
 		$request->set_param( 'slug', 'test_json_user' );
 		$response = $this->server->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response );
-		$this->assertEquals( 'json_user_invalid_slug', $response->get_error_code() );
+		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertEquals( 'json_user_invalid_slug', $response->as_error()->get_error_code() );
 	}
 
 	public function test_json_update_user() {
