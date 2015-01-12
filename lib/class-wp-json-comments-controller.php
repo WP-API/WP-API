@@ -81,9 +81,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 	}
 	/**
-	 * Prepare a single user output for response
+	 * Prepare a single comment output for response
 	 *
-	 * @param obj $item User object
+	 * @param obj $item Comment object
 	 * @param obj $request Request object
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
