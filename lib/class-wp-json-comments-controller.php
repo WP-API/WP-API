@@ -7,16 +7,15 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Get a list of comments
-	 * 
+	 *
 	 * @param WP_JSON_Request $request
 	 * @return array|WP_Error
 	 */
 	public function get_items( $request ) {
-
 		$args = array(
 			'number'  => absint( $request['per_page'] ),
-			'post_id' => absint( $request['post_id'] ),
-			'user_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
+			'post_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
+			'user_id' => $request['user_id'] ? absint( $request['user_id'] ) : '',
 			'status'  => sanitize_key( $request['status'] ),
 		);
 
