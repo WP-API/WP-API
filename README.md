@@ -34,8 +34,7 @@ Check out [our documentation][docs] for information on what's available in the
 API and how to use it. We've also got documentation on extending the API with
 extra data for plugin and theme developers!
 
-We're currently aiming for integration into WordPress 4.1 as a permanent part of
-core.
+There's no fixed timeline for integration into core at this time, but getting closer!
 
 
 ## Installation
