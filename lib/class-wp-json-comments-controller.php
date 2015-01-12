@@ -25,6 +25,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$comments = $query->query( $args );
 
 		foreach ( $comments as &$comment ) {
+			$post = get_post( $comment->comment_post_ID );
+			if ( ! $this->check_read_post_permission( $post ) || ! $this->check_read_permission( $comment ) ) {
+
+				continue;
+			}
+
 			$comment = $this->prepare_item_for_response( $comment, $request );
 		}
 
@@ -41,9 +47,21 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$id = (int) $request['id'];
 
 		$comment = get_comment( $id );
-
 		if ( empty( $comment ) ) {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_read_permission( $comment ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this comment.' ), array( 'status' => 401 ) );
+		}
+
+		$post = get_post( $comment->comment_post_ID );
+		if ( empty( $post ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_read_post_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
 		return $this->prepare_item_for_response( $comment, $request );
