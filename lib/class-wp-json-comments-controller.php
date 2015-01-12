@@ -159,4 +159,37 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		return apply_filters( 'json_prepare_comment', $fields, $comment, $request );
 	}
+
+
+	/**
+	 * Check if we can read a post.
+	 *
+	 * Correctly handles posts with the inherit status.
+	 *
+	 * @param object $comment Comment object
+	 * @return bool Can we read it?
+	 */
+	protected function check_read_post_permission( $post ) {
+		$posts_controller = new WP_JSON_Posts_Controller;
+
+		return $posts_controller->check_read_permission( $post );
+	}
+
+	/**
+	 * Check if we can read a comment.
+	 *
+	 * @param object $comment Comment object
+	 * @return bool Can we read it?
+	 */
+	protected function check_read_permission( $comment ) {
+		if ( 1 == $comment->comment_approved ) {
+			return true;
+		}
+
+		if ( get_current_user_id() == $comment->user_id ) {
+			return true;
+		}
+
+		return false;
+	}
 }
