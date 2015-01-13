@@ -38,7 +38,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Get a comment
+	 * Get a comment.
 	 *
 	 * @param WP_JSON_Request $request
 	 * @return array|WP_Error
@@ -162,7 +162,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( (int) $comment->user_id !== 0 ) {
+		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
 				'href' => json_url( '/wp/users/' . $comment->user_id )
 			);

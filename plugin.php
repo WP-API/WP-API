@@ -330,26 +330,26 @@ function create_initial_json_routes() {
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_items' ),
 		'args'            => array(
-			'post_id'     => array( 
+			'post_id'     => array(
 				'required' => false,
-				'default'  => null
+				'default'  => null,
 			),
-			'user_id'     => array( 
+			'user_id'     => array(
 				'required' => false,
-				'default'  => null
+				'default'  => null,
 			),
-			'per_page'    => array( 
+			'per_page'    => array(
 				'required' => false,
-				'default'  => 10
+				'default'  => 10,
 			),
-			'page'        => array( 
+			'page'        => array(
 				'required' => false,
-				'default'  => 1
+				'default'  => 1,
 			),
 			'status'      => array(
 				'required' => false,
-				'default'  => 'approve'
-			)
+				'default'  => 'approve',
+			),
 		)
 	));
 
@@ -367,7 +367,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'         => WP_JSON_Server::DELETABLE,
 			'callback'        => array( $controller, 'delete_item' )
-		)
+		),
 	) );
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
@@ -804,7 +804,7 @@ function json_handle_options_request( $response, $handler, $request ) {
 /**
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
- * 
+ *
  * @param  WP_JSON_Response  $response
  * @param  WP_JSON_Request   $request
  * @param  WP_JSON_Server    $server
@@ -840,7 +840,7 @@ function json_send_allow_header( $response, $request, $server ) {
 	$allowed_methods = array_filter( $allowed_methods );
 
 	if ( $allowed_methods ) {
-		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
 	}
 
 	return $response;
