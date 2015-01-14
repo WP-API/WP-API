@@ -328,29 +328,28 @@ function create_initial_json_routes() {
 	$controller = new WP_JSON_Comments_Controller;
 	register_json_route( 'wp', '/comments', array(
 		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_items' ),
-			'args'            => array(
-				'post_id'     => array(
-					'required' => false,
-					'default'  => null,
+			'methods'   => WP_JSON_Server::READABLE,
+			'callback'  => array( $controller, 'get_items' ),
+			'args'      => array(
+				'post_id'   => array(
+					'default'   => null,
 				),
-				'user_id'     => array(
-					'required' => false,
-					'default'  => 0,
+				'user_id'   => array(
+					'default'   => 0,
 				),
-				'per_page'    => array(
-					'required' => false,
-					'default'  => 10,
+				'per_page'  => array(
+					'default'   => 10,
 				),
-				'page'        => array(
-					'required' => false,
-					'default'  => 1,
+				'page'      => array(
+					'default'   => 1,
 				),
-				'status'      => array(
-					'required' => false,
-					'default'  => 'approve',
+				'status'    => array(
+					'default'   => 'approve',
 				),
+				'type'      => array(
+					'default'   => 'comment',
+				),
+				'parent_id' => array(),
 			),
 		),
 		array(
