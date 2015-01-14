@@ -353,32 +353,26 @@ function create_initial_json_routes() {
 			),
 		),
 		array(
-			'methods'         => WP_JSON_Server::CREATABLE,
-			'callback'        => array( $controller, 'create_item' ),
-			'args'            => array(
-				'post_id'     => array(
-					'required' => true,
-					'default'  => null,
+			'methods'  => WP_JSON_Server::CREATABLE,
+			'callback' => array( $controller, 'create_item' ),
+			'args'     => array(
+				'post_id'      => array(
+					'required'     => true,
 				),
-				'user_id'     => array(
-					'required' => false,
-					'default'  => 0,
+				'type'         => array(
+					'required'     => true,
+					'default'      => 'comment',
 				),
-				'parent_id'     => array(
-					'required' => false,
+				'user_id'      => array(
+					'default'      => 0,
 				),
-				'content'    => array(
-					'required' => false,
+				'parent_id'    => array(
+					'default'      => 0,
 				),
-				'author'        => array(
-					'required' => false,
-				),
-				'author_email'        => array(
-					'required' => false,
-				),
-				'author_url'        => array(
-					'required' => false,
-				),
+				'content'      => array(),
+				'author'       => array(),
+				'author_email' => array(),
+				'author_url'   => array(),
 			),
 		),
 	) );
