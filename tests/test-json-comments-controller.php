@@ -46,6 +46,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'user_id'          => $this->subscriber,
 		));
 
+		$this->endpoint = new WP_JSON_Comments_Controller;
+		$this->server = $GLOBALS['wp_json_server'];
+
 	}
 
 	public function tearDown() {
@@ -141,7 +144,21 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_delete_item() {
+		wp_set_current_user( $this->administrator );
 
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_content'  => 'I pay the Homer tax. Let the bears pay the bear tax.',
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber,
+		));
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', $comment_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
 	}
 
 	public function test_prepare_item() {

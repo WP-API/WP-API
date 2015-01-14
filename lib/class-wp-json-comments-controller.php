@@ -111,13 +111,39 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'id'      => $comment_id,
 			'context' => 'edit',
 		));
-
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 
 		return $response;
 	}
+
+	public function delete_item( $request ) {
+		$id = (int) $request['id'];
+		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+		$comment = get_comment( $id );
+
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
+			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
+		}
+
+		$result = wp_delete_comment( $comment->comment_ID, $force );
+		if ( ! $result ) {
+			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+
+		if ( $force ) {
+			return array( 'message' => __( 'Permanently deleted comment' ) );
+		}
+
+		return array( 'message' => __( 'Deleted comment' ) );
+	}
+
 	/**
 	 * Prepare a single comment output for response
 	 *
