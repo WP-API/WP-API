@@ -66,7 +66,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		return $this->prepare_item_for_response( $comment, $request );
+		$data = $this->prepare_item_for_response( $comment, $request );
+		$response = json_ensure_response( $data );
+
+		return $response;
 	}
 
 	/**
