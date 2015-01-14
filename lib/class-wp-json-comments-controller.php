@@ -73,21 +73,21 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Create a comment
+	 * Create a comment.
 	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function create_item( $request ) {
 		$args = array(
 			'comment_post_ID'      => (int) $request['post_id'],
+			'comment_type'         => sanitize_key( $request['type'] ),
+			'comment_parent'       => (int) $request['parent_id'],
+			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
+			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
 			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
 			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
-			'comment_author_IP'    => isset( $request['author_ip'] ) ? $request['author_ip'] : '',
-			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_parent'       => isset( $request['parent_id'] ) ? (int) $request['parent_id'] : 0,
-			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
 		);
 
 		$post = get_post( $args['comment_post_ID'] );
@@ -99,8 +99,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		$comment_id = wp_insert_comment( $args );
+		$args['comment_approved'] = wp_allow_comment( $args );
+		$args = apply_filters( 'json_preprocess_comment', $args, $request );
 
+		$comment_id = wp_insert_comment( $args );
 		if ( ! $comment_id ) {
 			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ) );
 		}
@@ -113,6 +115,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
+
+		return $response;
 	}
 	/**
 	 * Prepare a single comment output for response
