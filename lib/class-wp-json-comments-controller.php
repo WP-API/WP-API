@@ -6,7 +6,7 @@
 class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
-	 * Get a list of comments
+	 * Get a list of comments.
 	 *
 	 * @param WP_JSON_Request $request
 	 * @return array|WP_Error
@@ -16,7 +16,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'number'  => absint( $request['per_page'] ),
 			'post_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
 			'user_id' => $request['user_id'] ? absint( $request['user_id'] ) : '',
+			'parent'  => $request['parent_id'] ? int( $request['parent_id'] ) : '',
 			'status'  => sanitize_key( $request['status'] ),
+			'type'    => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 		);
 
 		$args['offset'] = $args['number'] * ( absint( $request['page'] ) - 1 );
