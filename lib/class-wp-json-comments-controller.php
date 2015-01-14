@@ -80,6 +80,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
 			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
 			'comment_author_IP'    => isset( $request['author_ip'] ) ? $request['author_ip'] : '',
+			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
+			'comment_parent'       => isset( $request['parent_id'] ) ? (int) $request['parent_id'] : 0,
+			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
 		);
 
 		$post = get_post( $args['comment_post_ID'] );
