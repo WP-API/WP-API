@@ -378,7 +378,6 @@ function create_initial_json_routes() {
 	) );
 
 	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
-
 		array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_item' )
@@ -389,8 +388,11 @@ function create_initial_json_routes() {
 			'args'            => array()
 		),
 		array(
-			'methods'         => WP_JSON_Server::DELETABLE,
-			'callback'        => array( $controller, 'delete_item' )
+			'methods'  => WP_JSON_Server::DELETABLE,
+			'callback' => array( $controller, 'delete_item' ),
+			'args'     => array(
+				'force'    => array(),
+			),
 		),
 	) );
 }
