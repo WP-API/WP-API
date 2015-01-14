@@ -327,31 +327,62 @@ function create_initial_json_routes() {
 	 */
 	$controller = new WP_JSON_Comments_Controller;
 	register_json_route( 'wp', '/comments', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'post_id'     => array(
-				'required' => false,
-				'default'  => null,
+		array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $controller, 'get_items' ),
+			'args'            => array(
+				'post_id'     => array(
+					'required' => false,
+					'default'  => null,
+				),
+				'user_id'     => array(
+					'required' => false,
+					'default'  => 0,
+				),
+				'per_page'    => array(
+					'required' => false,
+					'default'  => 10,
+				),
+				'page'        => array(
+					'required' => false,
+					'default'  => 1,
+				),
+				'status'      => array(
+					'required' => false,
+					'default'  => 'approve',
+				),
 			),
-			'user_id'     => array(
-				'required' => false,
-				'default'  => null,
+		),
+		array(
+			'methods'         => WP_JSON_Server::CREATABLE,
+			'callback'        => array( $controller, 'create_item' ),
+			'args'            => array(
+				'post_id'     => array(
+					'required' => true,
+					'default'  => null,
+				),
+				'user_id'     => array(
+					'required' => false,
+					'default'  => 0,
+				),
+				'parent_id'     => array(
+					'required' => false,
+				),
+				'content'    => array(
+					'required' => false,
+				),
+				'author'        => array(
+					'required' => false,
+				),
+				'author_email'        => array(
+					'required' => false,
+				),
+				'author_url'        => array(
+					'required' => false,
+				),
 			),
-			'per_page'    => array(
-				'required' => false,
-				'default'  => 10,
-			),
-			'page'        => array(
-				'required' => false,
-				'default'  => 1,
-			),
-			'status'      => array(
-				'required' => false,
-				'default'  => 'approve',
-			),
-		)
-	));
+		),
+	) );
 
 	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
 

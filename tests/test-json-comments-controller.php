@@ -114,7 +114,26 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_create_item() {
+		wp_set_current_user( 0 );
 
+		$params = array(
+			'post_id'      => $this->post_id,
+			'author'       => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Worst Comment Ever!',
+			'parent_id'    => $this->comments[1],
+			'user_id'              => get_current_user_id(),
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+		$comment = $response->get_data();
 	}
 
 	public function test_update_item() {
