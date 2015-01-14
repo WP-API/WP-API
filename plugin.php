@@ -379,8 +379,13 @@ function create_initial_json_routes() {
 
 	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
 		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item' )
+			'methods'  => WP_JSON_Server::READABLE,
+			'callback' => array( $controller, 'get_item' ),
+			'args'     => array(
+				'context'  => array(
+					'default'  => 'view',
+				),
+			),
 		),
 		array(
 			'methods'         => WP_JSON_Server::EDITABLE,
