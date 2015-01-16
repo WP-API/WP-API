@@ -110,7 +110,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		$comment_id = wp_insert_comment( $args );
 		if ( ! $comment_id ) {
-			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ) );
+			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
 		$response = $this->get_item( array(
