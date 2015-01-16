@@ -388,9 +388,17 @@ function create_initial_json_routes() {
 			),
 		),
 		array(
-			'methods'         => WP_JSON_Server::EDITABLE,
-			'callback'        => array( $controller, 'update_item' ),
-			'args'            => array()
+			'methods'  => WP_JSON_Server::EDITABLE,
+			'callback' => array( $controller, 'update_item' ),
+			'args'     => array(
+				'post_id'      => array(),
+				'status'       => array(),
+				'content'      => array(),
+				'author'       => array(),
+				'author_email' => array(),
+				'author_url'   => array(),
+				'date'         => array(),
+			),
 		),
 		array(
 			'methods'  => WP_JSON_Server::DELETABLE,
