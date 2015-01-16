@@ -88,10 +88,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
 			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
+			'comment_date'         => isset( $request['date'] ) ? json_get_date_with_gmt( $request['date'] ) : current_time( 'mysql' ),
+			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? json_get_date_with_gmt( $request['date_gmt'], true ) : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
 			// use wp_allow_comment().
-			'comment_date'         => current_time( 'mysql' ),
-			'comment_date_gmt'     => current_time( 'mysql', 1 ),
 			'comment_author_IP'    => '127.0.0.1',
 			'comment_agent'        => '',
 		);
