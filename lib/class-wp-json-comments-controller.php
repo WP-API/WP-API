@@ -132,6 +132,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
+
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
@@ -141,25 +142,29 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_edit_comment', __( 'Sorry, you are not allowed to update this comment.' ), array( 'status' => 401 ) );
 		}
 
-		$args = array(
-			'comment_ID'           => $comment->comment_ID,
-			'comment_post_ID'      => isset( $request['post_id'] ) ? (int) $request['post_id'] : null,
-			'comment_approved'     => isset( $request['status'] ) ? sanitize_key( $request['status'] ) : $comment->comment_approved,
-			'comment_content'      => isset( $request['content'] ) ? $request['content'] : $comment->comment_content,
-			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : $comment->comment_author,
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : $comment->comment_author_email,
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : $comment->comment_author_url,
-			'comment_date'         => isset( $request['date'] ) ? json_get_date_with_gmt( $request['date'] ) : $comment->comment_date,
-		);
+		$prepared_args = $this->prepare_item_for_update( $request );
 
-		$updated = wp_update_comment( $args );
+		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
+			// only the comment status is being changed.
+			$change = $this->handle_status_change( $request['status'], $comment );
+			if ( ! $change ) {
+				return new WP_Error( 'json_comment_failed_edit', __( 'Updating comment status failed.' ), array( 'status' => 500 ) );
+			}
+		} else {
+			$prepared_args['comment_ID'] = $id;
 
-		if ( 0 === $updated ) {
-			return new WP_Error( 'json_comment_failed_edit', __( 'Updating comment failed.' ), array( 'status' => 500 ) );
+			$updated = wp_update_comment( $prepared_args );
+			if ( 0 === $updated ) {
+				return new WP_Error( 'json_comment_failed_edit', __( 'Updating comment failed.' ), array( 'status' => 500 ) );
+			}
+
+			if ( isset( $request['status'] ) ) {
+				$this->handle_status_change( $request['status'], $comment );
+			}
 		}
 
 		$response = $this->get_item( array(
-			'id'      => $comment->comment_ID,
+			'id'      => $id,
 			'context' => 'edit',
 		));
 		$response = json_ensure_response( $response );
@@ -294,6 +299,83 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		return $type;
 	}
+
+	/**
+	 * Prepare a single comment for update.
+	 *
+	 * @param WP_JSON_Request $request Request object.
+	 * @return array          $prepared_comment
+	 */
+	protected function prepare_item_for_update( $request ) {
+		$prepared_comment = array();
+
+		if ( isset( $request['content'] ) ) {
+			$prepared_comment['comment_content'] = $request['content'];
+		}
+
+		if ( isset( $request['author'] ) ) {
+			$prepared_comment['comment_author'] = sanitize_text_field( $request['author'] );
+		}
+
+		if ( isset( $request['author_email'] ) ) {
+			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
+		}
+
+		if ( isset( $request['author_url'] ) ) {
+			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+		}
+
+		if ( isset( $request['date'] ) ) {
+			$prepared_comment['comment_date'] = json_get_date_with_gmt( $request['date'] );
+		}
+
+		return $prepared_comment;
+	}
+
+	/**
+	 * Process a comment_status change when updating a comment.
+	 *
+	 * @param string|int $new_status
+	 * @param WP_Comment $comment
+	 * @return boolean   $changed
+	 */
+	protected function handle_status_change( $new_status, $comment ) {
+		$old_status = wp_get_comment_status( $comment->comment_ID );
+
+		if ( $new_status == $old_status ) {
+			return false;
+		}
+
+		switch ( $new_status ) {
+			case 'approved' :
+			case 'approve':
+			case '1':
+				$changed = wp_set_comment_status( $comment->comment_ID, 'approve' );
+				break;
+			case 'hold':
+			case '0':
+				$changed = wp_set_comment_status( $comment->comment_ID, 'hold' );
+				break;
+			case 'spam' :
+				$changed = wp_spam_comment( $comment->comment_ID );
+				break;
+			case 'unspam' :
+				$changed = wp_unspam_comment( $comment->comment_ID );
+				break;
+			case 'trash' :
+				$changed = wp_trash_comment( $comment->comment_ID );
+				break;
+			case 'untrash' :
+				$changed = wp_untrash_comment( $comment->comment_ID );
+				break;
+			default :
+				$changed = false;
+				break;
+		}
+
+		return $changed;
+	}
+
 	/**
 	 * Check if we can read a post.
 	 *
