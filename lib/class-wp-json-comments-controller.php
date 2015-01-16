@@ -124,6 +124,57 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		return $response;
 	}
 
+	/**
+	 * Edit a comment
+	 *
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 */
+	public function update_item( $request ) {
+		$id = (int) $request['id'];
+		$comment = get_comment( $id );
+		if ( empty( $comment ) ) {
+			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! current_user_can( 'edit_comment', $id ) ) {
+			return new WP_Error( 'json_user_cannot_edit_comment', __( 'Sorry, you are not allowed to update this comment.' ), array( 'status' => 401 ) );
+		}
+
+		$args = array(
+			'comment_ID'           => $comment->comment_ID,
+			'comment_post_ID'      => isset( $request['post_id'] ) ? (int) $request['post_id'] : null,
+			'comment_approved'     => isset( $request['status'] ) ? sanitize_key( $request['status'] ) : $comment->comment_approved,
+			'comment_content'      => isset( $request['content'] ) ? $request['content'] : $comment->comment_content,
+			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : $comment->comment_author,
+			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : $comment->comment_author_email,
+			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : $comment->comment_author_url,
+			'comment_date'         => isset( $request['date'] ) ? json_get_date_with_gmt( $request['date'] ) : $comment->comment_date,
+		);
+
+		$updated = wp_update_comment( $args );
+
+		if ( 0 === $updated ) {
+			return new WP_Error( 'json_comment_failed_edit', __( 'Updating comment failed.' ), array( 'status' => 500 ) );
+		}
+
+		$response = $this->get_item( array(
+			'id'      => $comment->comment_ID,
+			'context' => 'edit',
+		));
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/comments/' . $comment->comment_ID ) );
+
+		return $response;
+	}
+
+	/**
+	 * Delete a comment
+	 *
+	 * @param WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|array
+	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
 		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
