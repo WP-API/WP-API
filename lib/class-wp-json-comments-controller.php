@@ -101,8 +101,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
+		if ( ! comments_open( $post->ID ) ) {
+			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, the comments are closed for this post.' ), array( 'status' => 401 ) );
 		}
 
 		$args['comment_approved'] = wp_allow_comment( $args );
