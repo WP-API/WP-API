@@ -373,6 +373,8 @@ function create_initial_json_routes() {
 				'author'       => array(),
 				'author_email' => array(),
 				'author_url'   => array(),
+				'date'         => array(),
+				'date_gmt'     => array(),
 			),
 		),
 	) );
