@@ -319,6 +319,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return true;
 		}
 
+		if ( current_user_can( 'edit_comment', $comment->comment_ID ) ) {
+			return true;
+		}
+
 		if ( get_current_user_id() == $comment->user_id ) {
 			return true;
 		}
