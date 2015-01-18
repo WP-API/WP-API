@@ -245,7 +245,7 @@ class WP_JSON_Server {
 		 * @param WP_JSON_Response $result
 		 * @param WP_JSON_Request $request
 		 */
-		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $this, $request );
 
 		// Wrap the response in an envelope if asked for
 		if ( isset( $_GET['_envelope'] ) ) {
