@@ -328,11 +328,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
 		}
 
-		if ( isset( $request['date'] ) ) {
+		if ( ! empty( $request['date'] ) ) {
 			$prepared_comment['comment_date'] = json_get_date_with_gmt( $request['date'] );
 		}
 
-		return $prepared_comment;
+		return apply_filters( 'json_preprocess_comment', $prepared_comment, $request );
 	}
 
 	/**
