@@ -404,7 +404,7 @@ function json_api_default_filters( $server ) {
 
 	// Default serving
 	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
-	add_filter( 'json_post_dispatch',  'json_send_allow_header', 10, 2 );
+	add_filter( 'json_post_dispatch',  'json_send_allow_header', 10, 3 );
 
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
 
@@ -757,9 +757,10 @@ function json_handle_options_request( $response, $handler, $request ) {
  * to the current route
  * 
  * @param  WP_JSON_Response  $response
+ * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
  * @param  WP_JSON_Request   $request
  */
-function json_send_allow_header( $response, $request ) {
+function json_send_allow_header( $response, $server, $request ) {
 
 	$matched_route = $response->get_matched_route();
 
