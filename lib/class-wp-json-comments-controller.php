@@ -227,7 +227,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 			),
 			'status'       => $this->prepare_status_response( $comment->comment_approved ),
-			'type'         => $this->prepare_type_response( $comment->comment_type ),
+			'type'         => get_comment_type( $comment->comment_ID ),
 		);
 
 		if ( 'edit' == $request['context'] ) {
@@ -282,22 +282,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		}
 
 		return $status;
-	}
-
-	/**
-	 * Apply filter to comment_type and prepare it for single comment output.
-	 *
-	 * @param string  $comment_type
-	 * @return string $type
-	 */
-	protected function prepare_type_response( $comment_type ) {
-		$type = apply_filters( 'get_comment_type', $comment_type );
-
-		if ( empty( $type ) ) {
-			$type = 'comment';
-		}
-
-		return $type;
 	}
 
 	/**
