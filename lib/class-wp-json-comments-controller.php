@@ -167,7 +167,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Delete a comment
+	 * Delete a comment.
 	 *
 	 * @param WP_JSON_Request $request Full details about the request.
 	 * @return WP_Error|array
@@ -199,7 +199,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Prepare a single comment output for response
+	 * Prepare a single comment output for response.
 	 *
 	 * @param obj $item Comment object
 	 * @param obj $request Request object
