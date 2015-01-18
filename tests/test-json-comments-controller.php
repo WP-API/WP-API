@@ -134,7 +134,25 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_update_item() {
+		wp_set_current_user( $this->admin_id );
 
+		$id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+		));
+
+		$params = array(
+			'content' => 'Oh, they have the internet on computers now!',
+		);
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/comments/%d', $id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+		$comment = $response->get_data();
+		$this->assertEquals( 'Oh, they have the internet on computers now!', $comment['content']['raw'] );
 	}
 
 	public function test_delete_item() {
@@ -142,7 +160,6 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$comment_id = $this->factory->comment->create( array(
 			'comment_approved' => 1,
-			'comment_content'  => 'I pay the Homer tax. Let the bears pay the bear tax.',
 			'comment_post_ID'  => $this->post_id,
 			'user_id'          => $this->subscriber_id,
 		));
