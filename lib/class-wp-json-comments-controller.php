@@ -214,7 +214,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'author_email' => $comment->comment_author_email,
 			'author_url'   => $comment->comment_author_url,
 			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'     => json_mysql_to_rfc3339( $comment->comment_date_gmt ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 			),
@@ -223,6 +222,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
+			$fields['date_gmt']       = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 			$fields['content']['raw'] = $comment->comment_content;
 		}
 
