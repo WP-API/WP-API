@@ -79,45 +79,37 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function create_item( $request ) {
-		$args = array(
-			'comment_post_ID'      => (int) $request['post_id'],
-			'comment_type'         => sanitize_key( $request['type'] ),
-			'comment_parent'       => (int) $request['parent_id'],
-			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
-			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
-			'comment_date'         => isset( $request['date'] ) ? json_get_date_with_gmt( $request['date'] ) : current_time( 'mysql' ),
-			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? json_get_date_with_gmt( $request['date_gmt'], true ) : current_time( 'mysql', 1 ),
-			// Setting remaining values before wp_insert_comment so we can
-			// use wp_allow_comment().
-			'comment_author_IP'    => '127.0.0.1',
-			'comment_agent'        => '',
-		);
+		if ( ! empty( $request['id'] ) ) {
+			return new WP_Error( 'json_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
+		}
 
-		$post = get_post( $args['comment_post_ID'] );
+		$post = get_post( (int) $request['post_id'] );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $this->check_read_post_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
 		if ( ! comments_open( $post->ID ) ) {
 			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, the comments are closed for this post.' ), array( 'status' => 401 ) );
 		}
 
-		$args['comment_approved'] = wp_allow_comment( $args );
-		$args = apply_filters( 'json_preprocess_comment', $args, $request );
+		$prepared_comment = $this->prepare_item_for_database( $request );
+		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
-		$comment_id = wp_insert_comment( $args );
+		$prepared_comment = apply_filters( 'json_pre_insert_comment', $prepared_comment, $request );
+
+		$comment_id = wp_insert_comment( $prepared_comment );
 		if ( ! $comment_id ) {
 			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
-		$response = $this->get_item( array(
-			'id'      => $comment_id,
-			'context' => 'edit',
-		));
+		$new_comment = get_comment( $comment_id );
+		$response = $this->prepare_item_for_response( $new_comment, array( 'context' => 'edit' ) );
 		$response = json_ensure_response( $response );
+
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 
@@ -285,7 +277,34 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Prepare a single comment for update.
+	 * Prepare a single comment to be inserted into the database.
+	 *
+	 * @param WP_JSON_Request $request Request object.
+	 * @return array          $prepared_comment
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$prepared_comment = array(
+			'comment_post_ID'      => (int) $request['post_id'],
+			'comment_type'         => sanitize_key( $request['type'] ),
+			'comment_parent'       => (int) $request['parent_id'],
+			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
+			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
+			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
+			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
+			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
+			'comment_date'         => isset( $request['date'] ) ? json_get_date_with_gmt( $request['date'] ) : current_time( 'mysql' ),
+			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? json_get_date_with_gmt( $request['date_gmt'], true ) : current_time( 'mysql', 1 ),
+			// Setting remaining values before wp_insert_comment so we can
+			// use wp_allow_comment().
+			'comment_author_IP'    => '127.0.0.1',
+			'comment_agent'        => '',
+		);
+
+		return apply_filters( 'json_preprocess_comment', $prepared_comment, $request );
+	}
+
+	/**
+	 * Prepare a single comment for database update.
 	 *
 	 * @param WP_JSON_Request $request Request object.
 	 * @return array          $prepared_comment
