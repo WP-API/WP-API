@@ -212,4 +212,43 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		}
 	}
 
+	/**
+	 * Get the schema for a term
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array(
+			'title'                => 'Term',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'The unique identifier for a taxonomy term.',
+					'type'         => 'integer',
+					),
+				'name'             => array(
+					'description'  => 'The name for the term.',
+					'type'         => 'string',
+					),
+				'slug'             => array(
+					'description'  => 'The slug for the term.',
+					'type'         => 'string',
+					),
+				'description'      => array(
+					'description'  => 'The description for the term.',
+					'type'         => 'string',
+					),
+				'count'            => array(
+					'description'  => 'Number of published posts for the term.',
+					'type'         => 'integer',
+					),
+				'parent_id'        => array(
+					'description'  => 'The unique identifier for the parent of a term.',
+					'type'         => 'integer',
+					),
+				),
+			'required'             => array( 'name' ),
+			);
+	}
+
 }

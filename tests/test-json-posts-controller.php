@@ -20,7 +20,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'role' => 'author',
 		) );
 
-		$this->endpoint = new WP_JSON_Posts_Controller;
 		$this->server = $GLOBALS['wp_json_server'];
 	}
 
@@ -287,8 +286,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'draft',
-			'author' => $user->ID,
+			'status'    => 'draft',
+			'author_id' => $user->ID,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -311,10 +310,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
 		// Confirm dates are null
-		$this->assertNull( $data['date_gmt'] );
-		$this->assertNull( $data['modified_gmt'] );
-		$this->assertNull( $data['date'] );
-		$this->assertNull( $data['modified'] );
+		$this->assertNull( $data['published_date_gmt'] );
+		$this->assertNull( $data['modified_date_gmt'] );
+		$this->assertNull( $data['published_date'] );
+		$this->assertNull( $data['modified_date'] );
 	}
 
 	public function test_create_post_private() {
@@ -343,8 +342,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'private',
-			'author' => $this->author_id,
+			'status'    => 'private',
+			'author_id' => $this->author_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -420,7 +419,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => -1,
+			'author_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -433,7 +432,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => $this->editor_id,
+			'author_id' => $this->editor_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -466,9 +465,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'password' => 'testing',
-			'author'   => $this->author_id,
-			'status'   => 'draft',
+			'password'  => 'testing',
+			'author_id' => $this->author_id,
+			'status'    => 'draft',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -482,10 +481,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
-			'parent' => $page_id,
+			'type'      => 'page',
+			'parent_id' => $page_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -506,10 +505,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_create_page_with_invalid_parent() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
-			'parent' => -1,
+			'type'      => 'page',
+			'parent_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -522,7 +521,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00Z',
+			'published_date' => '2010-01-01T02:00:00Z',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -530,7 +529,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T02:00:00', $data['published_date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -539,7 +538,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00-10:00',
+			'published_date' => '2010-01-01T02:00:00-10:00',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -547,7 +546,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T12:00:00', $data['published_date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -737,28 +736,38 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	protected function check_post_data( $post, $data, $context ) {
+		$post_type_obj = get_post_type_object( $post->post_type );
+
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( $post->post_author, $data['author'] );
-		$this->assertArrayHasKey( 'parent', $data );
+		$this->assertEquals( $post->post_author, $data['author_id'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
-		$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		$this->assertEquals( $post->comment_status, $data['comment_status'] );
 		$this->assertEquals( $post->ping_status, $data['ping_status'] );
-		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+
+		if ( 'post' === $post->post_type ) {
+			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
+
+		if ( post_type_supports( $post->post_type, 'menu_order' ) ) {
+			$this->assertEquals( $post->menu_order, $data['menu_order'] );
+		}
 
 		// Check post parent.
-		if ( $post->post_parent ) {
-			if ( is_int( $data['parent'] ) ) {
-				$this->assertEquals( $post->post_parent, $data['parent'] );
+		if ( $post_type_obj->hierarchical ) {
+			$this->assertArrayHasKey( 'parent', $data );
+			if ( $post->post_parent ) {
+				if ( is_int( $data['parent'] ) ) {
+					$this->assertEquals( $post->post_parent, $data['parent'] );
+				}
+				else {
+					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
+					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				}
 			}
 			else {
-				$this->assertEquals( $post->post_parent, $data['parent']['id'] );
-				$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				$this->assertEmpty( $data['parent'] );
 			}
-		}
-		else {
-			$this->assertEmpty( $data['parent'] );
 		}
 
 		// Check post format.
@@ -769,17 +778,21 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
 		}
 
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+			$this->assertArrayHasKey( 'featured_image_id', $data );
+		}
+
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
+			$this->assertNull( $data['published_date'] );
 		}
 		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['published_date'] );
 		}
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-			$this->assertNull( $data['modified'] );
+			$this->assertNull( $data['modified_date'] );
 		}
 		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified_date'] );
 		}
 
 		// Check filtered values.
@@ -804,17 +817,17 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( $post->post_password, $data['password'] );
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-				$this->assertNull( $data['date_gmt'] );
+				$this->assertNull( $data['published_date_gmt'] );
 			}
 			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['published_date_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$this->assertNull( $data['modified_gmt'] );
+				$this->assertNull( $data['modified_date_gmt'] );
 			}
 			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_date_gmt'] );
 			}
 		}
 	}
@@ -859,13 +872,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
-			'title'   => rand_str(),
-			'content' => rand_str(),
-			'excerpt' => rand_str(),
-			'name'    => 'test',
-			'status'  => 'publish',
-			'author'  => $this->editor_id,
-			'type'    => 'post',
+			'title'     => rand_str(),
+			'content'   => rand_str(),
+			'excerpt'   => rand_str(),
+			'name'      => 'test',
+			'status'    => 'publish',
+			'author_id' => $this->editor_id,
+			'type'      => 'post',
 		);
 
 		return wp_parse_args( $args, $defaults );
