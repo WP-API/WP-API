@@ -8,72 +8,53 @@
  */
 class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase {
 
-	protected $comments = array();
-
 	public function setUp() {
 		parent::setUp();
 
-		$this->administrator = $this->factory->user->create( array(
+		$this->admin_id = $this->factory->user->create( array(
 			'role' => 'administrator',
 		) );
-		$this->subscriber = $this->factory->user->create( array(
+		$this->subscriber_id = $this->factory->user->create( array(
 			'role' => 'subscriber',
 		) );
 
 		$this->post_id = $this->factory->post->create();
 
-		$this->comments[] = $this->factory->comment->create( array(
-			'comment_approved' => 1,
-			'comment_content'  => 'Approved comment',
-			'comment_post_ID'  => $this->post_id,
-		));
-
-		$this->comments[] = $this->factory->comment->create( array(
-			'comment_approved' => 1,
-			'comment_post_ID'  => $this->post_id,
-			'user_id'          => $this->subscriber,
-		));
-
-		$this->comments[] = $this->factory->comment->create( array(
-			'comment_approved' => 1,
-			'comment_post_ID'  => $this->post_id,
-		));
-
-		$this->comments[] = $this->factory->comment->create( array(
-			'comment_approved' => 0,
-			'comment_content'  => 'Unapproved comment',
-			'comment_post_ID'  => $this->post_id,
-			'user_id'          => $this->subscriber,
-		));
-
 		$this->endpoint = new WP_JSON_Comments_Controller;
-		$this->server = $GLOBALS['wp_json_server'];
 
 	}
 
 	public function tearDown() {
-		foreach ( $this->comments as $comment_id ) {
-			wp_delete_comment( $comment_id, true );
-		}
+		parent::tearDown();
 	}
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
+
 		$this->assertArrayHasKey( '/wp/comments', $routes );
 		$this->assertArrayHasKey( '/wp/comments/(?P<id>[\d]+)', $routes );
 	}
 
 	public function test_get_items() {
+		$this->factory->comment->create_post_comments( $this->post_id, 6 );
+		$second_post_id = $this->factory->post->create();
+		$this->factory->comment->create_post_comments( $second_post_id, 2 );
+
 		$request = new WP_JSON_Request( 'GET', '/wp/comments' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
-		$this->assertEquals( 3, count( $comments ) );
+		$this->assertEquals( 8, count( $comments ) );
 	}
 
 	public function test_get_item() {
-		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $this->comments[0] );
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+		));
+
+		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $comment_id );
 
 		$response = $this->server->dispatch( $request );
 
@@ -100,16 +81,29 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_get_item_not_approved() {
-		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $this->comments[3] );
+		wp_set_current_user( 0 );
+
+		$id = $this->factory->comment->create( array(
+			'comment_approved' => 0,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => 0,
+		));
+		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $id );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
 	}
 
 	public function test_get_item_not_approved_with_user() {
-		wp_set_current_user( $this->subscriber );
+		wp_set_current_user( $this->subscriber_id );
 
-		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $this->comments[3] );
+		$id = $this->factory->comment->create( array(
+			'comment_approved' => 0,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		));
+
+		$request = new WP_JSON_Request( 'GET', '/wp/comments/' . $id );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
@@ -117,7 +111,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_create_item() {
-		wp_set_current_user( 0 );
+		wp_set_current_user( $this->subscriber_id );
 
 		$params = array(
 			'post_id'      => $this->post_id,
@@ -125,8 +119,8 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
 			'content'      => 'Worst Comment Ever!',
-			'parent_id'    => $this->comments[1],
-			'user_id'              => get_current_user_id(),
+			'parent_id'    => 0,
+			'user_id'      => $this->subscriber_id,
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
@@ -144,13 +138,13 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_delete_item() {
-		wp_set_current_user( $this->administrator );
+		wp_set_current_user( $this->admin_id );
 
 		$comment_id = $this->factory->comment->create( array(
 			'comment_approved' => 1,
 			'comment_content'  => 'I pay the Homer tax. Let the bears pay the bear tax.',
 			'comment_post_ID'  => $this->post_id,
-			'user_id'          => $this->subscriber,
+			'user_id'          => $this->subscriber_id,
 		));
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', $comment_id ) );
