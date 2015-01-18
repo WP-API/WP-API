@@ -47,6 +47,61 @@ class WP_Test_JSON_Server extends WP_UnitTestCase {
 		$this->assertEquals( $status,  $enveloped['status'] );
 		$this->assertEquals( $headers, $enveloped['headers'] );
 	}
+	
+	
+	public function test_default_param() {
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(
+					'default'  => 'bar',
+				),
+			),
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 'bar', $request['foo'] );
+	}
+
+	public function test_default_param_is_overridden() {
+
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(
+					'default'  => 'bar',
+				),
+			),
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
+		$request->set_query_params( array( 'foo' => 123 ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( '123', $request['foo'] );
+	}
+
+	public function test_optional_param() {
+		register_json_route( 'optional', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(),
+			),
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/optional/test' );
+		$request->set_query_params( array() );
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'foo', (array) $request );
+	}
 
 	/**
 	 * Pass a capability which the user does not have, this should 

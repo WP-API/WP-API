@@ -164,7 +164,7 @@ class WP_JSON_Server {
 	 */
 	public function serve_request( $path = null ) {
 		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
-		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -245,7 +245,7 @@ class WP_JSON_Server {
 		 * @param WP_JSON_Response $result
 		 * @param WP_JSON_Request $request
 		 */
-		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request, $this );
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
 
 		// Wrap the response in an envelope if asked for
 		if ( isset( $_GET['_envelope'] ) ) {
@@ -461,6 +461,7 @@ class WP_JSON_Server {
 			'accept_json'   => false,
 			'accept_raw'    => false,
 			'show_in_index' => true,
+			'args'          => array(),
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
@@ -504,8 +505,9 @@ class WP_JSON_Server {
 		}
 
 		foreach ( $attributes['args'] as $key => $arg ) {
+
 			$param = $request->get_param( $key );
-			if ( true === $arg['required'] && null === $param ) {
+			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
 				$required[] = $key;
 			}
 		}
@@ -582,6 +584,23 @@ class WP_JSON_Server {
 					$request->set_url_params( $args );
 					$request->set_attributes( $handler );
 
+					$defaults = array();
+
+					foreach ( $handler['args'] as $arg => $options ) {
+						if ( isset( $options['default'] ) ) {
+							$defaults[$arg] = $options['default'];
+						}
+					}
+
+					$request->set_default_params( $defaults );
+
+					$check_required = $this->check_required_parameters( $request );
+					if ( is_wp_error( $check_required ) ) {
+						$response = $check_required;
+					}
+				}
+
+				if ( ! is_wp_error( $response ) ) {
 					// check permission specified on the route.
 					if ( ! empty( $handler['permission_callback'] ) ) {
 						$permission = call_user_func( $handler['permission_callback'], $request );
@@ -592,30 +611,22 @@ class WP_JSON_Server {
 							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
 						}
 					}
+				}
 
-					if ( ! is_wp_error( $response ) ) {
+				if ( ! is_wp_error( $response ) ) {
+					/**
+					 * Allow plugins to override dispatching the request
+					 *
+					 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+					 * @param WP_JSON_Request $request
+					 */
+					$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
 
-						$check_required = $this->check_required_parameters( $request );
-
-						if ( is_wp_error( $check_required ) ) {
-							$response = $check_required;
-						} else {
-
-							/**
-							 * Allow plugins to override dispatching the request
-							 *
-							 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-							 * @param WP_JSON_Request $request
-							 */
-							$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
-
-							// Allow plugins to halt the request via this filter
-							if ( $dispatch_result !== null ) {
-								$response = $dispatch_result;
-							} else {
-								$response = call_user_func( $callback, $request );
-							}
-						}
+					// Allow plugins to halt the request via this filter
+					if ( $dispatch_result !== null ) {
+						$response = $dispatch_result;
+					} else {
+						$response = call_user_func( $callback, $request );
 					}
 				}
 
@@ -728,7 +739,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	public function send_header( $key, $value ) {
+	protected function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
