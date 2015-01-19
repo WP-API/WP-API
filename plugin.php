@@ -494,9 +494,7 @@ function json_api_default_filters( $server ) {
 
 	// Default serving
 	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
-
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
-
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
