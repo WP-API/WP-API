@@ -421,6 +421,12 @@ class WP_JSON_Posts {
 		if ( 'inherit' === $post['post_status'] ) {
 			return true;
 		}
+		
+		//In case we are dealing with custom post status, check if it's public
+		$post_status_obj = get_post_status_object($post['post_status']);
+		if ($post_status_obj->public){
+			return true;
+		}
 
 		return false;
 	}
