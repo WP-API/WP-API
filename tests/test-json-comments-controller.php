@@ -152,18 +152,21 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
 			'content'      => 'Worst Comment Ever!',
+			'date'         => '2014-11-07T10:14:25',
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
 
+		$response = $this->server->dispatch( $request );
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
+
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'edit' );
 		$this->assertEquals( 'hold', $data['status'] );
+		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
 	public function test_create_comment_other_user() {
@@ -249,6 +252,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author'       => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
+			'date'         => '2014-11-07T10:14:25',
 		);
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/comments/%d', $comment_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -264,10 +268,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( $params['author'], $comment['author'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
-	}
 
-	public function test_update_comment_date() {
-		$this->markTestSkipped( 'Needs test added.' );
+		$this->assertEquals( json_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
+		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
 	}
 
 	public function test_update_comment_status() {
@@ -319,7 +322,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		));
 
 		$params = array(
-			'content' => "Disco Stu likes disco music.",
+			'content' => 'Disco Stu likes disco music.',
 		);
 		$request = new WP_JSON_Request( 'PUT', '/wp/comments/' . $comment_id );
 		$request->add_header( 'content-type', 'application/json' );
