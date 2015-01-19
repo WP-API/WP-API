@@ -338,6 +338,24 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_delete_comment_invalid_id() {
+		wp_set_current_user( $this->admin_id );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', 100 ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = json_ensure_response( $response );
+		$this->assertErrorResponse( 'json_comment_invalid_id', $response, 404 );
+	}
+
+	public function test_delete_comment_without_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', $this->approved_id ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_delete_comment', $response, 401 );
+	}
 
 	protected function check_comment_data( $data, $context ) {
 		$comment = get_comment( $data['id'] );
