@@ -222,13 +222,18 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		$links = array();
 
-		// Author
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href' => json_url( '/wp/users/' . $comment->user_id )
+				'href' => json_url( '/wp/users/' . $comment->user_id ),
 			);
 		}
 
+		if ( 0 !== (int) $comment->comment_post_ID ) {
+			$links['post'] = array(
+				'href' => json_url( '/wp/posts/' . $comment->comment_post_ID ),
+			);
+		}
+		
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
 				'href' => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
