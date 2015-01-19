@@ -251,8 +251,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$prepared_args = array(
 			'number'  => absint( $request['per_page'] ),
 			'post_id' => isset( $request['post_id'] ) ? absint( $request['post_id'] ) : '',
-			'parent'  => isset( $request['parent_id'] ) ? int( $request['parent_id'] ) : '',
-			'search'  => $request['search'] ? santize_text_field( $request['search'] ) : '',
+			'parent'  => isset( $request['parent_id'] ) ? intval( $request['parent_id'] ) : '',
+			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
 			'orderby' => sanitize_key( $request['orderby'] ),
 			'order'   => sanitize_key( $request['order'] ),
 			'status'  => 'approve',
