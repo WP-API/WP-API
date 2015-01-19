@@ -374,7 +374,6 @@ function create_initial_json_routes() {
 					'required'     => true,
 				),
 				'type'         => array(
-					'required'     => true,
 					'default'      => 'comment',
 				),
 				'user_id'      => array(
