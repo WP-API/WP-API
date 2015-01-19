@@ -15,16 +15,17 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$prepared_args = $this->prepare_items_query( $request );
 
 		$query = new WP_Comment_Query;
-		$comments = $query->query( $prepared_args );
+		$query_result = $query->query( $prepared_args );
 
-		foreach ( $comments as &$comment ) {
+		$comments = array();
+		foreach ( $query_result as $comment ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! $this->check_read_post_permission( $post ) || ! $this->check_read_permission( $comment ) ) {
 
 				continue;
 			}
 
-			$comment = $this->prepare_item_for_response( $comment, $request );
+			$comments[] = $this->prepare_item_for_response( $comment, $request );
 		}
 
 		$response = json_ensure_response( $comments );
