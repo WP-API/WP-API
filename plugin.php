@@ -331,25 +331,39 @@ function create_initial_json_routes() {
 			'methods'   => WP_JSON_Server::READABLE,
 			'callback'  => array( $controller, 'get_items' ),
 			'args'      => array(
-				'post_id'   => array(
-					'default'   => null,
+				'post_id'      => array(
+					'default'      => null,
 				),
-				'user_id'   => array(
-					'default'   => 0,
+				'user_id'      => array(
+					'default'      => 0,
 				),
-				'per_page'  => array(
-					'default'   => 10,
+				'per_page'     => array(
+					'default'      => 10,
 				),
-				'page'      => array(
-					'default'   => 1,
+				'page'         => array(
+					'default'      => 1,
 				),
-				'status'    => array(
-					'default'   => 'approve',
+				'status'       => array(
+					'default'      => 'approve',
 				),
-				'type'      => array(
-					'default'   => 'comment',
+				'type'         => array(
+					'default'      => 'comment',
 				),
-				'parent_id' => array(),
+				'parent_id'    => array(),
+				'search'       => array(),
+				'order'        => array(
+					'default'      => 'DESC',
+				),
+				'orderby'      => array(
+					'default'      => 'comment_date_gmt',
+				),
+				'author_email' => array(),
+				'karma'        => array(),
+				'post_author'  => array(),
+				'post_name'    => array(),
+				'post_parent'  => array(),
+				'post_status'  => array(),
+				'post_type'    => array(),
 			),
 		),
 		array(

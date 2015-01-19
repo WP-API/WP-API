@@ -12,19 +12,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_items( $request ) {
-		$args = array(
-			'number'  => absint( $request['per_page'] ),
-			'post_id' => $request['post_id'] ? absint( $request['post_id'] ) : '',
-			'user_id' => $request['user_id'] ? absint( $request['user_id'] ) : '',
-			'parent'  => $request['parent_id'] ? int( $request['parent_id'] ) : '',
-			'status'  => sanitize_key( $request['status'] ),
-			'type'    => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
-		);
-
-		$args['offset'] = $args['number'] * ( absint( $request['page'] ) - 1 );
+		$prepared_args = $this->prepare_items_query( $request );
 
 		$query = new WP_Comment_Query;
-		$comments = $query->query( $args );
+		$comments = $query->query( $prepared_args );
 
 		foreach ( $comments as &$comment ) {
 			$post = get_post( $comment->comment_post_ID );
@@ -244,6 +235,40 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$fields['_links'] = $links;
 
 		return apply_filters( 'json_prepare_comment', $fields, $comment, $request );
+	}
+
+	protected function prepare_items_query( $request ) {
+		$prepared_args = array(
+			'number'  => absint( $request['per_page'] ),
+			'post_id' => isset( $request['post_id'] ) ? absint( $request['post_id'] ) : '',
+			'parent'  => isset( $request['parent_id'] ) ? int( $request['parent_id'] ) : '',
+			'search'  => $request['search'] ? santize_text_field( $request['search'] ) : '',
+			'orderby' => sanitize_key( $request['orderby'] ),
+			'order'   => sanitize_key( $request['order'] ),
+			'status'  => 'approve',
+			'type'    => 'comment',
+		);
+
+		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
+
+		if ( current_user_can( 'edit_posts' ) ) {
+			$protected_args = array(
+				'user_id'      => $request['user_id'] ? absint( $request['user_id'] ) : '',
+				'status'       => sanitize_key( $request['status'] ),
+				'type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
+				'author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
+				'karma'        => isset( $request['karma'] ) ? sanitize_key( $request['karma'] ) : '',
+				'post_author'  => isset( $request['post_author'] ) ? sanitize_key( $request['post_author'] ) : '',
+				'post_name'    => isset( $request['post_name'] ) ? sanitize_key( $request['post_name'] ) : '',
+				'post_parent'  => isset( $request['author_email'] ) ? intval( $request['post_parent'] ) : '',
+				'post_status'  => isset( $request['post_status'] ) ? sanitize_key( $request['post_status'] ) : '',
+				'post_type'    => isset( $request['post_type'] ) ? sanitize_key( $request['post_type'] ) : '',
+			);
+
+			$prepared_args = array_merge( $prepared_args, $protected_args );
+		}
+
+		return $prepared_args;
 	}
 
 	/**
