@@ -523,7 +523,7 @@ class WP_JSON_Server {
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
-	 * @return WP_JSON_Response Response returned by the callback
+	 * @return WP_JSON_Response Response returned by the callback, or a WP_Error instance
 	 */
 	public function dispatch( $request ) {
 		$method = $request->get_method();
@@ -533,7 +533,7 @@ class WP_JSON_Server {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
-				$response = null;
+				$response  = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
@@ -581,52 +581,36 @@ class WP_JSON_Server {
 
 				if ( ! is_wp_error( $response ) ) {
 
-					$request->set_url_params( $args );
-					$request->set_attributes( $handler );
+				$request->set_url_params( $args );
+				$request->set_attributes( $handler );
 
-					$defaults = array();
+				$defaults = array();
 
-					foreach ( $handler['args'] as $arg => $options ) {
-						if ( isset( $options['default'] ) ) {
-							$defaults[$arg] = $options['default'];
-						}
+				foreach ( $handler['args'] as $arg => $options ) {
+					if ( isset( $options['default'] ) ) {
+						$defaults[$arg] = $options['default'];
 					}
+				}
 
-					$request->set_default_params( $defaults );
+				$request->set_default_params( $defaults );
 
-					// check permission specified on the route.
-					if ( ! empty( $handler['permission_callback'] ) ) {
-						$permission = call_user_func( $handler['permission_callback'], $request );
+				$check_required = $this->check_required_parameters( $request );
+				if ( is_wp_error( $check_required ) ) {
+						$response = $check_required;
+					} else {
+				/**
+				 * Allow plugins to override dispatching the request
+				 *
+				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+				 * @param WP_JSON_Request $request
+				 */
+				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
 
-						if ( is_wp_error( $permission ) ) {
-							$response = $permission;
-						} else if ( false === $permission || null === $permission ) {
-							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
-						}
-					}
-
-					if ( ! is_wp_error( $response ) ) {
-
-						$check_required = $this->check_required_parameters( $request );
-
-						if ( is_wp_error( $check_required ) ) {
-							$response = $check_required;
+				// Allow plugins to halt the request via this filter
+				if ( $dispatch_result !== null ) {
+							$response = $dispatch_result;
 						} else {
-
-							/**
-							 * Allow plugins to override dispatching the request
-							 *
-							 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-							 * @param WP_JSON_Request $request
-							 */
-							$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
-
-							// Allow plugins to halt the request via this filter
-							if ( $dispatch_result !== null ) {
-								$response = $dispatch_result;
-							} else {
-								$response = call_user_func( $callback, $request );
-							}
+							$response = call_user_func( $callback, $request );
 						}
 					}
 				}
@@ -740,7 +724,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	public function send_header( $key, $value ) {
+	protected function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
