@@ -121,7 +121,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! current_user_can( 'edit_comment', $id ) ) {
+		if ( ! $this->check_edit_permission( $comment ) ) {
 			return new WP_Error( 'json_user_cannot_edit_comment', __( 'Sorry, you are not allowed to update this comment.' ), array( 'status' => 401 ) );
 		}
 
@@ -173,7 +173,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
+		if ( ! $this->check_edit_permission( $comment ) ) {
 			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
 		}
 
@@ -435,6 +435,24 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $comment->user_id ) && get_current_user_id() == $comment->user_id ) {
 			return true;
+		}
+
+		return current_user_can( 'edit_comment', $comment->comment_ID );
+	}
+
+	/**
+	 * Check if we can edit or delete a comment.
+	 *
+	 * @param  object  $comment Comment object.
+	 * @return boolean Can we edit or delete it?
+	 */
+	protected function check_edit_permission( $comment ) {
+		if ( 0 === (int) get_current_user_id() ) {
+			return false;
+		}
+
+		if ( ! current_user_can( 'moderate_comments' ) ) {
+			return false;
 		}
 
 		return current_user_can( 'edit_comment', $comment->comment_ID );
