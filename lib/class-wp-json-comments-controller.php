@@ -8,8 +8,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Get a list of comments.
 	 *
-	 * @param WP_JSON_Request $request
-	 * @return array|WP_Error
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_JSON_Response|mixed
 	 */
 	public function get_items( $request ) {
 		$prepared_args = $this->prepare_items_query( $request );
@@ -27,14 +27,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$comment = $this->prepare_item_for_response( $comment, $request );
 		}
 
-		return $comments;
+		$response = json_ensure_response( $comments );
+
+		return $response;
 	}
 
 	/**
 	 * Get a comment.
 	 *
-	 * @param WP_JSON_Request $request
-	 * @return array|WP_Error
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_JSON_Response|mixed
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -66,8 +68,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Create a comment.
 	 *
-	 * @param WP_JSON_Request $request Full details about the request.
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_JSON_Response|mixed
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -110,8 +112,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Edit a comment
 	 *
-	 * @param WP_JSON_Request $request Full details about the request.
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|WP_JSON_Response|mixed
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -149,7 +151,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$response = $this->get_item( array(
 			'id'      => $id,
 			'context' => 'edit',
-		));
+		) );
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment->comment_ID ) );
@@ -160,15 +162,14 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Delete a comment.
 	 *
-	 * @param WP_JSON_Request $request Full details about the request.
-	 * @return WP_Error|array
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|array|mixed
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
 		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
 
 		$comment = get_comment( $id );
-
 		if ( empty( $comment ) ) {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
@@ -192,8 +193,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single comment output for response.
 	 *
-	 * @param obj $item Comment object
-	 * @param obj $request Request object
+	 * @param  object          $comment Comment object.
+	 * @param  WP_JSON_Request $request Request object.
+	 * @return array $fields
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$fields = array(
@@ -237,6 +239,14 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		return apply_filters( 'json_prepare_comment', $fields, $comment, $request );
 	}
 
+	/**
+	 * Filter query parameters for comments collection endpoint.
+	 *
+	 * Prepares arguments before passing them along to WP_Comment_Query.
+	 *
+	 * @param  WP_JSON_Request $request Request object.
+	 * @return array           $prepared_args
+	 */
 	protected function prepare_items_query( $request ) {
 		$prepared_args = array(
 			'number'  => absint( $request['per_page'] ),
@@ -274,8 +284,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Check comment_approved to set comment status for single comment output.
 	 *
-	 * @param string|int $comment_approved
-	 * @return string    $status
+	 * @param  string|int $comment_approved
+	 * @return string     $status
 	 */
 	protected function prepare_status_response( $comment_approved ) {
 		$status = '';
@@ -304,8 +314,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single comment to be inserted into the database.
 	 *
-	 * @param WP_JSON_Request $request Request object.
-	 * @return array          $prepared_comment
+	 * @param  WP_JSON_Request $request Request object.
+	 * @return array           $prepared_comment
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
@@ -331,8 +341,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare a single comment for database update.
 	 *
-	 * @param WP_JSON_Request $request Request object.
-	 * @return array          $prepared_comment
+	 * @param  WP_JSON_Request $request Request object.
+	 * @return array           $prepared_comment
 	 */
 	protected function prepare_item_for_update( $request ) {
 		$prepared_comment = array();
@@ -364,7 +374,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Process a comment_status change when updating a comment.
 	 *
 	 * @param string|int $new_status
-	 * @param WP_Comment $comment
+	 * @param object     $comment
 	 * @return boolean   $changed
 	 */
 	protected function handle_status_change( $new_status, $comment ) {
@@ -409,8 +419,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 *
 	 * Correctly handles posts with the inherit status.
 	 *
-	 * @param object $comment Comment object
-	 * @return bool Can we read it?
+	 * @param  WP_Post $post Post Object.
+	 * @return boolean Can we read it?
 	 */
 	protected function check_read_post_permission( $post ) {
 		$posts_controller = new WP_JSON_Posts_Controller;
@@ -421,8 +431,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	/**
 	 * Check if we can read a comment.
 	 *
-	 * @param object $comment Comment object
-	 * @return bool Can we read it?
+	 * @param  object  $comment Comment object.
+	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
 		if ( 1 == $comment->comment_approved ) {
