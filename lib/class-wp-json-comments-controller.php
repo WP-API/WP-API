@@ -233,7 +233,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'href' => json_url( '/wp/posts/' . $comment->comment_post_ID ),
 			);
 		}
-		
+
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
 				'href' => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
@@ -254,12 +254,14 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return array           $prepared_args
 	 */
 	protected function prepare_items_query( $request ) {
+		$order_by = sanitize_key( $request['orderby'] );
+
 		$prepared_args = array(
 			'number'  => absint( $request['per_page'] ),
 			'post_id' => isset( $request['post_id'] ) ? absint( $request['post_id'] ) : '',
 			'parent'  => isset( $request['parent_id'] ) ? intval( $request['parent_id'] ) : '',
 			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
-			'orderby' => sanitize_key( $request['orderby'] ),
+			'orderby' => $this->normalize_query_param( $order_by ),
 			'order'   => sanitize_key( $request['order'] ),
 			'status'  => 'approve',
 			'type'    => 'comment',
@@ -288,13 +290,24 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Prepend internal property prefix to query parameters to match our response fields.
+	 *
+	 * @param  string $query_param
+	 * @return string
+	 */
+	protected function normalize_query_param( $query_param ) {
+		$prefix = 'comment_';
+
+		return $prefix . $query_param;
+	}
+
+	/**
 	 * Check comment_approved to set comment status for single comment output.
 	 *
 	 * @param  string|int $comment_approved
 	 * @return string     $status
 	 */
 	protected function prepare_status_response( $comment_approved ) {
-		$status = '';
 
 		switch ( $comment_approved ) {
 			case 'hold':
