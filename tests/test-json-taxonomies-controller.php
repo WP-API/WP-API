@@ -9,10 +9,8 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	}
 
 	public function test_register_routes() {
-		global $wp_json_server;
-		$wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
-		$routes = $wp_json_server->get_routes();
+		$routes = $this->server->get_routes();
+
 		$this->assertArrayHasKey( '/wp/taxonomies', $routes );
 		$this->assertArrayHasKey( '/wp/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
 	}
@@ -40,7 +38,7 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	public function test_get_taxonomies_with_types() {
 		foreach ( get_post_types() as $type ) {
 			$request = new WP_JSON_Request;
-                	$request->set_method( 'GET' );
+			$request->set_method( 'GET' );
 			$request->set_param( 'post_type', $type );
 			$response = $this->endpoint->get_items( $request );
 			$this->check_taxonomies_for_type_response( $type, $response );
@@ -82,11 +80,7 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	}
 
 	public function tearDown() {
-		global $wp_json_server;
-
 		parent::tearDown();
-
-		$wp_json_server = null;
 	}
 
 	/**
@@ -128,4 +122,4 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
 	}
 
-}	
+}
