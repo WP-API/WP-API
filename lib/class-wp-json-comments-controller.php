@@ -293,12 +293,27 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Prepend internal property prefix to query parameters to match our response fields.
 	 *
 	 * @param  string $query_param
-	 * @return string
+	 * @return string $normalized
 	 */
 	protected function normalize_query_param( $query_param ) {
 		$prefix = 'comment_';
 
-		return $prefix . $query_param;
+		switch ( $query_param ) {
+			case 'id':
+				$normalized = $prefix . 'ID';
+				break;
+			case 'post_id':
+				$normalized = $prefix . 'post_ID';
+				break;
+			case 'parent_id':
+				$normalized = $prefix . 'parent';
+				break;
+			default:
+				$normalized = $prefix . $query_param;
+				break;
+		}
+
+		return $normalized;
 	}
 
 	/**
