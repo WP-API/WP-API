@@ -21,15 +21,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		$this->endpoint = new WP_JSON_Posts_Controller;
-		$this->server = $GLOBALS['wp_json_server'];
 	}
 
 	public function test_register_routes() {
-		global $wp_json_server;
-		$wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
+		$routes = $this->server->get_routes();
 
-		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/posts', $routes );
 		$this->assertCount( 2, $routes['/wp/posts'] );
 		$this->assertArrayHasKey( '/wp/posts/(?P<id>[\d]+)', $routes );
@@ -730,10 +726,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function tearDown() {
-		global $wp_json_server;
-
 		parent::tearDown();
-		$wp_json_server = null;
 	}
 
 	protected function check_post_data( $post, $data, $context ) {
