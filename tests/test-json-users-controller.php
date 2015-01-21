@@ -22,15 +22,11 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		$this->endpoint = new WP_JSON_Users_Controller();
-		$this->server = $GLOBALS['wp_json_server'];
 	}
 
 	public function test_register_routes() {
-		global $wp_json_server;
-		$wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
+		$routes = $this->server->get_routes();
 
-		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/users', $routes );
 		$this->assertCount( 2, $routes['/wp/users'] );
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
@@ -432,11 +428,15 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_user_invalid_reassign', $response, 400 );
 	}
 
+	public function tearDown() {
+		parent::tearDown();
+	}
+
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
-		$this->assertEquals( $user->last_name, $data['last_name' ] );
+		$this->assertEquals( $user->last_name, $data['last_name'] );
 		$this->assertEquals( $user->nickname, $data['nickname'] );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
