@@ -240,6 +240,10 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
 	}
 
+	public function tearDown() {
+		parent::tearDown();
+	}
+
 	protected function check_get_taxonomy_terms_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
@@ -252,9 +256,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( count( $categories ), count( $data ) );
 		$this->assertEquals( $categories[0]->term_id, $data[0]['id'] );
 		$this->assertEquals( $categories[0]->name, $data[0]['name'] );
-		$this->assertEquals( $categories[0]->slug, $data[0]['slug']);
-		$this->assertEquals( $categories[0]->description, $data[0]['description']);
-		$this->assertEquals( $categories[0]->count, $data[0]['count']);
+		$this->assertEquals( $categories[0]->slug, $data[0]['slug'] );
+		$this->assertEquals( $categories[0]->description, $data[0]['description'] );
+		$this->assertEquals( $categories[0]->count, $data[0]['count'] );
 	}
 
 	protected function check_taxonomy_term( $term, $data ) {
