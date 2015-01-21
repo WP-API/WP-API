@@ -35,17 +35,18 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 		$query_args = $this->prepare_items_query( $prepared_args );
 
 		$posts_query = new WP_Query();
-		$posts = $posts_query->query( $query_args );
+		$query_result = $posts_query->query( $query_args );
 		if ( 0 === $posts_query->found_posts ) {
 			return new WP_Error( 'json_invalid_query', __( 'Invalid post query.' ), array( 'status' => 404 ) );
 		}
 
-		foreach ( $posts as &$post ) {
+		$posts = array();
+		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
 				continue;
 			}
 
-			$post = $this->prepare_item_for_response( $post, $request );
+			$posts[] = $this->prepare_item_for_response( $post, $request );
 		}
 
 		$response = json_ensure_response( $posts );
