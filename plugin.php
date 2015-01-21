@@ -355,7 +355,7 @@ function create_initial_json_routes() {
 					'default'      => 'DESC',
 				),
 				'orderby'      => array(
-					'default'      => 'comment_date_gmt',
+					'default'      => 'date_gmt',
 				),
 				'author_email' => array(),
 				'karma'        => array(),
