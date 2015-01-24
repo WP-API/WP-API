@@ -20,6 +20,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'role' => 'author',
 		) );
 
+		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_json' => true ) );
+
 		$this->endpoint = new WP_JSON_Posts_Controller;
 	}
 
@@ -38,6 +40,32 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->check_get_posts_response( $response );
+	}
+
+	/**
+	 * Issue #788
+	 *
+	 */
+	public function test_get_items_with_type() {
+		$p1 = $this->factory->post->create( array(
+			'post_type'     => 'youseeme',
+			'post_password' => 'butnotwithapassword',
+		));
+		$p2 = $this->factory->post->create( array(
+			'post_type'     => 'youseeme',
+		));
+
+		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request->set_query_params( array(
+			'type'           => 'youseeme',
+		));
+
+		$response = $this->server->dispatch( $request );
+		$response = json_ensure_response( $response );
+
+		$all_data = $response->get_data();
+		$this->assertCount( 1, $all_data );
+		$this->assertEquals( $p2, $all_data[0]['id'] );
 	}
 
 	public function test_get_items_invalid_query() {
@@ -726,6 +754,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function tearDown() {
+		_unregister_post_type( 'youseeeme' );
 		parent::tearDown();
 	}
 
