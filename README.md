@@ -1,10 +1,16 @@
-# REST API
-
-## BIG IMPORTANT WARNING: THE "DEVELOP" BRANCH IS UNDERGOING SUBSTANTIAL CHANGES AND SHOULD NOT BE USED IN PRODUCTION. IF YOU WANT STABLE, "MASTER" IS YOUR BRANCH.
+# JSON REST API (WP-API)
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=master)](https://travis-ci.org/WP-API/WP-API)
+
+## WARNING
+
+The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**.
+
+The **"master"** branch represents a **BETA** of our next version release.
+
+The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/json-rest-api/).
 
 ## About
 
