@@ -32,7 +32,7 @@ WP API exposes a simple yet easy interface to WP Query, the posts API, post meta
 API, users API, revisions API and many more. Chances are, if you can do it with
 WordPress, WP API will let you do it.
 
-WP API also includes an easy-to-use Javascript API based on Backbone models,
+WP API also includes an easy-to-use JavaScript API based on Backbone models,
 allowing plugin and theme developers to get up and running without needing to
 know anything about the details of getting connected.
 
