@@ -1,10 +1,16 @@
-# REST API
-
-## BIG IMPORTANT WARNING: THE "DEVELOP" BRANCH IS UNDERGOING SUBSTANTIAL CHANGES AND SHOULD NOT BE USED IN PRODUCTION. IF YOU WANT STABLE, "MASTER" IS YOUR BRANCH.
+# JSON REST API (WP-API)
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=master)](https://travis-ci.org/WP-API/WP-API)
+
+## WARNING
+
+The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**.
+
+The **"master"** branch represents a **BETA** of our next version release.
+
+The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/json-rest-api/).
 
 ## About
 
@@ -26,7 +32,7 @@ WP API exposes a simple yet easy interface to WP Query, the posts API, post meta
 API, users API, revisions API and many more. Chances are, if you can do it with
 WordPress, WP API will let you do it.
 
-WP API also includes an easy-to-use Javascript API based on Backbone models,
+WP API also includes an easy-to-use JavaScript API based on Backbone models,
 allowing plugin and theme developers to get up and running without needing to
 know anything about the details of getting connected.
 
