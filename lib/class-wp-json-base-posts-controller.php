@@ -639,7 +639,7 @@ abstract class WP_JSON_Base_Posts_Controller extends WP_JSON_Controller {
 	 * @param obj $post Post object
 	 * @return bool Can we read it?
 	 */
-	protected function check_read_permission( $post ) {
+	public function check_read_permission( $post ) {
 		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
 			return false;
 		}

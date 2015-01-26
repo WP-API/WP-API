@@ -43,6 +43,7 @@ require_once dirname( __FILE__ ) . '/lib/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
+require_once dirname( __FILE__ ) . '/lib/class-wp-json-comments-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -320,6 +321,108 @@ function create_initial_json_routes() {
 			'context'          => array(),
 		)
 	));
+
+	/**
+	 * Comments
+	 */
+	$controller = new WP_JSON_Comments_Controller;
+	register_json_route( 'wp', '/comments', array(
+		array(
+			'methods'   => WP_JSON_Server::READABLE,
+			'callback'  => array( $controller, 'get_items' ),
+			'args'      => array(
+				'post_id'      => array(
+					'default'      => null,
+				),
+				'user_id'      => array(
+					'default'      => 0,
+				),
+				'per_page'     => array(
+					'default'      => 10,
+				),
+				'page'         => array(
+					'default'      => 1,
+				),
+				'status'       => array(
+					'default'      => 'approve',
+				),
+				'type'         => array(
+					'default'      => 'comment',
+				),
+				'parent_id'    => array(),
+				'search'       => array(),
+				'order'        => array(
+					'default'      => 'DESC',
+				),
+				'orderby'      => array(
+					'default'      => 'date_gmt',
+				),
+				'author_email' => array(),
+				'karma'        => array(),
+				'post_author'  => array(),
+				'post_name'    => array(),
+				'post_parent'  => array(),
+				'post_status'  => array(),
+				'post_type'    => array(),
+			),
+		),
+		array(
+			'methods'  => WP_JSON_Server::CREATABLE,
+			'callback' => array( $controller, 'create_item' ),
+			'args'     => array(
+				'post_id'      => array(
+					'required'     => true,
+				),
+				'type'         => array(
+					'default'      => 'comment',
+				),
+				'user_id'      => array(
+					'default'      => 0,
+				),
+				'parent_id'    => array(
+					'default'      => 0,
+				),
+				'content'      => array(),
+				'author'       => array(),
+				'author_email' => array(),
+				'author_url'   => array(),
+				'date'         => array(),
+				'date_gmt'     => array(),
+			),
+		),
+	) );
+
+	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+		array(
+			'methods'  => WP_JSON_Server::READABLE,
+			'callback' => array( $controller, 'get_item' ),
+			'args'     => array(
+				'context'  => array(
+					'default'  => 'view',
+				),
+			),
+		),
+		array(
+			'methods'  => WP_JSON_Server::EDITABLE,
+			'callback' => array( $controller, 'update_item' ),
+			'args'     => array(
+				'post_id'      => array(),
+				'status'       => array(),
+				'content'      => array(),
+				'author'       => array(),
+				'author_email' => array(),
+				'author_url'   => array(),
+				'date'         => array(),
+			),
+		),
+		array(
+			'methods'  => WP_JSON_Server::DELETABLE,
+			'callback' => array( $controller, 'delete_item' ),
+			'args'     => array(
+				'force'    => array(),
+			),
+		),
+	) );
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 
