@@ -2,10 +2,11 @@
 /**
  * Plugin Name: JSON REST API
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
- * Author: Ryan McCue
- * Author URI: http://ryanmccue.info/
+ * Author: Ryan McCue, WP REST API Team
+ * Author URI: http://wp-api.org
  * Version: 1.1.1
- * Plugin URI: https://github.com/rmccue/WP-API
+ * Plugin URI: https://github.com/WP-API/WP-API
+ * License: GPL2+
  */
 
 /**
