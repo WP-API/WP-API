@@ -142,6 +142,10 @@ look at the [recent updates][] for the project.
 Previous issues can be found on the [GSOC Trac][] issue tracker, however new
 issues should not be filed there.
 
+## License
+
+[GPLv2+](http://www.gnu.org/licenses/gpl-2.0.html)
+
 [docs]: http://wp-api.org/
 [GitHub]: https://github.com/WP-API/WP-API
 [GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
