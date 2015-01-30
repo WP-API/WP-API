@@ -142,6 +142,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 		}
 
+		$post->post_type = $this->post_type;
 		$post_id = wp_insert_post( $post, true );
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
