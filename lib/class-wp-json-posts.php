@@ -805,11 +805,13 @@ class WP_JSON_Posts {
 			}
 		}
 
+		$_post = apply_filters( 'json_prepare_post', $_post, $post, $context );;
+
 		$GLOBALS['post'] = $previous_post;
 		if ( $previous_post ) {
 			setup_postdata( $previous_post );
 		}
-		return apply_filters( 'json_prepare_post', $_post, $post, $context );
+		return $_post;
 	}
 
 	/**
