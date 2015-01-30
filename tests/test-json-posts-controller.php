@@ -123,16 +123,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		}
 	}
 
-	public function test_get_items_invalid_type() {
-		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
-		$request->set_query_params( array(
-			'type' => 'foo',
-		) );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_invalid_post_type', $response, 403 );
-	}
-
 	public function test_get_item() {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );

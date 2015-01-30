@@ -20,23 +20,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
 		unset( $prepared_args['page'] );
 
-		if ( ! empty( $prepared_args['type'] ) ) {
-			$not_allowed = array();
-
-			foreach ( (array) $prepared_args['type'] as $type ) {
-				if ( ! $this->check_is_post_type_allowed( $type ) ) {
-					$not_allowed[] = $type;
-				}
-			}
-
-			if ( ! empty( $not_allowed ) ) {
-				return new WP_Error( 'json_invalid_post_type', sprintf( __( 'Invalid post type(s): %s' ), implode( ', ', $not_allowed ) ), array( 'status' => 403 ) );
-			}
-
-			$prepared_args['post_type'] = $prepared_args['type'];
-		}
-		unset( $prepared_args['type'] );
-
+		$prepared_args['post_type'] = $this->post_type;
 		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
 		$query_args = $this->prepare_items_query( $prepared_args );
 
