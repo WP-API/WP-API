@@ -127,7 +127,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function create_item( $request ) {
-		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
@@ -149,9 +148,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post->ID = $post_id;
-		$this->handle_sticky_posts( $sticky, $post_id );
+		if ( 'post' === $post->post_type ) {
+			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
+			$this->handle_sticky_posts( $sticky, $post_id );
+		}
 
-		if ( ! empty( $request['format'] ) ) {
+		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
@@ -205,12 +207,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post_id;
 		}
 
-		if ( ! empty( $request['format'] ) ) {
+		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-		$this->handle_sticky_posts( $sticky, $post_id );
+		if ( 'post' === $post->post_type ) {
+			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
+			$this->handle_sticky_posts( $sticky, $post_id );
+		}
 
 		/**
 		 * @TODO: Enable json_insert_post() action after
@@ -374,7 +378,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post title
-		if ( ! empty( $request['title'] ) ) {
+		if ( post_type_supports( $this->post_type, 'title' ) && ! empty( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title'] );
 			}
@@ -384,7 +388,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post content
-		if ( ! empty( $request['content'] ) ) {
+		if ( post_type_supports( $this->post_type, 'editor' ) && ! empty( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content'] );
 			}
@@ -394,7 +398,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post excerpt
-		if ( ! empty( $request['excerpt'] ) ) {
+		if ( post_type_supports( $this->post_type, 'excerpt' ) && ! empty( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
 			}
@@ -451,7 +455,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $request['author'] ) ) {
+		if ( post_type_supports( $this->post_type, 'author' ) && ! empty( $request['author'] ) ) {
 			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
@@ -470,7 +474,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Parent
-		if ( ! empty( $request['parent'] ) ) {
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( $post_type_obj->hierarchical && ! empty( $request['parent'] ) ) {
 			$parent = get_post( (int) $request['parent'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
@@ -480,17 +485,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Menu order
-		if ( ! empty( $request['menu_order'] ) ) {
+		if ( post_type_supports( $this->post_type, 'page-attributes' ) && ! empty( $request['menu_order'] ) ) {
 			$prepared_post->menu_order = (int) $request['menu_order'];
 		}
 
 		// Comment status
-		if ( ! empty( $request['comment_status'] ) ) {
+		if ( post_type_supports( $this->post_type, 'comments' ) && ! empty( $request['comment_status'] ) ) {
 			$prepared_post->comment_status = sanitize_text_field( $request['comment_status'] );
 		}
 
 		// Ping status
-		if ( ! empty( $request['ping_status'] ) ) {
+		if ( post_type_supports( $this->post_type, 'comments' ) && ! empty( $request['ping_status'] ) ) {
 			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
@@ -723,60 +728,22 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 
+		// Base fields for every post
 		$data = array(
 			'id'             => $post->ID,
-			'title'          => array(
-				'rendered'       => get_the_title( $post->ID ),
-			),
-			'content'        => array(
-				'rendered'       => apply_filters( 'the_content', $post->post_content ),
-			),
-			'excerpt'        => array(
-				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
-			),
 			'type'           => $post->post_type,
-			'format'         => get_post_format( $post->ID ),
-			'parent'         => (int) $post->post_parent,
 			'slug'           => $post->post_name,
 			'link'           => get_permalink( $post->ID ),
 			'guid'           => array(
 				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'author'         => (int) $post->post_author,
-			'comment_status' => $post->comment_status,
-			'ping_status'    => $post->ping_status,
-			'sticky'         => ( 'post' === $post->post_type && is_sticky( $post->ID ) ),
-			'menu_order'     => (int) $post->menu_order,
 			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-
 		);
-
-		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
-			/**
-			 * Avoid nesting too deeply.
-			 *
-			 * This gives post + post-extended + meta for the main post,
-			 * post + meta for the parent and just meta for the grandparent
-			 */
-			$parent = get_post( $post->post_parent );
-			$data['parent'] = $this->prepare_item_for_response( $parent, array(
-				'context' => 'embed',
-			) );
-		}
 
 		if ( 'edit' === $request['context'] ) {
 
 			$data_raw = array(
-				'title'        => array(
-					'raw'          => $post->post_title,
-				),
-				'content'      => array(
-					'raw'          => $post->post_content,
-				),
-				'excerpt'      => array(
-					'raw'          => $post->post_excerpt,
-				),
 				'guid'         => array(
 					'raw'          => $post->guid,
 				),
@@ -794,13 +761,76 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		// Fill in blank post format
-		if ( empty( $data['format'] ) ) {
-			$data['format'] = 'standard';
+		if ( post_type_supports( $post->post_type, 'title' ) ) {
+			$data['title'] = array(
+				'rendered'       => get_the_title( $post->ID ),
+				);
+			if ( 'edit' === $request['context'] ) {
+				$data['title']['raw'] = $post->post_title;
+			}
 		}
 
-		if ( 0 == $data['parent'] ) {
-			$data['parent'] = null;
+		if ( post_type_supports( $post->post_type, 'editor' ) ) {
+			$data['content'] = array(
+				'rendered'       => apply_filters( 'the_content', $post->post_content ),
+				);
+			if ( 'edit' === $request['context'] ) {
+				$data['content']['raw'] = $post->post_content;
+			}
+		}
+
+		if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
+			$data['excerpt'] = array(
+				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
+				);
+			if ( 'edit' === $request['context'] ) {
+				$data['excerpt']['raw'] = $post->post_excerpt;
+			}
+		}
+
+		if ( post_type_supports( $post->post_type, 'author' ) ) {
+			$data['author'] = (int) $post->post_author;
+		}
+
+		$post_type_obj = get_post_type_object( $post->post_type );
+		if ( $post_type_obj->hierarchical ) {
+			$data['parent'] = (int) $post->post_parent;
+			if ( 0 == $data['parent'] ) {
+				$data['parent'] = null;
+			}
+			if ( post_type_supports( $post->post_type, 'page-attributes' ) ) {
+				$data['menu_order'] = (int) $post->menu_order;
+			}
+		}
+
+		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+			$data['comment_status'] = $post->comment_status;
+			$data['ping_status'] = $post->ping_status;
+		}
+
+		if ( 'post' === $post->post_type ) {
+			$data['sticky'] = is_sticky( $post->ID );
+		}
+
+		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+			$data['format'] = get_post_format( $post->ID );
+			// Fill in blank post format
+			if ( empty( $data['format'] ) ) {
+				$data['format'] = 'standard';
+			}
+		}
+
+		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
+			/**
+			 * Avoid nesting too deeply.
+			 *
+			 * This gives post + post-extended + meta for the main post,
+			 * post + meta for the parent and just meta for the grandparent
+			 */
+			$parent = get_post( $post->post_parent );
+			$data['parent'] = $this->prepare_item_for_response( $parent, array(
+				'context' => 'embed',
+			) );
 		}
 
 		/**
@@ -825,22 +855,31 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'self'            => array(
 				'href' => json_url( '/wp/posts/' . $post->ID ),
 			),
-			'author'          => array(
-				'href' => json_url( '/wp/users/' . $post->post_author ),
-				'embeddable' => true,
-			),
 			'collection'      => array(
 				'href' => json_url( '/wp/posts' ),
 			),
-			'replies'         => array(
-				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
-			),
-			'version-history' => array(
-				'href' => json_url( '/wp/posts/' . $post->ID . '/revisions' ),
-			),
 		);
 
-		if ( ! empty( $post->post_parent ) ) {
+		if ( post_type_supports( $post->post_type, 'author' ) ) {
+			$links['author'] = array(
+				'href' => json_url( '/wp/users/' . $post->post_author ),
+				'embeddable' => true,
+			);
+		};
+
+		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+			$links['replies'] = array(
+				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
+				);
+		}
+
+		if ( post_type_supports( $post->post_type, 'revisions' ) ) {
+			$links['version-history'] = array(
+				'href' => json_url( '/wp/posts/' . $post->ID . '/revisions' ),
+			);
+		}
+		$post_type_obj = get_post_type_object( $post->post_type );
+		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
 				'href' => json_url( '/wp/posts/' . (int) $post->post_parent ),
 				'embeddable' => true,

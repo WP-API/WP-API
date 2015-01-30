@@ -718,38 +718,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	protected function check_post_data( $post, $data, $context ) {
+		$post_type_obj = get_post_type_object( $post->post_type );
+
+		// Standard fields
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( $post->post_author, $data['author'] );
-		$this->assertArrayHasKey( 'parent', $data );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
-		$this->assertEquals( $post->menu_order, $data['menu_order'] );
-		$this->assertEquals( $post->comment_status, $data['comment_status'] );
-		$this->assertEquals( $post->ping_status, $data['ping_status'] );
-		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
-
-		// Check post parent.
-		if ( $post->post_parent ) {
-			if ( is_int( $data['parent'] ) ) {
-				$this->assertEquals( $post->post_parent, $data['parent'] );
-			}
-			else {
-				$this->assertEquals( $post->post_parent, $data['parent']['id'] );
-				$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
-			}
-		}
-		else {
-			$this->assertEmpty( $data['parent'] );
-		}
-
-		// Check post format.
-		$post_format = get_post_format( $post->ID );
-		if ( empty( $post_format ) ) {
-			$this->assertEquals( 'standard', $data['format'] );
-		} else {
-			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
-		}
-
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		}
@@ -761,6 +735,64 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		}
 		else {
 			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+		}
+
+		// author
+		if ( post_type_supports( $post->post_type, 'author' ) ) {
+			$this->assertEquals( $post->post_author, $data['author'] );
+		} else {
+			$this->assertEmpty( $data['author'] );
+		}
+
+		// post_parent
+		if ( $post_type_obj->hierarchical ) {
+			$this->assertArrayHasKey( 'parent', $data );
+			if ( $post->post_parent ) {
+				if ( is_int( $data['parent'] ) ) {
+					$this->assertEquals( $post->post_parent, $data['parent'] );
+				}
+				else {
+					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
+					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				}
+			}
+			else {
+				$this->assertEmpty( $data['parent'] );
+			}
+		} else {
+			$this->assertFalse( isset( $data['parent'] ) );
+		}
+
+		// page attributes
+		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ){
+			$this->assertEquals( $post->menu_order, $data['menu_order'] );
+		} else {
+			$this->assertFalse( isset( $data['menu_order'] ) );
+		}
+
+		// Comments
+		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+			$this->assertEquals( $post->comment_status, $data['comment_status'] );
+			$this->assertEquals( $post->ping_status, $data['ping_status'] );
+		} else {
+			$this->assertFalse( isset( $data['comment_status'] ) );
+			$this->assertFalse( isset( $data['ping_status'] ) );
+		}
+
+		if ( 'post' === $post->post_type ) {
+			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
+
+		// Check post format.
+		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+			$post_format = get_post_format( $post->ID );
+			if ( empty( $post_format ) ) {
+				$this->assertEquals( 'standard', $data['format'] );
+			} else {
+				$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
+			}
+		} else {
+			$this->assertFalse( isset( $data['format'] ) );
 		}
 
 		// Check filtered values.

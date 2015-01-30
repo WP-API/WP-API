@@ -110,6 +110,52 @@ function create_initial_json_routes() {
 		$controller = new $class( $post_type->name );
 		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
 
+		$post_type_fields = array(
+				'type'           => array(),
+				'status'         => array(),
+				'date'           => array(),
+				'date_gmt'       => array(),
+				'name'           => array(),
+				'password'       => array(),
+			);
+
+		if ( post_type_supports( $post_type->name, 'title' ) ) {
+			$post_type_fields['title'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'editor' ) ) {
+			$post_type_fields['content'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'excerpt' ) ) {
+			$post_type_fields['excerpt'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'author' ) ) {
+			$post_type_fields['author'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'post-formats' ) ) {
+			$post_type_fields['format'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'comments' ) ) {
+			$post_type_fields['comment_status'] = array();
+			$post_type_fields['ping_status'] = array();
+		}
+
+		if ( 'post' === $post_type->name ) {
+			$post_type_fields['sticky'] = array();
+		}
+
+		if ( $post_type->hierarchical ) {
+			$post_type_fields['parent'] = array();
+		}
+
+		if ( $post_type->hierarchical && post_type_supports( $post_type->name, 'page-attributes' ) ) {
+			$post_type_fields['menu_order'] = array();
+		}
+
 		register_json_route( 'wp', '/' . $base, array(
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
@@ -126,30 +172,7 @@ function create_initial_json_routes() {
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $controller, 'create_item' ),
 				'accept_json'     => true,
-				'args'            => array(
-					'title'          => array(
-						'required'       => true,
-					),
-					'content'        => array(
-						'required'       => true,
-					),
-					'excerpt'        => array(
-						'required'       => true,
-					),
-					'type'           => array(),
-					'status'         => array(),
-					'date'           => array(),
-					'date_gmt'       => array(),
-					'name'           => array(),
-					'format'         => array(),
-					'author'         => array(),
-					'password'       => array(),
-					'parent'         => array(),
-					'menu_order'     => array(),
-					'comment_status' => array(),
-					'ping_status'    => array(),
-					'sticky'         => array(),
-				),
+				'args'            => $post_type_fields,
 			),
 		) );
 		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
@@ -166,24 +189,7 @@ function create_initial_json_routes() {
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $controller, 'update_item' ),
 				'accept_json'     => true,
-				'args'            => array(
-					'title'          => array(),
-					'content'        => array(),
-					'excerpt'        => array(),
-					'type'           => array(),
-					'status'         => array(),
-					'date'           => array(),
-					'date_gmt'       => array(),
-					'name'           => array(),
-					'format'         => array(),
-					'author'         => array(),
-					'password'       => array(),
-					'parent'         => array(),
-					'menu_order'     => array(),
-					'comment_status' => array(),
-					'ping_status'    => array(),
-					'sticky'         => array(),
-				),
+				'args'            => $post_type_fields,
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,
