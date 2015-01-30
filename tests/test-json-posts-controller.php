@@ -21,8 +21,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_json' => true ) );
-
-		$this->endpoint = new WP_JSON_Posts_Controller;
 	}
 
 	public function test_register_routes() {
@@ -103,9 +101,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'post_type' => 'page',
 		) );
 
-		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request = new WP_JSON_Request( 'GET', '/wp/pages' );
 		$request->set_query_params( array(
-			'type'           => 'page',
 			'page'           => 2,
 			'posts_per_page' => 4,
 		) );
@@ -506,9 +503,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
 			'parent' => $page_id,
 		) );
 		$request->set_body_params( $params );
@@ -530,9 +526,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_create_page_with_invalid_parent() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
 			'parent' => -1,
 		) );
 		$request->set_body_params( $params );
