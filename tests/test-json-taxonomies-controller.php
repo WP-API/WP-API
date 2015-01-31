@@ -100,6 +100,7 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	protected function check_taxonomy_object( $tax_obj, $data ) {
 		$this->assertEquals( $tax_obj->label, $data['name'] );
 		$this->assertEquals( $tax_obj->name, $data['slug'] );
+		$this->assertEquals( $tax_obj->description, $data['description'] );
 		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
 	}
