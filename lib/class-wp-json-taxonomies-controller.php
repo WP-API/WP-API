@@ -47,13 +47,14 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	 * @return array Taxonomy data
 	 */
 	public function prepare_item_for_response( $taxonomy, $request ) {
-		if ( $taxonomy->public === false ) {
+		if ( false === $taxonomy->public ) {
 			return new WP_Error( 'json_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 		}
 
 		$data = array(
 			'name'         => $taxonomy->label,
 			'slug'         => $taxonomy->name,
+			'description'  => $taxonomy->description,
 			'labels'       => $taxonomy->labels,
 			'types'        => $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
