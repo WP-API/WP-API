@@ -21,8 +21,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_json' => true ) );
-
-		$this->endpoint = new WP_JSON_Posts_Controller;
 	}
 
 	public function test_register_routes() {
@@ -40,32 +38,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->check_get_posts_response( $response );
-	}
-
-	/**
-	 * Issue #788
-	 *
-	 */
-	public function test_get_items_with_type() {
-		$p1 = $this->factory->post->create( array(
-			'post_type'     => 'youseeme',
-			'post_password' => 'butnotwithapassword',
-		));
-		$p2 = $this->factory->post->create( array(
-			'post_type'     => 'youseeme',
-		));
-
-		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
-		$request->set_query_params( array(
-			'type'           => 'youseeme',
-		));
-
-		$response = $this->server->dispatch( $request );
-		$response = json_ensure_response( $response );
-
-		$all_data = $response->get_data();
-		$this->assertCount( 1, $all_data );
-		$this->assertEquals( $p2, $all_data[0]['id'] );
 	}
 
 	public function test_get_items_invalid_query() {
@@ -103,9 +75,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			'post_type' => 'page',
 		) );
 
-		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
+		$request = new WP_JSON_Request( 'GET', '/wp/pages' );
 		$request->set_query_params( array(
-			'type'           => 'page',
 			'page'           => 2,
 			'posts_per_page' => 4,
 		) );
@@ -124,16 +95,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		foreach ( $all_data as $post ) {
 			$this->assertEquals( 'page', $post['type'] );
 		}
-	}
-
-	public function test_get_items_invalid_type() {
-		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
-		$request->set_query_params( array(
-			'type' => 'foo',
-		) );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_invalid_post_type', $response, 403 );
 	}
 
 	public function test_get_item() {
@@ -506,9 +467,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
 			'parent' => $page_id,
 		) );
 		$request->set_body_params( $params );
@@ -530,9 +490,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 	public function test_create_page_with_invalid_parent() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'type'   => 'page',
 			'parent' => -1,
 		) );
 		$request->set_body_params( $params );
@@ -753,44 +712,28 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
 	}
 
+	public function test_register_post_type_invalid_controller() {
+
+		register_post_type( 'invalid-controller', array( 'show_in_json' => true, 'json_controller_class' => 'Fake_Class_Baba' ) );
+		create_initial_json_routes();
+		$routes = $this->server->get_routes();
+		$this->assertFalse( isset( $routes['/wp/invalid-controller'] ) );
+		_unregister_post_type( 'invalid-controller' );
+
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
 		parent::tearDown();
 	}
 
 	protected function check_post_data( $post, $data, $context ) {
+		$post_type_obj = get_post_type_object( $post->post_type );
+
+		// Standard fields
 		$this->assertEquals( $post->ID, $data['id'] );
 		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( $post->post_author, $data['author'] );
-		$this->assertArrayHasKey( 'parent', $data );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
-		$this->assertEquals( $post->menu_order, $data['menu_order'] );
-		$this->assertEquals( $post->comment_status, $data['comment_status'] );
-		$this->assertEquals( $post->ping_status, $data['ping_status'] );
-		$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
-
-		// Check post parent.
-		if ( $post->post_parent ) {
-			if ( is_int( $data['parent'] ) ) {
-				$this->assertEquals( $post->post_parent, $data['parent'] );
-			}
-			else {
-				$this->assertEquals( $post->post_parent, $data['parent']['id'] );
-				$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
-			}
-		}
-		else {
-			$this->assertEmpty( $data['parent'] );
-		}
-
-		// Check post format.
-		$post_format = get_post_format( $post->ID );
-		if ( empty( $post_format ) ) {
-			$this->assertEquals( 'standard', $data['format'] );
-		} else {
-			$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
-		}
-
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		}
@@ -802,6 +745,64 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		}
 		else {
 			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+		}
+
+		// author
+		if ( post_type_supports( $post->post_type, 'author' ) ) {
+			$this->assertEquals( $post->post_author, $data['author'] );
+		} else {
+			$this->assertEmpty( $data['author'] );
+		}
+
+		// post_parent
+		if ( $post_type_obj->hierarchical ) {
+			$this->assertArrayHasKey( 'parent', $data );
+			if ( $post->post_parent ) {
+				if ( is_int( $data['parent'] ) ) {
+					$this->assertEquals( $post->post_parent, $data['parent'] );
+				}
+				else {
+					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
+					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
+				}
+			}
+			else {
+				$this->assertEmpty( $data['parent'] );
+			}
+		} else {
+			$this->assertFalse( isset( $data['parent'] ) );
+		}
+
+		// page attributes
+		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ){
+			$this->assertEquals( $post->menu_order, $data['menu_order'] );
+		} else {
+			$this->assertFalse( isset( $data['menu_order'] ) );
+		}
+
+		// Comments
+		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+			$this->assertEquals( $post->comment_status, $data['comment_status'] );
+			$this->assertEquals( $post->ping_status, $data['ping_status'] );
+		} else {
+			$this->assertFalse( isset( $data['comment_status'] ) );
+			$this->assertFalse( isset( $data['ping_status'] ) );
+		}
+
+		if ( 'post' === $post->post_type ) {
+			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
+
+		// Check post format.
+		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+			$post_format = get_post_format( $post->ID );
+			if ( empty( $post_format ) ) {
+				$this->assertEquals( 'standard', $data['format'] );
+			} else {
+				$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
+			}
+		} else {
+			$this->assertFalse( isset( $data['format'] ) );
 		}
 
 		// Check filtered values.

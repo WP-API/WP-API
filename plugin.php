@@ -39,7 +39,6 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
 
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-base-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
@@ -79,101 +78,139 @@ function register_json_route( $namespace, $route, $args = array(), $override = f
 }
 
 /**
+ * Add the extra Post Type registration arguments we need
+ * These attributes will eventually be committed to core.
+ */
+function _add_extra_api_post_type_arguments() {
+	global $wp_post_types;
+
+	$wp_post_types['post']->show_in_json = true;
+	$wp_post_types['post']->json_base = 'posts';
+	$wp_post_types['post']->json_controller_class = 'WP_JSON_Posts_Controller';
+
+	$wp_post_types['page']->show_in_json = true;
+	$wp_post_types['page']->json_base = 'pages';
+	$wp_post_types['page']->json_controller_class = 'WP_JSON_Posts_Controller';
+
+	// $wp_post_types['attachment']->show_in_json = true;
+	// $wp_post_types['attachment']->json_base = 'media';
+	// $wp_post_types['attachment']->json_controller_class = 'WP_JSON_Attachments_Controller';
+
+}
+add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
+
+/**
  * Register default JSON API routes
  */
 function create_initial_json_routes() {
 
-	/*
-	 * Posts
-	 */
-	$controller = new WP_JSON_Posts_Controller;
-	register_json_route( 'wp', '/posts', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_items' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view',
-				),
-				'type'            => array(),
-				'page'            => array(),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::CREATABLE,
-			'callback'        => array( $controller, 'create_item' ),
-			'accept_json'     => true,
-			'args'            => array(
-				'title'          => array(
-					'required'       => true,
-				),
-				'content'        => array(
-					'required'       => true,
-				),
-				'excerpt'        => array(
-					'required'       => true,
-				),
+	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
+
+		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
+		if ( ! class_exists( $class ) ) {
+			continue;
+		}
+		$controller = new $class( $post_type->name );
+		if ( ! is_subclass_of( $controller, 'WP_JSON_Controller' ) ) {
+			continue;
+		}
+		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
+
+		$post_type_fields = array(
 				'type'           => array(),
 				'status'         => array(),
 				'date'           => array(),
 				'date_gmt'       => array(),
 				'name'           => array(),
-				'format'         => array(),
-				'author'         => array(),
 				'password'       => array(),
-				'parent'         => array(),
-				'menu_order'     => array(),
-				'comment_status' => array(),
-				'ping_status'    => array(),
-				'sticky'         => array(),
-			),
-		),
-	) );
-	register_json_route( 'wp', '/posts/(?P<id>[\d]+)', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view',
+			);
+
+		if ( post_type_supports( $post_type->name, 'title' ) ) {
+			$post_type_fields['title'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'editor' ) ) {
+			$post_type_fields['content'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'excerpt' ) ) {
+			$post_type_fields['excerpt'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'author' ) ) {
+			$post_type_fields['author'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'post-formats' ) ) {
+			$post_type_fields['format'] = array();
+		}
+
+		if ( post_type_supports( $post_type->name, 'comments' ) ) {
+			$post_type_fields['comment_status'] = array();
+			$post_type_fields['ping_status'] = array();
+		}
+
+		if ( 'post' === $post_type->name ) {
+			$post_type_fields['sticky'] = array();
+		}
+
+		if ( $post_type->hierarchical ) {
+			$post_type_fields['parent'] = array();
+		}
+
+		if ( $post_type->hierarchical && post_type_supports( $post_type->name, 'page-attributes' ) ) {
+			$post_type_fields['menu_order'] = array();
+		}
+
+		register_json_route( 'wp', '/' . $base, array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $controller, 'get_items' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+					'type'            => array(),
+					'page'            => array(),
 				),
 			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::EDITABLE,
-			'callback'        => array( $controller, 'update_item' ),
-			'accept_json'     => true,
-			'args'            => array(
-				'title'          => array(),
-				'content'        => array(),
-				'excerpt'        => array(),
-				'type'           => array(),
-				'status'         => array(),
-				'date'           => array(),
-				'date_gmt'       => array(),
-				'name'           => array(),
-				'format'         => array(),
-				'author'         => array(),
-				'password'       => array(),
-				'parent'         => array(),
-				'menu_order'     => array(),
-				'comment_status' => array(),
-				'ping_status'    => array(),
-				'sticky'         => array(),
+			array(
+				'methods'         => WP_JSON_Server::CREATABLE,
+				'callback'        => array( $controller, 'create_item' ),
+				'accept_json'     => true,
+				'args'            => $post_type_fields,
 			),
-		),
-		array(
-			'methods'  => WP_JSON_Server::DELETABLE,
-			'callback' => array( $controller, 'delete_item' ),
-			'args'     => array(
-				'force'    => array(),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $controller, 'get_item' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+				),
 			),
-		),
-	) );
-	register_json_route( 'wp', '/posts/(?P<id>\d+)/revisions', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_revisions' ),
-	) );
+			array(
+				'methods'         => WP_JSON_Server::EDITABLE,
+				'callback'        => array( $controller, 'update_item' ),
+				'accept_json'     => true,
+				'args'            => $post_type_fields,
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $controller, 'delete_item' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $controller, 'get_item_revisions' ),
+		) );
+
+	}
 
 	/*
 	 * Taxonomies

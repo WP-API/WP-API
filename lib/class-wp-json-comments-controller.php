@@ -457,7 +457,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_post_permission( $post ) {
-		$posts_controller = new WP_JSON_Posts_Controller;
+		$posts_controller = new WP_JSON_Posts_Controller( $post->post_type );
 
 		return $posts_controller->check_read_permission( $post );
 	}
