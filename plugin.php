@@ -107,10 +107,13 @@ function create_initial_json_routes() {
 	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
 
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
-		if ( ! is_subclass_of( $class, 'WP_JSON_Controller' ) ) {
+		if ( ! class_exists( $class ) ) {
 			continue;
 		}
 		$controller = new $class( $post_type->name );
+		if ( ! is_subclass_of( $controller, 'WP_JSON_Controller' ) ) {
+			continue;
+		}
 		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
 
 		$post_type_fields = array(
