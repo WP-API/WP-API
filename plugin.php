@@ -84,15 +84,15 @@ function register_json_route( $namespace, $route, $args = array(), $override = f
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;
 
-	$wp_post_types['post']->access_in_json = true;
+	$wp_post_types['post']->show_in_json = true;
 	$wp_post_types['post']->json_base = 'posts';
 	$wp_post_types['post']->json_controller_class = 'WP_JSON_Posts_Controller';
 
-	$wp_post_types['page']->access_in_json = true;
+	$wp_post_types['page']->show_in_json = true;
 	$wp_post_types['page']->json_base = 'pages';
 	$wp_post_types['page']->json_controller_class = 'WP_JSON_Posts_Controller';
 
-	// $wp_post_types['attachment']->access_in_json = true;
+	// $wp_post_types['attachment']->show_in_json = true;
 	// $wp_post_types['attachment']->json_base = 'media';
 	// $wp_post_types['attachment']->json_controller_class = 'WP_JSON_Attachments_Controller';
 
@@ -104,7 +104,7 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
  */
 function create_initial_json_routes() {
 
-	foreach( get_post_types( array( 'access_in_json' => true ), 'objects' ) as $post_type ) {
+	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
 
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
 		$controller = new $class( $post_type->name );
