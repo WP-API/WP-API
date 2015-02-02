@@ -712,6 +712,16 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
 	}
 
+	public function test_register_post_type_invalid_controller() {
+
+		register_post_type( 'invalid-controller', array( 'show_in_json' => true, 'json_controller_class' => 'Fake_Class_Baba' ) );
+		create_initial_json_routes();
+		$routes = $this->server->get_routes();
+		$this->assertFalse( isset( $routes['/wp/invalid-controller'] ) );
+		_unregister_post_type( 'invalid-controller' );
+
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
 		parent::tearDown();
