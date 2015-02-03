@@ -400,6 +400,38 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
 	}
 
+	public function test_create_update_post_with_featured_image() {
+
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+		$this->attachment_id = $this->factory->attachment->create_object( $file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'menu_order' => rand( 1, 100 )
+		) );
+
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'featured_image' => $this->attachment_id,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( $this->attachment_id, $data['featured_image'] );
+		$this->assertEquals( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts/' . $new_post->ID );
+		$params = $this->set_post_data( array(
+			'featured_image' => 0,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 0, $data['featured_image'] );
+		$this->assertEquals( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
+	}
+
 	public function test_create_post_invalid_author() {
 		wp_set_current_user( $this->editor_id );
 
@@ -724,6 +756,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
+		if ( isset( $this->attachment_id ) ) {
+			$this->remove_added_uploads();
+		}
 		parent::tearDown();
 	}
 
@@ -791,6 +826,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		if ( 'post' === $post->post_type ) {
 			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
+		}
+
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image'] );
+		} else {
+			$this->assertFalse( isset( $data['featured_image'] ) );
 		}
 
 		// Check post format.
