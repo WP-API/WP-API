@@ -153,6 +153,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_sticky_posts( $sticky, $post_id );
 		}
 
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) && isset( $request['featured_image' ] ) ) {
+			$this->handle_featured_image( $request['featured_image'], $post->ID );
+		}
+
 		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
@@ -209,6 +213,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
+		}
+
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) && isset( $request['featured_image' ] ) ) {
+			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
 		if ( 'post' === $post->post_type ) {
@@ -578,6 +586,28 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Determine the featured image based on a request param
+	 *
+	 * @param int $featured_image
+	 * @param int $post_id
+	 */
+	protected function handle_featured_image( $featured_image, $post_id ) {
+
+		$featured_image = (int) $featured_image;
+		if ( $featured_image ) {
+			$result = set_post_thumbnail( $post_id, $featured_image );
+			if ( $result ) {
+				return true;
+			} else {
+				return new WP_Error( 'json_invalid_featured_image', __( 'Invalid featured image ID.' ), array( 'status' => 400 ) );
+			}
+		} else {
+			return delete_post_thumbnail( $post_id );
+		}
+
+	}
+
+	/**
 	 * Determine if a post format should be set from format param.
 	 *
 	 * @param string $post_format
@@ -790,6 +820,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
 			$data['author'] = (int) $post->post_author;
+		}
+
+		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
 		}
 
 		$post_type_obj = get_post_type_object( $post->post_type );
