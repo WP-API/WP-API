@@ -97,13 +97,13 @@ class WP_JSON_Response extends WP_HTTP_Response {
 			if ( $paged > 1 ) {
 				$request = remove_query_arg( 'page' );
 				$request = add_query_arg( 'page', $paged - 1, $request );
-				$this->link_header( 'prev', $request );
+				$this->link_header( 'prev', untrailingslashit( home_url() ) . $request );
 			}
 
 			if ( $nextpage <= $max_page ) {
 				$request = remove_query_arg( 'page' );
 				$request = add_query_arg( 'page', $nextpage, $request );
-				$this->link_header( 'next', $request );
+				$this->link_header( 'next', untrailingslashit( home_url() ) . $request );
 			}
 		}
 
