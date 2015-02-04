@@ -906,7 +906,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// Entity meta
 		$links = array(
 			'self'            => array(
-				'href' => json_url( $request->get_route() ),
+				'href' => json_url( '/wp/' . $base . '/' . $post->ID ),
 			),
 			'collection'      => array(
 				'href' => json_url( $base ),
