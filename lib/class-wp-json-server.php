@@ -151,7 +151,7 @@ class WP_JSON_Server {
 		}
 		$error = compact( 'code', 'message' );
 
-		return json_encode( array( $error ) );
+		return $this->json_encode( array( $error ) );
 	}
 
 	/**
@@ -282,13 +282,13 @@ class WP_JSON_Server {
 			// Embed links inside the request
 			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
-			$result = json_encode( $result );
+			$result = $this->json_encode( $this->prepare_response( $result ) );
 
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
 				$json_error_obj = new WP_Error( 'json_encode_error', $json_error_message, array( 'status' => 500 ) );
 				$result = $this->error_to_response( $json_error_obj );
-				$result = json_encode( $result->data[0] );
+				$result = $this->json_encode( $result->data[0] );
 			}
 
 			if ( isset( $_GET['_jsonp'] ) ) {
@@ -839,5 +839,16 @@ class WP_JSON_Server {
 		}
 
 		return $headers;
+	}
+
+	/**
+	 * JSON encode a value. This is a wrapper around `json_encode` so argument
+	 * flags and such can be set in a single place.
+	 *
+	 * @param array|object $data The value to encode
+	 * @return string The json encoded value
+	 */
+	protected function json_encode( $data ) {
+		return json_encode( $data );
 	}
 }
