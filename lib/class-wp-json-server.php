@@ -871,6 +871,9 @@ class WP_JSON_Server {
 		 *
 		 * @param int $flags
 		 */
-		return apply_filters( 'json_encode_flags', 0 );
+		return apply_filters(
+			'json_encode_flags',
+			isset( $_GET['pretty'] ) && defined( 'JSON_PRETTY_PRINT' ) ? JSON_PRETTY_PRINT : 0
+		);
 	}
 }
