@@ -10,14 +10,14 @@ class WP_JSON_Response extends WP_HTTP_Response {
 
 	/**
 	 * The route that was to create the response
-	 * 
+	 *
 	 * @var string
 	 */
 	protected $matched_route = '';
 
 	/**
 	 * The handler that was used to create the response
-	 * 
+	 *
 	 * @var null|array
 	 */
 	protected $matched_handler = null;
@@ -114,8 +114,8 @@ class WP_JSON_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Get the route that was used to 
-	 * 
+	 * Get the route that was used to
+	 *
 	 * @return string
 	 */
 	public function get_matched_route() {
@@ -123,8 +123,8 @@ class WP_JSON_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Set the route (regex for path) that caused the response 
-	 * 
+	 * Set the route (regex for path) that caused the response
+	 *
 	 * @param string $route
 	 */
 	public function set_matched_route( $route ) {
@@ -133,7 +133,7 @@ class WP_JSON_Response extends WP_HTTP_Response {
 
 	/**
 	 * Get the handler that was used to generate the response
-	 * 
+	 *
 	 * @return null|array
 	 */
 	public function get_matched_handler() {
@@ -142,7 +142,7 @@ class WP_JSON_Response extends WP_HTTP_Response {
 
 	/**
 	 * Get the handler that was responsible for generting the response
-	 * 
+	 *
 	 * @param array $handler
 	 */
 	public function set_matched_handler( $handler ) {
@@ -151,7 +151,7 @@ class WP_JSON_Response extends WP_HTTP_Response {
 
 	/**
 	 * Check if the response is an error, i.e. >= 400 response code
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public function is_error() {
@@ -159,8 +159,8 @@ class WP_JSON_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Get a WP_Error object from the response's 
-	 * 
+	 * Get a WP_Error object from the response's
+	 *
 	 * @return WP_Error|null on not an errored response
 	 */
 	public function as_error() {
