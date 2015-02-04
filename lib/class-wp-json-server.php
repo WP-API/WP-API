@@ -169,6 +169,7 @@ class WP_JSON_Server {
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
+		$this->send_header( 'Access-Control-Expose-Headers', 'X-WP-Total, X-WP-TotalPages' );
 
 		// Proper filter for turning off the JSON API. It is on by default.
 		$enabled = apply_filters( 'json_enabled', true );
