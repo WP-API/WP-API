@@ -748,6 +748,22 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the base path for a post type's endpoints.
+	 *
+	 * @param object|string $post_type
+	 * @return string       $base
+	 */
+	protected function get_post_type_base( $post_type ) {
+		if ( ! is_object( $post_type ) ) {
+			$post_type = get_post_type_object( $post_type );
+		}
+
+		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
+
+		return $base;
+	}
+
+	/**
 	 * Prepare a single post output for response
 	 *
 	 * @param WP_Post $post Post object
