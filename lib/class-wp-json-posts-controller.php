@@ -922,9 +922,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
 			$links['replies'] = array(
-				'href' => json_url( '/wp/comments/' . $post->ID ),
+				'href' => json_url( '/wp/comments' ),
 				'embeddable' => true,
-				);
+				'query_params' => array( 'post_id' => $post->ID ),
+			);
 		}
 
 		if ( post_type_supports( $post->post_type, 'revisions' ) ) {
