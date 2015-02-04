@@ -174,7 +174,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		) );
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', json_url( '/wp/' . get_post_type_base( $post->post_type ) . '/' . $post_id ) );
+		$response->header( 'Location', json_url( '/wp/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 
 		return $response;
 	}
@@ -237,7 +237,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		));
 		$response = json_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', json_url( '/wp/' . get_post_type_base( $post->post_type ) . '/' . $post_id ) );
+		$response->header( 'Location', json_url( '/wp/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 		return $response;
 	}
 
