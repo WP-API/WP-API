@@ -68,7 +68,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
+		$links = $this->prepare_links( $post, $request );
 		foreach ( $links as $rel => $attributes ) {
 			$other = $attributes;
 			unset( $other['href'] );
@@ -896,17 +896,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepare links for the request
 	 *
-	 * @param WP_Post $post Post object
-	 * @return array Links for the given post
+	 * @param WP_Post         $post    Post object.
+	 * @param WP_JSON_Request $request Request object.
+	 * @return array Links for the given post.
 	 */
-	protected function prepare_links( $post ) {
+	protected function prepare_links( $post, $request ) {
+		$base = $this->get_post_type_base( $this->post_type );
+
 		// Entity meta
 		$links = array(
 			'self'            => array(
-				'href' => json_url( '/wp/posts/' . $post->ID ),
+				'href' => json_url( $request->get_route() ),
 			),
 			'collection'      => array(
-				'href' => json_url( '/wp/posts' ),
+				'href' => json_url( $base ),
 			),
 		);
 
@@ -919,19 +922,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
 			$links['replies'] = array(
-				'href' => json_url( '/wp/posts/' . $post->ID . '/comments' ),
+				'href' => json_url( '/wp/comments/' . $post->ID ),
+				'embeddable' => true,
 				);
 		}
 
 		if ( post_type_supports( $post->post_type, 'revisions' ) ) {
 			$links['version-history'] = array(
-				'href' => json_url( '/wp/posts/' . $post->ID . '/revisions' ),
+				'href' => json_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
 			);
 		}
 		$post_type_obj = get_post_type_object( $post->post_type );
 		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
-				'href' => json_url( '/wp/posts/' . (int) $post->post_parent ),
+				'href' => json_url( trailingslashit( $base ) . (int) $post->post_parent ),
 				'embeddable' => true,
 			);
 		}
