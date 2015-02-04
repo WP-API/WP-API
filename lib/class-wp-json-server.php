@@ -848,7 +848,29 @@ class WP_JSON_Server {
 	 * @param array|object $data The value to encode
 	 * @return string The json encoded value
 	 */
-	protected function json_encode( $data ) {
-		return json_encode( $data );
+	public function json_encode( $data ) {
+		return json_encode( $data, $this->get_json_encode_flags() );
+	}
+
+	/**
+	 * Get the options flags to be passed to `json_encode`.
+	 *
+	 * @return int
+	 */
+	public function get_json_encode_flags() {
+		/**
+		 * Modify the flags passed to `json_encode` for every request.
+		 *
+		 * Users should hook in and complete release the flags or do a bitwise
+		 * or to add flags. For instance if you wanted your API implementation
+		 * to use unescaped slashes:
+		 *
+		 *    add_filter( 'json_encode_flags', function ( $flags ) {
+		 *        return $flags | JSON_UNESCAPED_SLASHES;
+		 *    });
+		 *
+		 * @param int $flags
+		 */
+		return apply_filters( 'json_encode_flags', 0 );
 	}
 }
