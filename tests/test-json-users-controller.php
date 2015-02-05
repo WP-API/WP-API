@@ -84,7 +84,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
 	}
 
 	public function test_get_item_published_author() {
