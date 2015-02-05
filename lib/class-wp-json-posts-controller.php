@@ -68,7 +68,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
-		$links = $this->prepare_links( $post, $request );
+		$links = $this->prepare_links( $post );
 		foreach ( $links as $rel => $attributes ) {
 			$other = $attributes;
 			unset( $other['href'] );
@@ -893,13 +893,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Prepare links for the request
+	 * Prepare links for the request.
 	 *
-	 * @param WP_Post         $post    Post object.
-	 * @param WP_JSON_Request $request Request object.
+	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
 	 */
-	protected function prepare_links( $post, $request ) {
+	protected function prepare_links( $post ) {
 		$base = $this->get_post_type_base( $this->post_type );
 
 		// Entity meta
