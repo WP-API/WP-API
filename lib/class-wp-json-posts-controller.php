@@ -800,10 +800,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 			$data = array_merge_recursive( $data, $data_raw );
 
-			// Consider future posts as published
-			if ( 'future' == $data['status'] ) {
-				$data['status'] = 'publish';
-			}
 		}
 
 		if ( post_type_supports( $post->post_type, 'title' ) ) {
