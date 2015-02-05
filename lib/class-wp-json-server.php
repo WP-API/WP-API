@@ -367,7 +367,9 @@ class WP_JSON_Server {
 				$request = new WP_JSON_Request( 'GET', $route );
 
 				// Embedded resources get passed context=embed
-				$request->set_query_params( array( 'context' => 'embed' ) );
+				$query_params = array_merge( array( 'context' => 'embed' ), (array) $item['query_params'] );
+
+				$request->set_query_params( $query_params );
 
 				$response = $this->dispatch( $request );
 
