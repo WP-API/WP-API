@@ -102,7 +102,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 	public function test_get_user_with_edit_context() {
 		$user_id = $this->factory->user->create();
-		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 		$request->set_param( 'context', 'edit' );
