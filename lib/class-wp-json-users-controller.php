@@ -53,9 +53,25 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 		}
 
+		$can_view = false;
+
 		$current_user_id = get_current_user_id();
-		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
+		if ( $current_user_id === $id || current_user_can( 'edit_user', $id ) ) {
+			$can_view = true;
+		} else if ( current_user_can( 'list_users' ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || 'edit' === $request['context'] ) {
+				$request->set_param( 'context', 'view' );
+			}
+		} else if ( count_user_posts( $id ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || in_array( $request['context'], array( 'edit', 'view' ) ) ) {
+				$request->set_param( 'context', 'embed' );
+			}
+		}
+
+		if ( ! $can_view ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
 		$user = $this->prepare_item_for_response( $user, $request );
