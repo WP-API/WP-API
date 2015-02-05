@@ -52,4 +52,13 @@ abstract class WP_JSON_Controller {
 		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
 	}
 
+	/**
+	 * Get the item's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array();
+	}
+
 }

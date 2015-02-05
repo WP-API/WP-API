@@ -114,51 +114,8 @@ function create_initial_json_routes() {
 		}
 		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
 
-		$post_type_fields = array(
-				'type'           => array(),
-				'status'         => array(),
-				'date'           => array(),
-				'date_gmt'       => array(),
-				'name'           => array(),
-				'password'       => array(),
-			);
-
-		if ( post_type_supports( $post_type->name, 'title' ) ) {
-			$post_type_fields['title'] = array();
-		}
-
-		if ( post_type_supports( $post_type->name, 'editor' ) ) {
-			$post_type_fields['content'] = array();
-		}
-
-		if ( post_type_supports( $post_type->name, 'excerpt' ) ) {
-			$post_type_fields['excerpt'] = array();
-		}
-
-		if ( post_type_supports( $post_type->name, 'author' ) ) {
-			$post_type_fields['author'] = array();
-		}
-
-		if ( post_type_supports( $post_type->name, 'post-formats' ) ) {
-			$post_type_fields['format'] = array();
-		}
-
-		if ( post_type_supports( $post_type->name, 'comments' ) ) {
-			$post_type_fields['comment_status'] = array();
-			$post_type_fields['ping_status'] = array();
-		}
-
-		if ( 'post' === $post_type->name ) {
-			$post_type_fields['sticky'] = array();
-		}
-
-		if ( $post_type->hierarchical ) {
-			$post_type_fields['parent'] = array();
-		}
-
-		if ( $post_type->hierarchical && post_type_supports( $post_type->name, 'page-attributes' ) ) {
-			$post_type_fields['menu_order'] = array();
-		}
+		$schema = $controller->get_item_schema();
+		$post_type_fields = ! empty( $schema['properties'] ) ? array_keys( $schema['properties'] ) : array();
 
 		register_json_route( 'wp', '/' . $base, array(
 			array(
@@ -206,6 +163,10 @@ function create_initial_json_routes() {
 		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_item_revisions' ),
+		) );
+		register_json_route( 'wp', '/' . $base . '/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $controller, 'get_item_schema' ),
 		) );
 
 	}
@@ -357,6 +318,11 @@ function create_initial_json_routes() {
 			'context'          => array(),
 		)
 	));
+
+	register_json_route( 'wp', '/users/schema', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item_schema' ),
+	) );
 
 	/**
 	 * Comments
