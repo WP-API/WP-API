@@ -386,8 +386,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'status' => $post->ping_status,
 		);
 
-		$discussion = new stdClass();
-		$discussion->count = (int) get_comments_number( $post->ID );
+		$discussion = (object) array( 'comment' => (int) get_comments_number( $post->ID ) );
 		$discussion->comments = (object) $comments;
 		$discussion->pings = (object) $pings;
 
