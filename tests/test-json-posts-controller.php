@@ -817,7 +817,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		// Comments
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
-			// echo var_dump( $data['discussion']->pings );
 			$this->assertEquals( get_comments_number( $post->ID ), $data['discussion']->count );
 			$this->assertEquals( $post->comment_status, $data['discussion']->comments->status );
 			$this->assertEquals( comments_open( $post->ID ), $data['discussion']->comments->open );
