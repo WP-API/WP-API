@@ -371,6 +371,30 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Build discussion object for single post output.
+	 *
+	 * @param  object $post WP_Post object.
+	 * @return object $discussion
+	 */
+	protected function prepare_discussion_response( $post ) {
+		$comments = array(
+			'open'   => comments_open( $post->ID ),
+			'status' => $post->comment_status,
+		);
+		$pings = array(
+			'open'   => pings_open( $post->ID ),
+			'status' => $post->ping_status,
+		);
+
+		$discussion = new stdClass();
+		$discussion->count = (int) get_comments_number( $post->ID );
+		$discussion->comments = (object) $comments;
+		$discussion->pings = (object) $pings;
+
+		return $discussion;
+	}
+
+	/**
 	 * Prepare a single post for create or update
 	 *
 	 * @param WP_JSON_Request $request Request object
@@ -849,8 +873,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
-			$data['comment_status'] = $post->comment_status;
-			$data['ping_status'] = $post->ping_status;
+			$data['discussion'] = $this->prepare_discussion_response( $post );
 		}
 
 		if ( 'post' === $post->post_type ) {
