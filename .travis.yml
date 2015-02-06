@@ -4,7 +4,7 @@
 language: php
 
 php:
-  - 5.2
+  #- 5.2
   - 5.3
   - 5.5
 
@@ -13,7 +13,7 @@ env:
 
 matrix:
   include:
-    - php: 5.2
+    - php: 5.3
       env: WP_VERSION=latest WP_MULTISITE=1
 
 # Clones WordPress and configures our testing environment.

@@ -754,7 +754,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @param object|string $post_type
 	 * @return string       $base
 	 */
-	protected function get_post_type_base( $post_type ) {
+	public function get_post_type_base( $post_type ) {
 		if ( ! is_object( $post_type ) ) {
 			$post_type = get_post_type_object( $post_type );
 		}
