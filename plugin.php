@@ -112,7 +112,7 @@ function create_initial_json_routes() {
 		if ( ! is_subclass_of( $controller, 'WP_JSON_Controller' ) ) {
 			continue;
 		}
-		$base = ! empty( $post_type->json_base ) ? $post_type->json_base : $post_type->name;
+		$base = $controller->get_post_type_base( $post_type->name );
 
 		$post_type_fields = array(
 				'type'           => array(),
