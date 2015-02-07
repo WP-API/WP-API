@@ -103,7 +103,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Todo: Query args filter for wp_get_post_revisions
-		$revisions = wp_get_post_revisions( $id );
+		$revisions = wp_get_post_revisions( $parent->ID );
 
 		$struct = array();
 		foreach ( $revisions as $revision ) {
