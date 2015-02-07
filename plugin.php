@@ -859,7 +859,7 @@ function json_handle_options_request( $response, $handler, $request ) {
 /**
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
- * 
+ *
  * @param  WP_JSON_Response  $response
  * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
  * @param  WP_JSON_Request   $request
@@ -895,7 +895,7 @@ function json_send_allow_header( $response, $server, $request ) {
 	$allowed_methods = array_filter( $allowed_methods );
 
 	if ( $allowed_methods ) {
-		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
 	}
 
 	return $response;
