@@ -175,7 +175,6 @@ function create_initial_json_routes() {
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $controller, 'create_item' ),
-				'accept_json'     => true,
 				'args'            => $post_type_fields,
 			),
 		) );
@@ -206,8 +205,12 @@ function create_initial_json_routes() {
 		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_item_revisions' ),
+			'args'            => array(
+				'context'          => array(
+					'default'      => 'view-revision',
+				),
+			),
 		) );
-
 	}
 
 	/*
@@ -645,40 +648,6 @@ function json_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
- * Add 'show_in_json' {@see register_post_type()} argument.
- *
- * Adds the 'show_in_json' post type argument to {@see register_post_type()}.
- * This value controls whether the post type is available via API endpoints,
- * and defaults to the value of $publicly_queryable.
- *
- * @global array $wp_post_types Post types list.
- *
- * @param string   $post_type Post type to register.
- * @param stdClass $args      Post type arguments.
- */
-function json_register_post_type( $post_type, $args ) {
-	global $wp_post_types;
-
-	$type = &$wp_post_types[ $post_type ];
-
-	// Exception for pages.
-	if ( $post_type === 'page' ) {
-		$type->show_in_json = true;
-	}
-
-	// Exception for revisions.
-	if ( $post_type === 'revision' ) {
-		$type->show_in_json = true;
-	}
-
-	// Default to the value of $publicly_queryable.
-	if ( ! isset( $type->show_in_json ) ) {
-		$type->show_in_json = $type->publicly_queryable;
-	}
-}
-add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
-
-/**
  * Get the URL prefix for any API resource.
  *
  * @return string Prefix.
@@ -890,7 +859,7 @@ function json_handle_options_request( $response, $handler, $request ) {
 /**
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
- * 
+ *
  * @param  WP_JSON_Response  $response
  * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
  * @param  WP_JSON_Request   $request
@@ -926,7 +895,7 @@ function json_send_allow_header( $response, $server, $request ) {
 	$allowed_methods = array_filter( $allowed_methods );
 
 	if ( $allowed_methods ) {
-		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );	
+		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
 	}
 
 	return $response;
