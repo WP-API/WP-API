@@ -206,8 +206,12 @@ function create_initial_json_routes() {
 		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $controller, 'get_item_revisions' ),
+			'args'            => array(
+				'context'          => array(
+					'default'      => 'view-revision',
+				),
+			),
 		) );
-
 	}
 
 	/*

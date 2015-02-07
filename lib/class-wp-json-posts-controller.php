@@ -87,10 +87,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_item_revisions( $request ) {
-		$request->set_query_params( array(
-			'context' => 'view-revision',
-		) );
-
 		$id = (int) $request['id'];
 		$parent = get_post( $id );
 
