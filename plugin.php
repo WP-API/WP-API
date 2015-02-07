@@ -645,40 +645,6 @@ function json_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
- * Add 'show_in_json' {@see register_post_type()} argument.
- *
- * Adds the 'show_in_json' post type argument to {@see register_post_type()}.
- * This value controls whether the post type is available via API endpoints,
- * and defaults to the value of $publicly_queryable.
- *
- * @global array $wp_post_types Post types list.
- *
- * @param string   $post_type Post type to register.
- * @param stdClass $args      Post type arguments.
- */
-function json_register_post_type( $post_type, $args ) {
-	global $wp_post_types;
-
-	$type = &$wp_post_types[ $post_type ];
-
-	// Exception for pages.
-	if ( $post_type === 'page' ) {
-		$type->show_in_json = true;
-	}
-
-	// Exception for revisions.
-	if ( $post_type === 'revision' ) {
-		$type->show_in_json = true;
-	}
-
-	// Default to the value of $publicly_queryable.
-	if ( ! isset( $type->show_in_json ) ) {
-		$type->show_in_json = $type->publicly_queryable;
-	}
-}
-add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
-
-/**
  * Get the URL prefix for any API resource.
  *
  * @return string Prefix.
