@@ -175,7 +175,6 @@ function create_initial_json_routes() {
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $controller, 'create_item' ),
-				'accept_json'     => true,
 				'args'            => $post_type_fields,
 			),
 		) );
