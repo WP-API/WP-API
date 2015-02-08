@@ -47,17 +47,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_read_permission( $comment ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this comment.' ), array( 'status' => 401 ) );
-		}
-
 		$post = get_post( $comment->comment_post_ID );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
 		$data = $this->prepare_item_for_response( $comment, $request );
@@ -80,14 +72,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$post = get_post( (int) $request['post_id'] );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
-		}
-
-		if ( ! comments_open( $post->ID ) ) {
-			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, the comments are closed for this post.' ), array( 'status' => 401 ) );
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -122,10 +106,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! $this->check_edit_permission( $comment ) ) {
-			return new WP_Error( 'json_user_cannot_edit_comment', __( 'Sorry, you are not allowed to update this comment.' ), array( 'status' => 401 ) );
 		}
 
 		$prepared_args = $this->prepare_item_for_update( $request );
@@ -175,10 +155,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $comment ) ) {
-			return new WP_Error( 'json_user_cannot_delete_comment', __( 'Sorry, you are not allowed to delete this comment.' ), array( 'status' => 401 ) );
-		}
-
 		$result = wp_delete_comment( $comment->comment_ID, $force );
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
@@ -189,6 +165,115 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		}
 
 		return array( 'message' => __( 'Deleted comment' ) );
+	}
+
+
+	/**
+	 * Check if a given request has access to read comments
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		// If the post id isn't specified, presume we can create
+		if ( ! isset( $request['post_id'] ) ) {
+			return true;
+		}
+
+		$post = get_post( (int) $request['post_id'] );
+
+		if ( $post && ! $this->check_read_post_permission( $post ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to read the comment
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_permissions_check( $request ) {
+		$id = (int) $request['id'];
+
+		$comment = get_comment( $id );
+
+		if ( ! $comment ) {
+			return true;
+		}
+
+		if ( ! $this->check_read_permission( $comment ) ) {
+			return false;
+		}
+
+		$post = get_post( $comment->comment_post_ID );
+
+		if ( $post && ! $this->check_read_post_permission( $post ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to create a comment
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		// If the post id isn't specified, presume we can create
+		if ( ! isset( $request['post_id'] ) ) {
+			return true;
+		}
+
+		$post = get_post( (int) $request['post_id'] );
+
+		if ( $post ) {
+
+			if ( ! $this->check_read_post_permission( $post ) ) {
+				return false;
+			}
+
+			if ( ! comments_open( $post->ID ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to update a comment
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function update_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+
+		$comment = get_comment( $id );
+
+		if ( $comment && ! $this->check_edit_permission( $comment ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to delete a comment
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+		return $this->update_item_permissions_check( $request );
 	}
 
 	/**
