@@ -213,7 +213,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 * @param array $_headers HTTP headers from the request
 	 * @return array|WP_Error Attachment data or error
 	 */
-	public function upload_attachment( $_files, $_headers, $data = null, $post_id = 0 ) {
+	public function upload_attachment( $_files, $_headers = array(), $data = null, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
 
