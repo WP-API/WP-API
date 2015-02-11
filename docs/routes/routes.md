@@ -346,6 +346,10 @@ Create Meta for a Post
   
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
+Note that the access rules for metadata apply here (see Retrieve Meta for
+a Post). Any submitted data that violates an access rule (e.g. sending
+serialized data) will result in a 403 error.
+
 ### Input
 The supplied data should be a Meta object. This data can be submitted via a
 regular HTTP multipart body, with the Meta key and value set with the `data`
@@ -372,7 +376,24 @@ Retrieve Meta for a Post
 	GET /posts/<id>/meta
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
-  
+
+WordPress metadata follows some special rules for access:
+
+* Metadata is only available to authenticated clients, as the fields are "raw"
+  values from the database. The API cannot ensure that it's not leaking private
+  data (we're working on changing WordPress to support this).
+
+* "Complex" metadata is not available from the API. Only simple values (such as
+  numbers, strings and booleans) are available via the meta endpoints. Complex
+  values such as arrays and objects do not have a lossless (one-to-one)
+  representation in JSON. Exposing the serialized value could leak internal
+  implementation details and pose a security risk.
+
+* "Protected" metadata is not available from the API. This includes any metadata
+  with a key prefixed with `_`, as well as any meta marked as protected by
+  plugins. Protected meta is used to store internal data by many plugins, and
+  cannot be exposed to external clients.
+
 ### Response
 The response is a Meta entity containing all the post_meta for the specified
 Post if available.
@@ -383,8 +404,11 @@ Retrieve a Meta for a Post
 ------------------------
 
 	GET /posts/<id>/meta/<mid>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
+
+Note that the access rules for metadata apply here (see Retrieve Meta for
+a Post).
 
 ### Response
 The response a Meta entity containing the post_meta for the specified Meta and
@@ -398,6 +422,10 @@ Edit a Meta for a Post
 	PUT /posts/<id>/meta/<mid>
   
 Requires [authentication](http://wp-api.org/guides/authentication.html)
+
+Note that the access rules for metadata apply here (see Retrieve Meta for
+a Post). Any submitted data that violates an access rule (e.g. sending
+serialized data) will result in a 403 error.
 
 ### Input
 The supplied data should be a Meta object. This data can be submitted via a
@@ -421,6 +449,10 @@ Delete a Meta for a Post
 	DELETE /posts/<id>/meta/<mid>
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
+
+Note that the access rules for metadata apply here (see Retrieve Meta for
+a Post). Attempting to delete data that violates an access rule (e.g. sending
+serialized data) will result in a 403 error.
 
 ### Response
 On successful deletion, a 200 OK status code will be returned, indicating
