@@ -914,14 +914,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			),
 		);
 
-		if ( post_type_supports( $post->post_type, 'author' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
 			$links['author'] = array(
 				'href' => json_url( '/wp/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
-		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$links['replies'] = array(
 				'href' => json_url( '/wp/comments' ),
 				'embeddable' => true,
@@ -929,7 +929,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 		}
 
-		if ( post_type_supports( $post->post_type, 'revisions' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'revisions' ) ) {
 			$links['version-history'] = array(
 				'href' => json_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
 			);
@@ -1009,8 +1009,32 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'page-attributes',
 			'post-formats',
 			);
+		$fixed_post_attributes = array(
+			'title',
+			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'post-formats',
+			);
+		$fixed_page_attributes = array(
+			'title',
+			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'page-attributes',
+			);
 		foreach( $post_type_attributes as $attribute ) {
-			if ( ! post_type_supports( $this->post_type, $attribute ) ) {
+			if ( 'post' === $this->post_type && ! in_array( $attribute, $fixed_post_attributes ) )  {
+				continue;
+			} else if ( 'page' === $this->post_type && ! in_array( $attribute, $fixed_page_attributes ) ) {
+				continue;
+			} else if ( ! in_array( $this->post_type, array( 'post', 'page' ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 
