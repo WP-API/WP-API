@@ -423,8 +423,8 @@ class WP_JSON_Posts {
 		}
 		
 		//In case we are dealing with custom post status, check if it's public
-		$post_status_obj = get_post_status_object($post['post_status']);
-		if ($post_status_obj->public){
+		$post_status_obj = get_post_status_object( $post['post_status'] );
+		if ( $post_status_obj->public ){
 			return true;
 		}
 
