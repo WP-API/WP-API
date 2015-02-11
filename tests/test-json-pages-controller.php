@@ -1,0 +1,117 @@
+<?php
+
+
+/**
+ * Unit tests covering WP_JSON_Posts_Controller functionality, used for Pages
+ *
+ * @package WordPress
+ * @subpackage JSON API
+ */
+class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Controller_Testcase {
+
+	public function setUp() {
+		parent::setUp();
+
+		$this->editor_id = $this->factory->user->create( array(
+			'role' => 'editor',
+		) );
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+	}
+
+	public function test_register_routes() {
+
+	}
+
+	public function test_get_items() {
+		
+	}
+
+	public function test_get_item() {
+		
+	}
+
+	public function test_create_item() {
+		
+	}
+
+	public function test_create_page_with_parent() {
+		$page_id = $this->factory->post->create( array(
+			'type' => 'page',
+		) );
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
+		$params = $this->set_post_data( array(
+			'parent' => $page_id,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'up', $links );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( $page_id, $data['parent'] );
+		$this->assertEquals( $page_id, $new_post->post_parent );
+	}
+
+	public function test_create_page_with_invalid_parent() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
+		$params = $this->set_post_data( array(
+			'parent' => -1,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 400 );
+	}
+
+	public function test_update_item() {
+		
+	}
+
+	public function test_delete_item() {
+		
+	}
+
+	public function test_prepare_item() {
+		
+	}
+
+	public function test_get_pages_params() {
+		$this->factory->post->create_many( 8, array(
+			'post_type' => 'page',
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/pages' );
+		$request->set_query_params( array(
+			'page'           => 2,
+			'posts_per_page' => 4,
+		) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$headers = $response->get_headers();
+		$this->assertEquals( 8, $headers['X-WP-Total'] );
+		$this->assertEquals( 2, $headers['X-WP-TotalPages'] );
+
+		$all_data = $response->get_data();
+		$this->assertEquals( 4, count( $all_data ) );
+		foreach ( $all_data as $post ) {
+			$this->assertEquals( 'page', $post['type'] );
+		}
+	}
+
+}
