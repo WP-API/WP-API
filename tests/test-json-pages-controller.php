@@ -7,7 +7,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Controller_Testcase {
+class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Testcase {
 
 	public function setUp() {
 		parent::setUp();
