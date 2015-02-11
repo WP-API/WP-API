@@ -20,16 +20,16 @@ define( 'JSON_API_VERSION', '1.1.1' );
  * Include our files for the API.
  */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-datetime.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-server.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
-require_once( dirname( __FILE__ ) . '/lib/class-wp-json-request.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
+require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
