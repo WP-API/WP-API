@@ -5,7 +5,7 @@ Create a Post
 -------------
 
 	POST /posts
-  
+
   Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
@@ -24,7 +24,7 @@ data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
 
 ```
 Content-Type: application/json
-	
+
 {"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
  ```
 
@@ -235,7 +235,7 @@ Edit a Post
 -----------
 
 	PUT /posts/<id>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 For compatibility reasons, this endpoint also accepts the POST and PATCH
@@ -304,7 +304,7 @@ Delete a Post
 -------------
 
 	DELETE /posts/<id>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
@@ -330,7 +330,7 @@ Retrieve Revisions for a Post
 ------------------------
 
 	GET /posts/<id>/revisions
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Response
@@ -338,16 +338,16 @@ If successful, returns a 200 OK status code and revisions for the given post.
 
 If the client is not authenticated, a 403 Forbidden status code will be returned.
 
-  
+
 Create Meta for a Post
 ------------------------
 
 	POST /posts/<id>/meta
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
-Note that the access rules for metadata apply here (see Retrieve Meta for
-a Post). Any submitted data that violates an access rule (e.g. sending
+Note that the access rules for metadata apply here (see [Retrieve Meta for
+a Post](http://wp-api.org/#posts_retrieve-meta-for-a-post) ). Any submitted data that violates an access rule (e.g. sending
 serialized data) will result in a 403 error.
 
 ### Input
@@ -381,17 +381,17 @@ WordPress metadata follows some special rules for access:
 
 * Metadata is only available to authenticated clients, as the fields are "raw"
   values from the database. The API cannot ensure that it's not leaking private
-  data (we're working on changing WordPress to support this).
+  data, although we're working on changing WordPress to support this.
 
-* "Complex" metadata is not available from the API. Only simple values (such as
-  numbers, strings and booleans) are available via the meta endpoints. Complex
-  values such as arrays and objects do not have a lossless (one-to-one)
+* "Complex" metadata is not available from the API. Only simple values, such as
+  numbers, strings, and booleans, are available via the meta endpoints. Complex
+  values, such as arrays and objects do not have a lossless (one-to-one)
   representation in JSON. Exposing the serialized value could leak internal
   implementation details and pose a security risk.
 
 * "Protected" metadata is not available from the API. This includes any metadata
   with a key prefixed with `_`, as well as any meta marked as protected by
-  plugins. Protected meta is used to store internal data by many plugins, and
+  plugins. Protected meta is used to store internal data by many plugins and
   cannot be exposed to external clients.
 
 ### Response
@@ -407,11 +407,11 @@ Retrieve a Meta for a Post
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
-Note that the access rules for metadata apply here (see Retrieve Meta for
-a Post).
+Note that the access rules for metadata apply here (see [Retrieve Meta for
+	a Post](http://wp-api.org/#posts_retrieve-meta-for-a-post) ).
 
 ### Response
-The response a Meta entity containing the post_meta for the specified Meta and
+The response is a Meta entity containing the post_meta for the specified Meta and
 Post if available.
 
 Returns a 403 Forbidden status code if the client is not authenticated.
@@ -420,11 +420,11 @@ Edit a Meta for a Post
 ------------------------
 
 	PUT /posts/<id>/meta/<mid>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
-Note that the access rules for metadata apply here (see Retrieve Meta for
-a Post). Any submitted data that violates an access rule (e.g. sending
+Note that the access rules for metadata apply here (see [Retrieve Meta for
+	a Post](http://wp-api.org/#posts_retrieve-meta-for-a-post) ). Any submitted data that violates an access rule (e.g. sending
 serialized data) will result in a 403 error.
 
 ### Input
@@ -470,7 +470,7 @@ The Create Attachment endpoint is used to create the raw data for an attachment.
 This is a binary object (blob), such as image data or a video.
 
 	POST /media
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
@@ -526,7 +526,7 @@ Create a User
 -------------
 
 	POST /users
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
@@ -563,7 +563,7 @@ users.
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
-  
+
 ### Input
 #### `filter`
 The `filter` parameter controls the query parameters. It is essentially a subset
@@ -590,7 +590,7 @@ Retrieve a User
 ---------------
 
 	GET /users/<id>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
 
 ### Input
@@ -621,7 +621,7 @@ Retrieve Current User
 	GET /users/me
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
-  
+
 This endpoint offers a permalink to get the current user, without needing to
 know the user's ID.
 
@@ -648,7 +648,7 @@ Edit a User
 	PUT /users/<id>
 
 Requires [authentication](http://wp-api.org/guides/authentication.html)
-  
+
 For compatibility reasons, this endpoint also accepts the POST and PATCH
 methods. Both of these methods have the same behaviour as using PUT. It is
 recommended to use PUT if available to fit with REST convention.
@@ -669,9 +669,9 @@ Delete a User
 -------------
 
 	DELETE /users/<id>
-  
+
 Requires [authentication](http://wp-api.org/guides/authentication.html)
-  
+
 ### Input
 #### `force`
 The `force` parameter controls whether the user is permanently deleted or not.
