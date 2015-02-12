@@ -817,11 +817,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		// Comments
 		if ( post_type_supports( $post->post_type, 'comments' ) ) {
-			$this->assertEquals( $post->comment_status, $data['comment_status'] );
-			$this->assertEquals( $post->ping_status, $data['ping_status'] );
+			$this->assertEquals( get_comments_number( $post->ID ), $data['discussion']->count );
+			$this->assertEquals( $post->comment_status, $data['discussion']->comments->status );
+			$this->assertEquals( comments_open( $post->ID ), $data['discussion']->comments->open );
+			$this->assertEquals( $post->ping_status, $data['discussion']->pings->status );
+			$this->assertEquals( pings_open( $post->ID ), $data['discussion']->pings->open );
 		} else {
-			$this->assertFalse( isset( $data['comment_status'] ) );
-			$this->assertFalse( isset( $data['ping_status'] ) );
+			$this->assertFalse( isset( $data['discussion'] ) );
 		}
 
 		if ( 'post' === $post->post_type ) {
