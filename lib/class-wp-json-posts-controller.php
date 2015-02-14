@@ -453,8 +453,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 		// Post slug
-		if ( isset( $request['name'] ) ) {
-			$prepared_post->post_name = sanitize_title( $request['name'] );
+		if ( isset( $request['slug'] ) ) {
+			$prepared_post->post_name = sanitize_title( $request['slug'] );
 		}
 
 		// Author
