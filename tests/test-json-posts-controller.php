@@ -442,8 +442,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $new_post->post_password, $data['password'] );
+		$this->assertEquals( 'testing', $data['password'] );
 	}
 
 	public function test_create_post_with_password_without_permisson() {
@@ -464,6 +463,21 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'json_cannot_create_password_protected', $response, 401 );
+	}
+
+	public function test_create_post_with_falsy_password() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'password' => '0',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+
+		$this->assertEquals( '0', $data['password'] );
 	}
 
 	public function test_create_post_custom_date() {

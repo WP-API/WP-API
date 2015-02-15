@@ -468,7 +468,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post password
-		if ( ! empty( $request['password'] ) ) {
+		if ( isset( $request['password'] ) ) {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
