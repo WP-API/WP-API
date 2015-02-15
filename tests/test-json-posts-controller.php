@@ -678,6 +678,58 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
+	public function test_update_post_excerpt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'excerpt' => 'An Excerpt'
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'An Excerpt', $new_data['excerpt']['raw'] );
+	}
+
+	public function test_update_post_empty_excerpt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'excerpt' => ''
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( '', $new_data['excerpt']['raw'] );
+	}
+
+	public function test_update_post_content() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'content' => 'Some Content'
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'Some Content', $new_data['content']['raw'] );
+	}
+
+	public function test_update_post_empty_content() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'content' => ''
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( '', $new_data['content']['raw'] );
+	}
+
 	public function test_delete_item() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->editor_id );
