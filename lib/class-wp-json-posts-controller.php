@@ -488,7 +488,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Menu order
-		if ( post_type_supports( $this->post_type, 'page-attributes' ) && ! empty( $request['menu_order'] ) ) {
+		if ( post_type_supports( $this->post_type, 'page-attributes' ) && isset( $request['menu_order'] ) ) {
 			$prepared_post->menu_order = (int) $request['menu_order'];
 		}
 
