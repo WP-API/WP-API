@@ -40,7 +40,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_get_posts_response( $response );
 	}
 
-	public function test_get_items_invalid_query() {
+	/**
+	 * A valid query that returns 0 results should return an empty JSON list.
+	 *
+	 * @issue 862
+	 */
+	public function test_get_items_empty_query() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$request->set_query_params( array(
 			'type'           => 'post',
@@ -48,7 +53,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_invalid_query', $response, 404 );
+		$this->assertEquals( array(), $response->get_data() );
+		$this->assertEquals( 200, $response->get_status() );
 	}
 
 	public function test_get_items_status_without_permissons() {
