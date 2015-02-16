@@ -1,4 +1,4 @@
-# JSON REST API (WP-API)
+# WP REST API (WP-API)
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
