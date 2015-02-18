@@ -960,10 +960,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 				),
 				'type'             => array(
 					'description'  => 'Type of Post for the object.',
 					'type'         => 'string',
+					'readonly'     => true,
 				),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
@@ -972,6 +974,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
+					'readonly'     => true,
 				),
 				'date'             => array(
 					'description'  => 'The date the object was published.',
