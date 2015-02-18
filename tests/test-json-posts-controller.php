@@ -776,6 +776,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 	}
 
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Not yet implemented' );
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
 		if ( isset( $this->attachment_id ) ) {

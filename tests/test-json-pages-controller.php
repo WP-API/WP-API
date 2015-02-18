@@ -153,6 +153,10 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( 0, $new_data['menu_order'] );
 	}
 
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Not yet implemented' );
+	}
+
 	protected function set_post_data( $args = array() ) {
 		$args = parent::set_post_data( $args );
 		$args['type'] = 'page';

@@ -357,6 +357,10 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertErrorResponse( 'json_user_cannot_delete_comment', $response, 401 );
 	}
 
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Not yet implemented' );
+	}
+
 	protected function check_comment_data( $data, $context ) {
 		$comment = get_comment( $data['id'] );
 
