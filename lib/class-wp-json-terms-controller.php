@@ -226,6 +226,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
 					),
+				'taxonomy'         => array(
+					'description'  => 'Type attribution for the object.',
+					'type'         => 'string',
+					'enum'         => array_keys( get_taxonomies() ),
+					),
 				'parent_id'        => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',

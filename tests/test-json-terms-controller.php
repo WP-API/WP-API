@@ -252,6 +252,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'parent_id', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'taxonomy', $properties );
+		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
 	}
 
 	public function tearDown() {
