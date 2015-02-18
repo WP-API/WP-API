@@ -240,6 +240,10 @@ function create_initial_json_routes() {
 			'callback'   => array( $controller, 'delete_item' ),
 		),
 	) );
+	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item_schema' ),
+	) );
 
 	/*
 	 * Users
