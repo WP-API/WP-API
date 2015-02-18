@@ -972,6 +972,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
+					'format'       => 'uri',
 				),
 				'date'             => array(
 					'description'  => 'The date the object was published.',
