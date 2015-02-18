@@ -333,7 +333,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Get the Post's schema, conforming to JSON Schema
+	 * Get the User's schema, conforming to JSON Schema
 	 *
 	 * @return array
 	 */
