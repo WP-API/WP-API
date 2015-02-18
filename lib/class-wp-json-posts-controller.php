@@ -1135,7 +1135,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( 'post' === $this->post_type ) {
 			$schema['properties']['sticky'] = array(
 				'description'      => 'Whether or not the object should be treated as sticky.',
-				'type'             => 'bool',
+				'type'             => 'boolean',
 				);
 		}
 
