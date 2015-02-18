@@ -27,7 +27,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
 		if ( 0 === $posts_query->found_posts ) {
-			return new WP_Error( 'json_invalid_query', __( 'Invalid post query.' ), array( 'status' => 404 ) );
+			return json_ensure_response( array() );
 		}
 
 		$posts = array();
@@ -393,21 +393,21 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post content
-		if ( ! empty( $schema['properties']['content'] ) && ! empty( $request['content'] ) ) {
+		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content'] );
 			}
-			elseif ( ! empty( $request['content']['raw'] ) ) {
+			elseif ( isset( $request['content']['raw'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
 			}
 		}
 
 		// Post excerpt
-		if ( ! empty( $schema['properties']['excerpt'] ) && ! empty( $request['excerpt'] ) ) {
+		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
 			}
-			elseif ( ! empty( $request['excerpt']['raw'] ) ) {
+			elseif ( isset( $request['excerpt']['raw'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
 			}
 		}
@@ -455,8 +455,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 		// Post slug
-		if ( isset( $request['name'] ) ) {
-			$prepared_post->post_name = sanitize_title( $request['name'] );
+		if ( isset( $request['slug'] ) ) {
+			$prepared_post->post_name = sanitize_title( $request['slug'] );
 		}
 
 		// Author
@@ -470,7 +470,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post password
-		if ( ! empty( $request['password'] ) ) {
+		if ( isset( $request['password'] ) ) {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
@@ -490,7 +490,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Menu order
-		if ( ! empty( $schema['properties']['menu_order'] ) && ! empty( $request['menu_order'] ) ) {
+		if ( ! empty( $schema['properties']['menu_order'] ) && isset( $request['menu_order'] ) ) {
 			$prepared_post->menu_order = (int) $request['menu_order'];
 		}
 

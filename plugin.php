@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: JSON REST API
+ * Plugin Name: WP REST API
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
- * Author: Ryan McCue, WP REST API Team
+ * Author: WP REST API Team
  * Author URI: http://wp-api.org
  * Version: 1.1.1
  * Plugin URI: https://github.com/WP-API/WP-API
@@ -20,16 +20,16 @@ define( 'JSON_API_VERSION', '1.1.1' );
  * Include our files for the API.
  */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-datetime.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-server.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
-require_once( dirname( __FILE__ ) . '/lib/class-wp-json-request.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
+require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );

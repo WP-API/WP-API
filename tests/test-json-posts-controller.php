@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
+class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Testcase {
 
 	public function setUp() {
 		parent::setUp();
@@ -40,7 +40,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_posts_response( $response );
 	}
 
-	public function test_get_items_invalid_query() {
+	/**
+	 * A valid query that returns 0 results should return an empty JSON list.
+	 *
+	 * @issue 862
+	 */
+	public function test_get_items_empty_query() {
 		$request = new WP_JSON_Request( 'GET', '/wp/posts' );
 		$request->set_query_params( array(
 			'type'           => 'post',
@@ -48,7 +53,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_invalid_query', $response, 404 );
+		$this->assertEquals( array(), $response->get_data() );
+		$this->assertEquals( 200, $response->get_status() );
 	}
 
 	public function test_get_items_status_without_permissons() {
@@ -67,33 +73,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$all_data = $response->get_data();
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
-		}
-	}
-
-	public function test_get_posts_params() {
-		$this->factory->post->create_many( 8, array(
-			'post_type' => 'page',
-		) );
-
-		$request = new WP_JSON_Request( 'GET', '/wp/pages' );
-		$request->set_query_params( array(
-			'page'           => 2,
-			'posts_per_page' => 4,
-		) );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$headers = $response->get_headers();
-		$this->assertEquals( 8, $headers['X-WP-Total'] );
-		$this->assertEquals( 2, $headers['X-WP-TotalPages'] );
-
-		$all_data = $response->get_data();
-		$this->assertEquals( 4, count( $all_data ) );
-		foreach ( $all_data as $post ) {
-			$this->assertEquals( 'page', $post['type'] );
 		}
 	}
 
@@ -469,8 +448,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $new_post->post_password, $data['password'] );
+		$this->assertEquals( 'testing', $data['password'] );
 	}
 
 	public function test_create_post_with_password_without_permisson() {
@@ -493,43 +471,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_cannot_create_password_protected', $response, 401 );
 	}
 
-	public function test_create_page_with_parent() {
-		$page_id = $this->factory->post->create( array(
-			'type' => 'page',
-		) );
+	public function test_create_post_with_falsy_password() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'parent' => $page_id,
+			'password' => '0',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
-
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
-
-		$links = $response->get_links();
-		$this->assertArrayHasKey( 'up', $links );
 
 		$data = $response->get_data();
-		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $page_id, $data['parent'] );
-		$this->assertEquals( $page_id, $new_post->post_parent );
-	}
 
-	public function test_create_page_with_invalid_parent() {
-		wp_set_current_user( $this->editor_id );
-
-		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
-		$params = $this->set_post_data( array(
-			'parent' => -1,
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_post_invalid_id', $response, 400 );
+		$this->assertEquals( '0', $data['password'] );
 	}
 
 	public function test_create_post_custom_date() {
@@ -698,6 +652,22 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
 	}
 
+	public function test_update_post_slug() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'slug' => 'sample-slug',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'sample-slug', $new_data['slug'] );
+		$post = get_post( $new_data['id'] );
+		$this->assertEquals( 'sample-slug', $post->post_name );
+	}
+
 	public function test_update_post_sticky() {
 		wp_set_current_user( $this->editor_id );
 
@@ -712,6 +682,58 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( true, $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
 		$this->assertEquals( true, is_sticky( $post->ID ) );
+	}
+
+	public function test_update_post_excerpt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'excerpt' => 'An Excerpt'
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'An Excerpt', $new_data['excerpt']['raw'] );
+	}
+
+	public function test_update_post_empty_excerpt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'excerpt' => ''
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( '', $new_data['excerpt']['raw'] );
+	}
+
+	public function test_update_post_content() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'content' => 'Some Content'
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'Some Content', $new_data['content']['raw'] );
+	}
+
+	public function test_update_post_empty_content() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'content' => ''
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( '', $new_data['content']['raw'] );
 	}
 
 	public function test_delete_item() {
@@ -760,193 +782,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->remove_added_uploads();
 		}
 		parent::tearDown();
-	}
-
-	protected function check_post_data( $post, $data, $context ) {
-		$post_type_obj = get_post_type_object( $post->post_type );
-
-		// Standard fields
-		$this->assertEquals( $post->ID, $data['id'] );
-		$this->assertEquals( $post->post_name, $data['slug'] );
-		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
-		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
-		}
-		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
-		}
-		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-			$this->assertNull( $data['modified'] );
-		}
-		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
-		}
-
-		// author
-		if ( post_type_supports( $post->post_type, 'author' ) ) {
-			$this->assertEquals( $post->post_author, $data['author'] );
-		} else {
-			$this->assertEmpty( $data['author'] );
-		}
-
-		// post_parent
-		if ( $post_type_obj->hierarchical ) {
-			$this->assertArrayHasKey( 'parent', $data );
-			if ( $post->post_parent ) {
-				if ( is_int( $data['parent'] ) ) {
-					$this->assertEquals( $post->post_parent, $data['parent'] );
-				}
-				else {
-					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
-					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
-				}
-			}
-			else {
-				$this->assertEmpty( $data['parent'] );
-			}
-		} else {
-			$this->assertFalse( isset( $data['parent'] ) );
-		}
-
-		// page attributes
-		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ){
-			$this->assertEquals( $post->menu_order, $data['menu_order'] );
-		} else {
-			$this->assertFalse( isset( $data['menu_order'] ) );
-		}
-
-		// Comments
-		if ( post_type_supports( $post->post_type, 'comments' ) ) {
-			$this->assertEquals( $post->comment_status, $data['comment_status'] );
-			$this->assertEquals( $post->ping_status, $data['ping_status'] );
-		} else {
-			$this->assertFalse( isset( $data['comment_status'] ) );
-			$this->assertFalse( isset( $data['ping_status'] ) );
-		}
-
-		if ( 'post' === $post->post_type ) {
-			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
-		}
-
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
-			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image'] );
-		} else {
-			$this->assertFalse( isset( $data['featured_image'] ) );
-		}
-
-		// Check post format.
-		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
-			$post_format = get_post_format( $post->ID );
-			if ( empty( $post_format ) ) {
-				$this->assertEquals( 'standard', $data['format'] );
-			} else {
-				$this->assertEquals( get_post_format( $post->ID ), $data['format'] );
-			}
-		} else {
-			$this->assertFalse( isset( $data['format'] ) );
-		}
-
-		// Check filtered values.
-		$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
-		// TODO: apply content filter for more accurate testing.
-		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
-		if ( empty( $post->post_password ) ) {
-			// TODO: apply excerpt filter for more accurate testing.
-			$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
-		} else {
-			$this->assertEquals( 'There is no excerpt because this is a protected post.', $data['excerpt']['rendered'] );
-		}
-
-		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
-
-		if ( 'edit' == $context ) {
-			$this->assertEquals( $post->post_title, $data['title']['raw'] );
-			$this->assertEquals( $post->post_content, $data['content']['raw'] );
-			$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
-			$this->assertEquals( $post->guid, $data['guid']['raw'] );
-			$this->assertEquals( $post->post_status, $data['status'] );
-			$this->assertEquals( $post->post_password, $data['password'] );
-
-			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-				$this->assertNull( $data['date_gmt'] );
-			}
-			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
-			}
-
-			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-				$this->assertNull( $data['modified_gmt'] );
-			}
-			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
-			}
-		}
-	}
-
-	protected function check_get_posts_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$headers = $response->get_headers();
-		$this->assertArrayHasKey( 'X-WP-Total', $headers );
-		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
-
-		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, $context );
-	}
-
-	protected function check_get_post_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, $context );
-	}
-
-	protected function check_create_update_post_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 201, $response->get_status() );
-		$headers = $response->get_headers();
-		$this->assertArrayHasKey( 'Location', $headers );
-
-		$data = $response->get_data();
-		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, 'edit' );
-	}
-
-	protected function set_post_data( $args = array() ) {
-		$defaults = array(
-			'title'   => rand_str(),
-			'content' => rand_str(),
-			'excerpt' => rand_str(),
-			'name'    => 'test',
-			'status'  => 'publish',
-			'author'  => $this->editor_id,
-			'type'    => 'post',
-		);
-
-		return wp_parse_args( $args, $defaults );
-	}
-
-	protected function set_raw_post_data( $args = array() ) {
-		return wp_parse_args( $args, $this->set_post_data( array(
-			'title'   => array(
-				'raw' => rand_str()
-			),
-			'content' => array(
-				'raw' => rand_str()
-			),
-			'excerpt' => array(
-				'raw' => rand_str()
-			),
-		) ) );
 	}
 
 }
