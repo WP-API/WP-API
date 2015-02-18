@@ -380,8 +380,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$prepared_post->ID = absint( $request['id'] );
 		}
 
+		$schema = $this->get_item_schema();
+
 		// Post title
-		if ( post_type_supports( $this->post_type, 'title' ) && ! empty( $request['title'] ) ) {
+		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title'] );
 			}
@@ -391,7 +393,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post content
-		if ( post_type_supports( $this->post_type, 'editor' ) && isset( $request['content'] ) ) {
+		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_kses_post( $request['content'] );
 			}
@@ -401,7 +403,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post excerpt
-		if ( post_type_supports( $this->post_type, 'excerpt' ) && isset( $request['excerpt'] ) ) {
+		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
 			}
@@ -458,7 +460,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( post_type_supports( $this->post_type, 'author' ) && ! empty( $request['author'] ) ) {
+		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['author'] ) ) {
 			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
@@ -478,7 +480,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Parent
 		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( $post_type_obj->hierarchical && ! empty( $request['parent'] ) ) {
+		if ( ! empty( $schema['properties']['parent'] ) && ! empty( $request['parent'] ) ) {
 			$parent = get_post( (int) $request['parent'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
@@ -488,17 +490,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Menu order
-		if ( post_type_supports( $this->post_type, 'page-attributes' ) && isset( $request['menu_order'] ) ) {
+		if ( ! empty( $schema['properties']['menu_order'] ) && isset( $request['menu_order'] ) ) {
 			$prepared_post->menu_order = (int) $request['menu_order'];
 		}
 
 		// Comment status
-		if ( post_type_supports( $this->post_type, 'comments' ) && ! empty( $request['comment_status'] ) ) {
+		if ( ! empty( $schema['properties']['comment_status'] ) && ! empty( $request['comment_status'] ) ) {
 			$prepared_post->comment_status = sanitize_text_field( $request['comment_status'] );
 		}
 
 		// Ping status
-		if ( post_type_supports( $this->post_type, 'comments' ) && ! empty( $request['ping_status'] ) ) {
+		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
 			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
@@ -798,7 +800,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		}
 
-		if ( post_type_supports( $post->post_type, 'title' ) ) {
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
 				'rendered'       => get_the_title( $post->ID ),
 				);
@@ -807,7 +811,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'editor' ) ) {
+		if ( ! empty( $schema['properties']['content'] ) ) {
 			$data['content'] = array(
 				'rendered'       => apply_filters( 'the_content', $post->post_content ),
 				);
@@ -816,7 +820,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
+		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
 				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
 				);
@@ -825,35 +829,38 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'author' ) ) {
+		if ( ! empty( $schema['properties']['author'] ) ) {
 			$data['author'] = (int) $post->post_author;
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) ) {
 			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
 		}
 
-		$post_type_obj = get_post_type_object( $post->post_type );
-		if ( $post_type_obj->hierarchical ) {
+		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $post->post_parent;
 			if ( 0 == $data['parent'] ) {
 				$data['parent'] = null;
 			}
-			if ( post_type_supports( $post->post_type, 'page-attributes' ) ) {
-				$data['menu_order'] = (int) $post->menu_order;
-			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+		if ( ! empty( $schema['properties']['menu_order'] ) ) {
+			$data['menu_order'] = (int) $post->menu_order;
+		}
+
+		if ( ! empty( $schema['properties']['comment_status'] ) ) {
 			$data['comment_status'] = $post->comment_status;
+		}
+
+		if ( ! empty( $schema['properties']['ping_status'] ) ) {
 			$data['ping_status'] = $post->ping_status;
 		}
 
-		if ( 'post' === $post->post_type ) {
+		if ( ! empty( $schema['properties']['sticky'] ) ) {
 			$data['sticky'] = is_sticky( $post->ID );
 		}
 
-		if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
+		if ( ! empty( $schema['properties']['format'] ) ) {
 			$data['format'] = get_post_format( $post->ID );
 			// Fill in blank post format
 			if ( empty( $data['format'] ) ) {
@@ -903,14 +910,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			),
 		);
 
-		if ( post_type_supports( $post->post_type, 'author' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
 			$links['author'] = array(
 				'href' => json_url( '/wp/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
-		if ( post_type_supports( $post->post_type, 'comments' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$links['replies'] = array(
 				'href' => json_url( '/wp/comments' ),
 				'embeddable' => true,
@@ -918,7 +925,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 		}
 
-		if ( post_type_supports( $post->post_type, 'revisions' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'revisions' ) ) {
 			$links['version-history'] = array(
 				'href' => json_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
 			);
@@ -933,4 +940,207 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		return $links;
 	}
+
+	/**
+	 * Get the Post's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+
+		$base = $this->get_post_type_base( $this->post_type );
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => $base,
+			'type'                 => 'object',
+			/*
+			 * Base properties for every Post
+			 */
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'Unique identifier for the object.',
+					'type'         => 'integer',
+				),
+				'type'             => array(
+					'description'  => 'Type of Post for the object.',
+					'type'         => 'string',
+				),
+				'slug'             => array(
+					'description'  => 'An alphanumeric identifier for the object unique to its type.',
+					'type'         => 'string',
+				),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
+				),
+				'date'             => array(
+					'description'  => 'The date the object was published.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+				),
+				'modified'         => array(
+					'description'  => 'The date the object was last modified.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+				),
+			)
+		);
+
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( $post_type_obj->hierarchical ) {
+			$schema['properties']['parent'] = array(
+				'description'      => 'The ID for the parent of the object.',
+				'type'             => 'integer',
+				);
+		}
+
+		$post_type_attributes = array(
+			'title',
+			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'page-attributes',
+			'post-formats',
+			);
+		$fixed_post_attributes = array(
+			'title',
+			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'post-formats',
+			);
+		$fixed_page_attributes = array(
+			'title',
+			'editor',
+			'author',
+			'excerpt',
+			'thumbnail',
+			'comments',
+			'revisions',
+			'page-attributes',
+			);
+		foreach( $post_type_attributes as $attribute ) {
+			if ( 'post' === $this->post_type && ! in_array( $attribute, $fixed_post_attributes ) )  {
+				continue;
+			} else if ( 'page' === $this->post_type && ! in_array( $attribute, $fixed_page_attributes ) ) {
+				continue;
+			} else if ( ! in_array( $this->post_type, array( 'post', 'page' ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+				continue;
+			}
+
+			switch( $attribute ) {
+
+				case 'title':
+					$schema['properties']['title'] = array(
+						'description'     => 'The title for the object.',
+						'type'            => 'object',
+						'properties'      => array(
+							'raw'         => array(
+								'description'     => 'Title for the object, as it exists in the database.',
+								'type'            => 'string',
+								),
+							'rendered'    => array(
+								'description'     => 'Title for the object, transformed for display.',
+								'type'            => 'string',
+								),
+							),
+						);
+					break;
+
+				case 'editor':
+					$schema['properties']['content'] = array(
+						'description'     => 'The content for the object.',
+						'type'            => 'object',
+						'properties'      => array(
+							'raw'         => array(
+								'description'     => 'Content for the object, as it exists in the database.',
+								'type'            => 'string',
+								),
+							'rendered'    => array(
+								'description'     => 'Content for the object, transformed for display.',
+								'type'            => 'string',
+								),
+							),
+						);
+					break;
+
+				case 'author':
+					$schema['properties']['author'] = array(
+						'description'     => 'The ID for the author of the object.',
+						'type'            => 'integer',
+						);
+
+				case 'excerpt':
+					$schema['properties']['excerpt'] = array(
+						'description'     => 'The excerpt for the object.',
+						'type'            => 'object',
+						'properties'      => array(
+							'raw'         => array(
+								'description'     => 'Excerpt for the object, as it exists in the database.',
+								'type'            => 'string',
+								),
+							'rendered'    => array(
+								'description'     => 'Excerpt for the object, transformed for display.',
+								'type'            => 'string',
+								),
+							),
+						);
+					break;
+
+				case 'thumbnail':
+					$schema['properties']['featured_image'] = array(
+						'description'     => 'ID of the featured image for the object.',
+						'type'            => 'integer',
+						);
+					break;
+
+				case 'comments':
+					$schema['properties']['comment_status'] = array(
+						'description'     => 'Whether or not comments are open on the object.',
+						'type'            => 'string',
+						'enum'            => array( 'open', 'closed' ),
+						);
+					$schema['properties']['ping_status'] = array(
+						'description'     => 'Whether or not the object can be pinged.',
+						'type'            => 'string',
+						'enum'            => array( 'open', 'closed' ),
+						);
+					break;
+
+				case 'page-attributes':
+					$schema['properties']['menu_order'] = array(
+						'description'     => 'The order of the object in relation to other object of its type.',
+						'type'            => 'integer',
+						);
+					break;
+
+				case 'post-formats':
+					$schema['properties']['format'] = array(
+						'description'     => 'The format for the object.',
+						'type'            => 'string',
+						'enum'            => get_post_format_slugs(),
+						);
+					break;
+
+			}
+
+		}
+
+		if ( 'post' === $this->post_type ) {
+			$schema['properties']['sticky'] = array(
+				'description'      => 'Whether or not the object should be treated as sticky.',
+				'type'             => 'boolean',
+				);
+		}
+
+		return $schema;
+	}
+
 }

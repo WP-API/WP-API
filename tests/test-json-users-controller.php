@@ -441,6 +441,10 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_user_invalid_reassign', $response, 400 );
 	}
 
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Not yet implemented' );
+	}
+
 	public function tearDown() {
 		parent::tearDown();
 	}

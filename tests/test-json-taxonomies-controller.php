@@ -79,6 +79,10 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->check_taxonomy_object( $tax, $data );
 	}
 
+	public function test_get_item_schema() {
+		$this->markTestSkipped( 'Not yet implemented' );
+	}
+
 	public function tearDown() {
 		parent::tearDown();
 	}

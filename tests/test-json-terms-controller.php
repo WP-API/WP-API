@@ -22,6 +22,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)', $routes );
 		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/terms/(?P<taxonomy>[\w-]+)/schema', $routes );
 	}
 
 	public function test_get_items() {
@@ -238,6 +239,21 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$this->assertEquals( 1, $data['parent_id'] );
 		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
+	}
+
+	public function test_get_item_schema() {
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'count', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'parent_id', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'taxonomy', $properties );
+		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
 	}
 
 	public function tearDown() {

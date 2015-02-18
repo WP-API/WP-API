@@ -776,6 +776,29 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 	}
 
+	public function test_get_item_schema() {
+		$request = new WP_JSON_Request( 'GET', '/wp/posts/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 15, count( $properties ) );
+		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'comment_status', $properties );
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'excerpt', $properties );
+		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'format', $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'ping_status', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'sticky', $properties );
+		$this->assertArrayHasKey( 'title', $properties );
+		$this->assertArrayHasKey( 'type', $properties );
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
 		if ( isset( $this->attachment_id ) ) {
