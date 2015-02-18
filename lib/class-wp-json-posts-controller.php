@@ -26,9 +26,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
-		if ( 0 === $posts_query->found_posts ) {
-			return json_ensure_response( array() );
-		}
 
 		$posts = array();
 		foreach ( $query_result as $post ) {
