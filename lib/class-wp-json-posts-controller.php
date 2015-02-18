@@ -1096,7 +1096,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 				case 'thumbnail':
 					$schema['properties']['featured_image'] = array(
-						'description'     => 'A featured image for the object.',
+						'description'     => 'ID of the featured image for the object.',
 						'type'            => 'integer',
 						);
 					break;
