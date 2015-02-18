@@ -222,6 +222,10 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
 					),
+				'parent_id'        => array(
+					'description'  => 'The ID for the parent of the object.',
+					'type'         => 'integer',
+					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
@@ -230,10 +234,6 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'Type attribution for the object.',
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
-					),
-				'parent_id'        => array(
-					'description'  => 'The ID for the parent of the object.',
-					'type'         => 'integer',
 					),
 				),
 			);
