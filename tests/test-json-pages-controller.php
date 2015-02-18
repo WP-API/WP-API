@@ -174,7 +174,6 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
-
 	}
 
 	protected function set_post_data( $args = array() ) {
