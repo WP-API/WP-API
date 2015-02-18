@@ -182,6 +182,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'description'  => $item->description,
 			'name'         => $item->name,
 			'slug'         => $item->slug,
+			'taxonomy'     => $item->taxonomy,
 			'parent_id'    => (int) $parent_id,
 		);
 
