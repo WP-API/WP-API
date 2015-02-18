@@ -433,6 +433,12 @@ function create_initial_json_routes() {
 			),
 		),
 	) );
+
+	register_json_route( 'wp', '/comments/schema', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item_schema' ),
+	) );
+
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 

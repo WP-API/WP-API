@@ -405,6 +405,80 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the Comment's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'comment',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'Unique identifier for the object.',
+					'type'         => 'integer',
+					),
+				'author'           => array(
+					'description'  => 'Name of the object author.',
+					'type'         => 'string',
+					),
+				'author_email'     => array(
+					'description'  => 'Email address for the object author.',
+					'type'         => 'string',
+					'format'       => 'email',
+					),
+				'author_url'       => array(
+					'description'  => 'Url for the object author.',
+					'type'         => 'string',
+					'format'       => 'uri',
+					),
+				'content'          => array(
+					'description'     => 'The content for the object.',
+					'type'            => 'object',
+					'properties'      => array(
+						'raw'         => array(
+							'description'     => 'Content for the object, as it exists in the database.',
+							'type'            => 'string',
+							),
+						'rendered'    => array(
+							'description'     => 'Content for the object, transformed for display.',
+							'type'            => 'string',
+							),
+						),
+					),
+				'date'             => array(
+					'description'  => 'The date the object was published.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+				),
+				'parent_id'        => array(
+					'description'  => 'The ID for the parent of the object.',
+					'type'         => 'integer',
+					),
+				'post_id'          => array(
+					'description'  => 'The ID of the associated post object.',
+					'type'         => 'integer',
+					),
+				'status'           => array(
+					'description'  => 'State of the object.',
+					'type'         => 'string',
+					),
+				'type'             => array(
+					'description'  => 'Type of Comment for the object.',
+					'type'         => 'string',
+					),
+				'user_id'          => array(
+					'description'  => 'The ID of the user object, if author was a user.',
+					'type'         => 'integer',
+					),
+				),
+			);
+		return $schema;
+	}
+
+	/**
 	 * Process a comment_status change when updating a comment.
 	 *
 	 * @param string|int $new_status
