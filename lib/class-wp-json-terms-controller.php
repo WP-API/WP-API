@@ -208,10 +208,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'count'            => array(
 					'description'  => 'Number of published posts for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
