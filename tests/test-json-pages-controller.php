@@ -154,7 +154,27 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 	}
 
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Not yet implemented' );
+		$request = new WP_JSON_Request( 'GET', '/wp/pages/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 15, count( $properties ) );
+		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'comment_status', $properties );
+		$this->assertArrayHasKey( 'content', $properties );
+		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'excerpt', $properties );
+		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'menu_order', $properties );
+		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
+		$this->assertArrayHasKey( 'ping_status', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'title', $properties );
+		$this->assertArrayHasKey( 'type', $properties );
+
 	}
 
 	protected function set_post_data( $args = array() ) {
