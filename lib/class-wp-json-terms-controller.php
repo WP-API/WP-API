@@ -180,6 +180,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
+			'link'         => get_term_link( $item ),
 			'name'         => $item->name,
 			'slug'         => $item->slug,
 			'taxonomy'     => $item->taxonomy,
@@ -217,6 +218,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',

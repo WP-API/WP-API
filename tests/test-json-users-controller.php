@@ -442,7 +442,15 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Not yet implemented' );
+		$request = new WP_JSON_Request( 'GET', '/wp/users/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 4, count( $properties ) );
+		$this->assertArrayHasKey( 'email', $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
 	}
 
 	public function tearDown() {
@@ -459,6 +467,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
+		$this->assertEquals( $data['link'], get_author_posts_url( $user->ID ) );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
