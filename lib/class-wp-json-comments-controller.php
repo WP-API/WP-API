@@ -211,6 +211,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 			),
+			'link'         => get_comment_link( $comment ),
 			'status'       => $this->prepare_status_response( $comment->comment_approved ),
 			'type'         => get_comment_type( $comment->comment_ID ),
 		);
@@ -453,6 +454,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'type'         => 'string',
 					'format'       => 'date-time',
 				),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
+					),
 				'parent_id'        => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',

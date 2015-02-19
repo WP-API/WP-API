@@ -246,6 +246,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
+			'link'        => get_author_posts_url( $user->ID ),
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
@@ -356,6 +357,11 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description'  => 'The email address for the object.',
 					'type'         => 'string',
 					'format'       => 'email',
+					),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
 					),
 				),
 			);
