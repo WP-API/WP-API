@@ -467,7 +467,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( $data['link'], get_author_posts_url( $user->ID ) );
+		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
