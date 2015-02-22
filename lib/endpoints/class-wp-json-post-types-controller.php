@@ -47,13 +47,48 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 		}
 
 		return array(
+			'description'  => $post_type->description,
+			'hierarchical' => $post_type->hierarchical,
+			'labels'       => $post_type->labels,
 			'name'         => $post_type->label,
 			'slug'         => $post_type->name,
-			'description'  => $post_type->description,
-			'labels'       => $post_type->labels,
-			'hierarchical' => $post_type->hierarchical,
 		);
 	}
 
+	/**
+	 * Get the Post type's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'type',
+			'type'                 => 'object',
+			'properties'           => array(
+				'description'      => array(
+					'description'  => 'A human-readable description of the object.',
+					'type'         => 'string',
+					),
+				'hierarchical'     => array(
+					'description'  => 'Whether or not the type should have children.',
+					'type'         => 'boolean',
+					),
+				'labels'           => array(
+					'description'  => 'Human-readable labels for the type for various contexts.',
+					'type'         => 'object',
+					),
+				'name'             => array(
+					'description'  => 'The title for the object.',
+					'type'         => 'string',
+					),
+				'slug'             => array(
+					'description'  => 'An alphanumeric identifier for the object.',
+					'type'         => 'string',
+					),
+				),
+			);
+		return $schema;
+	}
 
 }

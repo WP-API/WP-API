@@ -53,7 +53,16 @@ class WP_Test_JSON_Post_Types_Controller extends WP_Test_JSON_Controller_Testcas
 	}
 
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Not yet implemented' );
+		$request = new WP_JSON_Request( 'GET', '/wp/types/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 5, count( $properties ) );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'hierarchical', $properties );
+		$this->assertArrayHasKey( 'labels', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
 	}
 
 	protected function check_post_type_obj( $post_type_obj, $data ) {
