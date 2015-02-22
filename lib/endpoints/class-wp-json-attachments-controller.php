@@ -55,7 +55,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
-		$response['post_id'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		$response['post_id']       = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
 		$response['source_url']    = wp_get_attachment_url( $post->ID );
 
 		// Ensure empty details is an empty object
