@@ -682,6 +682,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( true, $new_data['sticky'] );
 		$post = get_post( $new_data['id'] );
 		$this->assertEquals( true, is_sticky( $post->ID ) );
+
+		// Updating another field shouldn't change sticky status
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'title'       => 'This should not reset sticky',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( true, $new_data['sticky'] );
+		$post = get_post( $new_data['id'] );
+		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
 	public function test_update_post_excerpt() {
@@ -781,13 +794,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 15, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'format', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
