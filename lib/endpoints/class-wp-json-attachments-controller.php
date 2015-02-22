@@ -140,11 +140,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	/**
 	 * Handle an upload via raw POST data
 	 *
-	 * @param array $files Data from $_FILES. Unused.
+	 * @param array $data Supplied file data
 	 * @param array $headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
-	protected function upload_from_data( $data, $files, $headers ) {
+	protected function upload_from_data( $data, $headers ) {
 		if ( empty( $data ) ) {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}
