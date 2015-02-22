@@ -37,9 +37,9 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
 
-		$response['alt_text'] = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$response['caption'] = $post->post_content;
-		$response['description'] = $post->post_excerpt;
+		$response['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
+		$response['caption']       = $post->post_content;
+		$response['description']   = $post->post_excerpt;
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$response['post_id']       = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
