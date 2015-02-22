@@ -38,21 +38,8 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$response = parent::prepare_item_for_response( $post, $request );
 
 		$response['alt_text'] = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-
-		$response['caption'] = array(
-			'rendered'       => apply_filters( 'the_content', $post->post_content ),
-			);
-		if ( 'edit' === $request['context'] ) {
-			$response['caption']['raw'] = $post->post_content;
-		}
-
-		$response['description'] = array(
-			'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
-			);
-		if ( 'edit' === $request['context'] ) {
-			$response['description']['raw'] = $post->post_excerpt;
-		}
-
+		$response['caption'] = $post->post_content;
+		$response['description'] = $post->post_excerpt;
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$response['post_id']       = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
@@ -90,31 +77,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
-			'type'            => 'object',
-			'properties'      => array(
-				'raw'         => array(
-					'description'     => 'Caption for the attachment, as it exists in the database.',
-					'type'            => 'string',
-					),
-				'rendered'    => array(
-					'description'     => 'Caption for the attachment, transformed for display.',
-					'type'            => 'string',
-					),
-				),
+			'type'            => 'string',
 			);
 		$schema['properties']['description'] = array(
 			'description'     => 'The description for the attachment.',
-			'type'            => 'object',
-			'properties'      => array(
-				'raw'         => array(
-					'description'     => 'Description for the attachment, as it exists in the database.',
-					'type'            => 'string',
-					),
-				'rendered'    => array(
-					'description'     => 'Description for the attachment, transformed for display.',
-					'type'            => 'string',
-					),
-				),
+			'type'            => 'string',
 			);
 		$schema['properties']['media_type'] = array(
 			'description'  => 'Type of attachment.',
