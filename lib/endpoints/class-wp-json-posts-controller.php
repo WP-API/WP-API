@@ -142,18 +142,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
-
 		$post->ID = $post_id;
-		if ( 'post' === $post->post_type ) {
+
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post->ID );
 		}
 
-		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
+		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
@@ -207,15 +209,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post_id;
 		}
 
-		if ( post_type_supports( $post->post_type, 'post-formats' ) && ! empty( $request['format'] ) ) {
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		if ( post_type_supports( $post->post_type, 'thumbnail' ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
-		if ( 'post' === $post->post_type && isset( $request['sticky'] ) ) {
+		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
 		}
