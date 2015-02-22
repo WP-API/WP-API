@@ -285,7 +285,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( $term->name, $data['name'] );
 		$this->assertEquals( $term->slug, $data['slug'] );
 		$this->assertEquals( $term->description, $data['description'] );
-		$this->assertEquals( $data['link'], get_term_link( $term ) );
+		$this->assertEquals( get_term_link( $term ),  $data['link'] );
 		$this->assertEquals( $term->count, $data['count'] );
 	}
 
