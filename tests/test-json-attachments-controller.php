@@ -17,6 +17,9 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->author_id = $this->factory->user->create( array(
 			'role' => 'author',
 		) );
+		$this->contributor_id = $this->factory->user->create( array(
+			'role' => 'contributor',
+		) );
 	}
 
 	public function test_register_routes() {
@@ -33,6 +36,22 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 
 	public function test_create_item() {
 		
+	}
+
+	public function test_create_item_invalid_upload_files_capability() {
+		wp_set_current_user( $this->contributor_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+	}
+
+	public function test_create_item_invalid_edit_permissions() {
+		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_param( 'post_id', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_edit', $response, 401 );
 	}
 
 	public function test_update_item() {
