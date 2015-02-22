@@ -49,11 +49,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		if ( empty( $response['media_details'] ) ) {
 			$response['media_details'] = new stdClass;
 		} elseif ( ! empty( $response['media_details']['sizes'] ) ) {
-			$img_url_basename = wp_basename( $response['source'] );
+			$img_url_basename = wp_basename( $response['source_url'] );
 
 			foreach ( $response['media_details']['sizes'] as $size => &$size_data ) {
 				// Use the same method image_downsize() does
-				$size_data['source_url'] = str_replace( $img_url_basename, $size_data['file'], $response['source'] );
+				$size_data['source_url'] = str_replace( $img_url_basename, $size_data['file'], $response['source_url'] );
 			}
 		} else {
 		    $response['media_details']['sizes'] = new stdClass;
