@@ -307,6 +307,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
+		if ( empty( $query_args['post_status'] ) && 'attachment' === $this->post_type ) {
+			$query_args['post_status'] = 'inherit';
+		}
+
 		return $query_args;
 	}
 
