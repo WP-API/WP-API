@@ -116,19 +116,18 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $headers['CONTENT_TYPE'] ) ) {
-			return new WP_Error( 'json_upload_no_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
+		if ( empty( $headers['content_type'] ) ) {
+			return new WP_Error( 'json_upload_no_content_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $headers['CONTENT_DISPOSITION'] ) ) {
-			return new WP_Error( 'json_upload_no_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
+		if ( empty( $headers['content_disposition'] ) ) {
+			return new WP_Error( 'json_upload_no_content_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
 		// Get the filename
-		$disposition_parts = explode( ';', $headers['CONTENT_DISPOSITION'] );
 		$filename = null;
 
-		foreach ( $disposition_parts as $part ) {
+		foreach ( $headers['content_disposition'] as $part ) {
 			$part = trim( $part );
 
 			if ( strpos( $part, 'filename' ) !== 0 ) {
@@ -143,8 +142,9 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			return new WP_Error( 'json_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
-			$expected = trim( $headers['CONTENT_MD5'] );
+		if ( ! empty( $headers['content_md5'] ) ) {
+			$content_md5 = array_shift( $headers['content_md5'] );
+			$expected = trim( $content_md5 );
 			$actual   = md5( $data );
 
 			if ( $expected !== $actual ) {
@@ -153,7 +153,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		}
 
 		// Get the content-type
-		$type = $headers['CONTENT_TYPE'];
+		$type = array_shift( $headers['content_type'] );
 
 		// Save the file
 		$tmpfname = wp_tempnam( $filename );
