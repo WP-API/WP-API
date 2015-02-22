@@ -209,6 +209,10 @@ function create_initial_json_routes() {
 			'post_type'          => array(),
 		),
 	) );
+	register_json_route( 'wp', '/taxonomies/schema', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item_schema' ),
+	) );
 	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
 		'methods'         => WP_JSON_Server::READABLE,
 		'callback'        => array( $controller, 'get_item' ),

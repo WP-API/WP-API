@@ -2,12 +2,6 @@
 
 class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcase {
 
-	public function setUp() {
-		parent::setUp();
-
-		$this->endpoint = new WP_JSON_Taxonomies_Controller;
-	}
-
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
@@ -16,13 +10,8 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	}
 
 	public function test_get_items() {
-		$request = new WP_JSON_Request;
-		$request->set_method( 'GET' );
-		$response = $this->endpoint->get_items( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies' );
+		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
@@ -36,28 +25,21 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 	}
 
 	public function test_get_taxonomies_with_types() {
-		foreach ( get_post_types() as $type ) {
-			$request = new WP_JSON_Request;
-			$request->set_method( 'GET' );
-			$request->set_param( 'post_type', $type );
-			$response = $this->endpoint->get_items( $request );
-			$this->check_taxonomies_for_type_response( $type, $response );
-		}
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies' );
+		$request->set_param( 'post_type', 'post' );
+		$response = $this->server->dispatch( $request );
+		$this->check_taxonomies_for_type_response( 'post', $response );
 	}
 
 	public function test_get_item() {
-		$request = new WP_JSON_Request;
-		$request->set_method( 'GET' );
-		$request->set_param( 'taxonomy', 'category' );
-		$response = $this->endpoint->get_item( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/category' );
+		$response = $this->server->dispatch( $request );
 		$this->check_taxonomy_object_response( $response );
 	}
 
 	public function test_get_invalid_taxonomy() {
-		$request = new WP_JSON_Request;
-		$request->set_method( 'GET' );
-		$request->set_param( 'taxonomy', '' );
-		$response = $this->endpoint->get_item( $request );
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/invalid' );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
@@ -75,12 +57,24 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 
 	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
-		$data = $this->endpoint->prepare_item_for_response( $tax, new WP_JSON_Request );
+		$endpoint = new WP_JSON_Taxonomies_Controller;
+		$data = $endpoint->prepare_item_for_response( $tax, new WP_JSON_Request );
 		$this->check_taxonomy_object( $tax, $data );
 	}
 
 	public function test_get_item_schema() {
-		$this->markTestSkipped( 'Not yet implemented' );
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 7, count( $properties ) );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'hierarchical', $properties );
+		$this->assertArrayHasKey( 'labels', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'show_cloud', $properties );
+		$this->assertArrayHasKey( 'types', $properties );
 	}
 
 	public function tearDown() {
