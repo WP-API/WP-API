@@ -23,7 +23,11 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_register_routes() {
-
+		$routes = $this->server->get_routes();
+		$this->assertArrayHasKey( '/wp/media', $routes );
+		$this->assertCount( 2, $routes['/wp/media'] );
+		$this->assertArrayHasKey( '/wp/media/(?P<id>[\d]+)', $routes );
+		$this->assertCount( 3, $routes['/wp/media/(?P<id>[\d]+)'] );
 	}
 
 	public function test_get_items() {
