@@ -1076,6 +1076,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description'     => 'The ID for the author of the object.',
 						'type'            => 'integer',
 						);
+					break;
 
 				case 'excerpt':
 					$schema['properties']['excerpt'] = array(
