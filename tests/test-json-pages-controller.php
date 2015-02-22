@@ -158,11 +158,12 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 15, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_image', $properties );
 		$this->assertArrayHasKey( 'id', $properties );

@@ -969,6 +969,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
 				),
+				'guid'             => array(
+					'description'     => 'The globally unique identifier for the object.',
+					'type'            => 'object',
+					'properties'      => array(
+						'raw'         => array(
+							'description'     => 'GUID for the object, as it exists in the database.',
+							'type'            => 'string',
+							),
+						'rendered'    => array(
+							'description'     => 'GUID for the object, transformed for display.',
+							'type'            => 'string',
+							),
+						),
+					),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
