@@ -32,6 +32,13 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		
 	}
 
+	public function test_get_item_invalid_post_type() {
+		$post_id = $this->factory->post->create();
+		$request = new WP_JSON_Request( 'GET', '/wp/pages/' . $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 404, $response->get_status() );
+	}
+
 	public function test_create_item() {
 		
 	}

@@ -55,7 +55,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$id = (int) $request['id'];
 		$post = get_post( $id );
 
-		if ( empty( $id ) || empty( $post->ID ) ) {
+		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
