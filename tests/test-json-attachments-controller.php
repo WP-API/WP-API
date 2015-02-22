@@ -52,7 +52,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 17, count( $properties ) );
+		$this->assertEquals( 18, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -65,6 +65,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'media_type', $properties );
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'post_id', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'source_url', $properties );

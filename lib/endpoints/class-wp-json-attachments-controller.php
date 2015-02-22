@@ -28,9 +28,10 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			$response['description']['raw'] = $post->post_excerpt;
 		}
 
-		$response['source_url']    = wp_get_attachment_url( $post->ID );
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
+		$response['post_id'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		$response['source_url']    = wp_get_attachment_url( $post->ID );
 
 		// Ensure empty details is an empty object
 		if ( empty( $response['media_details'] ) ) {
@@ -98,6 +99,10 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$schema['properties']['media_details'] = array(
 			'description'  => 'Details about the attachment file, specific to its type.',
 			'type'         => 'object',
+			);
+		$schema['properties']['post_id'] = array(
+			'description'      => 'The ID for the associated post of the attachment.',
+			'type'             => 'integer',
 			);
 		$schema['properties']['source_url'] = array(
 			'description'  => 'URL to the original attachment file.',
