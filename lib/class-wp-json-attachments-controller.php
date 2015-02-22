@@ -12,6 +12,8 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
 
+		$response['alt_text'] = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
+
 		$response['caption'] = array(
 			'rendered'       => apply_filters( 'the_content', $post->post_content ),
 			);
@@ -56,6 +58,10 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		$schema = parent::get_item_schema();
 
+		$schema['properties']['alt_text'] = array(
+			'description'     => 'Alternative text to display when attachment is not displayed.',
+			'type'            => 'string',
+			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
 			'type'            => 'object',
