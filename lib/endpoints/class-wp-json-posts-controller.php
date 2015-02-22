@@ -860,6 +860,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$data['sticky'] = is_sticky( $post->ID );
 		}
 
+		if ( ! empty( $schema['properties']['template'] ) ) {
+			if ( $template = get_page_template_slug( $post->ID ) ) {
+				$data['template'] = $template;
+			} else {
+				$data['template'] = '';
+			}
+		}
+
 		if ( ! empty( $schema['properties']['format'] ) ) {
 			$data['format'] = get_post_format( $post->ID );
 			// Fill in blank post format
@@ -1152,6 +1160,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['sticky'] = array(
 				'description'      => 'Whether or not the object should be treated as sticky.',
 				'type'             => 'boolean',
+				);
+		}
+
+		if ( 'page' === $this->post_type ) {
+			$schema['properties']['template'] = array(
+				'description'      => 'The theme file to use to display the object.',
+				'type'             => 'string',
+				'enum'             => array_values( get_page_templates() ),
 				);
 		}
 
