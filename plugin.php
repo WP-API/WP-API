@@ -38,6 +38,7 @@ include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts.php
 
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
@@ -174,6 +175,28 @@ function create_initial_json_routes() {
 		) );
 
 	}
+
+	/*
+	 * Post types
+	 */
+	$controller = new WP_JSON_Post_Types_Controller;
+	register_json_route( 'wp', '/types', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_items' ),
+		'args'            => array(
+			'post_type'          => array(),
+		),
+	) );
+
+	register_json_route( 'wp', '/types/schema', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item_schema' ),
+	) );
+
+	register_json_route( 'wp', '/types/(?P<type>[\w-]+)', array(
+		'methods'         => WP_JSON_Server::READABLE,
+		'callback'        => array( $controller, 'get_item' ),
+	) );
 
 	/*
 	 * Taxonomies
