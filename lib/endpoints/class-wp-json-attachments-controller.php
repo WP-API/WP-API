@@ -137,4 +137,121 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		return $schema;
 	}
 
+	/**
+	 * Handle an upload via raw POST data
+	 *
+	 * @param array $_files Data from $_FILES. Unused.
+	 * @param array $_headers HTTP headers from the request
+	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
+	 */
+	protected function upload_from_data( $data, $_files, $_headers ) {
+		if ( empty( $data ) ) {
+			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+		}
+
+		if ( empty( $_headers['CONTENT_TYPE'] ) ) {
+			return new WP_Error( 'json_upload_no_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
+		}
+
+		if ( empty( $_headers['CONTENT_DISPOSITION'] ) ) {
+			return new WP_Error( 'json_upload_no_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
+		}
+
+		// Get the filename
+		$disposition_parts = explode( ';', $_headers['CONTENT_DISPOSITION'] );
+		$filename = null;
+
+		foreach ( $disposition_parts as $part ) {
+			$part = trim( $part );
+
+			if ( strpos( $part, 'filename' ) !== 0 ) {
+				continue;
+			}
+
+			$filenameparts = explode( '=', $part );
+			$filename      = trim( $filenameparts[1] );
+		}
+
+		if ( empty( $filename ) ) {
+			return new WP_Error( 'json_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $_headers['CONTENT_MD5'] );
+			$actual   = md5( $data );
+
+			if ( $expected !== $actual ) {
+				return new WP_Error( 'json_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+			}
+		}
+
+		// Get the content-type
+		$type = $_headers['CONTENT_TYPE'];
+
+		// Save the file
+		$tmpfname = wp_tempnam( $filename );
+
+		$fp = fopen( $tmpfname, 'w+' );
+
+		if ( ! $fp ) {
+			return new WP_Error( 'json_upload_file_error', __( 'Could not open file handle' ), array( 'status' => 500 ) );
+		}
+
+		fwrite( $fp, $data );
+		fclose( $fp );
+
+		// Now, sideload it in
+		$file_data = array(
+			'error'    => null,
+			'tmp_name' => $tmpfname,
+			'name'     => $filename,
+			'type'     => $type,
+		);
+		$overrides = array(
+			'test_form' => false,
+		);
+		$sideloaded = wp_handle_sideload( $file_data, $overrides );
+
+		if ( isset( $sideloaded['error'] ) ) {
+			@unlink( $tmpfname );
+			return new WP_Error( 'json_upload_sideload_error', $sideloaded['error'], array( 'status' => 500 ) );
+		}
+
+		return $sideloaded;
+	}
+
+	/**
+	 * Handle an upload via multipart/form-data ($_FILES)
+	 *
+	 * @param array $_files Data from $_FILES
+	 * @param array $_headers HTTP headers from the request
+	 * @return array|WP_Error Data from {@see wp_handle_upload()}
+	 */
+	protected function upload_from_file( $_files, $_headers ) {
+		if ( empty( $_files['file'] ) )
+			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+
+		// Verify hash, if given
+		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $_headers['CONTENT_MD5'] );
+			$actual = md5_file( $_files['file']['tmp_name'] );
+			if ( $expected !== $actual ) {
+				return new WP_Error( 'json_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+			}
+		}
+
+		// Pass off to WP to handle the actual upload
+		$overrides = array(
+			'test_form' => false,
+		);
+
+		$file = wp_handle_upload( $_files['file'], $overrides );
+
+		if ( isset( $file['error'] ) ) {
+			return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
+		}
+
+		return $file;
+	}
+
 }
