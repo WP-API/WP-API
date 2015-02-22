@@ -84,22 +84,22 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'type'            => 'string',
 			);
 		$schema['properties']['media_type'] = array(
-			'description'  => 'Type of attachment.',
-			'type'         => 'string',
-			'enum'         => array( 'image', 'file' ),
+			'description'     => 'Type of attachment.',
+			'type'            => 'string',
+			'enum'            => array( 'image', 'file' ),
 			);
 		$schema['properties']['media_details'] = array(
-			'description'  => 'Details about the attachment file, specific to its type.',
-			'type'         => 'object',
+			'description'     => 'Details about the attachment file, specific to its type.',
+			'type'            => 'object',
 			);
 		$schema['properties']['post_id'] = array(
-			'description'      => 'The ID for the associated post of the attachment.',
-			'type'             => 'integer',
+			'description'     => 'The ID for the associated post of the attachment.',
+			'type'            => 'integer',
 			);
 		$schema['properties']['source_url'] = array(
-			'description'  => 'URL to the original attachment file.',
-			'type'         => 'string',
-			'format'       => 'uri',
+			'description'     => 'URL to the original attachment file.',
+			'type'            => 'string',
+			'format'          => 'uri',
 			);
 		return $schema;
 	}
