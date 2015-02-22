@@ -56,8 +56,6 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		$schema = parent::get_item_schema();
 
-		error_log( var_export( array_keys( $schema['properties'] ), true ) );
-
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
 			'type'            => 'object',
