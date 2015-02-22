@@ -195,10 +195,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
-		if ( isset( $request['type'] ) && $request['type'] != $post->post_type ) {
-			return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
-		}
-
 		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -417,17 +413,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post type
-		if ( ! empty( $request['type'] ) ) {
-			$request['type'] = sanitize_text_field( $request['type'] );
-			// Changing post type
-			if ( ! get_post_type_object( $request['type'] ) ) {
-				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-			}
-
-			$prepared_post->post_type = $request['type'];
-		} elseif ( empty( $request['id'] ) ) {
-			// Creating new post, use default type
-			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
+		if ( empty( $request['id'] ) ) {
+			// Creating new post, use default type for the controller
+			$prepared_post->post_type = $this->post_type;
 		} else {
 			// Updating a post, use previous type.
 			$prepared_post->post_type = get_post_type( $request['id'] );
