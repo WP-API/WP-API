@@ -87,22 +87,48 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 		}
 
 		// Check filtered values.
-		$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
-		// TODO: apply content filter for more accurate testing.
-		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
-		if ( empty( $post->post_password ) ) {
-			// TODO: apply excerpt filter for more accurate testing.
-			$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+		if ( post_type_supports( $post->post_type, 'title' ) ) {
+			$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
+			if ( 'edit' === $context ) {
+				$this->assertEquals( $post->post_title, $data['title']['raw'] );
+			} else {
+				$this->assertFalse( isset( $data['title']['raw'] ) );
+			}
 		} else {
-			$this->assertEquals( 'There is no excerpt because this is a protected post.', $data['excerpt']['rendered'] );
+			$this->assertFalse( isset( $data['title'] ) );
+		}
+
+		if ( post_type_supports( $post->post_type, 'editor' ) ) {
+			// TODO: apply content filter for more accurate testing.
+			$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+			if ( 'edit' === $context ) {
+				$this->assertEquals( $post->post_content, $data['content']['raw'] );
+			} else {
+				$this->assertFalse( isset( $data['content']['raw'] ) );
+			}
+		} else {
+			$this->assertFalse( isset( $data['content'] ) );
+		}
+
+		if ( post_type_supports( $post->post_type, 'excerpt' ) ) {
+			if ( empty( $post->post_password ) ) {
+				// TODO: apply excerpt filter for more accurate testing.
+				$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+			} else {
+				$this->assertEquals( 'There is no excerpt because this is a protected post.', $data['excerpt']['rendered'] );
+			}
+			if ( 'edit' === $context ) {
+				$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
+			} else {
+				$this->assertFalse( isset( $data['excerpt']['raw'] ) );
+			}
+		} else {
+			$this->assertFalse( isset( $data['excerpt'] ) );
 		}
 
 		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
 
 		if ( 'edit' == $context ) {
-			$this->assertEquals( $post->post_title, $data['title']['raw'] );
-			$this->assertEquals( $post->post_content, $data['content']['raw'] );
-			$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
 			$this->assertEquals( $post->guid, $data['guid']['raw'] );
 			$this->assertEquals( $post->post_status, $data['status'] );
 			$this->assertEquals( $post->post_password, $data['password'] );
