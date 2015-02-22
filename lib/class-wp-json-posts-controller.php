@@ -1010,32 +1010,32 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'page-attributes',
 			'post-formats',
 			);
-		$fixed_post_attributes = array(
-			'title',
-			'editor',
-			'author',
-			'excerpt',
-			'thumbnail',
-			'comments',
-			'revisions',
-			'post-formats',
-			);
-		$fixed_page_attributes = array(
-			'title',
-			'editor',
-			'author',
-			'excerpt',
-			'thumbnail',
-			'comments',
-			'revisions',
-			'page-attributes',
+		$fixed_schemas = array(
+			'post'     => array(
+				'title',
+				'editor',
+				'author',
+				'excerpt',
+				'thumbnail',
+				'comments',
+				'revisions',
+				'post-formats',
+				),
+			'page'     => array(
+				'title',
+				'editor',
+				'author',
+				'excerpt',
+				'thumbnail',
+				'comments',
+				'revisions',
+				'page-attributes',
+				),
 			);
 		foreach( $post_type_attributes as $attribute ) {
-			if ( 'post' === $this->post_type && ! in_array( $attribute, $fixed_post_attributes ) )  {
+			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ] ) ) {
 				continue;
-			} else if ( 'page' === $this->post_type && ! in_array( $attribute, $fixed_page_attributes ) ) {
-				continue;
-			} else if ( ! in_array( $this->post_type, array( 'post', 'page' ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			} else if ( ! in_array( $this->post_type, array_keys( $fixed_schemas ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 
