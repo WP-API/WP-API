@@ -159,6 +159,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
+		}
+
 		/**
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -222,6 +226,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
+		}
+
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
 		}
 
 		/**
@@ -638,6 +646,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			} else {
 				unstick_post( $post_id );
 			}
+		}
+	}
+
+	/**
+	 * Set the template for a page
+	 *
+	 * @param string $template
+	 * @param integer $post_id
+	 */
+	public function handle_template( $template, $post_id ) {
+		if ( in_array( $template, array_keys( get_page_templates() ) ) ) {
+			update_post_meta( $post_id, '_wp_page_template', $template );
+		} else {
+			update_post_meta( $post_id, '_wp_page_template', '' );
 		}
 	}
 
