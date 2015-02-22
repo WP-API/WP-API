@@ -140,25 +140,25 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	/**
 	 * Handle an upload via raw POST data
 	 *
-	 * @param array $_files Data from $_FILES. Unused.
-	 * @param array $_headers HTTP headers from the request
+	 * @param array $files Data from $_FILES. Unused.
+	 * @param array $headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
-	protected function upload_from_data( $data, $_files, $_headers ) {
+	protected function upload_from_data( $data, $files, $headers ) {
 		if ( empty( $data ) ) {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $_headers['CONTENT_TYPE'] ) ) {
+		if ( empty( $headers['CONTENT_TYPE'] ) ) {
 			return new WP_Error( 'json_upload_no_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $_headers['CONTENT_DISPOSITION'] ) ) {
+		if ( empty( $headers['CONTENT_DISPOSITION'] ) ) {
 			return new WP_Error( 'json_upload_no_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
 		// Get the filename
-		$disposition_parts = explode( ';', $_headers['CONTENT_DISPOSITION'] );
+		$disposition_parts = explode( ';', $headers['CONTENT_DISPOSITION'] );
 		$filename = null;
 
 		foreach ( $disposition_parts as $part ) {
@@ -176,8 +176,8 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			return new WP_Error( 'json_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
-			$expected = trim( $_headers['CONTENT_MD5'] );
+		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $headers['CONTENT_MD5'] );
 			$actual   = md5( $data );
 
 			if ( $expected !== $actual ) {
@@ -186,7 +186,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		}
 
 		// Get the content-type
-		$type = $_headers['CONTENT_TYPE'];
+		$type = $headers['CONTENT_TYPE'];
 
 		// Save the file
 		$tmpfname = wp_tempnam( $filename );
@@ -223,18 +223,18 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	/**
 	 * Handle an upload via multipart/form-data ($_FILES)
 	 *
-	 * @param array $_files Data from $_FILES
-	 * @param array $_headers HTTP headers from the request
+	 * @param array $files Data from $_FILES
+	 * @param array $headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_upload()}
 	 */
-	protected function upload_from_file( $_files, $_headers ) {
-		if ( empty( $_files['file'] ) )
+	protected function upload_from_file( $files, $headers ) {
+		if ( empty( $files['file'] ) )
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 
 		// Verify hash, if given
-		if ( ! empty( $_headers['CONTENT_MD5'] ) ) {
-			$expected = trim( $_headers['CONTENT_MD5'] );
-			$actual = md5_file( $_files['file']['tmp_name'] );
+		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
+			$expected = trim( $headers['CONTENT_MD5'] );
+			$actual = md5_file( $files['file']['tmp_name'] );
 			if ( $expected !== $actual ) {
 				return new WP_Error( 'json_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
 			}
@@ -245,7 +245,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'test_form' => false,
 		);
 
-		$file = wp_handle_upload( $_files['file'], $overrides );
+		$file = wp_handle_upload( $files['file'], $overrides );
 
 		if ( isset( $file['error'] ) ) {
 			return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
