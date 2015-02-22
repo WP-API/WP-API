@@ -25,6 +25,96 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			}
 		}
 
+		// Get the file via $_FILES or raw data
+		$files = $request->get_file_params();
+		$headers = $request->get_headers();
+		if ( ! empty( $files ) ) {
+			$file = $this->upload_from_file( $files, $headers );
+		} else {
+			$file = $this->upload_from_data( $request->get_body(), $headers );
+		}
+
+		if ( is_wp_error( $file ) ) {
+			return $file;
+		}
+
+		$name       = basename( $file['file'] );
+		$name_parts = pathinfo( $name );
+		$name       = trim( substr( $name, 0, -(1 + strlen( $name_parts['extension'] ) ) ) );
+
+		$url     = $file['url'];
+		$type    = $file['type'];
+		$file    = $file['file'];
+		$title   = $name;
+		$caption = '';
+
+		// use image exif/iptc data for title and caption defaults if possible
+		if ( $image_meta = @wp_read_image_metadata( $file ) ) {
+			if ( empty( $request['title'] ) && trim( $image_meta['title'] ) && ! is_numeric( sanitize_title( $image_meta['title'] ) ) ) {
+				$title = $image_meta['title'];
+			}
+
+			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
+				$caption = $image_meta['caption'];
+			}
+		}
+
+		$attachment = $this->prepare_item_for_database( $request );
+		$attachment->post_type = $this->post_type; // Currently defaults to 'post'
+		$attachment->file = $file;
+		$attachment->post_mime_type = $type;
+		$attachment->guid = $url;
+		$id = wp_insert_post( $attachment, true );
+		if ( is_wp_error( $id ) ) {
+			return $id;
+		}
+
+		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
+
+		$response = $this->get_item( array(
+			'id'      => $id,
+			'context' => 'edit',
+		) );
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
+
+		return $response;
+
+	}
+
+	/**
+	 * Prepare a single attachment for create or update
+	 *
+	 * @param WP_JSON_Request $request Request object
+	 * @return WP_Error|obj $prepared_attachment Post object
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$prepared_attachment = parent::prepare_item_for_database( $request );
+
+		if ( isset( $request['caption'] ) ) {
+			if ( is_string( $request['caption'] ) ) {
+				$prepared_attachment->post_content = wp_filter_post_kses( $request['caption'] );
+			}
+			elseif ( isset( $request['caption']['raw'] ) ) {
+				$prepared_attachment->post_content = wp_kses_post( $request['caption']['raw'] );
+			}
+		}
+
+		if ( isset( $request['description'] ) ) {
+			if ( is_string( $request['description'] ) ) {
+				$prepared_attachment->post_content = wp_filter_post_kses( $request['description'] );
+			}
+			elseif ( isset( $request['description']['raw'] ) ) {
+				$prepared_attachment->post_content = wp_kses_post( $request['description']['raw'] );
+			}
+		}
+
+		if ( isset( $request['post_id'] ) ) {
+			$prepared_attachment->post_parent = (int) $request['post_parent'];
+		}
+
+		return $prepared_attachment;
 	}
 
 	/**

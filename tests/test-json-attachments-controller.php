@@ -20,6 +20,8 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->contributor_id = $this->factory->user->create( array(
 			'role' => 'contributor',
 		) );
+
+		$this->test_file = DIR_TESTDATA . '/images/canola.jpg';
 	}
 
 	public function test_register_routes() {
@@ -35,11 +37,61 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_get_item() {
-		
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		update_post_meta( $attachment_id, '_wp_attachment_image_alt', 'Sample alt text' );
+		$request = new WP_JSON_Request( 'GET', '/wp/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->check_get_post_response( $response );
 	}
 
 	public function test_create_item() {
-		
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+	}
+
+	public function test_create_item_empty_body() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_upload_no_data', $response, 400 );
+	}
+
+	public function test_create_item_missing_content_type() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_upload_no_content_type', $response, 400 );
+	}
+
+	public function test_create_item_missing_content_disposition() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_upload_no_content_disposition', $response, 400 );
+	}
+
+	public function test_create_item_bad_md5_header() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-MD5', 'abc123' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_upload_hash_mismatch', $response, 412 );
 	}
 
 	public function test_create_item_invalid_upload_files_capability() {
@@ -94,6 +146,26 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+	}
+
+	protected function check_get_post_response( $response, $context = 'view' ) {
+		parent::check_get_post_response( $response, $context );
+
+		$data = $response->get_data();
+		$attachment = get_post( $data['id'] );
+
+		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
+		$this->assertEquals( $attachment->post_content, $data['caption'] );
+		$this->assertEquals( $attachment->post_excerpt, $data['description'] );
+
+		if ( $attachment->post_parent ) {
+			$this->assertEquals( $attachment->post_parent, $data['post_id'] );
+		} else {
+			$this->assertNull( $data['post_id'] );
+		}
+
+		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url']  );
+
 	}
 
 }
