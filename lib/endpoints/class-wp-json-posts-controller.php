@@ -215,7 +215,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
-		if ( 'post' === $post->post_type ) {
+		if ( 'post' === $post->post_type && isset( $request['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
 		}
