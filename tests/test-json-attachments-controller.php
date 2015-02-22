@@ -52,11 +52,12 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 14, count( $properties ) );
+		$this->assertEquals( 15, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'caption', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
-		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'media_type', $properties );

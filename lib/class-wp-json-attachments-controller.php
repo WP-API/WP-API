@@ -7,10 +7,24 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	 *
 	 * @param WP_Post $post Post object
 	 * @param WP_JSON_Request $request Request object
-	 * @return array $data
+	 * @return array $response
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
+
+		$response['caption'] = array(
+			'rendered'       => apply_filters( 'the_content', $post->post_content ),
+			);
+		if ( 'edit' === $request['context'] ) {
+			$response['caption']['raw'] = $post->post_content;
+		}
+
+		$response['description'] = array(
+			'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
+			);
+		if ( 'edit' === $request['context'] ) {
+			$response['description']['raw'] = $post->post_excerpt;
+		}
 
 		$response['source_url']    = wp_get_attachment_url( $post->ID );
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
@@ -42,10 +56,35 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		$schema = parent::get_item_schema();
 
-		$schema['properties']['source_url'] = array(
-			'description'  => 'URL to the original attachment file.',
-			'type'         => 'string',
-			'format'       => 'uri',
+		error_log( var_export( array_keys( $schema['properties'] ), true ) );
+
+		$schema['properties']['caption'] = array(
+			'description'     => 'The caption for the attachment.',
+			'type'            => 'object',
+			'properties'      => array(
+				'raw'         => array(
+					'description'     => 'Caption for the attachment, as it exists in the database.',
+					'type'            => 'string',
+					),
+				'rendered'    => array(
+					'description'     => 'Caption for the attachment, transformed for display.',
+					'type'            => 'string',
+					),
+				),
+			);
+		$schema['properties']['description'] = array(
+			'description'     => 'The description for the attachment.',
+			'type'            => 'object',
+			'properties'      => array(
+				'raw'         => array(
+					'description'     => 'Description for the attachment, as it exists in the database.',
+					'type'            => 'string',
+					),
+				'rendered'    => array(
+					'description'     => 'Description for the attachment, transformed for display.',
+					'type'            => 'string',
+					),
+				),
 			);
 		$schema['properties']['media_type'] = array(
 			'description'  => 'Type of attachment.',
@@ -55,6 +94,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$schema['properties']['media_details'] = array(
 			'description'  => 'Details about the attachment file, specific to its type.',
 			'type'         => 'object',
+			);
+		$schema['properties']['source_url'] = array(
+			'description'  => 'URL to the original attachment file.',
+			'type'         => 'string',
+			'format'       => 'uri',
 			);
 		return $schema;
 	}

@@ -1011,7 +1011,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'post-formats',
 			);
 		$fixed_schemas = array(
-			'post'     => array(
+			'post'          => array(
 				'title',
 				'editor',
 				'author',
@@ -1021,7 +1021,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'revisions',
 				'post-formats',
 				),
-			'page'     => array(
+			'page'          => array(
 				'title',
 				'editor',
 				'author',
@@ -1030,6 +1030,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'comments',
 				'revisions',
 				'page-attributes',
+				),
+			'attachment'    => array(
+				'title',
+				'author',
+				'comments',
+				'revisions',
 				),
 			);
 		foreach( $post_type_attributes as $attribute ) {
