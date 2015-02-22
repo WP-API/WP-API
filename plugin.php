@@ -31,18 +31,18 @@ include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
 require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-media.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts.php' );
 
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-posts-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-attachments-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-comments-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-comments-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
