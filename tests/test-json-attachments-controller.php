@@ -21,7 +21,10 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			'role' => 'contributor',
 		) );
 
-		$this->test_file = DIR_TESTDATA . '/images/canola.jpg';
+		$orig_file = DIR_TESTDATA . '/images/canola.jpg';
+		$this->test_file = '/tmp/canola.jpg';
+		@copy( $orig_file, $this->test_file );
+
 	}
 
 	public function test_register_routes() {
@@ -146,6 +149,13 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+		if ( file_exists( $this->test_file ) ) {
+			unlink( $this->test_file );
+		}
 	}
 
 	protected function check_get_post_response( $response, $context = 'view' ) {
