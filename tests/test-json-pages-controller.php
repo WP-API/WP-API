@@ -51,7 +51,7 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'parent' => $page_id,
+			'parent_id' => $page_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -65,7 +65,7 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $page_id, $data['parent'] );
+		$this->assertEquals( $page_id, $data['parent_id'] );
 		$this->assertEquals( $page_id, $new_post->post_parent );
 	}
 
@@ -74,7 +74,7 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'parent' => -1,
+			'parent_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -166,18 +166,18 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$properties = $data['properties'];
 		$this->assertEquals( 16, count( $properties ) );
-		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'author_id', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
-		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'featured_image_id', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'menu_order', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
-		$this->assertArrayHasKey( 'parent', $properties );
+		$this->assertArrayHasKey( 'parent_id', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );

@@ -24,17 +24,17 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 
 		// author
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
-			$this->assertEquals( $post->post_author, $data['author'] );
+			$this->assertEquals( $post->post_author, $data['author_id'] );
 		} else {
-			$this->assertEmpty( $data['author'] );
+			$this->assertEmpty( $data['author_id'] );
 		}
 
 		// post_parent
 		if ( $post_type_obj->hierarchical ) {
-			$this->assertArrayHasKey( 'parent', $data );
+			$this->assertArrayHasKey( 'parent_id', $data );
 			if ( $post->post_parent ) {
-				if ( is_int( $data['parent'] ) ) {
-					$this->assertEquals( $post->post_parent, $data['parent'] );
+				if ( is_int( $data['parent_id'] ) ) {
+					$this->assertEquals( $post->post_parent, $data['parent_id'] );
 				}
 				else {
 					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
@@ -42,10 +42,10 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 				}
 			}
 			else {
-				$this->assertEmpty( $data['parent'] );
+				$this->assertNull( $data['parent_id'] );
 			}
 		} else {
-			$this->assertFalse( isset( $data['parent'] ) );
+			$this->assertFalse( isset( $data['parent_id'] ) );
 		}
 
 		// page attributes
@@ -69,9 +69,9 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 		}
 
 		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
-			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image'] );
+			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image_id'] );
 		} else {
-			$this->assertFalse( isset( $data['featured_image'] ) );
+			$this->assertFalse( isset( $data['featured_image_id'] ) );
 		}
 
 		// Check post format.
@@ -163,13 +163,13 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
-			'title'   => rand_str(),
-			'content' => rand_str(),
-			'excerpt' => rand_str(),
-			'name'    => 'test',
-			'status'  => 'publish',
-			'author'  => $this->editor_id,
-			'type'    => 'post',
+			'title'     => rand_str(),
+			'content'   => rand_str(),
+			'excerpt'   => rand_str(),
+			'name'      => 'test',
+			'status'    => 'publish',
+			'author_id' => $this->editor_id,
+			'type'      => 'post',
 		);
 
 		return wp_parse_args( $args, $defaults );

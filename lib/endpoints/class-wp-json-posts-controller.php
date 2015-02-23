@@ -151,8 +151,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_sticky_posts( $sticky, $post_id );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
-			$this->handle_featured_image( $request['featured_image'], $post->ID );
+		if ( ! empty( $schema['properties']['featured_image_id'] ) && isset( $request['featured_image_id' ] ) ) {
+			$this->handle_featured_image_id( $request['featured_image_id'], $post->ID );
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
@@ -215,8 +215,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
-			$this->handle_featured_image( $request['featured_image'], $post_id );
+		if ( ! empty( $schema['properties']['featured_image_id'] ) && isset( $request['featured_image_id' ] ) ) {
+			$this->handle_featured_image_id( $request['featured_image_id'], $post_id );
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
@@ -464,8 +464,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['author'] ) ) {
-			$author = $this->handle_author_param( $request['author'], $post_type );
+		if ( ! empty( $schema['properties']['author_id'] ) && ! empty( $request['author_id'] ) ) {
+			$author = $this->handle_author_param( $request['author_id'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
 			}
@@ -484,8 +484,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Parent
 		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( ! empty( $schema['properties']['parent'] ) && ! empty( $request['parent'] ) ) {
-			$parent = get_post( (int) $request['parent'] );
+		if ( ! empty( $schema['properties']['parent_id'] ) && ! empty( $request['parent_id'] ) ) {
+			$parent = get_post( (int) $request['parent_id'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
 			}
@@ -592,11 +592,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @param int $featured_image
 	 * @param int $post_id
 	 */
-	protected function handle_featured_image( $featured_image, $post_id ) {
+	protected function handle_featured_image_id( $featured_image_id, $post_id ) {
 
-		$featured_image = (int) $featured_image;
-		if ( $featured_image ) {
-			$result = set_post_thumbnail( $post_id, $featured_image );
+		$featured_image_id = (int) $featured_image_id;
+		if ( $featured_image_id ) {
+			$result = set_post_thumbnail( $post_id, $featured_image_id );
 			if ( $result ) {
 				return true;
 			} else {
@@ -833,17 +833,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['author'] ) ) {
-			$data['author'] = (int) $post->post_author;
+		if ( ! empty( $schema['properties']['author_id'] ) ) {
+			$data['author_id'] = (int) $post->post_author;
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) ) {
-			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
+		if ( ! empty( $schema['properties']['featured_image_id'] ) ) {
+			$data['featured_image_id'] = (int) get_post_thumbnail_id( $post->ID );
 		}
 
-		if ( ! empty( $schema['properties']['parent'] ) ) {
-			$data['parent'] = (int) $post->post_parent;
-			if ( 0 == $data['parent'] ) {
+		if ( ! empty( $schema['properties']['parent_id'] ) ) {
+			$data['parent_id'] = (int) $post->post_parent;
+			if ( 0 == $data['parent_id'] ) {
 				$data['parent'] = null;
 			}
 		}
@@ -1007,7 +1007,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical ) {
-			$schema['properties']['parent'] = array(
+			$schema['properties']['parent_id'] = array(
 				'description'      => 'The ID for the parent of the object.',
 				'type'             => 'integer',
 				);
@@ -1090,7 +1090,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					break;
 
 				case 'author':
-					$schema['properties']['author'] = array(
+					$schema['properties']['author_id'] = array(
 						'description'     => 'The ID for the author of the object.',
 						'type'            => 'integer',
 						);
@@ -1114,7 +1114,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					break;
 
 				case 'thumbnail':
-					$schema['properties']['featured_image'] = array(
+					$schema['properties']['featured_image_id'] = array(
 						'description'     => 'ID of the featured image for the object.',
 						'type'            => 'integer',
 						);
