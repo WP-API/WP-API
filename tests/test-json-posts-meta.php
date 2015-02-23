@@ -18,7 +18,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->user_obj->add_role( 'author' );
 
 		$this->fake_server = $this->getMock( 'WP_JSON_Server' );
-		$this->endpoint = new WP_JSON_Meta_Posts( $this->fake_server );
+		$this->endpoint = new WP_JSON_Meta_Posts();
 	}
 
 	public function test_get_meta() {
@@ -55,7 +55,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_get_meta_no_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->get_meta( $post_id, 0 );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
@@ -63,7 +63,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_get_meta_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->get_meta( $post_id, -1 );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
@@ -123,12 +123,16 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$meta_id_other1 = add_post_meta( $post_id, 'testotherkey', 'testvalue1' );
 		$meta_id_other2 = add_post_meta( $post_id, 'testotherkey', 'testvalue2' );
 		$value = array( 'testvalue1', 'testvalue2' );
-		$meta_id_serialized = add_post_meta( $post_id, 'testkey', $value );
+		// serialized
+		add_post_meta( $post_id, 'testkey', $value );
 		$value = (object) array( 'testvalue' => 'test' );
-		$meta_id_serialized_object = add_post_meta( $post_id, 'testkey', $value );
+		// serialized object
+		add_post_meta( $post_id, 'testkey', $value );
 		$value = serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) );
-		$meta_id_serialized_string = add_post_meta( $post_id, 'testkey', $value );
-		$meta_id_protected = add_post_meta( $post_id, '_testkey', 'testvalue' );
+		// serialized string
+		add_post_meta( $post_id, 'testkey', $value );
+		// protected
+		add_post_meta( $post_id, '_testkey', 'testvalue' );
 
 		$response = $this->endpoint->get_all_meta( $post_id );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -166,7 +170,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_get_all_meta_no_post_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->get_all_meta( 0 );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response );
@@ -174,7 +178,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_get_all_meta_invalid_post_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->get_all_meta( -1 );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response );
@@ -182,7 +186,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_get_all_meta_unauthenticated() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		wp_set_current_user( 0 );
 
@@ -477,7 +481,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_update_meta_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$data = array(
 			'key' => 'testnewkey',
@@ -650,7 +654,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_delete_meta_no_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->delete_meta( $post_id, 0 );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
@@ -660,7 +664,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 	public function test_delete_meta_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$response = $this->endpoint->delete_meta( $post_id, -1 );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );

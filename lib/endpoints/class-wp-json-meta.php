@@ -2,10 +2,6 @@
 /**
  * Metadata base class.
  */
-
-/**
- * Metadata base class.
- */
 abstract class WP_JSON_Meta {
 	/**
 	 * Base route name.
@@ -43,13 +39,35 @@ abstract class WP_JSON_Meta {
 	 */
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
-			array( array( $this, 'get_all_meta' ),   WP_JSON_Server::READABLE ),
-			array( array( $this, 'add_meta' ),       WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+			array(
+				'callback'  => array( $this, 'get_all_meta' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
+			),
+			array(
+				'callback'    => array( $this, 'add_meta' ),
+				'methods'     => WP_JSON_Server::CREATABLE,
+				'accept_json' => true,
+				'v1_compat'   => true,
+			),
 		);
 		$routes[ $this->base . '/(?P<mid>\d+)' ] = array(
-			array( array( $this, 'get_meta' ),       WP_JSON_Server::READABLE ),
-			array( array( $this, 'update_meta' ),    WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-			array( array( $this, 'delete_meta' ),    WP_JSON_Server::DELETABLE ),
+			array(
+				'callback'  => array( $this, 'get_meta' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
+			),
+			array(
+				'callback'    => array( $this, 'update_meta' ),
+				'methods'     => WP_JSON_Server::EDITABLE,
+				'accept_json' => true,
+				'v1_compat'   => true,
+			),
+			array(
+				'callback'  => array( $this, 'delete_meta' ),
+				'methods'   => WP_JSON_Server::DELETABLE,
+				'v1_compat' => true,
+			),
 		);
 
 		return $routes;

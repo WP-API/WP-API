@@ -11,37 +11,87 @@ class WP_JSON_Posts {
 		$post_routes = array(
 			// Post endpoints
 			'/posts' => array(
-				array( array( $this, 'get_multiple' ),   WP_JSON_Server::READABLE ),
-				array( array( $this, 'create' ),         WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
+				array(
+					'callback'  => array( $this, 'get_multiple' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
+				array(
+					'callback'    => array( $this, 'create' ),
+					'methods'     => WP_JSON_Server::CREATABLE,
+					'accept_json' => true,
+					'v1_compat'   => true,
+				),
 			),
 
 			'/posts/(?P<id>\d+)' => array(
-				array( array( $this, 'get' ),            WP_JSON_Server::READABLE ),
-				array( array( $this, 'update' ),         WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-				array( array( $this, 'delete' ),         WP_JSON_Server::DELETABLE ),
+				array(
+					'callback'  => array( $this, 'get' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
+				array(
+					'callback'    => array( $this, 'update' ),
+					'methods'     => WP_JSON_Server::EDITABLE,
+					'accept_json' => true,
+					'v1_compat'   => true,
+				),
+				array(
+					'callback'  => array( $this, 'delete' ),
+					'methods'   => WP_JSON_Server::DELETABLE,
+					'v1_compat' => true,
+				),
 			),
 			'/posts/(?P<id>\d+)/revisions' => array(
-				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE,
+				array(
+					'callback'  => array( $this, 'get_revisions' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
 			),
 
 			// Comments
 			'/posts/(?P<id>\d+)/comments' => array(
-				array( array( $this, 'get_comments' ),   WP_JSON_Server::READABLE ),
+				array(
+					'callback'  => array( $this, 'get_comments' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
 			),
 			'/posts/(?P<id>\d+)/comments/(?P<comment>\d+)' => array(
-				array( array( $this, 'get_comment' ),    WP_JSON_Server::READABLE ),
-				array( array( $this, 'delete_comment' ), WP_JSON_Server::DELETABLE ),
+				array(
+					'callback'  => array( $this, 'get_comment' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
+				array(
+					'callback'  => array( $this, 'delete_comment' ),
+					'methods'   => WP_JSON_Server::DELETABLE,
+					'v1_compat' => true,
+				),
 			),
 
 			// Meta-post endpoints
 			'/posts/types' => array(
-				array( $this, 'get_post_types' ),        WP_JSON_Server::READABLE,
+				array(
+					'callback'  => array( $this, 'get_post_types' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
 			),
 			'/posts/types/(?P<type>\w+)' => array(
-				array( $this, 'get_post_type' ),         WP_JSON_Server::READABLE,
+				array(
+					'callback'  => array( $this, 'get_post_type' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
 			),
 			'/posts/statuses' => array(
-				array( $this, 'get_post_statuses' ),     WP_JSON_Server::READABLE,
+				array(
+					'callback'  => array( $this, 'get_post_statuses' ),
+					'methods'   => WP_JSON_Server::READABLE,
+					'v1_compat' => true,
+				),
 			),
 		);
 		return array_merge( $routes, $post_routes );
@@ -83,6 +133,10 @@ class WP_JSON_Posts {
 		}
 
 		$response = json_ensure_response( $this->get( $result ) );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
@@ -110,25 +164,22 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
-		// Link headers (see RFC 5988)
-
 		$response = new WP_JSON_Response();
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', $post['post_modified_gmt'] ) . 'GMT' );
 
-		$post = $this->prepare_post( $post, $context );
-
-		if ( is_wp_error( $post ) ) {
-			return $post;
+		$data = $this->prepare_post( $post, $context );
+		if ( is_wp_error( $data ) ) {
+			return $data;
 		}
 
-		foreach ( $post['_links'] as $rel => $data ) {
-			$other = $data;
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
 			unset( $other['href'] );
-			$response->link_header( $rel, $data['href'], $other );
+			$response->add_link( $rel, $attributes['href'], $other );
 		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-		$response->set_data( $post );
+		$response->set_data( $data );
 
 		return $response;
 	}
@@ -182,7 +233,7 @@ class WP_JSON_Posts {
 		}
 
 		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page' );
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
 		// Filter and flip for querying
@@ -213,9 +264,7 @@ class WP_JSON_Posts {
 		}
 
 		// holds all the posts data
-		$struct = array();
-
-		$response->header( 'Last-Modified', mysql2date( 'D, d M Y H:i:s', get_lastpostmodified( 'GMT' ), 0 ).' GMT' );
+		$response = array();
 
 		foreach ( $posts_list as $post ) {
 			$post = get_object_vars( $post );
@@ -225,15 +274,13 @@ class WP_JSON_Posts {
 				continue;
 			}
 
-			$response->link_header( 'item', json_url( '/posts/' . $post['ID'] ), array( 'title' => $post['post_title'] ) );
 			$post_data = $this->prepare_post( $post, $context );
 			if ( is_wp_error( $post_data ) ) {
 				continue;
 			}
 
-			$struct[] = $post_data;
+			$response[] = $post_data;
 		}
-		$response->set_data( $struct );
 
 		return $response;
 	}
@@ -294,25 +341,6 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( isset( $_headers['IF_UNMODIFIED_SINCE'] ) ) {
-			// As mandated by RFC2616, we have to check all of RFC1123, RFC1036
-			// and C's asctime() format (and ignore invalid headers)
-			$formats = array( DateTime::RFC1123, DateTime::RFC1036, 'D M j H:i:s Y' );
-
-			foreach ( $formats as $format ) {
-				$check = WP_JSON_DateTime::createFromFormat( $format, $_headers['IF_UNMODIFIED_SINCE'] );
-
-				if ( $check !== false ) {
-					break;
-				}
-			}
-
-			// If the post has been modified since the date provided, return an error.
-			if ( $check && mysql2date( 'U', $post['post_modified_gmt'] ) > $check->format( 'U' ) ) {
-				return new WP_Error( 'json_old_revision', __( 'There is a revision of this post that is more recent.' ), array( 'status' => 412 ) );
-			}
-		}
-
 		$data['id'] = $id;
 
 		$retval = $this->insert_post( $data );
@@ -341,7 +369,7 @@ class WP_JSON_Posts {
 
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! current_user_can( $post_type->cap->delete_post, $id ) ) {
+		if ( empty( $post_type ) || ! current_user_can( $post_type->cap->delete_post, $id ) ) {
 			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -370,7 +398,7 @@ class WP_JSON_Posts {
 		$post_type = get_post_type_object( $post['post_type'] );
 
 		// Ensure the post type can be read
-		if ( ! $post_type->show_in_json ) {
+		if ( empty( $post_type ) || ! $post_type->show_in_json ) {
 			return false;
 		}
 
@@ -405,11 +433,7 @@ class WP_JSON_Posts {
 	protected function check_edit_permission( $post ) {
 		$post_type = get_post_type_object( $post['post_type'] );
 
-		if ( ! current_user_can( $post_type->cap->edit_post, $post['ID'] ) ) {
-			return false;
-		}
-
-		return true;
+		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post['ID'] );
 	}
 
 	/**
@@ -534,7 +558,7 @@ class WP_JSON_Posts {
 			$type = get_post_type_object( $type );
 		}
 
-		if ( $type->show_in_json === false ) {
+		if ( empty( $type ) || $type->show_in_json === false ) {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view post type' ), array( 'status' => 403 ) );
 		}
 
@@ -625,7 +649,7 @@ class WP_JSON_Posts {
 	 * @param string $context The context for the prepared post. (view|view-revision|edit|embed|single-parent)
 	 * @return array The prepared post data
 	 */
-	protected function prepare_post( $post, $context = 'view' ) {
+	public function prepare_post( $post, $context = 'view' ) {
 		// Holds the data for this post.
 		$_post = array( 'id' => (int) $post['ID'] );
 
@@ -781,41 +805,50 @@ class WP_JSON_Posts {
 			}
 		}
 
-		// Entity meta
-		$links = array(
-			'self'       => array(
-				'href' => json_url( '/posts/' . $post['ID'] ),
-			),
-			'author'     => array(
-				'href' => json_url( '/users/' . $post['post_author'] ),
-			),
-			'collection' => array(
-				'href' => json_url( '/posts' ),
-			),
-		);
-
-		if ( 'view-revision' != $context ) {
-			$links['replies']         = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
-			);
-			$links['version-history'] = array(
-				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
-			);
-		}
-
-		$_post['_links'] = $links;
-
-		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['_links']['up'] = array(
-				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
-			);
-		}
+		$_post = apply_filters( 'json_prepare_post', $_post, $post, $context );;
 
 		$GLOBALS['post'] = $previous_post;
 		if ( $previous_post ) {
 			setup_postdata( $previous_post );
 		}
-		return apply_filters( 'json_prepare_post', $_post, $post, $context );
+		return $_post;
+	}
+
+	/**
+	 * Prepare links for the request
+	 *
+	 * @param array $post Post data
+	 * @return array Links for the given post
+	 */
+	protected function prepare_links( $post ) {
+		// Entity meta
+		$links = array(
+			'self'            => array(
+				'href' => json_url( '/posts/' . $post['ID'] ),
+			),
+			'author'          => array(
+				'href' => json_url( '/users/' . $post['post_author'] ),
+				'embeddable' => true,
+			),
+			'collection'      => array(
+				'href' => json_url( '/posts' ),
+			),
+			'replies'         => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/comments' ),
+			),
+			'version-history' => array(
+				'href' => json_url( '/posts/' . $post['ID'] . '/revisions' ),
+			),
+		);
+
+		if ( ! empty( $post['post_parent'] ) ) {
+			$links['up'] = array(
+				'href' => json_url( '/posts/' . (int) $post['post_parent'] ),
+				'embeddable' => true,
+			);
+		}
+
+		return $links;
 	}
 
 	/**
@@ -1101,8 +1134,6 @@ class WP_JSON_Posts {
 			'id'   => (int) $comment->comment_ID,
 			'post' => (int) $comment->comment_post_ID,
 		);
-
-		$post = (array) get_post( $fields['post'] );
 
 		// Content
 		$fields['content'] = array(

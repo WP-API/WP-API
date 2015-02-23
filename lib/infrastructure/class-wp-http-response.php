@@ -2,6 +2,18 @@
 
 class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	/**
+	 * @var mixed
+	 */
+	public $data;
+	/**
+	 * @var integer
+	 */
+	public $headers;
+	/**
+	 * @var array
+	 */
+	public $status;
+	/**
 	 * Constructor
 	 *
 	 * @param mixed $data Response data
