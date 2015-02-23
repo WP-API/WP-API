@@ -118,7 +118,28 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_delete_item() {
-		
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function test_delete_item_invalid_delete_permissions() {
+		wp_set_current_user( $this->author_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
 	}
 
 	public function test_prepare_item() {
