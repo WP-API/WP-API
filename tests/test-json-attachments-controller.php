@@ -114,7 +114,41 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_update_item() {
-		
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		$request = new WP_JSON_Request( 'POST', '/wp/media/' . $attachment_id );
+		$request->set_param( 'title', 'My title is very cool' );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$request->set_param( 'description', 'Without a description, my attachment is descriptionless.' );
+		$request->set_param( 'alt_text', 'Alt text is stored outside post schema.' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$attachment = get_post( $data['id'] );
+		$this->assertEquals( 'My title is very cool', $data['title']['raw'] );
+		$this->assertEquals( 'My title is very cool', $attachment->post_title );
+		$this->assertEquals( 'This is a better caption.', $data['caption'] );
+		$this->assertEquals( 'This is a better caption.', $attachment->post_content );
+		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $data['description'] );
+		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $attachment->post_excerpt );
+		$this->assertEquals( 'Alt text is stored outside post schema.', $data['alt_text'] );
+		$this->assertEquals( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
+	}
+
+	public function test_update_item_invalid_permissions() {
+		wp_set_current_user( $this->author_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		$request = new WP_JSON_Request( 'POST', '/wp/media/' . $attachment_id );
+		$request->set_param( 'caption', 'This is a better caption.' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
 	}
 
 	public function test_delete_item() {

@@ -84,6 +84,35 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	}
 
 	/**
+	 * Update a single post
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return WP_JSON_Response|WP_HTTP_ResponseInterface
+	 */
+	public function update_item( $request ) {
+		$response = parent::update_item( $request );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response = json_ensure_response( $response );
+		$data = $response->get_data();
+
+		if ( isset( $request['alt_text'] ) ) {
+			update_post_meta( $data['id'], '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
+		}
+
+		$response = $this->get_item( array(
+			'id'      => $data['id'],
+			'context' => 'edit',
+		));
+		$response = json_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', json_url( '/wp/' . $this->get_post_type_base( $this->post_type ) . '/' . $data['id'] ) );
+		return $response;
+	}
+
+	/**
 	 * Prepare a single attachment for create or update
 	 *
 	 * @param WP_JSON_Request $request Request object
