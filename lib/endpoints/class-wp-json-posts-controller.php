@@ -159,6 +159,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
+		}
+
 		/**
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -218,6 +222,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
+		}
+
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
 		}
 
 		/**
@@ -630,6 +638,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Set the template for a page
+	 *
+	 * @param string $template
+	 * @param integer $post_id
+	 */
+	public function handle_template( $template, $post_id ) {
+		if ( in_array( $template, array_values( get_page_templates() ) ) ) {
+			update_post_meta( $post_id, '_wp_page_template', $template );
+		} else {
+			update_post_meta( $post_id, '_wp_page_template', '' );
+		}
+	}
+
+	/**
 	 * Check if a given post type should be viewed or managed.
 	 *
 	 * @param object|string $post_type
@@ -850,6 +872,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['sticky'] ) ) {
 			$data['sticky'] = is_sticky( $post->ID );
+		}
+
+		if ( ! empty( $schema['properties']['template'] ) ) {
+			if ( $template = get_page_template_slug( $post->ID ) ) {
+				$data['template'] = $template;
+			} else {
+				$data['template'] = '';
+			}
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) ) {
@@ -1144,6 +1174,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['sticky'] = array(
 				'description'      => 'Whether or not the object should be treated as sticky.',
 				'type'             => 'boolean',
+				);
+		}
+
+		if ( 'page' === $this->post_type ) {
+			$schema['properties']['template'] = array(
+				'description'      => 'The theme file to use to display the object.',
+				'type'             => 'string',
+				'enum'             => array_values( get_page_templates() ),
 				);
 		}
 

@@ -18,6 +18,9 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->author_id = $this->factory->user->create( array(
 			'role' => 'author',
 		) );
+
+		$this->has_setup_template = false;
+
 	}
 
 	public function test_register_routes() {
@@ -41,6 +44,23 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 	public function test_create_item() {
 		
+	}
+
+	public function test_create_item_with_template() {
+		wp_set_current_user( $this->editor_id );
+		$this->setup_test_template();
+
+		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
+		$params = $this->set_post_data( array(
+			'template'       => 'page-my-test-template.php',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'page-my-test-template.php', $data['template'] );
+		$this->assertEquals( 'page-my-test-template.php', get_page_template_slug( $new_post->ID ) );
 	}
 
 	public function test_create_page_with_parent() {
@@ -165,7 +185,7 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -180,8 +200,33 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+
+		if ( $this->has_setup_template ) {
+			unlink( $this->has_setup_template );
+		}
+
+	}
+
+	protected function setup_test_template() {
+
+		$contents = <<<EOT
+<?php
+/*
+ * Template Name: My Test Template
+ */
+
+EOT;
+
+		$this->has_setup_template = get_stylesheet_directory() . '/page-my-test-template.php';
+		file_put_contents( $this->has_setup_template, $contents );
+		wp_get_theme()->cache_delete();
 	}
 
 	protected function set_post_data( $args = array() ) {
