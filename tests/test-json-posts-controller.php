@@ -251,8 +251,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'draft',
-			'author' => $user->ID,
+			'status'    => 'draft',
+			'author_id' => $user->ID,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -307,8 +307,8 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'status' => 'private',
-			'author' => $this->author_id,
+			'status'    => 'private',
+			'author_id' => $this->author_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -391,23 +391,23 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'featured_image' => $this->attachment_id,
+			'featured_image_id' => $this->attachment_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $this->attachment_id, $data['featured_image'] );
+		$this->assertEquals( $this->attachment_id, $data['featured_image_id'] );
 		$this->assertEquals( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts/' . $new_post->ID );
 		$params = $this->set_post_data( array(
-			'featured_image' => 0,
+			'featured_image_id' => 0,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['featured_image'] );
+		$this->assertEquals( 0, $data['featured_image_id'] );
 		$this->assertEquals( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
 	}
 
@@ -416,7 +416,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => -1,
+			'author_id' => -1,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -429,7 +429,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'author' => $this->editor_id,
+			'author_id' => $this->editor_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -461,9 +461,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'password' => 'testing',
-			'author'   => $this->author_id,
-			'status'   => 'draft',
+			'password'    => 'testing',
+			'author_id'   => $this->author_id,
+			'status'      => 'draft',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -590,7 +590,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$params = $this->set_post_data();
 		unset( $params['type'] );
 		unset( $params['name'] );
-		unset( $params['author'] );
+		unset( $params['author_id'] );
 		unset( $params['status'] );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -795,12 +795,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$properties = $data['properties'];
 		$this->assertEquals( 16, count( $properties ) );
-		$this->assertArrayHasKey( 'author', $properties );
+		$this->assertArrayHasKey( 'author_id', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
-		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'featured_image_id', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'format', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
