@@ -177,7 +177,16 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_prepare_item() {
-		
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		$endpoint = new WP_JSON_Attachments_Controller( 'attachment' );
+		$request = new WP_JSON_Request;
+		$attachment = get_post( $attachment_id );
+		$data = $endpoint->prepare_item_for_response( $attachment, $request );
+		$this->check_post_data( $attachment, $data, 'view' );
 	}
 
 	public function test_get_item_schema() {
@@ -213,11 +222,8 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		}
 	}
 
-	protected function check_get_post_response( $response, $context = 'view' ) {
-		parent::check_get_post_response( $response, $context );
-
-		$data = $response->get_data();
-		$attachment = get_post( $data['id'] );
+	protected function check_post_data( $attachment, $data, $context = 'view' ) {
+		parent::check_post_data( $attachment, $data, $context );
 
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
 		$this->assertEquals( $attachment->post_content, $data['caption'] );
