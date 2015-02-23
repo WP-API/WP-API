@@ -62,6 +62,22 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
+	public function test_create_item_with_files() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/media' );
+		$request->set_file_params( array(
+			'file'     => file_get_contents( $this->test_file ),
+			'name'     => 'canola.jpg',
+			'size'     => filesize( $this->test_file ),
+			'tmp_name' => $this->test_file,
+		) );
+		$request->set_header( 'Content-MD5', md5_file( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+	}
+
 	public function test_create_item_empty_body() {
 		wp_set_current_user( $this->author_id );
 		$request = new WP_JSON_Request( 'POST', '/wp/media' );

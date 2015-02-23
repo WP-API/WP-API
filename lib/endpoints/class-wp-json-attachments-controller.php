@@ -319,10 +319,14 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		// Pass off to WP to handle the actual upload
 		$overrides = array(
-			'test_form' => false,
+			'test_form'   => false,
 		);
+		// Bypasses is_uploaded_file() when running unit tests
+		if ( defined( 'DIR_TESTDATA' ) && DIR_TESTDATA ) {
+			$overrides['action'] = 'wp_handle_mock_upload';
+		}
 
-		$file = wp_handle_upload( $files['file'], $overrides );
+		$file = wp_handle_upload( $files, $overrides );
 
 		if ( isset( $file['error'] ) ) {
 			return new WP_Error( 'json_upload_unknown_error', $file['error'], array( 'status' => 500 ) );
