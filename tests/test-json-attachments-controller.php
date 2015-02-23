@@ -36,7 +36,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_get_items() {
-		
+		$this->markTestSkipped( 'Add tests for fetching collection.' );
 	}
 
 	public function test_get_item() {
