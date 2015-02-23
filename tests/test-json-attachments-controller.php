@@ -36,7 +36,14 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 	}
 
 	public function test_get_items() {
-		$this->markTestSkipped( 'Add tests for fetching collection.' );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_JSON_Request( 'GET', '/wp/media' );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_get_posts_response( $response );
 	}
 
 	public function test_get_item() {
