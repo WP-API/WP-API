@@ -93,21 +93,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
 
 		if ( isset( $request['caption'] ) ) {
-			if ( is_string( $request['caption'] ) ) {
-				$prepared_attachment->post_content = wp_filter_post_kses( $request['caption'] );
-			}
-			elseif ( isset( $request['caption']['raw'] ) ) {
-				$prepared_attachment->post_content = wp_kses_post( $request['caption']['raw'] );
-			}
+			$prepared_attachment->post_content = wp_filter_post_kses( $request['caption'] );
 		}
 
 		if ( isset( $request['description'] ) ) {
-			if ( is_string( $request['description'] ) ) {
-				$prepared_attachment->post_content = wp_filter_post_kses( $request['description'] );
-			}
-			elseif ( isset( $request['description']['raw'] ) ) {
-				$prepared_attachment->post_content = wp_kses_post( $request['description']['raw'] );
-			}
+			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['description'] );
 		}
 
 		if ( isset( $request['post_id'] ) ) {
