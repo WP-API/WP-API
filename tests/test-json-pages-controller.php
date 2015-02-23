@@ -52,15 +52,15 @@ class WP_Test_JSON_Pages_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/pages' );
 		$params = $this->set_post_data( array(
-			'template'       => 'my-test-template.php',
+			'template'       => 'page-my-test-template.php',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'my-test-template.php', $data['template'] );
-		$this->assertEquals( 'my-test-template.php', get_page_template_slug( $new_post->ID ) );
+		$this->assertEquals( 'page-my-test-template.php', $data['template'] );
+		$this->assertEquals( 'page-my-test-template.php', get_page_template_slug( $new_post->ID ) );
 	}
 
 	public function test_create_page_with_parent() {
@@ -226,7 +226,7 @@ EOT;
 
 		$this->has_setup_template = get_stylesheet_directory() . '/page-my-test-template.php';
 		file_put_contents( $this->has_setup_template, $contents );
-
+		wp_get_theme()->cache_delete();
 	}
 
 	protected function set_post_data( $args = array() ) {

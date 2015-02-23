@@ -656,7 +656,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @param integer $post_id
 	 */
 	public function handle_template( $template, $post_id ) {
-		if ( in_array( $template, array_keys( get_page_templates() ) ) ) {
+		if ( in_array( $template, array_values( get_page_templates() ) ) ) {
 			update_post_meta( $post_id, '_wp_page_template', $template );
 		} else {
 			update_post_meta( $post_id, '_wp_page_template', '' );
