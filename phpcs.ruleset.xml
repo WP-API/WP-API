@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ruleset name="WordPress Coding Standads for WP-API">
+<ruleset name="WordPress Coding Standards for WP-API">
 
 	<rule ref="WordPress-Core" />
 
