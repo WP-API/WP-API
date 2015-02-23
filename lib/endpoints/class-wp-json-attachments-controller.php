@@ -304,8 +304,9 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	 * @return array|WP_Error Data from {@see wp_handle_upload()}
 	 */
 	protected function upload_from_file( $files, $headers ) {
-		if ( empty( $files['file'] ) )
+		if ( empty( $files ) ) {
 			return new WP_Error( 'json_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+		}
 
 		// Verify hash, if given
 		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
