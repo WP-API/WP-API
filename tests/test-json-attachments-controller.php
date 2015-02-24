@@ -21,7 +21,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			'role' => 'contributor',
 		) );
 
-		$orig_file = DIR_TESTDATA . '/images/canola.jpg';
+		$orig_file = dirname( __FILE__ ) . '/data/canola.jpg';
 		$this->test_file = '/tmp/canola.jpg';
 		@copy( $orig_file, $this->test_file );
 
