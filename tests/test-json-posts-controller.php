@@ -30,7 +30,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertCount( 2, $routes['/wp/posts'] );
 		$this->assertArrayHasKey( '/wp/posts/(?P<id>[\d]+)', $routes );
 		$this->assertCount( 3, $routes['/wp/posts/(?P<id>[\d]+)'] );
-		$this->assertArrayHasKey( '/posts/(?P<id>\d+)/revisions', $routes );
+		$this->assertArrayHasKey( '/wp/posts/(?P<id>\d+)/revisions', $routes );
 	}
 
 	public function test_get_items() {

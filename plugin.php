@@ -31,8 +31,6 @@ include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
 require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts.php' );
-include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts.php' );
 
@@ -514,26 +512,12 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  * @param WP_JSON_Server $server Server object.
  */
 function json_api_default_filters( $server ) {
-	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
-
-	// Posts.
-	$wp_json_posts = new WP_JSON_Posts();
-	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
-	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
 
 	// Post meta.
 	$wp_json_post_meta = new WP_JSON_Meta_Posts();
 	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
 	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
 	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
-
-	// Media.
-	$wp_json_media = new WP_JSON_Media();
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
-	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
-	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check'    ), 10, 3 );
-	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
-	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );

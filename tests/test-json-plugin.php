@@ -19,7 +19,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 	 * The plugin should be installed and activated.
 	 */
 	function test_plugin_activated() {
-		$this->assertTrue( class_exists( 'WP_JSON_Posts' ) );
+		$this->assertTrue( class_exists( 'WP_JSON_Posts_Controller' ) );
 	}
 
 	/**
