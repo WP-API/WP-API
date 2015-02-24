@@ -159,6 +159,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
+		}
+
 		/**
 		 * @TODO: Enable json_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -195,10 +199,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
-		if ( isset( $request['type'] ) && $request['type'] != $post->post_type ) {
-			return new WP_Error( 'json_cannot_change_post_type', __( 'The post type may not be changed.' ), array( 'status' => 400 ) );
-		}
-
 		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -222,6 +222,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
 			$this->handle_sticky_posts( $sticky, $post_id );
+		}
+
+		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
+			$this->handle_template( $request['template'], $post->ID );
 		}
 
 		/**
@@ -421,17 +425,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post type
-		if ( ! empty( $request['type'] ) ) {
-			$request['type'] = sanitize_text_field( $request['type'] );
-			// Changing post type
-			if ( ! get_post_type_object( $request['type'] ) ) {
-				return new WP_Error( 'json_invalid_post_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
-			}
-
-			$prepared_post->post_type = $request['type'];
-		} elseif ( empty( $request['id'] ) ) {
-			// Creating new post, use default type
-			$prepared_post->post_type = apply_filters( 'json_insert_default_post_type', 'post' );
+		if ( empty( $request['id'] ) ) {
+			// Creating new post, use default type for the controller
+			$prepared_post->post_type = $this->post_type;
 		} else {
 			// Updating a post, use previous type.
 			$prepared_post->post_type = get_post_type( $request['id'] );
@@ -642,6 +638,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			} else {
 				unstick_post( $post_id );
 			}
+		}
+	}
+
+	/**
+	 * Set the template for a page
+	 *
+	 * @param string $template
+	 * @param integer $post_id
+	 */
+	public function handle_template( $template, $post_id ) {
+		if ( in_array( $template, array_values( get_page_templates() ) ) ) {
+			update_post_meta( $post_id, '_wp_page_template', $template );
+		} else {
+			update_post_meta( $post_id, '_wp_page_template', '' );
 		}
 	}
 
@@ -866,6 +876,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['sticky'] ) ) {
 			$data['sticky'] = is_sticky( $post->ID );
+		}
+
+		if ( ! empty( $schema['properties']['template'] ) ) {
+			if ( $template = get_page_template_slug( $post->ID ) ) {
+				$data['template'] = $template;
+			} else {
+				$data['template'] = '';
+			}
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) ) {
@@ -1166,6 +1184,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['sticky'] = array(
 				'description'      => 'Whether or not the object should be treated as sticky.',
 				'type'             => 'boolean',
+				);
+		}
+
+		if ( 'page' === $this->post_type ) {
+			$schema['properties']['template'] = array(
+				'description'      => 'The theme file to use to display the object.',
+				'type'             => 'string',
+				'enum'             => array_values( get_page_templates() ),
 				);
 		}
 
