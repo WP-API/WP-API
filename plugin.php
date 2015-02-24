@@ -38,6 +38,7 @@ include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts.php
 
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
@@ -91,9 +92,9 @@ function _add_extra_api_post_type_arguments() {
 	$wp_post_types['page']->json_base = 'pages';
 	$wp_post_types['page']->json_controller_class = 'WP_JSON_Posts_Controller';
 
-	// $wp_post_types['attachment']->show_in_json = true;
-	// $wp_post_types['attachment']->json_base = 'media';
-	// $wp_post_types['attachment']->json_controller_class = 'WP_JSON_Attachments_Controller';
+	$wp_post_types['attachment']->show_in_json = true;
+	$wp_post_types['attachment']->json_base = 'media';
+	$wp_post_types['attachment']->json_controller_class = 'WP_JSON_Attachments_Controller';
 
 }
 add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
