@@ -60,7 +60,6 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		}
 
 		$attachment = $this->prepare_item_for_database( $request );
-		$attachment->post_type = $this->post_type; // Currently defaults to 'post'
 		$attachment->file = $file;
 		$attachment->post_mime_type = $type;
 		$attachment->guid = $url;
