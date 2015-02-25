@@ -133,7 +133,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%d', $this->hold_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_comment_not_approved_same_user() {
@@ -238,7 +238,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 
 		$response = json_ensure_response( $response );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertEquals( 403, $response->get_status() );
 	}
 
 	public function test_update_item() {
@@ -320,7 +320,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_edit_comment', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -354,7 +354,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', $this->approved_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete_comment', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_item_schema() {

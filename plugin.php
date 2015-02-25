@@ -366,6 +366,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'   => WP_JSON_Server::READABLE,
 			'callback'  => array( $controller, 'get_items' ),
+			'permission_callback' => array( $controller, 'get_items_permissions_check' ),
 			'args'      => array(
 				'post_id'      => array(
 					'default'      => null,
@@ -405,6 +406,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'  => WP_JSON_Server::CREATABLE,
 			'callback' => array( $controller, 'create_item' ),
+			'permission_callback' => array( $controller, 'create_item_permissions_check' ),
 			'args'     => array(
 				'post_id'      => array(
 					'required'     => true,
@@ -432,6 +434,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'  => WP_JSON_Server::READABLE,
 			'callback' => array( $controller, 'get_item' ),
+			'permission_callback' => array( $controller, 'get_item_permissions_check' ),
 			'args'     => array(
 				'context'  => array(
 					'default'  => 'view',
@@ -441,6 +444,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'  => WP_JSON_Server::EDITABLE,
 			'callback' => array( $controller, 'update_item' ),
+			'permission_callback' => array( $controller, 'update_item_permissions_check' ),
 			'args'     => array(
 				'post_id'      => array(),
 				'status'       => array(),
@@ -454,6 +458,7 @@ function create_initial_json_routes() {
 		array(
 			'methods'  => WP_JSON_Server::DELETABLE,
 			'callback' => array( $controller, 'delete_item' ),
+			'permission_callback' => array( $controller, 'delete_item_permissions_check' ),
 			'args'     => array(
 				'force'    => array(),
 			),
