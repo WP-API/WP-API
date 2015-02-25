@@ -121,6 +121,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			$prepared_args['slug'] = sanitize_title( $request['slug'] );
 		}
 
+		parent::update_additional_fields_for_object( 'term', $request );
+
 		// Bail early becuz no updates
 		if ( empty( $prepared_args ) ) {
 			return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
@@ -193,6 +195,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				);
 		}
 
+		$data = parent::add_additional_fields_to_object( 'term', $data, $request );
+
 		return apply_filters( 'json_prepare_term', $data, $item, $request );
 	}
 
@@ -243,7 +247,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					),
 				),
 			);
-		return $schema;
+		return parent::add_additional_fields_schema( $schema );
 	}
 
 	/**
