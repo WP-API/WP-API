@@ -180,8 +180,10 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
+			'link'         => get_term_link( $item ),
 			'name'         => $item->name,
 			'slug'         => $item->slug,
+			'taxonomy'     => $item->taxonomy,
 			'parent_id'    => (int) $parent_id,
 		);
 
@@ -192,6 +194,56 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		}
 
 		return apply_filters( 'json_prepare_term', $data, $item, $request );
+	}
+
+	/**
+	 * Get the Term's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'term',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'Unique identifier for the object.',
+					'type'         => 'integer',
+					),
+				'count'            => array(
+					'description'  => 'Number of published posts for the object.',
+					'type'         => 'integer',
+					),
+				'description'      => array(
+					'description'  => 'A human-readable description of the object.',
+					'type'         => 'string',
+					),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
+					),
+				'name'             => array(
+					'description'  => 'The title for the object.',
+					'type'         => 'string',
+					),
+				'parent_id'        => array(
+					'description'  => 'The ID for the parent of the object.',
+					'type'         => 'integer',
+					),
+				'slug'             => array(
+					'description'  => 'An alphanumeric identifier for the object unique to its type.',
+					'type'         => 'string',
+					),
+				'taxonomy'         => array(
+					'description'  => 'Type attribution for the object.',
+					'type'         => 'string',
+					'enum'         => array_keys( get_taxonomies() ),
+					),
+				),
+			);
+		return $schema;
 	}
 
 	/**

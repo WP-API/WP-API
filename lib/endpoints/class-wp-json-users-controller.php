@@ -246,6 +246,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
+			'link'        => get_author_posts_url( $user->ID ),
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
@@ -330,5 +331,41 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
+	}
+
+	/**
+	 * Get the User's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'user',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'Unique identifier for the object.',
+					'type'         => 'integer',
+					),
+				'name'             => array(
+					'description'  => 'Display name for the object.',
+					'type'         => 'string',
+					),
+				'email'            => array(
+					'description'  => 'The email address for the object.',
+					'type'         => 'string',
+					'format'       => 'email',
+					),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
+					),
+				),
+			);
+		return $schema;
+
 	}
 }

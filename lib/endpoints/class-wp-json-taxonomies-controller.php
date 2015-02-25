@@ -63,4 +63,48 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
+	/**
+	 * Get the taxonomy's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'taxonomy',
+			'type'                 => 'object',
+			'properties'           => array(
+				'description'      => array(
+					'description'  => 'A human-readable description of the object.',
+					'type'         => 'string',
+					),
+				'hierarchical'     => array(
+					'description'  => 'Whether or not the type should have children.',
+					'type'         => 'boolean',
+					),
+				'labels'           => array(
+					'description'  => 'Human-readable labels for the type for various contexts.',
+					'type'         => 'object',
+					),
+				'name'             => array(
+					'description'  => 'The title for the object.',
+					'type'         => 'string',
+					),
+				'slug'             => array(
+					'description'  => 'An alphanumeric identifier for the object.',
+					'type'         => 'string',
+					),
+				'show_cloud'       => array(
+					'description'  => 'Whether or not the term cloud should be displayed.',
+					'type'         => 'boolean',
+					),
+				'types'            => array(
+					'description'  => 'Types associated with taxonomy.',
+					'type'         => 'array',
+					),
+				),
+			);
+		return $schema;
+	}
+
 }
