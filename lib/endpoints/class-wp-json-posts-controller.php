@@ -15,13 +15,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_items( $request ) {
-		$prepared_args = (array) $request->get_params();
-		$prepared_args['post_type'] = $this->post_type;
-		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
-		unset( $prepared_args['page'] );
+		$args = (array) $request->get_params();
+		$args['post_type'] = $this->post_type;
+		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
+		unset( $args['page'] );
 
-		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
-		$query_args = $this->prepare_items_query( $prepared_args );
+		$args = apply_filters( 'json_post_query', $args, $request );
+		$query_args = $this->prepare_items_query( $args );
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
