@@ -68,13 +68,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
-		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$response->add_link( $rel, $attributes['href'], $other );
-		}
-
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $response;
@@ -783,7 +776,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 *
 	 * @param WP_Post $post Post object
 	 * @param WP_JSON_Request $request Request object
-	 * @return array $data
+	 * @return WP_JSON_Response $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$GLOBALS['post'] = $post;
@@ -905,6 +898,16 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$data['parent'] = $this->prepare_item_for_response( $parent, array(
 				'context' => 'embed',
 			) );
+		}
+
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
+			unset( $other['href'] );
+			$data->add_link( $rel, $attributes['href'], $other );
 		}
 
 		/**
