@@ -15,7 +15,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_items( $request ) {
-		$prepared_args = (array) $request->get_query_params();
+		$prepared_args = (array) $request->get_params();
 		$prepared_args['post_type'] = array();
 		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
 		unset( $prepared_args['page'] );
