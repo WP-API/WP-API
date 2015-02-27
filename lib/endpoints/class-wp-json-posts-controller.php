@@ -20,6 +20,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
 		unset( $args['page'] );
 
+		/**
+		 * Alter the query arguments for a request.
+		 *
+		 * This allows you to set extra arguments or defaults for a post
+		 * collection request.
+		 *
+		 * @param array $args Map of query var to query value.
+		 * @param WP_JSON_Request $request Full details about the request.
+		 */
 		$args = apply_filters( 'json_post_query', $args, $request );
 		$query_args = $this->prepare_items_query( $args );
 
