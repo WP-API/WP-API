@@ -154,7 +154,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
 			'content'      => 'Worst Comment Ever!',
-			'date'         => '2014-11-07T10:14:25',
+			'published'    => '2014-11-07T10:14:25',
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
@@ -168,7 +168,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'edit' );
 		$this->assertEquals( 'hold', $data['status'] );
-		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
+		$this->assertEquals( '2014-11-07T10:14:25', $data['published'] );
 	}
 
 	public function test_create_comment_other_user() {
@@ -249,7 +249,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author'       => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
-			'date'         => '2014-11-07T10:14:25',
+			'published'    => '2014-11-07T10:14:25',
 		);
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -266,8 +266,8 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
 
-		$this->assertEquals( json_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
-		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $updated->comment_date ), $comment['published'] );
+		$this->assertEquals( '2014-11-07T10:14:25', $comment['published'] );
 	}
 
 	public function test_update_comment_status() {
@@ -368,7 +368,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertArrayHasKey( 'author_email', $properties );
 		$this->assertArrayHasKey( 'author_url', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
-		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'published', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'parent_id', $properties );
 		$this->assertArrayHasKey( 'post_id', $properties );
@@ -388,16 +388,16 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
-		$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date ), $data['published'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 
 		if ( 'edit' === $context ) {
-			$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['published_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
 		}
 
 		if ( 'edit' !== $context ) {
-			$this->assertArrayNotHasKey( 'date_gmt', $data );
+			$this->assertArrayNotHasKey( 'published_gmt', $data );
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
 		}
 	}

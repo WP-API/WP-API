@@ -467,14 +467,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Post date
-		if ( ! empty( $request['date'] ) ) {
-			$date_data = json_get_date_with_gmt( $request['date'] );
+		if ( ! empty( $request['published'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['published'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
-		} elseif ( ! empty( $request['date_gmt'] ) ) {
-			$date_data = json_get_date_with_gmt( $request['date_gmt'], true );
+		} elseif ( ! empty( $request['published_gmt'] ) ) {
+			$date_data = json_get_date_with_gmt( $request['published_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
@@ -813,27 +813,27 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Base fields for every post
 		$data = array(
-			'id'       => $post->ID,
-			'type'     => $post->post_type,
-			'slug'     => $post->post_name,
-			'link'     => get_permalink( $post->ID ),
-			'guid'     => array(
+			'id'        => $post->ID,
+			'type'      => $post->post_type,
+			'slug'      => $post->post_name,
+			'link'      => get_permalink( $post->ID ),
+			'guid'      => array(
 				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'date'     => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified' => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'published' => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified'  => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 		);
 
 		if ( 'edit' === $request['context'] ) {
 
 			$data_raw = array(
-				'guid'         => array(
+				'guid'          => array(
 					'raw' => $post->guid,
 				),
-				'status'       => $post->post_status,
-				'password'     => $this->prepare_password_response( $post->post_password ),
-				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+				'status'        => $post->post_status,
+				'password'      => $this->prepare_password_response( $post->post_password ),
+				'published_gmt' => $this->prepare_date_response( $post->post_date_gmt ),
+				'modified_gmt'  => $this->prepare_date_response( $post->post_modified_gmt ),
 			);
 
 			$data = array_merge_recursive( $data, $data_raw );
@@ -1036,7 +1036,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 				),
-				'date' => array(
+				'published' => array(
 					'description' => 'The date the object was published.',
 					'type'        => 'string',
 					'format'      => 'date-time',

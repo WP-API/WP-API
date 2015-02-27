@@ -275,9 +275,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( 'draft', $data['status'] );
 		$this->assertEquals( 'draft', $new_post->post_status );
 		// Confirm dates are null
-		$this->assertNull( $data['date_gmt'] );
+		$this->assertNull( $data['published_gmt'] );
 		$this->assertNull( $data['modified_gmt'] );
-		$this->assertNull( $data['date'] );
+		$this->assertNull( $data['published'] );
 		$this->assertNull( $data['modified'] );
 	}
 
@@ -478,7 +478,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00Z',
+			'published' => '2010-01-01T02:00:00Z',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -486,7 +486,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T02:00:00', $data['published'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -495,7 +495,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
 		$params = $this->set_post_data( array(
-			'date' => '2010-01-01T02:00:00-10:00',
+			'published' => '2010-01-01T02:00:00-10:00',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -503,7 +503,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T12:00:00', $data['published'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -772,7 +772,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
-		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'published', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_image', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );

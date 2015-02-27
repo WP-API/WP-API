@@ -239,7 +239,6 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'caption', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
-		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
@@ -248,6 +247,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'post_id', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
+		$this->assertArrayHasKey( 'published', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
