@@ -1008,10 +1008,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'id' => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
+					'readonly'    => true,
 				),
 				'type' => array(
 					'description' => 'Type of Post for the object.',
 					'type'        => 'string',
+					'readonly'    => true,
 				),
 				'slug' => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
@@ -1028,6 +1030,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'rendered' => array(
 							'description' => 'GUID for the object, transformed for display.',
 							'type'        => 'string',
+							'readonly'    => true,
 						),
 					),
 				),
@@ -1054,6 +1057,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['parent'] = array(
 				'description' => 'The ID for the parent of the object.',
 				'type'        => 'integer',
+				'relation'    => $base,
 			);
 		}
 
@@ -1117,6 +1121,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'rendered' => array(
 								'description' => 'Title for the object, transformed for display.',
 								'type'        => 'string',
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1134,6 +1139,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'rendered' => array(
 								'description' => 'Content for the object, transformed for display.',
 								'type'        => 'string',
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1143,6 +1149,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['author'] = array(
 						'description' => 'The ID for the author of the object.',
 						'type'        => 'integer',
+						'relation'    => 'user',
 					);
 					break;
 
@@ -1158,6 +1165,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'rendered' => array(
 								'description' => 'Excerpt for the object, transformed for display.',
 								'type'        => 'string',
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1167,6 +1175,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['featured_image'] = array(
 						'description' => 'ID of the featured image for the object.',
 						'type'        => 'integer',
+						'relation'    => 'media',
 					);
 					break;
 

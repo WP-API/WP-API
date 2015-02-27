@@ -348,6 +348,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'name'             => array(
 					'description'  => 'Display name for the object.',

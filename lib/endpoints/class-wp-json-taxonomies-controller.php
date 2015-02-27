@@ -77,30 +77,37 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'readonly'     => true,
 					),
 				'hierarchical'     => array(
 					'description'  => 'Whether or not the type should have children.',
 					'type'         => 'boolean',
+					'readonly'     => true,
 					),
 				'labels'           => array(
 					'description'  => 'Human-readable labels for the type for various contexts.',
 					'type'         => 'object',
+					'readonly'     => true,
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'readonly'     => true,
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object.',
 					'type'         => 'string',
+					'readonly'     => true,
 					),
 				'show_cloud'       => array(
 					'description'  => 'Whether or not the term cloud should be displayed.',
 					'type'         => 'boolean',
+					'readonly'     => true,
 					),
 				'types'            => array(
 					'description'  => 'Types associated with taxonomy.',
 					'type'         => 'array',
+					'readonly'     => true,
 					),
 				),
 			);

@@ -505,6 +505,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'author'           => array(
 					'description'  => 'Name of the object author.',
@@ -531,6 +532,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
+							'readonly'        => true,
 							),
 						),
 					),
@@ -547,10 +549,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'relation'     => 'comment',
 					),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
+					'relation'     => 'post',
 					),
 				'status'           => array(
 					'description'  => 'State of the object.',
@@ -563,6 +567,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'user'             => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
+					'relation'     => 'user'
 					),
 				),
 			);
