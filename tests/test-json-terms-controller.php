@@ -237,7 +237,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $endpoint->prepare_item_for_response( $term, $request );
 		$this->check_taxonomy_term( $term, $data );
 
-		$this->assertEquals( 1, $data['parent_id'] );
+		$this->assertEquals( 1, $data['parent'] );
 		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
 	}
 
@@ -252,7 +252,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
-		$this->assertArrayHasKey( 'parent_id', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
 		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );

@@ -69,7 +69,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
 		}
 
-		$post = get_post( (int) $request['post_id'] );
+		$post = get_post( (int) $request['post'] );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -177,11 +177,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function get_items_permissions_check( $request ) {
 
 		// If the post id isn't specified, presume we can create
-		if ( ! isset( $request['post_id'] ) ) {
+		if ( ! isset( $request['post'] ) ) {
 			return true;
 		}
 
-		$post = get_post( (int) $request['post_id'] );
+		$post = get_post( (int) $request['post'] );
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
 			return false;
@@ -227,11 +227,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function create_item_permissions_check( $request ) {
 
 		// If the post id isn't specified, presume we can create
-		if ( ! isset( $request['post_id'] ) ) {
+		if ( ! isset( $request['post'] ) ) {
 			return true;
 		}
 
-		$post = get_post( (int) $request['post_id'] );
+		$post = get_post( (int) $request['post'] );
 
 		if ( $post ) {
 
@@ -286,9 +286,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function prepare_item_for_response( $comment, $request ) {
 		$fields = array(
 			'id'           => (int) $comment->comment_ID,
-			'post_id'      => (int) $comment->comment_post_ID,
-			'parent_id'    => (int) $comment->comment_parent,
-			'user_id'      => (int) $comment->user_id,
+			'post'         => (int) $comment->comment_post_ID,
+			'parent'       => (int) $comment->comment_parent,
+			'user'         => (int) $comment->user_id,
 			'author'       => $comment->comment_author,
 			'author_email' => $comment->comment_author_email,
 			'author_url'   => $comment->comment_author_url,
@@ -344,8 +344,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		$prepared_args = array(
 			'number'  => absint( $request['per_page'] ),
-			'post_id' => isset( $request['post_id'] ) ? absint( $request['post_id'] ) : '',
-			'parent'  => isset( $request['parent_id'] ) ? intval( $request['parent_id'] ) : '',
+			'post_id' => isset( $request['post'] ) ? absint( $request['post'] ) : '',
+			'parent'  => isset( $request['parent'] ) ? intval( $request['parent'] ) : '',
 			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
 			'orderby' => $this->normalize_query_param( $order_by ),
 			'order'   => sanitize_key( $request['order'] ),
@@ -357,7 +357,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			$protected_args = array(
-				'user_id'      => $request['user_id'] ? absint( $request['user_id'] ) : '',
+				'user'         => $request['user'] ? absint( $request['user'] ) : '',
 				'status'       => sanitize_key( $request['status'] ),
 				'type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 				'author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
@@ -388,10 +388,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			case 'id':
 				$normalized = $prefix . 'ID';
 				break;
-			case 'post_id':
+			case 'post':
 				$normalized = $prefix . 'post_ID';
 				break;
-			case 'parent_id':
+			case 'parent':
 				$normalized = $prefix . 'parent';
 				break;
 			default:
@@ -439,10 +439,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
-			'comment_post_ID'      => (int) $request['post_id'],
+			'comment_post_ID'      => (int) $request['post'],
 			'comment_type'         => sanitize_key( $request['type'] ),
-			'comment_parent'       => (int) $request['parent_id'],
-			'user_id'              => isset( $request['user_id'] ) ? (int) $request['user_id'] : get_current_user_id(),
+			'comment_parent'       => (int) $request['parent'],
+			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
 			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
@@ -544,11 +544,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'type'         => 'string',
 					'format'       => 'uri',
 					),
-				'parent_id'        => array(
+				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
 					),
-				'post_id'          => array(
+				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
 					),
@@ -560,7 +560,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
 					),
-				'user_id'          => array(
+				'user'             => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
 					),

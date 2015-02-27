@@ -17,10 +17,10 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		}
 
 		// If a user is trying to attach to a post make sure they have permissions. Bail early if post_id is not being passed
-		if ( ! empty( $request['post_id'] ) ) {
-			$parent = get_post( (int) $request['post_id'] );
+		if ( ! empty( $request['post'] ) ) {
+			$parent = get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post_id'] ) ) {
+			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
 				return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 			}
 		}
@@ -128,7 +128,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['description'] );
 		}
 
-		if ( isset( $request['post_id'] ) ) {
+		if ( isset( $request['post'] ) ) {
 			$prepared_attachment->post_parent = (int) $request['post_parent'];
 		}
 
@@ -150,7 +150,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$response['description']   = $post->post_excerpt;
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
-		$response['post_id']       = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		$response['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
 		$response['source_url']    = wp_get_attachment_url( $post->ID );
 
 		// Ensure empty details is an empty object
@@ -200,7 +200,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
 			);
-		$schema['properties']['post_id'] = array(
+		$schema['properties']['post'] = array(
 			'description'     => 'The ID for the associated post of the attachment.',
 			'type'            => 'integer',
 			);

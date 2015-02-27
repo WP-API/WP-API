@@ -242,7 +242,7 @@ function create_initial_json_routes() {
 				),
 				'description' => array(),
 				'slug'        => array(),
-				'parent_id'   => array(),
+				'parent'      => array(),
 			),
 		),
 	));
@@ -258,7 +258,7 @@ function create_initial_json_routes() {
 				'name'           => array(),
 				'description'    => array(),
 				'slug'           => array(),
-				'parent_id'      => array(),
+				'parent'         => array(),
 			),
 		),
 		array(
@@ -368,10 +368,10 @@ function create_initial_json_routes() {
 			'callback'  => array( $controller, 'get_items' ),
 			'permission_callback' => array( $controller, 'get_items_permissions_check' ),
 			'args'      => array(
-				'post_id'      => array(
+				'post'         => array(
 					'default'      => null,
 				),
-				'user_id'      => array(
+				'user'         => array(
 					'default'      => 0,
 				),
 				'per_page'     => array(
@@ -386,7 +386,7 @@ function create_initial_json_routes() {
 				'type'         => array(
 					'default'      => 'comment',
 				),
-				'parent_id'    => array(),
+				'parent'       => array(),
 				'search'       => array(),
 				'order'        => array(
 					'default'      => 'DESC',
@@ -408,16 +408,16 @@ function create_initial_json_routes() {
 			'callback' => array( $controller, 'create_item' ),
 			'permission_callback' => array( $controller, 'create_item_permissions_check' ),
 			'args'     => array(
-				'post_id'      => array(
+				'post'         => array(
 					'required'     => true,
 				),
 				'type'         => array(
 					'default'      => 'comment',
 				),
-				'user_id'      => array(
+				'user'         => array(
 					'default'      => 0,
 				),
-				'parent_id'    => array(
+				'parent'       => array(
 					'default'      => 0,
 				),
 				'content'      => array(),
@@ -446,7 +446,7 @@ function create_initial_json_routes() {
 			'callback' => array( $controller, 'update_item' ),
 			'permission_callback' => array( $controller, 'update_item_permissions_check' ),
 			'args'     => array(
-				'post_id'      => array(),
+				'post'         => array(),
 				'status'       => array(),
 				'content'      => array(),
 				'author'       => array(),
