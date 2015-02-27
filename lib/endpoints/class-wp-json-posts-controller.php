@@ -15,14 +15,22 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function get_items( $request ) {
-		$prepared_args = (array) $request->get_query_params();
-		$prepared_args['post_type'] = array();
-		$prepared_args['paged'] = isset( $prepared_args['page'] ) ? absint( $prepared_args['page'] ) : 1;
-		unset( $prepared_args['page'] );
+		$args = (array) $request->get_params();
+		$args['post_type'] = $this->post_type;
+		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
+		unset( $args['page'] );
 
-		$prepared_args['post_type'] = $this->post_type;
-		$prepared_args = apply_filters( 'json_post_query', $prepared_args, $request );
-		$query_args = $this->prepare_items_query( $prepared_args );
+		/**
+		 * Alter the query arguments for a request.
+		 *
+		 * This allows you to set extra arguments or defaults for a post
+		 * collection request.
+		 *
+		 * @param array $args Map of query var to query value.
+		 * @param WP_JSON_Request $request Full details about the request.
+		 */
+		$args = apply_filters( 'json_post_query', $args, $request );
+		$query_args = $this->prepare_items_query( $args );
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -61,7 +69,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
-		} elseif ( ! $this->check_read_permission( $post ) ) {
+		}
+
+		if ( ! $this->check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
@@ -123,7 +133,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return WP_Error|WP_HTTP_ResponseInterface
 	 */
 	public function create_item( $request ) {
-
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'json_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
 		}
@@ -290,13 +299,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		global $wp;
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
-		/**
-		* If the user has the correct permissions, also allow use of internal
-		* query parameters, which are only undesirable on the frontend.
-		*
-		* To disable anyway, use `add_filter('json_private_query_vars', '__return_empty_array');`
-		*/
 		if ( current_user_can( 'edit_posts' ) ) {
+			/**
+			 * Alter allowed query vars for authorized users.
+			 *
+			 * If the user has the `edit_posts` capability, we also allow use of
+			 * private query parameters, which are only undesirable on the
+			 * frontend, but are safe for use in query strings.
+			 *
+			 * To disable anyway, use
+			 * `add_filter('json_private_query_vars', '__return_empty_array');`
+			 *
+			 * @param array $private List of allowed query vars for authorized users.
+			 */
 			$private = apply_filters( 'json_private_query_vars', $wp->private_query_vars );
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
@@ -304,7 +319,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
-		// Filter and flip for querying
+		/**
+		 * Alter allowed query vars for the REST API.
+		 *
+		 * This filter allows you to add or remove query vars from the allowed
+		 * list for all requests, including unauthenticated ones. To alter the
+		 * vars for editors only, {@see json_private_query_vars}.
+		 *
+		 * @param array $valid_vars List of allowed query vars.
+		 */
 		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
 		$valid_vars = array_flip( $valid_vars );
 
@@ -356,7 +379,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( isset( $date ) ) {
-
 			return json_mysql_to_rfc3339( $date );
 		}
 
@@ -791,22 +813,22 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Base fields for every post
 		$data = array(
-			'id'             => $post->ID,
-			'type'           => $post->post_type,
-			'slug'           => $post->post_name,
-			'link'           => get_permalink( $post->ID ),
-			'guid'           => array(
-				'rendered'       => apply_filters( 'get_the_guid', $post->guid ),
+			'id'       => $post->ID,
+			'type'     => $post->post_type,
+			'slug'     => $post->post_name,
+			'link'     => get_permalink( $post->ID ),
+			'guid'     => array(
+				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
 			),
-			'date'           => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified'       => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'date'     => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'modified' => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 		);
 
 		if ( 'edit' === $request['context'] ) {
 
 			$data_raw = array(
 				'guid'         => array(
-					'raw'          => $post->guid,
+					'raw' => $post->guid,
 				),
 				'status'       => $post->post_status,
 				'password'     => $this->prepare_password_response( $post->post_password ),
@@ -822,8 +844,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
-				'rendered'       => get_the_title( $post->ID ),
-				);
+				'rendered' => get_the_title( $post->ID ),
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['title']['raw'] = $post->post_title;
 			}
@@ -831,8 +853,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
 			$data['content'] = array(
-				'rendered'       => apply_filters( 'the_content', $post->post_content ),
-				);
+				'rendered' => apply_filters( 'the_content', $post->post_content ),
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['content']['raw'] = $post->post_content;
 			}
@@ -840,8 +862,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
-				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
-				);
+				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['excerpt']['raw'] = $post->post_excerpt;
 			}
@@ -928,25 +950,25 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Entity meta
 		$links = array(
-			'self'            => array(
+			'self' => array(
 				'href' => json_url( '/wp/' . $base . '/' . $post->ID ),
 			),
-			'collection'      => array(
+			'collection' => array(
 				'href' => json_url( $base ),
 			),
 		);
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
 			$links['author'] = array(
-				'href' => json_url( '/wp/users/' . $post->post_author ),
+				'href'       => json_url( '/wp/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$links['replies'] = array(
-				'href' => json_url( '/wp/comments' ),
-				'embeddable' => true,
+				'href'         => json_url( '/wp/comments' ),
+				'embeddable'   => true,
 				'query_params' => array( 'post_id' => $post->ID ),
 			);
 		}
@@ -959,7 +981,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type_obj = get_post_type_object( $post->post_type );
 		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(
-				'href' => json_url( trailingslashit( $base ) . (int) $post->post_parent ),
+				'href'       => json_url( trailingslashit( $base ) . (int) $post->post_parent ),
 				'embeddable' => true,
 			);
 		}
@@ -976,53 +998,53 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$base = $this->get_post_type_base( $this->post_type );
 		$schema = array(
-			'$schema'              => 'http://json-schema.org/draft-04/schema#',
-			'title'                => $base,
-			'type'                 => 'object',
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => $base,
+			'type'       => 'object',
 			/*
 			 * Base properties for every Post
 			 */
-			'properties'           => array(
-				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
-					'type'         => 'integer',
+			'properties' => array(
+				'id' => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
 				),
-				'type'             => array(
-					'description'  => 'Type of Post for the object.',
-					'type'         => 'string',
+				'type' => array(
+					'description' => 'Type of Post for the object.',
+					'type'        => 'string',
 				),
-				'slug'             => array(
-					'description'  => 'An alphanumeric identifier for the object unique to its type.',
-					'type'         => 'string',
+				'slug' => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
 				),
-				'guid'             => array(
-					'description'     => 'The globally unique identifier for the object.',
-					'type'            => 'object',
-					'properties'      => array(
-						'raw'         => array(
-							'description'     => 'GUID for the object, as it exists in the database.',
-							'type'            => 'string',
-							),
-						'rendered'    => array(
-							'description'     => 'GUID for the object, transformed for display.',
-							'type'            => 'string',
-							),
+				'guid' => array(
+					'description' => 'The globally unique identifier for the object.',
+					'type'        => 'object',
+					'properties'  => array(
+						'raw'      => array(
+							'description' => 'GUID for the object, as it exists in the database.',
+							'type'        => 'string',
+						),
+						'rendered' => array(
+							'description' => 'GUID for the object, transformed for display.',
+							'type'        => 'string',
 						),
 					),
-				'link'             => array(
-					'description'  => 'URL to the object.',
-					'type'         => 'string',
-					'format'       => 'uri',
 				),
-				'date'             => array(
-					'description'  => 'The date the object was published.',
-					'type'         => 'string',
-					'format'       => 'date-time',
+				'link' => array(
+					'description' => 'URL to the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
 				),
-				'modified'         => array(
-					'description'  => 'The date the object was last modified.',
-					'type'         => 'string',
-					'format'       => 'date-time',
+				'date' => array(
+					'description' => 'The date the object was published.',
+					'type'        => 'string',
+					'format'      => 'date-time',
+				),
+				'modified' => array(
+					'description' => 'The date the object was last modified.',
+					'type'        => 'string',
+					'format'      => 'date-time',
 				),
 			)
 		);
@@ -1030,9 +1052,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical ) {
 			$schema['properties']['parent'] = array(
-				'description'      => 'The ID for the parent of the object.',
-				'type'             => 'integer',
-				);
+				'description' => 'The ID for the parent of the object.',
+				'type'        => 'integer',
+			);
 		}
 
 		$post_type_attributes = array(
@@ -1045,9 +1067,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'revisions',
 			'page-attributes',
 			'post-formats',
-			);
+		);
 		$fixed_schemas = array(
-			'post'          => array(
+			'post' => array(
 				'title',
 				'editor',
 				'author',
@@ -1056,8 +1078,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'comments',
 				'revisions',
 				'post-formats',
-				),
-			'page'          => array(
+			),
+			'page' => array(
 				'title',
 				'editor',
 				'author',
@@ -1066,18 +1088,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'comments',
 				'revisions',
 				'page-attributes',
-				),
-			'attachment'    => array(
+			),
+			'attachment' => array(
 				'title',
 				'author',
 				'comments',
 				'revisions',
-				),
-			);
-		foreach( $post_type_attributes as $attribute ) {
+			),
+		);
+		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ] ) ) {
 				continue;
-			} else if ( ! in_array( $this->post_type, array_keys( $fixed_schemas ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			} elseif ( ! in_array( $this->post_type, array_keys( $fixed_schemas ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 
@@ -1085,95 +1107,95 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 				case 'title':
 					$schema['properties']['title'] = array(
-						'description'     => 'The title for the object.',
-						'type'            => 'object',
-						'properties'      => array(
-							'raw'         => array(
-								'description'     => 'Title for the object, as it exists in the database.',
-								'type'            => 'string',
-								),
-							'rendered'    => array(
-								'description'     => 'Title for the object, transformed for display.',
-								'type'            => 'string',
-								),
+						'description' => 'The title for the object.',
+						'type'        => 'object',
+						'properties'  => array(
+							'raw' => array(
+								'description' => 'Title for the object, as it exists in the database.',
+								'type'        => 'string',
 							),
-						);
+							'rendered' => array(
+								'description' => 'Title for the object, transformed for display.',
+								'type'        => 'string',
+							),
+						),
+					);
 					break;
 
 				case 'editor':
 					$schema['properties']['content'] = array(
-						'description'     => 'The content for the object.',
-						'type'            => 'object',
-						'properties'      => array(
-							'raw'         => array(
-								'description'     => 'Content for the object, as it exists in the database.',
-								'type'            => 'string',
-								),
-							'rendered'    => array(
-								'description'     => 'Content for the object, transformed for display.',
-								'type'            => 'string',
-								),
+						'description' => 'The content for the object.',
+						'type'        => 'object',
+						'properties'  => array(
+							'raw' => array(
+								'description' => 'Content for the object, as it exists in the database.',
+								'type'        => 'string',
 							),
-						);
+							'rendered' => array(
+								'description' => 'Content for the object, transformed for display.',
+								'type'        => 'string',
+							),
+						),
+					);
 					break;
 
 				case 'author':
 					$schema['properties']['author'] = array(
-						'description'     => 'The ID for the author of the object.',
-						'type'            => 'integer',
-						);
+						'description' => 'The ID for the author of the object.',
+						'type'        => 'integer',
+					);
 					break;
 
 				case 'excerpt':
 					$schema['properties']['excerpt'] = array(
-						'description'     => 'The excerpt for the object.',
-						'type'            => 'object',
-						'properties'      => array(
-							'raw'         => array(
-								'description'     => 'Excerpt for the object, as it exists in the database.',
-								'type'            => 'string',
-								),
-							'rendered'    => array(
-								'description'     => 'Excerpt for the object, transformed for display.',
-								'type'            => 'string',
-								),
+						'description' => 'The excerpt for the object.',
+						'type'        => 'object',
+						'properties'  => array(
+							'raw' => array(
+								'description' => 'Excerpt for the object, as it exists in the database.',
+								'type'        => 'string',
 							),
-						);
+							'rendered' => array(
+								'description' => 'Excerpt for the object, transformed for display.',
+								'type'        => 'string',
+							),
+						),
+					);
 					break;
 
 				case 'thumbnail':
 					$schema['properties']['featured_image'] = array(
-						'description'     => 'ID of the featured image for the object.',
-						'type'            => 'integer',
-						);
+						'description' => 'ID of the featured image for the object.',
+						'type'        => 'integer',
+					);
 					break;
 
 				case 'comments':
 					$schema['properties']['comment_status'] = array(
-						'description'     => 'Whether or not comments are open on the object.',
-						'type'            => 'string',
-						'enum'            => array( 'open', 'closed' ),
-						);
+						'description' => 'Whether or not comments are open on the object.',
+						'type'        => 'string',
+						'enum'        => array( 'open', 'closed' ),
+					);
 					$schema['properties']['ping_status'] = array(
-						'description'     => 'Whether or not the object can be pinged.',
-						'type'            => 'string',
-						'enum'            => array( 'open', 'closed' ),
-						);
+						'description' => 'Whether or not the object can be pinged.',
+						'type'        => 'string',
+						'enum'        => array( 'open', 'closed' ),
+					);
 					break;
 
 				case 'page-attributes':
 					$schema['properties']['menu_order'] = array(
-						'description'     => 'The order of the object in relation to other object of its type.',
-						'type'            => 'integer',
-						);
+						'description' => 'The order of the object in relation to other object of its type.',
+						'type'        => 'integer',
+					);
 					break;
 
 				case 'post-formats':
 					$schema['properties']['format'] = array(
-						'description'     => 'The format for the object.',
-						'type'            => 'string',
-						'enum'            => get_post_format_slugs(),
-						);
+						'description' => 'The format for the object.',
+						'type'        => 'string',
+						'enum'        => get_post_format_slugs(),
+					);
 					break;
 
 			}
@@ -1182,17 +1204,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( 'post' === $this->post_type ) {
 			$schema['properties']['sticky'] = array(
-				'description'      => 'Whether or not the object should be treated as sticky.',
-				'type'             => 'boolean',
-				);
+				'description' => 'Whether or not the object should be treated as sticky.',
+				'type'        => 'boolean',
+			);
 		}
 
 		if ( 'page' === $this->post_type ) {
 			$schema['properties']['template'] = array(
-				'description'      => 'The theme file to use to display the object.',
-				'type'             => 'string',
-				'enum'             => array_values( get_page_templates() ),
-				);
+				'description' => 'The theme file to use to display the object.',
+				'type'        => 'string',
+				'enum'        => array_values( get_page_templates() ),
+			);
 		}
 
 		return $schema;
