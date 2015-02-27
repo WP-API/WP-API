@@ -320,7 +320,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
-		// Filter and flip for querying
+		/**
+		 * Alter allowed query vars for the REST API.
+		 *
+		 * This filter allows you to add or remove query vars from the allowed
+		 * list for all requests, including unauthenticated ones. To alter the
+		 * vars for editors only, {@see json_private_query_vars}.
+		 *
+		 * @param array $valid_vars List of allowed query vars.
+		 */
 		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
 		$valid_vars = array_flip( $valid_vars );
 
