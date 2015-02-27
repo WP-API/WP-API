@@ -535,7 +535,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
 
 	// Default serving
-	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
+	add_filter( 'json_pre_serve_request', 'json_send_cors_headers' );
 	add_filter( 'json_post_dispatch',  'json_send_allow_header', 10, 3 );
 
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
