@@ -847,7 +847,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
 				'rendered'       => get_the_title( $post->ID ),
-				);
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['title']['raw'] = $post->post_title;
 			}
@@ -856,7 +856,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['content'] ) ) {
 			$data['content'] = array(
 				'rendered'       => apply_filters( 'the_content', $post->post_content ),
-				);
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['content']['raw'] = $post->post_content;
 			}
@@ -865,7 +865,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
 				'rendered'       => $this->prepare_excerpt_response( $post->post_excerpt ),
-				);
+			);
 			if ( 'edit' === $request['context'] ) {
 				$data['excerpt']['raw'] = $post->post_excerpt;
 			}
@@ -1026,13 +1026,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'raw'         => array(
 							'description'     => 'GUID for the object, as it exists in the database.',
 							'type'            => 'string',
-							),
+						),
 						'rendered'    => array(
 							'description'     => 'GUID for the object, transformed for display.',
 							'type'            => 'string',
-							),
 						),
 					),
+				),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
@@ -1056,7 +1056,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['parent'] = array(
 				'description'      => 'The ID for the parent of the object.',
 				'type'             => 'integer',
-				);
+			);
 		}
 
 		$post_type_attributes = array(
@@ -1069,7 +1069,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'revisions',
 			'page-attributes',
 			'post-formats',
-			);
+		);
 		$fixed_schemas = array(
 			'post'          => array(
 				'title',
@@ -1080,7 +1080,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'comments',
 				'revisions',
 				'post-formats',
-				),
+			),
 			'page'          => array(
 				'title',
 				'editor',
@@ -1090,14 +1090,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'comments',
 				'revisions',
 				'page-attributes',
-				),
+			),
 			'attachment'    => array(
 				'title',
 				'author',
 				'comments',
 				'revisions',
-				),
-			);
+			),
+		);
 		foreach( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ] ) ) {
 				continue;
@@ -1115,13 +1115,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'raw'         => array(
 								'description'     => 'Title for the object, as it exists in the database.',
 								'type'            => 'string',
-								),
+							),
 							'rendered'    => array(
 								'description'     => 'Title for the object, transformed for display.',
 								'type'            => 'string',
-								),
 							),
-						);
+						),
+					);
 					break;
 
 				case 'editor':
@@ -1132,20 +1132,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'raw'         => array(
 								'description'     => 'Content for the object, as it exists in the database.',
 								'type'            => 'string',
-								),
+							),
 							'rendered'    => array(
 								'description'     => 'Content for the object, transformed for display.',
 								'type'            => 'string',
-								),
 							),
-						);
+						),
+					);
 					break;
 
 				case 'author':
 					$schema['properties']['author'] = array(
 						'description'     => 'The ID for the author of the object.',
 						'type'            => 'integer',
-						);
+					);
 					break;
 
 				case 'excerpt':
@@ -1156,20 +1156,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 							'raw'         => array(
 								'description'     => 'Excerpt for the object, as it exists in the database.',
 								'type'            => 'string',
-								),
+							),
 							'rendered'    => array(
 								'description'     => 'Excerpt for the object, transformed for display.',
 								'type'            => 'string',
-								),
 							),
-						);
+						),
+					);
 					break;
 
 				case 'thumbnail':
 					$schema['properties']['featured_image'] = array(
 						'description'     => 'ID of the featured image for the object.',
 						'type'            => 'integer',
-						);
+					);
 					break;
 
 				case 'comments':
@@ -1177,19 +1177,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description'     => 'Whether or not comments are open on the object.',
 						'type'            => 'string',
 						'enum'            => array( 'open', 'closed' ),
-						);
+					);
 					$schema['properties']['ping_status'] = array(
 						'description'     => 'Whether or not the object can be pinged.',
 						'type'            => 'string',
 						'enum'            => array( 'open', 'closed' ),
-						);
+					);
 					break;
 
 				case 'page-attributes':
 					$schema['properties']['menu_order'] = array(
 						'description'     => 'The order of the object in relation to other object of its type.',
 						'type'            => 'integer',
-						);
+					);
 					break;
 
 				case 'post-formats':
@@ -1197,7 +1197,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description'     => 'The format for the object.',
 						'type'            => 'string',
 						'enum'            => get_post_format_slugs(),
-						);
+					);
 					break;
 
 			}
@@ -1208,7 +1208,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['sticky'] = array(
 				'description'      => 'Whether or not the object should be treated as sticky.',
 				'type'             => 'boolean',
-				);
+			);
 		}
 
 		if ( 'page' === $this->post_type ) {
@@ -1216,7 +1216,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'description'      => 'The theme file to use to display the object.',
 				'type'             => 'string',
 				'enum'             => array_values( get_page_templates() ),
-				);
+			);
 		}
 
 		return $schema;
