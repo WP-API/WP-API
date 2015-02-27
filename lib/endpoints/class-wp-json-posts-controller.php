@@ -61,7 +61,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
-		} elseif ( ! $this->check_read_permission( $post ) ) {
+		}
+
+		if ( ! $this->check_read_permission( $post ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
