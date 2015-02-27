@@ -184,7 +184,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'name'         => $item->name,
 			'slug'         => $item->slug,
 			'taxonomy'     => $item->taxonomy,
-			'parent_id'    => (int) $parent_id,
+			'parent'       => (int) $parent_id,
 		);
 
 		if ( ! empty( $parent_term ) ) {
@@ -228,7 +228,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
 					),
-				'parent_id'        => array(
+				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
 					),

@@ -147,7 +147,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
 		wp_set_current_user( $this->author_id );
 		$request = new WP_JSON_Request( 'POST', '/wp/media' );
-		$request->set_param( 'post_id', $post_id );
+		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 401 );
 	}
@@ -246,7 +246,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertArrayHasKey( 'media_type', $properties );
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
-		$this->assertArrayHasKey( 'post_id', $properties );
+		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'source_url', $properties );
@@ -269,9 +269,9 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertEquals( $attachment->post_excerpt, $data['description'] );
 
 		if ( $attachment->post_parent ) {
-			$this->assertEquals( $attachment->post_parent, $data['post_id'] );
+			$this->assertEquals( $attachment->post_parent, $data['post'] );
 		} else {
-			$this->assertNull( $data['post_id'] );
+			$this->assertNull( $data['post'] );
 		}
 
 		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url']  );
