@@ -53,6 +53,26 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Prepare a response for inserting into a collection.
+	 *
+	 * @param WP_JSON_Response $response Response object.
+	 * @return array Response data, ready for insertion into collection data.
+	 */
+	public function prepare_response_for_collection( $response ) {
+		if ( ! ( $response instanceof WP_JSON_Response ) ) {
+			return $response;
+		}
+
+		$data = (array) $response->get_data();
+		$links = WP_JSON_Server::get_response_links( $response );
+		if ( ! empty( $links ) ) {
+			$data['_links'] = $links;
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema
 	 *
 	 * @return array

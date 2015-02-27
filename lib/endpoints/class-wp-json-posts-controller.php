@@ -36,7 +36,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$posts[] = $this->prepare_item_for_response( $post, $request );
+			$data = $this->prepare_item_for_response( $post, $request );
+			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $posts );
