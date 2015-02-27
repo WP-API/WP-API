@@ -292,7 +292,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'author'       => $comment->comment_author,
 			'author_email' => $comment->comment_author_email,
 			'author_url'   => $comment->comment_author_url,
-			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
+			'published'    => json_mysql_to_rfc3339( $comment->comment_date ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 			),
@@ -302,7 +302,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
-			$fields['date_gmt']       = json_mysql_to_rfc3339( $comment->comment_date_gmt );
+			$fields['published_gmt']  = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 			$fields['content']['raw'] = $comment->comment_content;
 		}
 
@@ -447,8 +447,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
 			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
-			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
-			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
+			'comment_date'         => isset( $request['published'] ) ? $request['published'] : current_time( 'mysql' ),
+			'comment_date_gmt'     => isset( $request['published_gmt'] ) ? $request['published_gmt'] : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
 			// use wp_allow_comment().
 			'comment_author_IP'    => '127.0.0.1',
@@ -483,8 +483,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
 		}
 
-		if ( ! empty( $request['date'] ) ) {
-			$prepared_comment['comment_date'] = $request['date'];
+		if ( ! empty( $request['published'] ) ) {
+			$prepared_comment['comment_date'] = $request['published'];
 		}
 
 		return apply_filters( 'json_preprocess_comment', $prepared_comment, $request );
@@ -534,7 +534,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 							),
 						),
 					),
-				'date'             => array(
+				'published'        => array(
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',

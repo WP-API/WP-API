@@ -10,10 +10,10 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
+			$this->assertNull( $data['published'] );
 		}
 		else {
-			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertEquals( json_mysql_to_rfc3339( $post->post_date ), $data['published'] );
 		}
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified'] );
@@ -138,10 +138,10 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 			$this->assertEquals( $post->post_password, $data['password'] );
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-				$this->assertNull( $data['date_gmt'] );
+				$this->assertNull( $data['published_gmt'] );
 			}
 			else {
-				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+				$this->assertEquals( json_mysql_to_rfc3339( $post->post_date_gmt ), $data['published_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
