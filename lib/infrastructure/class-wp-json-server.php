@@ -310,23 +310,45 @@ class WP_JSON_Server {
 	 */
 	public function response_to_data( $response, $embed ) {
 		$data  = $this->prepare_response( $response->get_data() );
-		$links = $response->get_links();
+		$links = $this->get_response_links( $response );
 
 		if ( ! empty( $links ) ) {
 			// Convert links to part of the data
-			$data['_links'] = array();
-			foreach ( $links as $rel => $items ) {
-				$data['_links'][ $rel ] = array();
-
-				foreach ( $items as $item ) {
-					$attributes = $item['attributes'];
-					$attributes['href'] = $item['href'];
-					$data['_links'][ $rel ][] = $attributes;
-				}
-			}
+			$data['_links'] = $links;
 
 			if ( $embed ) {
 				$data = $this->embed_links( $data );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get links from a response.
+	 *
+	 * Extracts the links from a reponse into a structured hash, suitable for
+	 * direct output.
+	 *
+	 * @param WP_JSON_Response $response Response to extract links from.
+	 * @return array Map of link relation to list of link hashes.
+	 */
+	public static function get_response_links( $response ) {
+		$links = $response->get_links();
+
+		if ( empty( $links ) ) {
+			return array();
+		}
+
+		// Convert links to part of the data
+		$data = array();
+		foreach ( $links as $rel => $items ) {
+			$data[ $rel ] = array();
+
+			foreach ( $items as $item ) {
+				$attributes = $item['attributes'];
+				$attributes['href'] = $item['href'];
+				$data[ $rel ][] = $attributes;
 			}
 		}
 
