@@ -500,6 +500,69 @@ class WP_JSON_Server {
 	 */
 	protected function check_required_parameters( $request ) {
 		$attributes = $request->get_attributes();
+
+		$errors = array();
+		if ( ! empty( $attributes['query_params'] ) ) {
+			foreach( $attributes['query_params'] as $key => $param_attributes ) {
+				$query_value = $request->get_param( $key );
+				if ( null === $query_value ) {
+					continue;
+				}
+
+				/*
+				 * Check 'type' attribute
+				 *
+				 * @todo support an array of 'type's
+				 */
+				if ( ! empty( $param_attributes['type'] ) ) {
+					switch ( $param_attributes['type'] ) {
+						case 'string':
+							if ( ! is_string( $query_value ) ) {
+								$errors[ $key ] = __( 'Invalid string.' );
+							}
+							break;
+
+						case 'integer':
+							if ( ! is_integer( $query_value ) ) {
+								$errors[ $key ] = __( 'Invalid integer.' );
+							}
+							break;
+
+						case 'numeric':
+							if ( ! is_numeric( $query_value ) ) {
+								$errors[ $key ] = __( 'Invalid number.' );
+							}
+							break;
+
+						case 'object':
+							if ( ! is_object( $query_value ) ) {
+								$errors[ $key ] = __( 'Invalid object.' );
+							}
+							break;
+					}
+				}
+
+				if ( ! empty( $errors[ $key ] ) ) {
+					continue;
+				}
+
+				/*
+				 * Check 'enum' attribute
+				 */
+				if ( ! empty( $param_attributes['enum'] ) && ! in_array( $query_value, $param_attributes['enum'] ) ) {
+					$errors[ $key ] = sprintf( __( 'Value must match one of the following: %s' ), implode( ',', $param_attributes['enum'] ) );
+				}
+
+			}
+		}
+
+		if ( ! empty( $errors ) ) {
+			return new WP_Error( 'json_invalid_query_parameters', __( 'Invalid query parameters.' ), array(
+				'status'       => 400,
+				'errors'       => $errors,
+				) );
+		}
+
 		$required = array();
 
 		// No arguments set, skip validation
