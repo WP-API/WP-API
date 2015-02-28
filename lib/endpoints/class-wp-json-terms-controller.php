@@ -211,6 +211,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			);
 		$query_params['orderby'] = array(
 			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
 			'default'            => 'name',
 			'enum'               => array(
 				'id',
