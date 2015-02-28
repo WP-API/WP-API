@@ -516,12 +516,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'    => 'Email address for the object author.',
 					'type'           => 'string',
 					'format'         => 'email',
-					'context'        => array( 'edit' ),
+					'context'        => array( 'view', 'edit' ),
 					),
 				'author_ip'          => array(
 					'description'    => 'IP address for the object author.',
 					'type'           => 'string',
-					'context'        => array( 'edit' ),
+					'context'        => array( 'view', 'edit' ),
 					),
 				'author_url'         => array(
 					'description'    => 'Url for the object author.',
@@ -532,7 +532,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'author_user_agent'  => array(
 					'description'    => 'User agent for the object author.',
 					'type'           => 'string',
-					'context'        => array( 'embed', 'view', 'edit' ),
+					'context'        => array( 'view', 'edit' ),
 					),
 				'content'            => array(
 					'description'    => 'The content for the object.',
@@ -560,12 +560,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'    => 'The date the object was published in GMT.',
 					'type'           => 'string',
 					'format'         => 'date-time',
-					'context'        => array( 'edit' ),
+					'context'        => array( 'view', 'edit' ),
 				),
 				'karma'              => array(
 					'description'    => 'A quality value for the comment.',
 					'type'           => 'string',
-					'context'        => array( 'edit' ),
+					'context'        => array( 'view', 'edit' ),
 				),
 				'link'             => array(
 					'description'  => 'URL to the object.',

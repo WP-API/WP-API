@@ -638,6 +638,19 @@ class WP_JSON_Server {
 					$response = json_ensure_response( $response );
 				}
 
+				$data = $response->get_data();
+				$properties = ! empty( $handler['schema']['properties'] ) ? $handler['schema']['properties'] : array();
+				foreach( $properties as $key => $field_args ) {
+					if ( ! isset( $field_args['context'] ) ) {
+						continue;
+					}
+					$context = (array) $field_args['context'];
+					if ( ! in_array( $request['context'], $context ) ) {
+						$data[ $key ] = null;
+					}
+				}
+				$response->set_data( $data );
+
 				$response->set_matched_route( $route );
 				$response->set_matched_handler( $handler );
 
