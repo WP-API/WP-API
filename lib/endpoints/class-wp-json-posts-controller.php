@@ -147,7 +147,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		$post->post_type = $this->post_type;
+		add_filter( 'wp_insert_post_empty_content', '__return_false', 100 );
 		$post_id = wp_insert_post( $post, true );
+		remove_filter( 'wp_insert_post_empty_content', '__return_false', 100 );
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
@@ -213,7 +215,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return $post;
 		}
 
+		add_filter( 'wp_insert_post_empty_content', '__return_false', 100 );
 		$post_id = wp_update_post( $post, true );
+		remove_filter( 'wp_insert_post_empty_content', '__return_false', 100 );
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
