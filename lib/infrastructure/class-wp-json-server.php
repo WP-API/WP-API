@@ -464,6 +464,7 @@ class WP_JSON_Server {
 			'accept_raw'    => false,
 			'show_in_index' => true,
 			'args'          => array(),
+			'query_params'  => array(),
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
@@ -707,6 +708,9 @@ class WP_JSON_Server {
 				}
 
 				$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
+				if ( ! empty( $callback['query_params'] ) ) {
+					$data['query_params'] = $callback['query_params'];
+				}
 
 				// For non-variable routes, generate links
 				if ( strpos( $route, '{' ) === false ) {

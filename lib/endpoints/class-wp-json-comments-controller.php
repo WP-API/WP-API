@@ -491,6 +491,62 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_query_params() {
+		$query_params = parent::get_query_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'integer',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+			);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'default'            => 'date_gmt',
+			'enum'               => array(
+				'id',
+				'agent',
+				// 'approved', // @todo this preferrably would be 'status'
+				'author',
+				// 'author_agent', // @todo currently missing from the resource
+				'author_email',
+				// 'author_ip', // @todo currently missing from the resource
+				'author_url',
+				'content',
+				'date',
+				'date_gmt',
+				// 'karma', // @todo currently missing from the source
+				'parent',
+				'post',
+				'type',
+				'user',
+				),
+			);
+		$query_params['parent'] = array(
+			'description'        => 'Limit result set to comments assigned to a specific parent comment.',
+			'type'               => 'integer',
+			'relation'           => 'comment',
+			);
+		$query_params['post'] = array(
+			'description'        => 'Limit result set to comments assigned to a specific post.',
+			'type'               => 'integer',
+			'relation'           => 'post', // @todo this could be any post type that supports comments
+			);
+		$query_params['status'] = array(
+			'description'        => 'Limit result set to comments matching a specific status.',
+			'type'               => 'string',
+			);
+		$query_params['type'] = array(
+			'description'        => 'Limit result set to comments matching a specific type.',
+			'type'               => 'string',
+			);
+		return $query_params;
+	}
+
+	/**
 	 * Get the Comment's schema, conforming to JSON Schema
 	 *
 	 * @return array

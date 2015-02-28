@@ -357,6 +357,23 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
+	public function tests_get_query_params() {
+		$request = new WP_JSON_Request( 'GET', '/' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$query_params = $data['routes']['/wp/comments']['query_params'];
+		$this->assertEquals( 9, count( $query_params ) );
+		$this->assertArrayHasKey( 'order', $query_params );
+		$this->assertArrayHasKey( 'orderby', $query_params );
+		$this->assertArrayHasKey( 'page', $query_params );
+		$this->assertArrayHasKey( 'parent', $query_params );
+		$this->assertArrayHasKey( 'per_page', $query_params );
+		$this->assertArrayHasKey( 'post', $query_params );
+		$this->assertArrayHasKey( 'search', $query_params );
+		$this->assertArrayHasKey( 'status', $query_params );
+		$this->assertArrayHasKey( 'type', $query_params );
+	}
+
 	public function test_get_item_schema() {
 		$request = new WP_JSON_Request( 'GET', '/wp/comments/schema' );
 		$response = $this->server->dispatch( $request );

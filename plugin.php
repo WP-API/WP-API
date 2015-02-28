@@ -362,46 +362,14 @@ function create_initial_json_routes() {
 	 * Comments
 	 */
 	$controller = new WP_JSON_Comments_Controller;
+	$query_params = $controller->get_query_params();
 	register_json_route( 'wp', '/comments', array(
 		array(
-			'methods'   => WP_JSON_Server::READABLE,
-			'callback'  => array( $controller, 'get_items' ),
+			'methods'       => WP_JSON_Server::READABLE,
+			'callback'      => array( $controller, 'get_items' ),
 			'permission_callback' => array( $controller, 'get_items_permissions_check' ),
-			'args'      => array(
-				'post'         => array(
-					'default'      => null,
-				),
-				'user'         => array(
-					'default'      => 0,
-				),
-				'per_page'     => array(
-					'default'      => 10,
-				),
-				'page'         => array(
-					'default'      => 1,
-				),
-				'status'       => array(
-					'default'      => 'approve',
-				),
-				'type'         => array(
-					'default'      => 'comment',
-				),
-				'parent'       => array(),
-				'search'       => array(),
-				'order'        => array(
-					'default'      => 'DESC',
-				),
-				'orderby'      => array(
-					'default'      => 'date_gmt',
-				),
-				'author_email' => array(),
-				'karma'        => array(),
-				'post_author'  => array(),
-				'post_name'    => array(),
-				'post_parent'  => array(),
-				'post_status'  => array(),
-				'post_type'    => array(),
-			),
+			'args'          => $query_params,
+			'query_params'  => $query_params,
 		),
 		array(
 			'methods'  => WP_JSON_Server::CREATABLE,
