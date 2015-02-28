@@ -47,6 +47,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'json_comment_cannot_view', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
+		}
+
 		$post = get_post( $comment->comment_post_ID );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
@@ -84,10 +88,15 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
-		$new_comment = get_comment( $comment_id );
-		$response = $this->prepare_item_for_response( $new_comment, array( 'context' => 'edit' ) );
+		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
+		$response = $this->get_item( array(
+			'id'      => $comment_id,
+			'context' => $context,
+		) );
 		$response = json_ensure_response( $response );
-
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 
@@ -134,6 +143,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'context' => 'edit',
 		) );
 		$response = json_ensure_response( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment->comment_ID ) );
 

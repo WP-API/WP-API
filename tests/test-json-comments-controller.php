@@ -97,6 +97,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function test_prepare_item() {
+		wp_set_current_user( $this->admin_id );
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%d', $this->approved_id ) );
 		$request->set_query_params( array(
 			'context' => 'edit',
@@ -114,6 +115,13 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_comment_invalid_id', $response, 404 );
+	}
+
+	public function test_get_comment_invalid_context() {
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%s', $this->approved_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_comment_cannot_view', $response, 403 );
 	}
 
 	public function test_get_comment_invalid_post_id() {
@@ -166,7 +174,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'edit' );
+		$this->check_comment_data( $data, 'view' );
 		$this->assertEquals( 'hold', $data['status'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
