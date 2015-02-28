@@ -205,7 +205,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$query_params = parent::get_query_params();
 		$query_params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
-			'type'               => 'integer',
+			'type'               => 'string',
 			'default'            => 'asc',
 			'enum'               => array( 'asc', 'desc' ),
 			);
