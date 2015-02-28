@@ -403,11 +403,11 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		}
 
 		if ( 'edit' !== $context ) {
-			$this->assertArrayNotHasKey( 'author_ip', $data );
-			$this->assertArrayNotHasKey( 'author_user_agent', $data );
-			$this->assertArrayNotHasKey( 'date_gmt', $data );
-			$this->assertArrayNotHasKey( 'raw', $data['content'] );
-			$this->assertArrayNotHasKey( 'karma', $data );
+			$this->assertNull( $data['author_ip'] );
+			$this->assertNull( $data['author_user_agent'] );
+			$this->assertNull( $data['date_gmt'] );
+			$this->assertNull( $data['content']['raw'] );
+			$this->assertNull( $data['karma'] );
 		}
 	}
 
