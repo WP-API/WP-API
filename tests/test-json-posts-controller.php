@@ -205,6 +205,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_create_update_post_response( $response );
 	}
 
+	public function test_create_item_without_title_content_excerpt() {
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->check_create_update_post_response( $response );
+	}
+
 	public function test_create_post_invalid_id() {
 		wp_set_current_user( $this->editor_id );
 
