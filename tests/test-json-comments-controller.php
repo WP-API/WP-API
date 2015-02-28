@@ -429,8 +429,11 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 
 		if ( 'edit' === $context ) {
+			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
+			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
 			$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
+			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}
 
 		if ( 'edit' !== $context ) {
