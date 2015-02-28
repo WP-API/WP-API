@@ -197,6 +197,41 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_query_params() {
+		$query_params = parent::get_query_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'integer',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+			);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'default'            => 'date_gmt',
+			'enum'               => array(
+				'id',
+				'name',
+				'slug'
+				),
+			);
+		$query_params['parent'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific parent term.',
+			'type'               => 'integer',
+			'relation'           => 'term',
+			);
+		$query_params['post'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific post.',
+			'type'               => 'integer',
+			'relation'           => 'post', // @todo this could be any post type that supports the taxonomy
+			);
+		return $query_params;
+	}
+
+	/**
 	 * Get the Term's schema, conforming to JSON Schema
 	 *
 	 * @return array

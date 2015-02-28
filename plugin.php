@@ -221,17 +221,13 @@ function create_initial_json_routes() {
 	 * Terms
 	 */
 	$controller = new WP_JSON_Terms_Controller;
+	$query_params = $controller->get_query_params();
 	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 		array(
-			'methods'  => WP_JSON_Server::READABLE,
-			'callback' => array( $controller, 'get_items' ),
-			'args'     => array(
-				'search'   => array(),
-				'per_page' => array(),
-				'page'     => array(),
-				'order'    => array(),
-				'orderby'  => array(),
-			),
+			'methods'       => WP_JSON_Server::READABLE,
+			'callback'      => array( $controller, 'get_items' ),
+			'args'          => $query_params,
+			'query_params'  => $query_params,
 		),
 		array(
 			'methods'     => WP_JSON_Server::CREATABLE,

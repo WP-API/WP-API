@@ -241,6 +241,21 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
 	}
 
+	public function tests_get_query_params() {
+		$request = new WP_JSON_Request( 'GET', '/' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$query_params = $data['routes']['/wp/terms/{taxonomy}']['query_params'];
+		$this->assertEquals( 7, count( $query_params ) );
+		$this->assertArrayHasKey( 'order', $query_params );
+		$this->assertArrayHasKey( 'orderby', $query_params );
+		$this->assertArrayHasKey( 'page', $query_params );
+		$this->assertArrayHasKey( 'parent', $query_params );
+		$this->assertArrayHasKey( 'per_page', $query_params );
+		$this->assertArrayHasKey( 'post', $query_params );
+		$this->assertArrayHasKey( 'search', $query_params );
+	}
+
 	public function test_get_item_schema() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/schema' );
 		$response = $this->server->dispatch( $request );
