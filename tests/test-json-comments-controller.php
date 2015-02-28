@@ -86,6 +86,26 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertCount( 2, $comments );
 	}
 
+	public function test_get_items_invalid_order_param() {
+		$request = new WP_JSON_Request( 'GET', '/wp/comments' );
+		$request->set_param( 'order', 13 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_query_parameters', $response, 400 );
+		$data = $response->as_error()->get_error_data();
+		$this->assertEquals( 1, count( $data['errors'] ) );
+		$this->assertEquals( 'Invalid string.', $data['errors']['order'] );
+	}
+
+	public function test_get_items_invalid_orderby_param() {
+		$request = new WP_JSON_Request( 'GET', '/wp/comments' );
+		$request->set_param( 'orderby', 'garbage' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_invalid_query_parameters', $response, 400 );
+		$data = $response->as_error()->get_error_data();
+		$this->assertEquals( 1, count( $data['errors'] ) );
+		$this->assertContains( 'Value must match one of the following:', $data['errors']['orderby'] );
+	}
+
 	public function test_get_item() {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%d', $this->approved_id ) );
 
