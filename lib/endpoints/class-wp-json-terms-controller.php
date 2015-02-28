@@ -13,11 +13,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
-		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0; 
-		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
-		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
+		$prepared_args['number'] = (int) $request['per_page'];
+		$prepared_args['offset'] = ( absint( $request['page'] ) - 1 ) * $prepared_args['number'];
+		$prepared_args['search'] = sanitize_text_field( $request['search'] );
+		$prepared_args['order'] = sanitize_key( $request['order'] );
+		$prepared_args['orderby'] = sanitize_key( $request['orderby'] );
 
 		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
 		if ( is_wp_error( $taxonomy ) ) {

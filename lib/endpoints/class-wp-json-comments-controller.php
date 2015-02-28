@@ -346,7 +346,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'number'  => absint( $request['per_page'] ),
 			'post_id' => isset( $request['post'] ) ? absint( $request['post'] ) : '',
 			'parent'  => isset( $request['parent'] ) ? intval( $request['parent'] ) : '',
-			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
+			'search'  => sanitize_text_field( $request['search'] ),
 			'orderby' => $this->normalize_query_param( $order_by ),
 			'order'   => sanitize_key( $request['order'] ),
 			'status'  => 'approve',
