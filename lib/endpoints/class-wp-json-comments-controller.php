@@ -302,8 +302,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
-			$fields['date_gmt']       = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw'] = $comment->comment_content;
+			$fields['author_ip']           = $comment->comment_author_IP;
+			$fields['author_user_agent']   = $comment->comment_agent;
+			$fields['date_gmt']            = json_mysql_to_rfc3339( $comment->comment_date_gmt );
+			$fields['content']['raw']      = $comment->comment_content;
+			$fields['karma']               = $comment->comment_karma;
 		}
 
 		$links = array();
