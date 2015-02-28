@@ -285,29 +285,26 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$fields = array(
-			'id'           => (int) $comment->comment_ID,
-			'post'         => (int) $comment->comment_post_ID,
-			'parent'       => (int) $comment->comment_parent,
-			'user'         => (int) $comment->user_id,
-			'author'       => $comment->comment_author,
-			'author_email' => $comment->comment_author_email,
-			'author_url'   => $comment->comment_author_url,
-			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
-			'content'      => array(
-				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+			'id'                 => (int) $comment->comment_ID,
+			'post'               => (int) $comment->comment_post_ID,
+			'parent'             => (int) $comment->comment_parent,
+			'user'               => (int) $comment->user_id,
+			'author'             => $comment->comment_author,
+			'author_email'       => $comment->comment_author_email,
+			'author_ip'          => $comment->comment_author_IP,
+			'author_url'         => $comment->comment_author_url,
+			'author_user_agent'  => $comment->comment_agent,
+			'date'               => json_mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'           => json_mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'content'            => array(
+				'rendered'       => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'raw'            => $comment->comment_content,
 			),
-			'link'         => get_comment_link( $comment ),
-			'status'       => $this->prepare_status_response( $comment->comment_approved ),
-			'type'         => get_comment_type( $comment->comment_ID ),
+			'karma'              => $comment->comment_karma,
+			'link'               => get_comment_link( $comment ),
+			'status'             => $this->prepare_status_response( $comment->comment_approved ),
+			'type'               => get_comment_type( $comment->comment_ID ),
 		);
-
-		if ( 'edit' == $request['context'] ) {
-			$fields['author_ip']           = $comment->comment_author_IP;
-			$fields['author_user_agent']   = $comment->comment_agent;
-			$fields['date_gmt']            = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']      = $comment->comment_content;
-			$fields['karma']               = $comment->comment_karma;
-		}
 
 		$links = array();
 
@@ -501,71 +498,105 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	public function get_item_schema() {
 
 		$schema = array(
-			'$schema'              => 'http://json-schema.org/draft-04/schema#',
-			'title'                => 'comment',
-			'type'                 => 'object',
-			'properties'           => array(
-				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
-					'type'         => 'integer',
+			'$schema'                => 'http://json-schema.org/draft-04/schema#',
+			'title'                  => 'comment',
+			'type'                   => 'object',
+			'properties'             => array(
+				'id'                 => array(
+					'description'    => 'Unique identifier for the object.',
+					'type'           => 'integer',
+					'context'        => array( 'embed', 'view', 'edit' ),
 					),
-				'author'           => array(
-					'description'  => 'Name of the object author.',
-					'type'         => 'string',
+				'author'             => array(
+					'description'    => 'Name of the object author.',
+					'type'           => 'string',
+					'context'        => array( 'embed', 'view', 'edit' ),
 					),
-				'author_email'     => array(
-					'description'  => 'Email address for the object author.',
-					'type'         => 'string',
-					'format'       => 'email',
+				'author_email'       => array(
+					'description'    => 'Email address for the object author.',
+					'type'           => 'string',
+					'format'         => 'email',
+					'context'        => array( 'edit' ),
 					),
-				'author_url'       => array(
-					'description'  => 'Url for the object author.',
-					'type'         => 'string',
-					'format'       => 'uri',
+				'author_ip'          => array(
+					'description'    => 'IP address for the object author.',
+					'type'           => 'string',
+					'context'        => array( 'edit' ),
 					),
-				'content'          => array(
-					'description'     => 'The content for the object.',
-					'type'            => 'object',
-					'properties'      => array(
-						'raw'         => array(
+				'author_url'         => array(
+					'description'    => 'Url for the object author.',
+					'type'           => 'string',
+					'format'         => 'uri',
+					'context'        => array( 'embed', 'view', 'edit' ),
+					),
+				'author_user_agent'  => array(
+					'description'    => 'User agent for the object author.',
+					'type'           => 'string',
+					'context'        => array( 'embed', 'view', 'edit' ),
+					),
+				'content'            => array(
+					'description'    => 'The content for the object.',
+					'type'           => 'object',
+					'properties'     => array(
+						'raw'        => array(
 							'description'     => 'Content for the object, as it exists in the database.',
 							'type'            => 'string',
+							'context'         => array( 'edit' ),
 							),
-						'rendered'    => array(
+						'rendered'   => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
+							'context'         => array( 'embed', 'view', 'edit' ),
 							),
 						),
 					),
-				'date'             => array(
-					'description'  => 'The date the object was published.',
-					'type'         => 'string',
-					'format'       => 'date-time',
+				'date'               => array(
+					'description'    => 'The date the object was published.',
+					'type'           => 'string',
+					'format'         => 'date-time',
+					'context'        => array( 'embed', 'view', 'edit' ),
+				),
+				'date_gmt'           => array(
+					'description'    => 'The date the object was published in GMT.',
+					'type'           => 'string',
+					'format'         => 'date-time',
+					'context'        => array( 'edit' ),
+				),
+				'karma'              => array(
+					'description'    => 'A quality value for the comment.',
+					'type'           => 'string',
+					'context'        => array( 'edit' ),
 				),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'status'           => array(
 					'description'  => 'State of the object.',
 					'type'         => 'string',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'user'             => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				),
 			);
