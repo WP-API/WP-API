@@ -1,6 +1,6 @@
 <?php
 
-class WP_JSON_Meta_Posts extends WP_JSON_Meta {
+class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	/**
 	 * Base route name.
 	 *
@@ -61,19 +61,13 @@ class WP_JSON_Meta_Posts extends WP_JSON_Meta {
 	 * }
 	 * @return bool|WP_Error
 	 */
-	public function add_meta( $id, $data ) {
-		$response = parent::add_meta( $id, $data );
+	public function create_item( $request ) {
+		$response = parent::create_item( $request );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
-		$data = (object) $response->get_data();
-
-		$response = new WP_JSON_Response();
 		$response->header( 'Location', json_url( '/posts/' . $id . '/meta/' . $data->ID ) );
-		$response->set_data( $data );
-		$response = json_ensure_response( $response );
-
 		return $response;
 	}
 
