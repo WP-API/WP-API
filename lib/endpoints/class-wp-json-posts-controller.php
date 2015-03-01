@@ -280,7 +280,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 		else {
 			// Otherwise, only trash if we haven't already
-			//
+			if ( EMPTY_TRASH_DAYS && $post->post_status == 'trash' ) {
+				return new WP_Error( 'json_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
+			}
+
 			// (Note that internally this falls through to `wp_delete_post` if
 			// the trash is disabled.)
 			$result = wp_trash_post( $id );
