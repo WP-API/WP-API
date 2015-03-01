@@ -364,13 +364,23 @@ class WP_JSON_Server {
 
 				// Run through our internal routing and serve
 				$route = substr( $item['href'], strlen( $api_root ) );
-				$request = new WP_JSON_Request( 'GET', $route );
+				$parsed = parse_url( $route );
+				if ( empty( $parsed['path'] ) ) {
+					$embeds[] = array();
+					continue;
+				}
+
+				$query_params = array();
+				// If the route has query parameter, pass them along
+				if ( ! empty( $parsed['query'] ) ) {
+					parse_str( $parsed['query'], $query_params );
+				}
 
 				// Embedded resources get passed context=embed
-				$query_params = array_merge( array( 'context' => 'embed' ), (array) $item['query_params'] );
+				$query_params['context'] = 'embed';
 
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
 				$request->set_query_params( $query_params );
-
 				$response = $this->dispatch( $request );
 
 				$embeds[] = $response;
