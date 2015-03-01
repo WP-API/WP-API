@@ -450,9 +450,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
+			'comment_author'       => isset( $request['author']['name'] ) ? sanitize_text_field( $request['author']['name'] ) : '',
+			'comment_author_email' => isset( $request['author']['email'] ) ? sanitize_email( $request['author']['email'] ) : '',
+			'comment_author_url'   => isset( $request['author']['url'] ) ? esc_url_raw( $request['author']['url'] ) : '',
 			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
 			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
@@ -477,16 +477,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
 
-		if ( isset( $request['author'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author'] );
+		if ( isset( $request['author']['name'] ) ) {
+			$prepared_comment['comment_author'] = sanitize_text_field( $request['author']['name'] );
 		}
 
-		if ( isset( $request['author_email'] ) ) {
-			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
+		if ( isset( $request['author']['email'] ) ) {
+			$prepared_comment['comment_author_email'] = sanitize_email( $request['author']['email'] );
 		}
 
-		if ( isset( $request['author_url'] ) ) {
-			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+		if ( isset( $request['author']['url'] ) ) {
+			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author']['url'] );
 		}
 
 		if ( ! empty( $request['date'] ) ) {
