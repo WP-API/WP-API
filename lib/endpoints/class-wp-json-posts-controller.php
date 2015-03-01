@@ -966,10 +966,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
+			$replies_url = json_url( '/wp/comments' );
+			$replies_url = add_query_arg( 'post_id', $post->ID, $replies_url );
 			$links['replies'] = array(
-				'href'         => json_url( '/wp/comments' ),
+				'href'         => $replies_url,
 				'embeddable'   => true,
-				'query_params' => array( 'post_id' => $post->ID ),
 			);
 		}
 
