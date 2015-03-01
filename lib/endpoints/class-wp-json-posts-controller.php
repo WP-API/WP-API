@@ -417,7 +417,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$schema = $this->get_item_schema();
 
 		// Post title
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['title'] ) ) {
+		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_kses_post( $request['title'] );
 			}
