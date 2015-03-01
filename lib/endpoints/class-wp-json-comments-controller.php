@@ -288,8 +288,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
-			'user'         => (int) $comment->user_id,
 			'author'       => array(
+				'id'    => (int) $comment->user_id,
 				'name'  => $comment->comment_author,
 				'email' => false,
 				'url'   => $comment->comment_author_url,
