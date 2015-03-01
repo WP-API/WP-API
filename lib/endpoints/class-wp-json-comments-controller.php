@@ -289,9 +289,11 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
 			'user'         => (int) $comment->user_id,
-			'author'       => $comment->comment_author,
-			'author_email' => $comment->comment_author_email,
-			'author_url'   => $comment->comment_author_url,
+			'author'       => array(
+				'name'  => $comment->comment_author,
+				'email' => false,
+				'url'   => $comment->comment_author_url,
+			),
 			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
@@ -302,11 +304,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
-			$fields['author_ip']           = $comment->comment_author_IP;
-			$fields['author_user_agent']   = $comment->comment_agent;
-			$fields['date_gmt']            = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']      = $comment->comment_content;
-			$fields['karma']               = $comment->comment_karma;
+			$fields['author']['email']      = $comment->comment_author_email;
+			$fields['author']['ip']         = $comment->comment_author_IP;
+			$fields['author']['user_agent'] = $comment->comment_agent;
+			$fields['date_gmt']             = json_mysql_to_rfc3339( $comment->comment_date_gmt );
+			$fields['content']['raw']       = $comment->comment_content;
+			$fields['karma']                = $comment->comment_karma;
 		}
 
 		$links = array();
