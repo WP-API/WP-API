@@ -274,7 +274,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
-		$result = wp_delete_post( $id, $force );
+		// If we're forcing, then delete permanently
+		if ( $force ) {
+			$result = wp_delete_post( $id, true );
+		}
+		else {
+			// Otherwise, only trash if we haven't already
+			//
+			// (Note that internally this falls through to `wp_delete_post` if
+			// the trash is disabled.)
+			$result = wp_trash_post( $id );
+		}
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
