@@ -786,6 +786,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
+		$previous_post = null;
+		if ( ! empty( $GLOBALS['post'] ) ) {
+			$previous_post = $GLOBALS['post'];
+		}
+
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 
@@ -913,6 +918,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		 *
 		 * return apply_filters( 'json_prepare_post', $data, $post, $request );
 		 */
+
+		$GLOBALS['post'] = $previous_post;
+		if ( ! empty( $previous_post ) ) {
+			setup_postdata( $previous_post );
+		}
 
 		return $data;
 	}
