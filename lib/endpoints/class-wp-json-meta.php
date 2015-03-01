@@ -2,7 +2,7 @@
 /**
  * Metadata base class.
  */
-abstract class WP_JSON_Meta {
+abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	/**
 	 * Base route name.
 	 *
@@ -40,33 +40,26 @@ abstract class WP_JSON_Meta {
 	public function register_routes( $routes ) {
 		$routes[ $this->base ] = array(
 			array(
-				'callback'  => array( $this, 'get_all_meta' ),
+				'callback'  => array( $this, 'get_items' ),
 				'methods'   => WP_JSON_Server::READABLE,
-				'v1_compat' => true,
 			),
 			array(
-				'callback'    => array( $this, 'add_meta' ),
+				'callback'    => array( $this, 'create_item' ),
 				'methods'     => WP_JSON_Server::CREATABLE,
-				'accept_json' => true,
-				'v1_compat'   => true,
 			),
 		);
 		$routes[ $this->base . '/(?P<mid>\d+)' ] = array(
 			array(
-				'callback'  => array( $this, 'get_meta' ),
+				'callback'  => array( $this, 'get_item' ),
 				'methods'   => WP_JSON_Server::READABLE,
-				'v1_compat' => true,
 			),
 			array(
-				'callback'    => array( $this, 'update_meta' ),
+				'callback'    => array( $this, 'update_item' ),
 				'methods'     => WP_JSON_Server::EDITABLE,
-				'accept_json' => true,
-				'v1_compat'   => true,
 			),
 			array(
-				'callback'  => array( $this, 'delete_meta' ),
+				'callback'  => array( $this, 'delete_item' ),
 				'methods'   => WP_JSON_Server::DELETABLE,
-				'v1_compat' => true,
 			),
 		);
 
@@ -102,11 +95,11 @@ abstract class WP_JSON_Meta {
 	/**
 	 * Retrieve custom fields for object.
 	 *
-	 * @param int $id Object ID
+	 * @param WP_JSON_Request $request
 	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
 	 */
-	public function get_all_meta( $id ) {
-		$check = $this->check_object( $id );
+	public function get_items( $request ) {
+		$check = $this->check_object( $request['id'] );
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
@@ -129,34 +122,33 @@ abstract class WP_JSON_Meta {
 			$meta[] = $value;
 		}
 
-		return apply_filters( 'json_prepare_meta', $meta, $id );
+		return apply_filters( 'json_prepare_meta', $meta, $request );
 	}
 
 	/**
 	 * Retrieve custom field object.
 	 *
-	 * @param int $id Object ID
-	 * @param int $mid Metadata ID
+	 * @param WP_JSON_Request $request
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
-	public function get_meta( $id, $mid ) {
-		$check = $this->check_object( $id );
+	public function get_item( $request ) {
+		$check = $this->check_object( $request['id'] );
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
 
 		$parent_column = $this->get_parent_column();
-		$meta = get_metadata_by_mid( $this->type, $mid );
+		$meta = get_metadata_by_mid( $this->type, $request['mid'] );
 
 		if ( empty( $meta ) ) {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $meta->$parent_column ) !== (int) $id ) {
+		if ( absint( $meta->$parent_column ) !== (int) $request['id'] ) {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
-		return $this->prepare_meta( $id, $meta );
+		return $this->prepare_meta( $request['id'], $meta );
 	}
 
 	/**
@@ -219,10 +211,10 @@ abstract class WP_JSON_Meta {
 		foreach ( $data as $meta_array ) {
 			if ( empty( $meta_array['ID'] ) ) {
 				// Creation
-				$result = $this->add_meta( $parent_id, $meta_array );
+				$result = $this->create_item( $parent_id, $meta_array );
 			} else {
 				// Update
-				$result = $this->update_meta( $parent_id, $meta_array['ID'], $meta_array );
+				$result = $this->update_item( $parent_id, $meta_array['ID'], $meta_array );
 			}
 
 			if ( is_wp_error( $result ) ) {
@@ -236,16 +228,12 @@ abstract class WP_JSON_Meta {
 	/**
 	 * Add meta to an object.
 	 *
-	 * @param int $id Object ID
-	 * @param array $data {
-	 *     @type string|null $key Meta key
-	 *     @type string|null $key Meta value
-	 * }
+	 * @param WP_JSON_Request $request
 	 * @return bool|WP_Error
 	 */
-	public function update_meta( $id, $mid, $data ) {
-		$id  = (int) $id;
-		$mid = (int) $mid;
+	public function update_item( $request ) {
+		$id   = (int) $request['id'];
+		$mid  = (int) $request['mid'];
 
 		$check = $this->check_object( $id );
 		if ( is_wp_error( $check ) ) {
@@ -263,15 +251,19 @@ abstract class WP_JSON_Meta {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! array_key_exists( 'key', $data ) ) {
-			$data['key'] = $current->meta_key;
+		if ( isset( $request['key'] ) ) {
+			$key = $request['key'];
+		} else {
+			$key = $current->meta_key;
 		}
 
-		if ( ! array_key_exists( 'value', $data ) ) {
-			$data['value'] = $current->meta_value;
+		if ( isset( $request['value'] ) ) {
+			$value = $request['value'];
+		} else {
+			$value = $current->meta_value;
 		}
 
-		if ( empty( $data['key'] ) ) {
+		if ( empty( $key ) ) {
 			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
 		}
 
@@ -281,7 +273,7 @@ abstract class WP_JSON_Meta {
 			return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
+		if ( ! $this->is_valid_meta_data( $value ) ) {
 			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
@@ -290,18 +282,18 @@ abstract class WP_JSON_Meta {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
-		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
+		if ( is_protected_meta( $key ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $key ), array( 'status' => 403 ) );
 		}
 
 		// update_metadata_by_mid will return false if these are equal, so check
 		// first and pass through
-		if ( $data['value'] === $current->meta_value && $data['key'] === $current->meta_key ) {
+		if ( $value === $current->meta_value && $key === $current->meta_key ) {
 			return $this->get_meta( $id, $mid );
 		}
 
-		$key   = wp_slash( $data['key'] );
-		$value = wp_slash( $data['value'] );
+		$key   = wp_slash( $key );
+		$value = wp_slash( $value );
 
 		if ( ! update_metadata_by_mid( $this->type, $mid, $value, $key ) ) {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update meta.' ), array( 'status' => 500 ) );
@@ -337,46 +329,37 @@ abstract class WP_JSON_Meta {
 	 * }
 	 * @return bool|WP_Error
 	 */
-	public function add_meta( $id, $data ) {
-		$check = $this->check_object( $id );
+	public function add_meta( $request ) {
+		$check = $this->check_object( $request['id'] );
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
 
-		if ( ! array_key_exists( 'key', $data ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_missing_key' : 'json_meta_missing_key';
-			return new WP_Error( $code, __( 'Missing meta key.' ), array( 'status' => 400 ) );
-		}
-		if ( ! array_key_exists( 'value', $data ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_missing_value' : 'json_meta_missing_value';
-			return new WP_Error( $code, __( 'Missing meta value.' ), array( 'status' => 400 ) );
-		}
-
-		if ( empty( $data['key'] ) ) {
+		if ( empty( $request['key'] ) ) {
 			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! $this->is_valid_meta_data( $data['value'] ) ) {
+		if ( ! $this->is_valid_meta_data( $request['value'] ) ) {
 			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 
 			// for now let's not allow updating of arrays, objects or serialized values.
 			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		if ( is_protected_meta( $data['key'] ) ) {
-			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $data['key'] ), array( 'status' => 403 ) );
+		if ( is_protected_meta( $request['key'] ) ) {
+			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $request['key'] ), array( 'status' => 403 ) );
 		}
 
-		$meta_key = wp_slash( $data['key'] );
-		$value    = wp_slash( $data['value'] );
+		$meta_key = wp_slash( $request['key'] );
+		$value    = wp_slash( $request['value'] );
 
-		$result = add_metadata( $this->type, $id, $meta_key, $value );
+		$result = add_metadata( $this->type, $request['id'], $meta_key, $value );
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add meta.' ), array( 'status' => 400 ) );
 		}
 
-		$response = json_ensure_response( $this->get_meta( $id, $result ) );
+		$response = json_ensure_response( $this->get_meta( $request['id'], $result ) );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -393,20 +376,20 @@ abstract class WP_JSON_Meta {
 	 * @param int $mid Metadata ID
 	 * @return array|WP_Error Message on success, WP_Error otherwise
 	 */
-	public function delete_meta( $id, $mid ) {
-		$check = $this->check_object( $id );
+	public function delete_item( $request ) {
+		$check = $this->check_object( $request['id'] );
 		if ( is_wp_error( $check ) ) {
 			return $check;
 		}
 
 		$parent_column = $this->get_parent_column();
-		$current = get_metadata_by_mid( $this->type, $mid );
+		$current = get_metadata_by_mid( $this->type, $request['mid'] );
 
 		if ( empty( $current ) ) {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $current->$parent_column ) !== $id ) {
+		if ( absint( $current->$parent_column ) !== $request['id'] ) {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
