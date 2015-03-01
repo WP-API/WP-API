@@ -38,32 +38,51 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return array Modified routes
 	 */
 	public function register_routes( $routes ) {
-		$routes[ $this->base ] = array(
-			array(
-				'callback'  => array( $this, 'get_items' ),
-				'methods'   => WP_JSON_Server::READABLE,
-			),
-			array(
-				'callback'    => array( $this, 'create_item' ),
-				'methods'     => WP_JSON_Server::CREATABLE,
+		$base_args = array(
+			'id' => array(
+				'required' => true,
 			),
 		);
-		$routes[ $this->base . '/(?P<mid>\d+)' ] = array(
-			array(
-				'callback'  => array( $this, 'get_item' ),
-				'methods'   => WP_JSON_Server::READABLE,
-			),
-			array(
-				'callback'    => array( $this, 'update_item' ),
-				'methods'     => WP_JSON_Server::EDITABLE,
-			),
-			array(
-				'callback'  => array( $this, 'delete_item' ),
-				'methods'   => WP_JSON_Server::DELETABLE,
+		$single_args = $base_args + array(
+			'mid'   => array(
+				'required' => true,
 			),
 		);
 
-		return $routes;
+		$data_args = array(
+			'key'   => array(),
+			'value' => array(),
+		);
+
+		register_json_route( 'wp', $this->base, array(
+			array(
+				'callback' => array( $this, 'get_items' ),
+				'methods'  => WP_JSON_Server::READABLE,
+				'args'     => $base_args,
+			),
+			array(
+				'callback' => array( $this, 'create_item' ),
+				'methods'  => WP_JSON_Server::CREATABLE,
+				'args'     => $base_args + $data_args,
+			),
+		) );
+		register_json_route( 'wp', $this->base . '/(?P<mid>\d+)', array(
+			array(
+				'callback' => array( $this, 'get_item' ),
+				'methods'  => WP_JSON_Server::READABLE,
+				'args'     => $single_args,
+			),
+			array(
+				'callback' => array( $this, 'update_item' ),
+				'methods'  => WP_JSON_Server::EDITABLE,
+				'args'     => $single_args + $data_args,
+			),
+			array(
+				'callback' => array( $this, 'delete_item' ),
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'args'     => $single_args,
+			),
+		);
 	}
 
 	/**
