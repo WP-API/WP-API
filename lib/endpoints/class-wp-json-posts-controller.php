@@ -419,30 +419,30 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// Post title
 		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title'] );
+				$prepared_post->post_title = wp_filter_post_kses( $request['title'] );
 			}
 			elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title']['raw'] );
+				$prepared_post->post_title = wp_filter_post_kses( $request['title']['raw'] );
 			}
 		}
 
 		// Post content
 		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content'] );
+				$prepared_post->post_content = wp_filter_post_kses( $request['content'] );
 			}
 			elseif ( isset( $request['content']['raw'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
+				$prepared_post->post_content = wp_filter_post_kses( $request['content']['raw'] );
 			}
 		}
 
 		// Post excerpt
 		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt'] );
 			}
 			elseif ( isset( $request['excerpt']['raw'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt']['raw'] );
 			}
 		}
 
