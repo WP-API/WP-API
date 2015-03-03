@@ -200,7 +200,12 @@ class WP_JSON_Server {
 			}
 		}
 
-		$request = new WP_JSON_Request( $_SERVER['REQUEST_METHOD'], $path );
+		$method = $_SERVER['REQUEST_METHOD'];
+		if ( ! empty( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
+			$method = $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'];
+		}
+
+		$request = new WP_JSON_Request( $method, $path );
 		$request->set_query_params( $_GET );
 		$request->set_body_params( $_POST );
 		$request->set_file_params( $_FILES );
