@@ -17,6 +17,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => array(
 					'context'          => array(),
 					'order'            => array(),
@@ -28,6 +29,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => array(
 					'email'           => array(
 						'required'        => true,
@@ -53,6 +55,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
 					'context'          => array(),
 				),
@@ -60,6 +63,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'            => array(
 					'email'           => array(),
 					'username'        => array(),
@@ -77,6 +81,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			array(
 				'methods' => WP_JSON_Server::DELETABLE,
 				'callback' => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args' => array(
 					'reassign' => array(),
 				),
@@ -104,10 +109,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_items( $request ) {
-		if ( ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to list users.' ), array( 'status' => 403 ) );
-		}
-
+		
 		$prepared_args = array();
 		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'asc';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_text_field( $request['orderby'] ) : 'user_login';
@@ -143,27 +145,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
-		}
-
-		$can_view = false;
-
-		$current_user_id = get_current_user_id();
-		if ( $current_user_id === $id || current_user_can( 'edit_user', $id ) ) {
-			$can_view = true;
-		} else if ( current_user_can( 'list_users' ) ) {
-			$can_view = true;
-			if ( empty( $request['context'] ) || 'edit' === $request['context'] ) {
-				$request->set_param( 'context', 'view' );
-			}
-		} else if ( count_user_posts( $id ) ) {
-			$can_view = true;
-			if ( empty( $request['context'] ) || in_array( $request['context'], array( 'edit', 'view' ) ) ) {
-				$request->set_param( 'context', 'embed' );
-			}
-		}
-
-		if ( ! $can_view ) {
-			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
 		$user = $this->prepare_item_for_response( $user, $request );
@@ -208,9 +189,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function create_item( $request ) {
-		if ( ! current_user_can( 'create_users' ) ) {
-			return new WP_Error( 'json_cannot_create', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
-		}
+		
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
@@ -244,10 +223,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
-
-		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
-		}
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
@@ -299,10 +274,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$id = (int) $request['id'];
 		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
 
-		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => 403 ) );
-		}
-
 		$user = get_userdata( $id );
 		if ( ! $user ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
@@ -321,6 +292,110 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		} else {
 			return array( 'message' => __( 'Deleted user' ) );
 		}
+	}
+
+	/**
+	 * Check if a given request has access to list users
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		if ( ! current_user_can( 'list_users' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to read a user
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+		$user = get_userdata( $id );
+
+		if ( empty( $id ) || empty( $user->ID ) ) {
+			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
+		}
+
+		$can_view = false;
+
+		$current_user_id = get_current_user_id();
+		if ( $current_user_id === $id || current_user_can( 'edit_user', $id ) ) {
+			$can_view = true;
+		} else if ( current_user_can( 'list_users' ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || 'edit' === $request['context'] ) {
+				$request->set_param( 'context', 'view' );
+			}
+		} else if ( count_user_posts( $id ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || in_array( $request['context'], array( 'edit', 'view' ) ) ) {
+				$request->set_param( 'context', 'embed' );
+			}
+		}
+
+		if ( ! $can_view ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access create users
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		if ( ! current_user_can( 'create_users' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access update a user
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function update_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+
+		if ( ! current_user_can( 'edit_user', $id ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access delete a user
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
+
+		if ( ! current_user_can( 'delete_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => 403 ) );
+		}
+
+		return true;
 	}
 
 	/**
