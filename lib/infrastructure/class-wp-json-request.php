@@ -612,6 +612,37 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Check whether this request is valid according to its attributes
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function is_valid() {
+
+		$attributes = $this->get_attributes();
+		$required = array();
+
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
+		foreach ( $attributes['args'] as $key => $arg ) {
+
+			$param = $this->get_param( $key );
+			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+				$required[] = $key;
+			}
+		}
+
+		if ( ! empty( $required ) ) {
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+		}
+
+		return true;
+
+	}
+
+	/**
 	 * Check if a parameter is set
 	 *
 	 * @param string $key Parameter name
