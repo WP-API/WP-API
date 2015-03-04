@@ -7,8 +7,6 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	 * 
 	 */
 	public function register_routes() {
-
-		parent::register_routes();
 		
 		register_json_route( 'wp', '/taxonomies', array(
 			'methods'         => WP_JSON_Server::READABLE,

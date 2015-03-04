@@ -8,8 +8,6 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 	 */
 	public function register_routes() {
 
-		parent::register_routes();
-
 		register_json_route( 'wp', '/types', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_items' ),

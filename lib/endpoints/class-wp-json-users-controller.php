@@ -10,8 +10,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * 
 	 */
 	public function register_routes() {
-
-		parent::register_routes();
 		
 		register_json_route( 'wp', '/users', array(
 			array(
