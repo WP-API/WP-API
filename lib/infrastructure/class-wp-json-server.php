@@ -576,7 +576,7 @@ class WP_JSON_Server {
 
 					$request->set_default_params( $defaults );
 
-					$check_required = $request->is_valid();
+					$check_required = $request->has_valid_params();
 					if ( is_wp_error( $check_required ) ) {
 						$response = $check_required;
 					}

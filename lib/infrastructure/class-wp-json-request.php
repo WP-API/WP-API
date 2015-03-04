@@ -616,7 +616,7 @@ class WP_JSON_Request implements ArrayAccess {
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function is_valid() {
+	public function has_valid_params() {
 
 		$attributes = $this->get_attributes();
 		$required = array();
