@@ -24,6 +24,7 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 		register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_item' ),
+			'permission_callback' => array( $this, 'get_item_permissions_check' ),
 		) );
 	}
 
@@ -62,6 +63,23 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
 		}
 		return $this->prepare_item_for_response( $tax_obj, $request );
+	}
+
+	/**
+	 * Check if a given request has access a taxonomy
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_permissions_check( $request ) {
+
+		$tax_obj = get_taxonomy( $request['taxonomy'] );
+
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

@@ -43,6 +43,14 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
 	}
 
+	public function test_get_non_public_taxonomy() {
+		register_taxonomy( 'api-private', 'post', array( 'public' => false ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/api-private' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_create_item() {
 		/** Taxonomies can't be created **/
 	}
