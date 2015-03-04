@@ -6,6 +6,61 @@
 class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		$query_params = $this->get_query_params();
+		$schema = $this->get_item_schema();
+		register_json_route( 'wp', '/comments', array(
+			array(
+				'methods'   => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'      => $query_params,
+			),
+			array(
+				'methods'  => WP_JSON_Server::CREATABLE,
+				'callback' => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'     => $schema,
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				'args'     => array(
+					'context'  => array(
+						'default'  => 'view',
+					),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::EDITABLE,
+				'callback' => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				'args'     => $schema,
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get a list of comments.
 	 *
 	 * @param  WP_JSON_Request $request Full details about the request.

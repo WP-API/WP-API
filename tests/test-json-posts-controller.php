@@ -83,6 +83,24 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 	}
 
+	public function test_get_item_links() {
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = json_ensure_response( $response );
+		$links = $response->get_links();
+
+		$this->assertEquals( json_url( '/wp/posts/' . $this->post_id ), $links['self'][0]['href'] );
+		$this->assertEquals( json_url( '/wp/posts' ), $links['collection'][0]['href'] );
+		$this->assertEquals( json_url( '/wp/users/0' ), $links['author'][0]['href'] );
+
+		$replies_url = json_url( '/wp/comments' );
+		$replies_url = add_query_arg( 'post_id', $this->post_id, $replies_url );
+		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
+
+		$this->assertEquals( json_url( '/wp/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
+	}
+
 	public function test_get_post_without_permisson() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',

@@ -6,6 +6,46 @@
 class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		$query_params = $this->get_query_params();
+		$schema = $this->get_item_schema();
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_items' ),
+				'args'     => $query_params,
+			),
+			array(
+				'methods'     => WP_JSON_Server::CREATABLE,
+				'callback'    => array( $this, 'create_item' ),
+				'args'        => $schema,
+			),
+		));
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+			array(
+				'methods'    => WP_JSON_Server::READABLE,
+				'callback'   => array( $this, 'get_item' ),
+			),
+			array(
+				'methods'    => WP_JSON_Server::EDITABLE,
+				'callback'   => array( $this, 'update_item' ),
+				'args'       => $schema,
+			),
+			array(
+				'methods'    => WP_JSON_Server::DELETABLE,
+				'callback'   => array( $this, 'delete_item' ),
+			),
+		) );
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get terms associated with a taxonomy
 	 *
 	 * @param WP_JSON_Request $request Full details about the request

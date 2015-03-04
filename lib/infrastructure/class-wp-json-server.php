@@ -207,9 +207,15 @@ class WP_JSON_Server {
 		$request->set_headers( $this->get_headers( $_SERVER ) );
 		$request->set_body( $this->get_raw_data() );
 
-		// Compatibility for clients that can't use PUT/PATCH/DELETE
+		/**
+		 * HTTP method override for clients that can't use PUT/PATCH/DELETE. First, we check
+		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
+		 * header.
+		 */
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
+		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
+			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 		}
 
 		$result = $this->check_authentication();
@@ -364,13 +370,23 @@ class WP_JSON_Server {
 
 				// Run through our internal routing and serve
 				$route = substr( $item['href'], strlen( $api_root ) );
-				$request = new WP_JSON_Request( 'GET', $route );
+				$parsed = parse_url( $route );
+				if ( empty( $parsed['path'] ) ) {
+					$embeds[] = array();
+					continue;
+				}
+
+				$query_params = array();
+				// If the route has query parameter, pass them along
+				if ( ! empty( $parsed['query'] ) ) {
+					parse_str( $parsed['query'], $query_params );
+				}
 
 				// Embedded resources get passed context=embed
-				$query_params = array_merge( array( 'context' => 'embed' ), (array) $item['query_params'] );
+				$query_params['context'] = 'embed';
 
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
 				$request->set_query_params( $query_params );
-
 				$response = $this->dispatch( $request );
 
 				$embeds[] = $response;
@@ -493,99 +509,6 @@ class WP_JSON_Server {
 	}
 
 	/**
-	 * Check that all required parameters are present in the request.
-	 *
-	 * @param WP_JSON_Request $request Request with parameters to check.
-	 * @return true|WP_Error
-	 */
-	protected function check_required_parameters( $request ) {
-		$attributes = $request->get_attributes();
-
-		$errors = array();
-		if ( ! empty( $attributes['query_params'] ) ) {
-			foreach( $attributes['query_params'] as $key => $param_attributes ) {
-				$query_value = $request->get_param( $key );
-				if ( null === $query_value ) {
-					continue;
-				}
-
-				/*
-				 * Check 'type' attribute
-				 *
-				 * @todo support an array of 'type's
-				 */
-				if ( ! empty( $param_attributes['type'] ) ) {
-					switch ( $param_attributes['type'] ) {
-						case 'string':
-							if ( ! is_string( $query_value ) ) {
-								$errors[ $key ] = __( 'Invalid string.' );
-							}
-							break;
-
-						case 'integer':
-							if ( ! is_integer( $query_value ) ) {
-								$errors[ $key ] = __( 'Invalid integer.' );
-							}
-							break;
-
-						case 'numeric':
-							if ( ! is_numeric( $query_value ) ) {
-								$errors[ $key ] = __( 'Invalid number.' );
-							}
-							break;
-
-						case 'object':
-							if ( ! is_object( $query_value ) ) {
-								$errors[ $key ] = __( 'Invalid object.' );
-							}
-							break;
-					}
-				}
-
-				if ( ! empty( $errors[ $key ] ) ) {
-					continue;
-				}
-
-				/*
-				 * Check 'enum' attribute
-				 */
-				if ( ! empty( $param_attributes['enum'] ) && ! in_array( $query_value, $param_attributes['enum'] ) ) {
-					$errors[ $key ] = sprintf( __( 'Value must match one of the following: %s' ), implode( ',', $param_attributes['enum'] ) );
-				}
-
-			}
-		}
-
-		if ( ! empty( $errors ) ) {
-			return new WP_Error( 'json_invalid_query_parameters', __( 'Invalid query parameters.' ), array(
-				'status'       => 400,
-				'errors'       => $errors,
-				) );
-		}
-
-		$required = array();
-
-		// No arguments set, skip validation
-		if ( empty( $attributes['args'] ) ) {
-			return true;
-		}
-
-		foreach ( $attributes['args'] as $key => $arg ) {
-
-			$param = $request->get_param( $key );
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
-				$required[] = $key;
-			}
-		}
-
-		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
@@ -660,7 +583,7 @@ class WP_JSON_Server {
 
 					$request->set_default_params( $defaults );
 
-					$check_required = $this->check_required_parameters( $request );
+					$check_required = $request->has_valid_params();
 					if ( is_wp_error( $check_required ) ) {
 						$response = $check_required;
 					}

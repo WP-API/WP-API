@@ -612,6 +612,91 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Check whether this request is valid according to its attributes
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function has_valid_params() {
+
+		$attributes = $this->get_attributes();
+		$required = array();
+
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
+		$errors = array();
+		foreach( $attributes['args'] as $key => $param_attributes ) {
+			$query_value = $this->get_param( $key );
+
+			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+				$errors[ $key ] = __( 'Value is required.' );
+				continue;
+			}
+
+			if ( null === $query_value ) {
+				continue;
+			}
+
+			/*
+			 * Check 'type' attribute
+			 *
+			 * @todo support an array of 'type's
+			 */
+			if ( ! empty( $param_attributes['type'] ) ) {
+				switch ( $param_attributes['type'] ) {
+					case 'string':
+						if ( ! is_string( $query_value ) ) {
+							$errors[ $key ] = __( 'Invalid string.' );
+						}
+						break;
+
+					case 'integer':
+						if ( ! is_integer( $query_value ) ) {
+							$errors[ $key ] = __( 'Invalid integer.' );
+						}
+						break;
+
+					case 'numeric':
+						if ( ! is_numeric( $query_value ) ) {
+							$errors[ $key ] = __( 'Invalid number.' );
+						}
+						break;
+
+					case 'object':
+						if ( ! is_object( $query_value ) ) {
+							$errors[ $key ] = __( 'Invalid object.' );
+						}
+						break;
+				}
+			}
+
+			if ( ! empty( $errors[ $key ] ) ) {
+				continue;
+			}
+
+			/*
+			 * Check 'enum' attribute
+			 */
+			if ( ! empty( $param_attributes['enum'] ) && ! in_array( $query_value, $param_attributes['enum'] ) ) {
+				$errors[ $key ] = sprintf( __( 'Value must match one of the following: %s' ), implode( ',', $param_attributes['enum'] ) );
+			}
+
+		}
+
+		if ( ! empty( $errors ) ) {
+			return new WP_Error( 'json_invalid_query_params', __( 'Invalid query parameters.' ), array(
+				'status'       => 400,
+				'errors'       => $errors,
+				) );
+		} else {
+			return true;
+		}
+
+	}
+
+	/**
 	 * Check if a parameter is set
 	 *
 	 * @param string $key Parameter name

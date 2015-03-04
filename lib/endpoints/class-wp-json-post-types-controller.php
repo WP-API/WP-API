@@ -3,6 +3,30 @@
 class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		register_json_route( 'wp', '/types', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_items' ),
+			'args'            => array(
+				'post_type'          => array(),
+			),
+		) );
+
+		register_json_route( 'wp', '/types/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+
+		register_json_route( 'wp', '/types/(?P<type>[\w-]+)', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item' ),
+		) );
+	}
+
+	/**
 	 * Get all public post types
 	 *
 	 * @param WP_JSON_Request $request
