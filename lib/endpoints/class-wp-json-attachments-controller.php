@@ -121,11 +121,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
 
 		if ( isset( $request['caption'] ) ) {
-			$prepared_attachment->post_content = wp_filter_post_kses( $request['caption'] );
+			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['caption'] );
 		}
 
 		if ( isset( $request['description'] ) ) {
-			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['description'] );
+			$prepared_attachment->post_content = wp_filter_post_kses( $request['description'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -146,8 +146,8 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$response = parent::prepare_item_for_response( $post, $request );
 
 		$response['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$response['caption']       = $post->post_content;
-		$response['description']   = $post->post_excerpt;
+		$response['caption']       = $post->post_excerpt;
+		$response['description']   = $post->post_content;
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$response['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
