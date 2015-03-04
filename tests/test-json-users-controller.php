@@ -47,8 +47,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', '/wp/users' );
 		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_item() {
@@ -84,7 +83,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_item_published_author() {
@@ -190,7 +189,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_user_invalid_id() {
@@ -341,7 +340,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_update_user_invalid_id() {
