@@ -3,6 +3,31 @@
 class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller
+	 * 
+	 */
+	public function register_routes() {
+
+		parent::register_routes();
+		
+		register_json_route( 'wp', '/taxonomies', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_items' ),
+			'args'            => array(
+				'post_type'   => array(),
+			),
+		) );
+		register_json_route( 'wp', '/taxonomies/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+		register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item' ),
+		) );
+	}
+
+	/**
 	 * Get all public taxonomies
 	 *
 	 * @param WP_JSON_Request $request

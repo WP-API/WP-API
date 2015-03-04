@@ -4,6 +4,14 @@
 abstract class WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller
+	 * 
+	 */
+	public function register_routes() {
+
+	}
+
+	/**
 	 * Get a collection of items
 	 *
 	 * @param WP_JSON_Request $request Full data about the request.
