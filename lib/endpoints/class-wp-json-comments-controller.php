@@ -6,12 +6,9 @@
 class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
-	 * Register the routes for the objects of the controller
-	 * 
+	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-
-		parent::register_routes();
 		
 		register_json_route( 'wp', '/comments', array(
 			array(

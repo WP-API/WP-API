@@ -9,12 +9,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Register the routes for the objects of the controller
-	 * 
+	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-
-		parent::register_routes();
 
 		$base = $this->get_post_type_base( $this->post_type );
 

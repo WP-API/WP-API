@@ -4,11 +4,10 @@
 abstract class WP_JSON_Controller {
 
 	/**
-	 * Register the routes for the objects of the controller
-	 * 
+	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-
+		_doing_it_wrong( 'WP_JSON_Controller::register_routes', __( 'The register_routes() method must be overriden' ), 'WPAPI-2.0' );
 	}
 
 	/**
