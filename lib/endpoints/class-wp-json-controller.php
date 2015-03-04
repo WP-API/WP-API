@@ -4,8 +4,7 @@
 abstract class WP_JSON_Controller {
 
 	/**
-	 * Register the routes for the objects of the controller
-	 * 
+	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
