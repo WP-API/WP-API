@@ -6,6 +6,120 @@
 class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		register_json_route( 'wp', '/comments', array(
+			array(
+				'methods'   => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'      => array(
+					'post'         => array(
+						'default'      => null,
+					),
+					'user'         => array(
+						'default'      => 0,
+					),
+					'per_page'     => array(
+						'default'      => 10,
+					),
+					'page'         => array(
+						'default'      => 1,
+					),
+					'status'       => array(
+						'default'      => 'approve',
+					),
+					'type'         => array(
+						'default'      => 'comment',
+					),
+					'parent'       => array(),
+					'search'       => array(),
+					'order'        => array(
+						'default'      => 'DESC',
+					),
+					'orderby'      => array(
+						'default'      => 'date_gmt',
+					),
+					'author_email' => array(),
+					'karma'        => array(),
+					'post_author'  => array(),
+					'post_name'    => array(),
+					'post_parent'  => array(),
+					'post_status'  => array(),
+					'post_type'    => array(),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::CREATABLE,
+				'callback' => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'     => array(
+					'post'         => array(
+						'required'     => true,
+					),
+					'type'         => array(
+						'default'      => 'comment',
+					),
+					'user'         => array(
+						'default'      => 0,
+					),
+					'parent'       => array(
+						'default'      => 0,
+					),
+					'content'      => array(),
+					'author'       => array(),
+					'author_email' => array(),
+					'author_url'   => array(),
+					'date'         => array(),
+					'date_gmt'     => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				'args'     => array(
+					'context'  => array(
+						'default'  => 'view',
+					),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::EDITABLE,
+				'callback' => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				'args'     => array(
+					'post'         => array(),
+					'status'       => array(),
+					'content'      => array(),
+					'author'       => array(),
+					'author_email' => array(),
+					'author_url'   => array(),
+					'date'         => array(),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get a list of comments.
 	 *
 	 * @param  WP_JSON_Request $request Full details about the request.

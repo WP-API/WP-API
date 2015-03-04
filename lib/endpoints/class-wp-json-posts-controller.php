@@ -9,6 +9,73 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		$base = $this->get_post_type_base( $this->post_type );
+
+		$schema = $this->get_item_schema();
+		$post_type_fields = ! empty( $schema['properties'] ) ? array_keys( $schema['properties'] ) : array();
+
+		register_json_route( 'wp', '/' . $base, array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+					'type'            => array(),
+					'page'            => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+				'args'            => $post_type_fields,
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::EDITABLE,
+				'callback'        => array( $this, 'update_item' ),
+				'accept_json'     => true,
+				'args'            => $post_type_fields,
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_revisions' ),
+			'args'            => array(
+				'context'          => array(
+					'default'      => 'view-revision',
+				),
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get a collection of posts
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
