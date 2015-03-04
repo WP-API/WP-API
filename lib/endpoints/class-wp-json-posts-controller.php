@@ -946,12 +946,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = $this->get_post_type_base( $this->post_type );
+		$base = '/wp/' . $this->get_post_type_base( $this->post_type );
 
 		// Entity meta
 		$links = array(
 			'self' => array(
-				'href' => json_url( '/wp/' . $base . '/' . $post->ID ),
+				'href' => json_url( trailingslashit( $base ) . $post->ID ),
 			),
 			'collection' => array(
 				'href' => json_url( $base ),
