@@ -92,7 +92,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category' );
 		$request->set_param( 'order', 13 );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_invalid_query_parameters', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_query_params', $response, 400 );
 		$data = $response->as_error()->get_error_data();
 		$this->assertEquals( 1, count( $data['errors'] ) );
 		$this->assertEquals( 'Invalid string.', $data['errors']['order'] );
@@ -102,7 +102,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category' );
 		$request->set_param( 'orderby', 'garbage' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_invalid_query_parameters', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_query_params', $response, 400 );
 		$data = $response->as_error()->get_error_data();
 		$this->assertEquals( 1, count( $data['errors'] ) );
 		$this->assertContains( 'Value must match one of the following:', $data['errors']['orderby'] );
@@ -265,7 +265,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$query_params = $data['routes']['/wp/terms/{taxonomy}']['query_params'];
+		$query_params = $data['routes']['/wp/terms/{taxonomy}']['args'];
 		$this->assertEquals( 7, count( $query_params ) );
 		$this->assertArrayHasKey( 'order', $query_params );
 		$this->assertArrayHasKey( 'orderby', $query_params );
