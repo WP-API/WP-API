@@ -12,6 +12,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		$query_params = $this->get_collection_params();
 		$schema = $this->get_item_schema();
+		$properties = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 		register_json_route( 'wp', '/comments', array(
 			array(
 				'methods'   => WP_JSON_Server::READABLE,
@@ -23,7 +24,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'methods'  => WP_JSON_Server::CREATABLE,
 				'callback' => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'     => $schema,
+				'args'     => $properties,
 			),
 		) );
 
@@ -42,7 +43,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'methods'  => WP_JSON_Server::EDITABLE,
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'     => $schema,
+				'args'     => $properties,
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,

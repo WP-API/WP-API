@@ -12,6 +12,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		
 		$query_params = $this->get_collection_params();
 		$schema = $this->get_item_schema();
+		$properties = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
 				'methods'  => WP_JSON_Server::READABLE,
@@ -21,7 +22,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			array(
 				'methods'     => WP_JSON_Server::CREATABLE,
 				'callback'    => array( $this, 'create_item' ),
-				'args'        => $schema,
+				'args'        => $properties,
 			),
 		));
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
@@ -32,7 +33,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			array(
 				'methods'    => WP_JSON_Server::EDITABLE,
 				'callback'   => array( $this, 'update_item' ),
-				'args'       => $schema,
+				'args'       => $properties,
 			),
 			array(
 				'methods'    => WP_JSON_Server::DELETABLE,
