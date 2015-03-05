@@ -303,6 +303,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'required'     => true,
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
