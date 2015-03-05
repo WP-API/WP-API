@@ -626,19 +626,73 @@ class WP_JSON_Request implements ArrayAccess {
 			return true;
 		}
 
-		foreach ( $attributes['args'] as $key => $arg ) {
+		$errors = array();
+		foreach( $attributes['args'] as $key => $param_attributes ) {
+			$param_value = $this->get_param( $key );
 
-			$param = $this->get_param( $key );
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
-				$required[] = $key;
+			if ( isset( $param_attributes['required'] ) && true === $param_attributes['required'] && null === $param_value ) {
+				$errors[ $key ] = __( 'Value is required.' );
+				continue;
 			}
+
+			if ( null === $param_value ) {
+				continue;
+			}
+
+			/*
+			 * Check 'type' attribute
+			 *
+			 * @todo support an array of 'type's
+			 */
+			if ( ! empty( $param_attributes['type'] ) ) {
+				switch ( $param_attributes['type'] ) {
+					case 'string':
+						if ( ! is_string( $param_value ) ) {
+							$errors[ $key ] = __( 'Invalid string.' );
+						}
+						break;
+
+					case 'integer':
+						if ( ! is_integer( $param_value ) ) {
+							$errors[ $key ] = __( 'Invalid integer.' );
+						}
+						break;
+
+					case 'numeric':
+						if ( ! is_numeric( $param_value ) ) {
+							$errors[ $key ] = __( 'Invalid number.' );
+						}
+						break;
+
+					case 'object':
+						if ( ! is_object( $param_value ) ) {
+							$errors[ $key ] = __( 'Invalid object.' );
+						}
+						break;
+				}
+			}
+
+			if ( ! empty( $errors[ $key ] ) ) {
+				continue;
+			}
+
+			/*
+			 * Check 'enum' attribute
+			 */
+			if ( ! empty( $param_attributes['enum'] ) && ! in_array( $param_value, $param_attributes['enum'] ) ) {
+				$errors[ $key ] = sprintf( __( 'Value must match one of the following: %s' ), implode( ',', $param_attributes['enum'] ) );
+			}
+
 		}
 
-		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+		if ( ! empty( $errors ) ) {
+			return new WP_Error( 'json_invalid_args', __( 'Invalid arguments.' ), array(
+				'status'       => 400,
+				'errors'       => $errors,
+				) );
+		} else {
+			return true;
 		}
-
-		return true;
 
 	}
 

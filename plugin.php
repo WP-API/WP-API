@@ -103,7 +103,7 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 function create_initial_json_routes() {
 
 	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
-		
+
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
 
 		if ( ! class_exists( $class ) ) {

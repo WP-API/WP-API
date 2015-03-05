@@ -10,29 +10,19 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function register_routes() {
 		
+		$query_params = $this->get_collection_params();
+		$schema = $this->get_item_schema();
+		$properties = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
 				'methods'  => WP_JSON_Server::READABLE,
 				'callback' => array( $this, 'get_items' ),
-				'args'     => array(
-					'search'   => array(),
-					'per_page' => array(),
-					'page'     => array(),
-					'order'    => array(),
-					'orderby'  => array(),
-				),
+				'args'     => $query_params,
 			),
 			array(
 				'methods'     => WP_JSON_Server::CREATABLE,
 				'callback'    => array( $this, 'create_item' ),
-				'args'        => array(
-					'name'        => array(
-						'required'    => true,
-					),
-					'description' => array(),
-					'slug'        => array(),
-					'parent'      => array(),
-				),
+				'args'        => $properties,
 			),
 		));
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
@@ -43,12 +33,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			array(
 				'methods'    => WP_JSON_Server::EDITABLE,
 				'callback'   => array( $this, 'update_item' ),
-				'args'       => array(
-					'name'           => array(),
-					'description'    => array(),
-					'slug'           => array(),
-					'parent'         => array(),
-				),
+				'args'       => $properties,
 			),
 			array(
 				'methods'    => WP_JSON_Server::DELETABLE,
@@ -69,11 +54,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
-		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0; 
-		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
-		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
+		$prepared_args['number'] = (int) $request['per_page'];
+		$prepared_args['offset'] = ( absint( $request['page'] ) - 1 ) * $prepared_args['number'];
+		$prepared_args['search'] = sanitize_text_field( $request['search'] );
+		$prepared_args['order'] = sanitize_key( $request['order'] );
+		$prepared_args['orderby'] = sanitize_key( $request['orderby'] );
 
 		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
 		if ( is_wp_error( $taxonomy ) ) {
@@ -253,6 +238,42 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'name',
+			'enum'               => array(
+				'id',
+				'name',
+				'slug'
+				),
+		);
+		$query_params['parent'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific parent term.',
+			'type'               => 'integer',
+			'relation'           => 'term',
+		);
+		$query_params['post'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific post.',
+			'type'               => 'integer',
+			'relation'           => 'post', // @todo this could be any post type that supports the taxonomy
+		);
+		return $query_params;
+	}
+
+	/**
 	 * Get the Term's schema, conforming to JSON Schema
 	 *
 	 * @return array
@@ -283,6 +304,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'required'     => true,
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',

@@ -60,6 +60,30 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		return array(
+			'page'               => array(
+				'description'    => 'Current page of the collection.',
+				'type'           => 'integer',
+				'default'        => 1,
+				),
+			'per_page'           => array(
+				'description'    => 'Maximum number of items to be returned in result set.',
+				'type'           => 'integer',
+				'default'        => 10,
+				),
+			'search'             => array(
+				'description'    => 'Limit results to those matching a string.',
+				'type'           => 'string',
+				),
+			);
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema
 	 *
 	 * @return array

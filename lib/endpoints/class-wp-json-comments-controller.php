@@ -9,72 +9,22 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
+		$query_params = $this->get_collection_params();
+		$schema = $this->get_item_schema();
+		$properties = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 		register_json_route( 'wp', '/comments', array(
 			array(
 				'methods'   => WP_JSON_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'      => array(
-					'post'         => array(
-						'default'      => null,
-					),
-					'user'         => array(
-						'default'      => 0,
-					),
-					'per_page'     => array(
-						'default'      => 10,
-					),
-					'page'         => array(
-						'default'      => 1,
-					),
-					'status'       => array(
-						'default'      => 'approve',
-					),
-					'type'         => array(
-						'default'      => 'comment',
-					),
-					'parent'       => array(),
-					'search'       => array(),
-					'order'        => array(
-						'default'      => 'DESC',
-					),
-					'orderby'      => array(
-						'default'      => 'date_gmt',
-					),
-					'author_email' => array(),
-					'karma'        => array(),
-					'post_author'  => array(),
-					'post_name'    => array(),
-					'post_parent'  => array(),
-					'post_status'  => array(),
-					'post_type'    => array(),
-				),
+				'args'      => $query_params,
 			),
 			array(
 				'methods'  => WP_JSON_Server::CREATABLE,
 				'callback' => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'     => array(
-					'post'         => array(
-						'required'     => true,
-					),
-					'type'         => array(
-						'default'      => 'comment',
-					),
-					'user'         => array(
-						'default'      => 0,
-					),
-					'parent'       => array(
-						'default'      => 0,
-					),
-					'content'      => array(),
-					'author'       => array(),
-					'author_email' => array(),
-					'author_url'   => array(),
-					'date'         => array(),
-					'date_gmt'     => array(),
-				),
+				'args'     => $properties,
 			),
 		) );
 
@@ -93,15 +43,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'methods'  => WP_JSON_Server::EDITABLE,
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'     => array(
-					'post'         => array(),
-					'status'       => array(),
-					'content'      => array(),
-					'author'       => array(),
-					'author_email' => array(),
-					'author_url'   => array(),
-					'date'         => array(),
-				),
+				'args'     => $properties,
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,
@@ -463,7 +405,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'number'  => absint( $request['per_page'] ),
 			'post_id' => isset( $request['post'] ) ? absint( $request['post'] ) : '',
 			'parent'  => isset( $request['parent'] ) ? intval( $request['parent'] ) : '',
-			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
+			'search'  => sanitize_text_field( $request['search'] ),
 			'orderby' => $this->normalize_query_param( $order_by ),
 			'order'   => sanitize_key( $request['order'] ),
 			'status'  => 'approve',
@@ -605,6 +547,63 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		}
 
 		return apply_filters( 'json_preprocess_comment', $prepared_comment, $request );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'date_gmt',
+			'enum'               => array(
+				'id',
+				'agent',
+				// 'approved', // @todo this preferrably would be 'status'
+				'author',
+				// 'author_agent', // @todo currently missing from the resource
+				'author_email',
+				// 'author_ip', // @todo currently missing from the resource
+				'author_url',
+				'content',
+				'date',
+				'date_gmt',
+				// 'karma', // @todo currently missing from the source
+				'parent',
+				'post',
+				'type',
+				'user',
+			),
+		);
+		$query_params['parent'] = array(
+			'description'        => 'Limit result set to comments assigned to a specific parent comment.',
+			'type'               => 'integer',
+			'relation'           => 'comment',
+		);
+		$query_params['post'] = array(
+			'description'        => 'Limit result set to comments assigned to a specific post.',
+			'type'               => 'integer',
+			'relation'           => 'post', // @todo this could be any post type that supports comments
+		);
+		$query_params['status'] = array(
+			'description'        => 'Limit result set to comments matching a specific status.',
+			'type'               => 'string',
+		);
+		$query_params['type'] = array(
+			'description'        => 'Limit result set to comments matching a specific type.',
+			'type'               => 'string',
+		);
+		return $query_params;
 	}
 
 	/**
