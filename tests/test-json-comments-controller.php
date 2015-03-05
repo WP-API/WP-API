@@ -378,10 +378,8 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 	}
 
 	public function tests_get_query_params() {
-		$request = new WP_JSON_Request( 'GET', '/' );
-		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$query_params = $data['routes']['/wp/comments']['args'];
+		$controller = new WP_JSON_Comments_Controller;
+		$query_params = $controller->get_collection_params();
 		$this->assertEquals( 9, count( $query_params ) );
 		$this->assertArrayHasKey( 'order', $query_params );
 		$this->assertArrayHasKey( 'orderby', $query_params );
