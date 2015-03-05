@@ -161,6 +161,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_invalid_args', $response, 400 );
+		$data = $response->as_error()->get_error_data();
+		$this->assertEquals( 1, count( $data['errors'] ) );
+		$this->assertEquals( 'Value is required.', $data['errors']['name'] );
 	}
 
 	public function test_update_item() {

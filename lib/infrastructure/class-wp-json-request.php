@@ -628,14 +628,14 @@ class WP_JSON_Request implements ArrayAccess {
 
 		$errors = array();
 		foreach( $attributes['args'] as $key => $param_attributes ) {
-			$query_value = $this->get_param( $key );
+			$param_value = $this->get_param( $key );
 
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+			if ( isset( $param_attributes['required'] ) && true === $param_attributes['required'] && null === $param_value ) {
 				$errors[ $key ] = __( 'Value is required.' );
 				continue;
 			}
 
-			if ( null === $query_value ) {
+			if ( null === $param_value ) {
 				continue;
 			}
 
@@ -647,25 +647,25 @@ class WP_JSON_Request implements ArrayAccess {
 			if ( ! empty( $param_attributes['type'] ) ) {
 				switch ( $param_attributes['type'] ) {
 					case 'string':
-						if ( ! is_string( $query_value ) ) {
+						if ( ! is_string( $param_value ) ) {
 							$errors[ $key ] = __( 'Invalid string.' );
 						}
 						break;
 
 					case 'integer':
-						if ( ! is_integer( $query_value ) ) {
+						if ( ! is_integer( $param_value ) ) {
 							$errors[ $key ] = __( 'Invalid integer.' );
 						}
 						break;
 
 					case 'numeric':
-						if ( ! is_numeric( $query_value ) ) {
+						if ( ! is_numeric( $param_value ) ) {
 							$errors[ $key ] = __( 'Invalid number.' );
 						}
 						break;
 
 					case 'object':
-						if ( ! is_object( $query_value ) ) {
+						if ( ! is_object( $param_value ) ) {
 							$errors[ $key ] = __( 'Invalid object.' );
 						}
 						break;
@@ -679,7 +679,7 @@ class WP_JSON_Request implements ArrayAccess {
 			/*
 			 * Check 'enum' attribute
 			 */
-			if ( ! empty( $param_attributes['enum'] ) && ! in_array( $query_value, $param_attributes['enum'] ) ) {
+			if ( ! empty( $param_attributes['enum'] ) && ! in_array( $param_value, $param_attributes['enum'] ) ) {
 				$errors[ $key ] = sprintf( __( 'Value must match one of the following: %s' ), implode( ',', $param_attributes['enum'] ) );
 			}
 
