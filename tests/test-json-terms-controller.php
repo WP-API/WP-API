@@ -92,7 +92,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category' );
 		$request->set_param( 'order', 13 );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_invalid_query_params', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_args', $response, 400 );
 		$data = $response->as_error()->get_error_data();
 		$this->assertEquals( 1, count( $data['errors'] ) );
 		$this->assertEquals( 'Invalid string.', $data['errors']['order'] );
@@ -102,7 +102,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category' );
 		$request->set_param( 'orderby', 'garbage' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_invalid_query_params', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_args', $response, 400 );
 		$data = $response->as_error()->get_error_data();
 		$this->assertEquals( 1, count( $data['errors'] ) );
 		$this->assertContains( 'Value must match one of the following:', $data['errors']['orderby'] );
@@ -160,7 +160,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_missing_callback_param', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_args', $response, 400 );
 	}
 
 	public function test_update_item() {

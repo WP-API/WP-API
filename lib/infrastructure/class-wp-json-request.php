@@ -686,7 +686,7 @@ class WP_JSON_Request implements ArrayAccess {
 		}
 
 		if ( ! empty( $errors ) ) {
-			return new WP_Error( 'json_invalid_query_params', __( 'Invalid query parameters.' ), array(
+			return new WP_Error( 'json_invalid_args', __( 'Invalid arguments.' ), array(
 				'status'       => 400,
 				'errors'       => $errors,
 				) );
