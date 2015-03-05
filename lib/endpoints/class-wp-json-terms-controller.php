@@ -10,7 +10,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function register_routes() {
 		
-		$query_params = $this->get_query_params();
+		$query_params = $this->get_collection_params();
 		$schema = $this->get_item_schema();
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
@@ -241,8 +241,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 *
 	 * @return array
 	 */
-	public function get_query_params() {
-		$query_params = parent::get_query_params();
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
 		$query_params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
 			'type'               => 'string',

@@ -64,7 +64,7 @@ abstract class WP_JSON_Controller {
 	 *
 	 * @return array
 	 */
-	public function get_query_params() {
+	public function get_collection_params() {
 		return array(
 			'page'               => array(
 				'description'    => 'Current page of the collection.',
