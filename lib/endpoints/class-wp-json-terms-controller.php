@@ -248,7 +248,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'type'               => 'string',
 			'default'            => 'asc',
 			'enum'               => array( 'asc', 'desc' ),
-			);
+		);
 		$query_params['orderby'] = array(
 			'description'        => 'Sort collection by object attribute.',
 			'type'               => 'string',
@@ -258,17 +258,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'name',
 				'slug'
 				),
-			);
+		);
 		$query_params['parent'] = array(
 			'description'        => 'Limit result set to terms assigned to a specific parent term.',
 			'type'               => 'integer',
 			'relation'           => 'term',
-			);
+		);
 		$query_params['post'] = array(
 			'description'        => 'Limit result set to terms assigned to a specific post.',
 			'type'               => 'integer',
 			'relation'           => 'post', // @todo this could be any post type that supports the taxonomy
-			);
+		);
 		return $query_params;
 	}
 

@@ -560,7 +560,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'type'               => 'string',
 			'default'            => 'asc',
 			'enum'               => array( 'asc', 'desc' ),
-			);
+		);
 		$query_params['orderby'] = array(
 			'description'        => 'Sort collection by object attribute.',
 			'type'               => 'string',
@@ -582,26 +582,26 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'post',
 				'type',
 				'user',
-				),
-			);
+			),
+		);
 		$query_params['parent'] = array(
 			'description'        => 'Limit result set to comments assigned to a specific parent comment.',
 			'type'               => 'integer',
 			'relation'           => 'comment',
-			);
+		);
 		$query_params['post'] = array(
 			'description'        => 'Limit result set to comments assigned to a specific post.',
 			'type'               => 'integer',
 			'relation'           => 'post', // @todo this could be any post type that supports comments
-			);
+		);
 		$query_params['status'] = array(
 			'description'        => 'Limit result set to comments matching a specific status.',
 			'type'               => 'string',
-			);
+		);
 		$query_params['type'] = array(
 			'description'        => 'Limit result set to comments matching a specific type.',
 			'type'               => 'string',
-			);
+		);
 		return $query_params;
 	}
 
