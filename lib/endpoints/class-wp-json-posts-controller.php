@@ -33,6 +33,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => $post_type_fields,
 			),
 		) );
@@ -40,6 +41,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
 					'context'          => array(
 						'default'      => 'view',
@@ -49,12 +51,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			array(
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'accept_json'     => true,
 				'args'            => $post_type_fields,
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,
 				'callback' => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'     => array(
 					'force'    => array(),
 				),
@@ -63,6 +67,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_item_revisions' ),
+			'permission_callback' => array( $this, 'get_item_revisions_permissions_check' ),
 			'args'            => array(
 				'context'          => array(
 					'default'      => 'view-revision',
@@ -134,14 +139,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( 'edit' === $request['context'] && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
-		}
-
-		if ( ! $this->check_read_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
-		}
-
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
@@ -175,10 +172,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_no_support', __( 'Revisions are not supported for this post.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_update_permission( $parent ) ) {
-			return new WP_Error( 'json_cannot_view', __( 'Sorry, you cannot view the revisions for this post.' ), array( 'status' => 403 ) );
-		}
-
 		// Todo: Query args filter for wp_get_post_revisions
 		$revisions = wp_get_post_revisions( $parent->ID );
 
@@ -207,10 +200,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post = $this->prepare_item_for_database( $request );
 		if ( is_wp_error( $post ) ) {
 			return $post;
-		}
-
-		if ( ! $this->check_create_permission( $post ) ) {
-			return new WP_Error( 'json_post_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 403 ) );
 		}
 
 		$post->post_type = $this->post_type;
@@ -269,10 +258,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( ! $post ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Post ID is invalid.' ), array( 'status' => 400 ) );
-		}
-
-		if ( ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'json_post_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 403 ) );
 		}
 
 		$post = $this->prepare_item_for_database( $request );
@@ -337,10 +322,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_delete_permission( $post ) ) {
-			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
-		}
-
 		$result = wp_delete_post( $id, $force );
 
 		if ( ! $result ) {
@@ -353,6 +334,91 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			// TODO: return a HTTP 202 here instead
 			return array( 'message' => __( 'Deleted post' ) );
 		}
+	}
+
+	/**
+	 * Check if a given request has access to read a post
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_permissions_check( $request ) {
+
+		$post = get_post( (int) $request['id'] );
+
+		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
+			return false;
+		}
+
+		if ( $post ) {
+			return $this->check_read_permission( $post );	
+		}
+		
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to read a post's revisions
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_revisions_permissions_check( $request ) {
+
+		$post = get_post( $request['id'] );
+
+		if ( $post && ! $this->check_update_permission( $post ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to create a post
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		$post_type = get_post_type_object( $this->post_type );
+
+		return current_user_can( $post_type->cap->create_posts );
+	}
+
+	/**
+	 * Check if a given request has access to update a post
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function update_item_permissions_check( $request ) {
+
+		$post = get_post( $request['id'] );
+
+		if ( $post && ! $this->check_update_permission( $post ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to delete a post
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+
+		$post = get_post( $request['id'] );
+
+		if ( $post && ! $this->check_delete_permission( $post ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -567,7 +633,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-				return new WP_Error( 'json_cannot_create_password_protected', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 401 ) );
+				return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -623,13 +689,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				break;
 			case 'private':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'json_cannot_create_private', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			case 'publish':
 			case 'future':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			default:
@@ -662,7 +728,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		// Only check edit others' posts if we are another user
 		if ( $post_author !== get_current_user_id() ) {
 			if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-				return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to create or edit posts as this user.' ), array( 'status' => 401 ) );
+				return new WP_Error( 'json_forbidden', __( 'You are not allowed to create or edit posts as this user.' ), array( 'status' => 403 ) );
 			}
 
 			$author = get_userdata( $post_author );

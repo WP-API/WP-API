@@ -140,7 +140,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		wp_set_current_user( $this->contributor_id );
 		$request = new WP_JSON_Request( 'POST', '/wp/media' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item_invalid_edit_permissions() {
@@ -187,7 +187,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$request = new WP_JSON_Request( 'POST', '/wp/media/' . $attachment_id );
 		$request->set_param( 'caption', 'This is a better caption.' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -212,7 +212,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		) );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_prepare_item() {
