@@ -129,7 +129,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		$meta = array();
 
 		foreach ( $results as $row ) {
-			$value = $this->prepare_meta( $request['id'], $row, true );
+			$value = $this->prepare_item_for_response( $row, $request, true );
 
 			if ( is_wp_error( $value ) ) {
 				continue;
@@ -138,7 +138,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			$meta[] = $value;
 		}
 
-		return apply_filters( 'json_prepare_meta', $meta, $request );
+		return $meta;
 	}
 
 	/**
@@ -164,7 +164,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
-		return $this->prepare_meta( $request['id'], $meta );
+		return $this->prepare_item_for_response( $meta, $request );
 	}
 
 	/**
@@ -175,7 +175,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @param boolean $is_raw Is the value field still serialized? (False indicates the value has been unserialized)
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
-	protected function prepare_meta( $parent_id, $data, $is_raw = false ) {
+	public function prepare_item_for_response( $data, $request, $is_raw = false ) {
 		$ID    = $data->meta_id;
 		$key   = $data->meta_key;
 		$value = $data->meta_value;
@@ -201,7 +201,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			'value' => $value,
 		);
 
-		return apply_filters( 'json_prepare_meta_value', $meta, $parent_id );
+		return apply_filters( 'json_prepare_meta_value', $meta, $request );
 	}
 
 	/**
