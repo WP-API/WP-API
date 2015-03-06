@@ -345,7 +345,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * }
 	 * @return bool|WP_Error
 	 */
-	public function add_meta( $request ) {
+	public function create_item( $request ) {
 		$check = $this->check_object( $request['id'] );
 		if ( is_wp_error( $check ) ) {
 			return $check;
@@ -375,8 +375,11 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add meta.' ), array( 'status' => 400 ) );
 		}
 
-		$response = json_ensure_response( $this->get_meta( $request['id'], $result ) );
+		$created = new WP_JSON_Request();
+		$created['id'] = $request['id'];
+		$created['mid'] = (int) $result;
 
+		$response = json_ensure_response( $this->get_item( $created ) );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
