@@ -124,12 +124,12 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		$table = _get_meta_table( $this->type );
 		$parent_column = $this->get_parent_column();
 
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE $parent_column = %d", $id ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE $parent_column = %d", $request['id'] ) );
 
 		$meta = array();
 
 		foreach ( $results as $row ) {
-			$value = $this->prepare_meta( $id, $row, true );
+			$value = $this->prepare_meta( $request['id'], $row, true );
 
 			if ( is_wp_error( $value ) ) {
 				continue;
