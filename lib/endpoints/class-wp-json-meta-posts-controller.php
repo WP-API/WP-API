@@ -2,18 +2,15 @@
 
 class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	/**
-	 * Base route name.
-	 *
-	 * @var string Route base (e.g. /my-plugin/my-type/(?P<id>\d+)/meta). Must include ID selector.
-	 */
-	protected $base = '/posts/(?P<id>\d+)/meta';
-
-	/**
 	 * Associated object type.
 	 *
 	 * @var string Type slug ("post" or "user")
 	 */
 	protected $type = 'post';
+
+	public function __construct( $base ) {
+		$this->base = $base . '/(?P<id>\d+)/meta';
+	}
 
 	/**
 	 * Check if we can edit a post.
