@@ -31,9 +31,6 @@ include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
 require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
-include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-controller.php';
-include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts-controller.php';
-
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
@@ -42,6 +39,8 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-cont
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-comments-controller.php';
+include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-controller.php';
+include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
