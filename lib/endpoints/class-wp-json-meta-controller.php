@@ -33,11 +33,8 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Register the meta-related routes.
-	 *
-	 * @param array $routes Existing routes
-	 * @return array Modified routes
 	 */
-	public function register_routes( $routes ) {
+	public function register_routes() {
 		$base_args = array(
 			'id' => array(
 				'required' => true,
