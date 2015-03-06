@@ -422,7 +422,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
-		if ( ! delete_metadata_by_mid( $this->type, $mid ) ) {
+		if ( ! delete_metadata_by_mid( $this->type, $request['mid'] ) ) {
 			return new WP_Error( 'json_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
 		}
 

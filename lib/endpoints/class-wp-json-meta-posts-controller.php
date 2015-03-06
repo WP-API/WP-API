@@ -64,7 +64,8 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 			return $response;
 		}
 
-		$response->header( 'Location', json_url( '/posts/' . $id . '/meta/' . $data->ID ) );
+		$data = $response->get_data();
+		$response->header( 'Location', json_url( '/posts/' . $request['id'] . '/meta/' . $data['id'] ) );
 		return $response;
 	}
 
