@@ -102,7 +102,6 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 function create_initial_json_routes() {
 
 	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
-		
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
 
 		if ( ! class_exists( $class ) ) {
@@ -114,6 +113,11 @@ function create_initial_json_routes() {
 		}
 
 		$controller->register_routes();
+
+		if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
+			$meta_controller = new WP_JSON_Meta_Posts_Controller( $post_type->json_base );
+			$meta_controller->register_routes();
+		}
 	}
 
 	/*
@@ -197,13 +201,6 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  * @param WP_JSON_Server $server Server object.
  */
 function json_api_default_filters( $server ) {
-
-	// Post meta.
-	$wp_json_post_meta = new WP_JSON_Meta_Posts();
-	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
-	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
-	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
-
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
 	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
