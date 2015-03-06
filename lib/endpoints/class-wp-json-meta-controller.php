@@ -305,7 +305,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		// update_metadata_by_mid will return false if these are equal, so check
 		// first and pass through
 		if ( $value === $current->meta_value && $key === $current->meta_key ) {
-			return $this->get_meta( $id, $mid );
+			return $this->get_item( $request );
 		}
 
 		$key   = wp_slash( $key );
@@ -315,7 +315,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update meta.' ), array( 'status' => 500 ) );
 		}
 
-		return $this->get_meta( $id, $mid );
+		return $this->get_item( $request );
 	}
 
 	/**
