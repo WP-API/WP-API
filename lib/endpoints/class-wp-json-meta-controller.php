@@ -176,7 +176,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function prepare_item_for_response( $data, $request, $is_raw = false ) {
-		$ID    = $data->meta_id;
+		$id    = $data->meta_id;
 		$key   = $data->meta_key;
 		$value = $data->meta_value;
 
@@ -196,7 +196,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		}
 
 		$meta = array(
-			'ID'    => (int) $ID,
+			'id'    => (int) $id,
 			'key'   => $key,
 			'value' => $value,
 		);
