@@ -82,7 +82,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 				'methods'  => WP_JSON_Server::DELETABLE,
 				'args'     => $single_args,
 			),
-		);
+		) );
 	}
 
 	/**
