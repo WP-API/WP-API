@@ -57,7 +57,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
-	public function test_get_items_status_without_permissons() {
+	public function test_get_items_status_without_permissions() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',
 		) );
@@ -83,7 +83,25 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 	}
 
-	public function test_get_post_without_permisson() {
+	public function test_get_item_links() {
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = json_ensure_response( $response );
+		$links = $response->get_links();
+
+		$this->assertEquals( json_url( '/wp/posts/' . $this->post_id ), $links['self'][0]['href'] );
+		$this->assertEquals( json_url( '/wp/posts' ), $links['collection'][0]['href'] );
+		$this->assertEquals( json_url( '/wp/users/0' ), $links['author'][0]['href'] );
+
+		$replies_url = json_url( '/wp/comments' );
+		$replies_url = add_query_arg( 'post_id', $this->post_id, $replies_url );
+		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
+
+		$this->assertEquals( json_url( '/wp/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
+	}
+
+	public function test_get_post_without_permission() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',
 		) );
@@ -102,7 +120,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_post_context_without_permisson() {
+	public function test_get_post_context_without_permission() {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->set_query_params( array(
 			'context' => 'edit',
@@ -125,7 +143,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_get_post_response( $response, 'view' );
 	}
 
-	public function test_get_post_with_password_without_permisson() {
+	public function test_get_post_with_password_without_permission() {
 		$post_id = $this->factory->post->create( array(
 			'post_password' => 'always$inthebananastand',
 		) );
@@ -438,7 +456,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( 'testing', $data['password'] );
 	}
 
-	public function test_create_post_with_password_without_permisson() {
+	public function test_create_post_with_password_without_permission() {
 		wp_set_current_user( $this->author_id );
 		$user = wp_get_current_user();
 		$user->add_cap( 'publish_posts', false );
@@ -585,7 +603,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->check_create_update_post_response( $response );
 	}
 
-	public function test_update_post_without_permisson() {
+	public function test_update_post_without_permission() {
 		wp_set_current_user( $this->editor_id );
 		$user = wp_get_current_user();
 		$user->add_cap( 'edit_published_posts', false );
@@ -744,7 +762,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_delete_post_without_permisson() {
+	public function test_delete_post_without_permission() {
 		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $this->post_id ) );

@@ -9,6 +9,73 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		$base = $this->get_post_type_base( $this->post_type );
+
+		$schema = $this->get_item_schema();
+		$post_type_fields = ! empty( $schema['properties'] ) ? array_keys( $schema['properties'] ) : array();
+
+		register_json_route( 'wp', '/' . $base, array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+					'type'            => array(),
+					'page'            => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+				'args'            => $post_type_fields,
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::EDITABLE,
+				'callback'        => array( $this, 'update_item' ),
+				'accept_json'     => true,
+				'args'            => $post_type_fields,
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_revisions' ),
+			'args'            => array(
+				'context'          => array(
+					'default'      => 'view-revision',
+				),
+			),
+		) );
+		register_json_route( 'wp', '/' . $base . '/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get a collection of posts
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
@@ -417,32 +484,32 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$schema = $this->get_item_schema();
 
 		// Post title
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['title'] ) ) {
+		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title'] );
+				$prepared_post->post_title = wp_filter_post_kses( $request['title'] );
 			}
 			elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_title = wp_kses_post( $request['title']['raw'] );
+				$prepared_post->post_title = wp_filter_post_kses( $request['title']['raw'] );
 			}
 		}
 
 		// Post content
 		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content'] );
+				$prepared_post->post_content = wp_filter_post_kses( $request['content'] );
 			}
 			elseif ( isset( $request['content']['raw'] ) ) {
-				$prepared_post->post_content = wp_kses_post( $request['content']['raw'] );
+				$prepared_post->post_content = wp_filter_post_kses( $request['content']['raw'] );
 			}
 		}
 
 		// Post excerpt
 		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt'] );
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt'] );
 			}
 			elseif ( isset( $request['excerpt']['raw'] ) ) {
-				$prepared_post->post_excerpt = wp_kses_post( $request['excerpt']['raw'] );
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt']['raw'] );
 			}
 		}
 
@@ -946,12 +1013,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = $this->get_post_type_base( $this->post_type );
+		$base = '/wp/' . $this->get_post_type_base( $this->post_type );
 
 		// Entity meta
 		$links = array(
 			'self' => array(
-				'href' => json_url( '/wp/' . $base . '/' . $post->ID ),
+				'href' => json_url( trailingslashit( $base ) . $post->ID ),
 			),
 			'collection' => array(
 				'href' => json_url( $base ),
@@ -966,10 +1033,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
+			$replies_url = json_url( '/wp/comments' );
+			$replies_url = add_query_arg( 'post_id', $post->ID, $replies_url );
 			$links['replies'] = array(
-				'href'         => json_url( '/wp/comments' ),
+				'href'         => $replies_url,
 				'embeddable'   => true,
-				'query_params' => array( 'post_id' => $post->ID ),
 			);
 		}
 

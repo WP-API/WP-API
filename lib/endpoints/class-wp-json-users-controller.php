@@ -6,6 +6,95 @@
 class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		register_json_route( 'wp', '/users', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'args'            => array(
+					'context'          => array(),
+					'order'            => array(),
+					'orderby'          => array(),
+					'per_page'         => array(),
+					'page'             => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+				'args'            => array(
+					'email'           => array(
+						'required'        => true,
+					),
+					'username'        => array(
+						'required'        => true,
+					),
+					'password'        => array(
+						'required'        => true,
+					),
+					'name'            => array(),
+					'first_name'      => array(),
+					'last_name'       => array(),
+					'nickname'        => array(),
+					'slug'            => array(),
+					'description'     => array(),
+					'role'            => array(),
+					'url'             => array(),
+				),
+			),
+		) );
+		register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+				'args'            => array(
+					'context'          => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::EDITABLE,
+				'callback'        => array( $this, 'update_item' ),
+				'args'            => array(
+					'email'           => array(),
+					'username'        => array(),
+					'password'        => array(),
+					'name'            => array(),
+					'first_name'      => array(),
+					'last_name'       => array(),
+					'nickname'        => array(),
+					'slug'            => array(),
+					'description'     => array(),
+					'role'            => array(),
+					'url'             => array(),
+				),
+			),
+			array(
+				'methods' => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'args' => array(
+					'reassign' => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/users/me', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_current_item' ),
+			'args'            => array(
+				'context'          => array(),
+			)
+		));
+
+		register_json_route( 'wp', '/users/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get all users
 	 *
 	 * @param WP_JSON_Request $request Full details about the request.
