@@ -215,8 +215,8 @@ class WP_JSON_Taxonomies {
 		$args = array(
 			'hide_empty' => false,
 		);
-		
-		// Allow args in get_terms function. This is a partial list and does not include hide_empty and cache_domain.  
+
+		// Allow args in get_terms function. This is a partial list and does not include hide_empty and cache_domain.
 		$valid_vars = array(
 			'orderby',
 			'order',
@@ -236,13 +236,13 @@ class WP_JSON_Taxonomies {
 			'offset',
 			'search',
 		);
-		
+
 		foreach ( $valid_vars as $var ) {
 			if ( isset( $filter[ $var ] ) ) {
 				$args[ $var ] = apply_filters( 'json_tax_query_var-' . $var, $filter[ $var ] );
 			}
 		}
-		
+
 		$terms = get_terms( $taxonomy, $args );
 
 		if ( is_wp_error( $terms ) ) {

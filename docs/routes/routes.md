@@ -16,14 +16,17 @@ body.
 
 That is, the following are equivalent:
 
+```
 Content-Type: application/x-www-form-urlencoded
 
-  data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
+data[title]=Hello%20World!&data[content_raw]=Content&data[excerpt_raw]=Excerpt
+```
 
-
+```
 Content-Type: application/json
-
-  {"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
+	
+{"title":"Hello World!","content_raw":"Content","excerpt_raw":"Excerpt"}
+ ```
 
 The `data` parameter should be an object containing the following key value
 pairs:
@@ -539,7 +542,7 @@ The parameter should be an array of the following key/value pairs:
 
 * `number` - Number of users to retrieve, use `-1` for all users. Default
   is set by the site. (integer)
-* `offset` - Number of posts to skip. Default is 0. (integer)
+* `offset` - Number of users to skip. Default is 0. (integer)
 * `orderby` - Parameter to search by, as per [`WP_User_Query`](https://codex.wordpress.org/Class_Reference/WP_User_Query#Order_.26_Orderby_Parameters).
   Default is "user_login". (string)
 * `order` - Order to sort by. Default is "ASC". (string, "ASC" or "DESC")

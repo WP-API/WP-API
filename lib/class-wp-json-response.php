@@ -1,50 +1,43 @@
 <?php
 
-class WP_JSON_Response implements WP_JSON_ResponseInterface {
+class WP_JSON_Response extends WP_HTTP_Response {
 	/**
-	 * Constructor
+	 * Links related to the response
 	 *
-	 * @param mixed $data Response data
-	 * @param integer $status HTTP status code
-	 * @param array $headers HTTP header map
+	 * @var array
 	 */
-	public function __construct($data = null, $status = 200, $headers = array()) {
-		$this->data = $data;
-		$this->set_status( $status );
-		$this->set_headers( $headers );
-	}
+	protected $links = array();
 
 	/**
-	 * Get headers associated with the response
+	 * Add a link to the response
 	 *
-	 * @return array Map of header name to header value
-	 */
-	public function get_headers() {
-		return $this->headers;
-	}
-
-	/**
-	 * Set all header values
+	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
 	 *
-	 * @param array $headers Map of header name to header value
-	 */
-	public function set_headers( $headers ) {
-		$this->headers = $headers;
-	}
-
-	/**
-	 * Set a single HTTP header
+	 * @link http://tools.ietf.org/html/rfc5988
+	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $key Header name
-	 * @param string $value Header value
-	 * @param boolean $replace Replace an existing header of the same name?
+	 * @param string $rel Link relation. Either an IANA registered type, or an absolute URL
+	 * @param string $link Target IRI for the link
+	 * @param array $attributes Link parameters to send along with the URL
 	 */
-	public function header( $key, $value, $replace = true ) {
-		if ( $replace || ! isset( $this->headers[ $key ] ) ) {
-			$this->headers[ $key ] = $value;
-		} else {
-			$this->headers[ $key ] .= ', ' . $value;
+	public function add_link( $rel, $href, $attributes = array() ) {
+		if ( empty( $this->links[ $rel ] ) ) {
+			$this->links[ $rel ] = array();
 		}
+
+		$this->links[ $rel ][] = array(
+			'href'       => $href,
+			'attributes' => $attributes,
+		);
+	}
+
+	/**
+	 * Get links for the response
+	 *
+	 * @return array
+	 */
+	public function get_links() {
+		return $this->links;
 	}
 
 	/**
@@ -78,13 +71,13 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 	 */
 	public function query_navigation_headers( $query ) {
 		$max_page = $query->max_num_pages;
-		$paged    = $query->get('paged');
+		$paged    = $query->get( 'paged' );
 
 		if ( ! $paged ) {
 			$paged = 1;
 		}
 
-		$nextpage = intval($paged) + 1;
+		$nextpage = intval( $paged ) + 1;
 
 		if ( ! $query->is_single() ) {
 			if ( $paged > 1 ) {
@@ -103,55 +96,6 @@ class WP_JSON_Response implements WP_JSON_ResponseInterface {
 		$this->header( 'X-WP-Total', $query->found_posts );
 		$this->header( 'X-WP-TotalPages', $max_page );
 
-		do_action('json_query_navigation_headers', $this, $query);
-	}
-
-	/**
-	 * Get the HTTP return code for the response
-	 *
-	 * @return integer 3-digit HTTP status code
-	 */
-	public function get_status() {
-		return $this->status;
-	}
-
-	/**
-	 * Set the HTTP status code
-	 *
-	 * @param int $code HTTP status
-	 */
-	public function set_status( $code ) {
-		$this->status = absint( $code );
-	}
-
-	/**
-	 * Get the response data
-	 *
-	 * @return mixed
-	 */
-	public function get_data() {
-		return $this->data;
-	}
-
-	/**
-	 * Set the response data
-	 *
-	 * @param mixed $data
-	 */
-	public function set_data( $data ) {
-		$this->data = $data;
-	}
-
-	/**
-	 * Get the response data for JSON serialization
-	 *
-	 * It is expected that in most implementations, this will return the same as
-	 * {@see get_data()}, however this may be different if you want to do custom
-	 * JSON data handling.
-	 *
-	 * @return mixed Any JSON-serializable value
-	 */
-	public function jsonSerialize() {
-		return $this->get_data();
+		do_action( 'json_query_navigation_headers', $this, $query );
 	}
 }

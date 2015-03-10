@@ -46,9 +46,22 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 
 		// Add post-by-path routes
 		$routes[ $this->base . '/(?P<path>.+)'] = array(
-			array( array( $this, 'get_post_by_path' ),    WP_JSON_Server::READABLE ),
-			array( array( $this, 'edit_post_by_path' ),   WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
-			array( array( $this, 'delete_post_by_path' ), WP_JSON_Server::DELETABLE ),
+			array(
+				'callback'  => array( $this, 'get_post_by_path' ),
+				'methods'   => WP_JSON_Server::READABLE,
+				'v1_compat' => true,
+			),
+			array(
+				'callback'    => array( $this, 'edit_post_by_path' ),
+				'methods'     => WP_JSON_Server::EDITABLE,
+				'accept_json' => true,
+				'v1_compat'   => true,
+			),
+			array(
+				'callback'  => array( $this, 'delete_post_by_path' ),
+				'methods'   => WP_JSON_Server::DELETABLE,
+				'v1_compat' => true,
+			),
 		);
 
 		return $routes;
@@ -120,10 +133,14 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 		$_post = parent::prepare_post( $post, $context );
 
 		// Override entity meta keys with the correct links
-		$_post['meta']['links']['self'] = json_url( $this->base . '/' . get_page_uri( $post['ID'] ) );
+		$_post['_links']['self'] = array(
+			'href' => json_url( $this->base . '/' . get_page_uri( $post['ID'] ) ),
+		);
 
 		if ( ! empty( $post['post_parent'] ) ) {
-			$_post['meta']['links']['up'] = json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) );
+			$_post['_links']['up'] = array(
+				'href' => json_url( $this->base . '/' . get_page_uri( (int) $post['post_parent'] ) ),
+			);
 		}
 
 		return apply_filters( 'json_prepare_page', $_post, $post, $context );
