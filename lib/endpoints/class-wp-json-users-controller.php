@@ -142,6 +142,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 		}
 
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'edit_user', $user->ID ) ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user with edit context' ), array( 'status' => 403 ) );
+		}
+
 		$can_view = false;
 
 		$current_user_id = get_current_user_id();
