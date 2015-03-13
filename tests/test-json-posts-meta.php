@@ -14,6 +14,37 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 		$this->user_obj = wp_get_current_user();
 		$this->user_obj->add_role( 'author' );
+
+		$this->endpoint = new WP_JSON_Meta_Posts_Controller( '/wp/posts/(?P<id>\d+)/meta');
+	}
+
+	public function test_register_routes() {
+		$routes = $this->server->get_routes();
+
+		$base = '/wp/posts/(?P<id>\d+)/meta';
+		$this->assertArrayHasKey( $base, $routes );
+		$this->assertCount( 2, $routes[ $base ] );
+		$this->assertArrayHasKey( $base . '/(?P<mid>\d+)', $routes );
+		$this->assertCount( 3, $routes[ $base . '/(?P<mid>\d+)'] );
+	}
+
+	public function test_get_item_schema() {
+		// No-op
+	}
+
+	public function test_prepare_item() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta = get_metadata_by_mid( 'post', $meta_id );
+
+		$request = new WP_JSON_Request;
+		$request['id'] = $post_id;
+		$request['mid'] = $meta_id;
+
+		$data = $this->endpoint->prepare_item_for_response( $meta, $request );
+		$this->assertEquals( $meta_id, $data['id'] );
+		$this->assertEquals( 'testkey', $data['key'] );
+		$this->assertEquals( 'testvalue', $data['value'] );
 	}
 
 	public function test_get_item() {
@@ -417,7 +448,7 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEmpty( get_post_meta( $post_id, '_testkey' ) );
 	}
 
-	public function test_update_meta_value() {
+	public function test_update_item() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
