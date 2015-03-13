@@ -6,26 +6,23 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
+class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 	public function setUp() {
 		parent::setUp();
-
-		$this->markTestSkipped( "Needs to be revisited after dust has settled on develop" );
 
 		$this->user = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 		$this->user_obj = wp_get_current_user();
 		$this->user_obj->add_role( 'author' );
-
-		$this->fake_server = $this->getMock( 'WP_JSON_Server' );
-		$this->endpoint = new WP_JSON_Meta_Posts();
 	}
 
-	public function test_get_meta() {
+	public function test_get_item() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -37,87 +34,113 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 'testvalue', $data['value'] );
 	}
 
-	public function test_get_meta_no_post_id() {
+	public function test_get_item_no_post_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( 0, $meta_id );
+		// Use the real URL to ensure routing succeeds
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		// Override the id parameter to ensure meta is checking it
+		$request['id'] = 0;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_meta_invalid_post_id() {
+	public function test_get_item_invalid_post_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( -1, $meta_id );
+		// Use the real URL to ensure routing succeeds
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		// Override the id parameter to ensure meta is checking it
+		$request['id'] = -1;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_get_meta_no_meta_id() {
+	public function test_get_item_no_meta_id() {
 		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( $post_id, 0 );
+		// Use the real URL to ensure routing succeeds
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		// Override the mid parameter to ensure meta is checking it
+		$request['mid'] = 0;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 	}
 
-	public function test_get_meta_invalid_meta_id() {
+	public function test_get_item_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( $post_id, -1 );
+		// Use the real URL to ensure routing succeeds
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		// Override the mid parameter to ensure meta is checking it
+		$request['mid'] = -1;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 	}
 
-	public function test_get_meta_protected() {
+	public function test_get_item_protected() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 	}
 
-	public function test_get_meta_serialized_array() {
+	public function test_get_item_serialized_array() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', array( 'testvalue' => 'test' ) );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 	}
 
-	public function test_get_meta_serialized_object() {
+	public function test_get_item_serialized_object() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', (object) array( 'testvalue' => 'test' ) );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 	}
 
-	public function test_get_meta_unauthenticated() {
+	public function test_get_item_unauthenticated() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		wp_set_current_user( 0 );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
 	}
 
-	public function test_get_meta_wrong_post() {
+	public function test_get_item_wrong_post() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$post_id_two = $this->factory->post->create();
 		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_meta( $post_id_two, $meta_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id_two );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 	}
 
-	public function test_get_all_meta() {
+	public function test_get_items() {
 		$post_id = $this->factory->post->create();
 		$meta_id_basic = add_post_meta( $post_id, 'testkey', 'testvalue' );
 		$meta_id_other1 = add_post_meta( $post_id, 'testotherkey', 'testvalue1' );
@@ -134,7 +157,8 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		// protected
 		add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_all_meta( $post_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -168,39 +192,47 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		}
 	}
 
-	public function test_get_all_meta_no_post_id() {
+	public function test_get_items_no_post_id() {
 		$post_id = $this->factory->post->create();
 		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_all_meta( 0 );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request['id'] = 0;
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response );
 	}
 
-	public function test_get_all_meta_invalid_post_id() {
+	public function test_get_items_invalid_post_id() {
 		$post_id = $this->factory->post->create();
 		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->get_all_meta( -1 );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request['id'] = -1;
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response );
 	}
 
-	public function test_get_all_meta_unauthenticated() {
+	public function test_get_items_unauthenticated() {
 		$post_id = $this->factory->post->create();
 		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		wp_set_current_user( 0 );
 
-		$response = $this->endpoint->get_all_meta( $post_id );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response );
 	}
 
-	public function test_add_meta() {
+	public function test_create_item() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -210,58 +242,81 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEquals( 'testvalue', $meta[0] );
 
 		$data = $response->get_data();
-		$this->assertObjectHasAttribute( 'id', $data );
-		$this->assertEquals( 'testkey', $data->key );
-		$this->assertEquals( 'testvalue', $data->value );
+		$this->assertArrayHasKey( 'id', $data );
+		$this->assertEquals( 'testkey', $data['key'] );
+		$this->assertEquals( 'testvalue', $data['value'] );
 	}
 
-	public function test_add_meta_no_post_id() {
+	public function test_create_item_no_post_id() {
+		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
-		$response = $this->endpoint->add_meta( 0, $data );
+
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$request['id'] = 0;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_add_meta_invalid_post_id() {
+	public function test_create_item_invalid_post_id() {
+		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
-		$response = $this->endpoint->add_meta( -1, $data );
+
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$request['id'] = -1;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
-	public function test_add_meta_no_value() {
+	public function test_create_item_no_value() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 		);
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_missing_value', $response, 400 );
 	}
 
-	public function test_add_meta_no_key() {
+	public function test_create_item_no_key() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'value' => 'testvalue',
 		);
-		$response = $this->endpoint->add_meta( $post_id, $data );
-		$this->assertErrorResponse( 'json_post_missing_key', $response, 400 );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
 	}
 
-	public function test_add_meta_invalid_key() {
+	public function test_create_item_invalid_key() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => false,
 			'value' => 'testvalue',
 		);
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
 	}
 
-	public function test_add_meta_unauthenticated() {
+	public function test_create_item_unauthenticated() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
@@ -270,48 +325,62 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 
 		wp_set_current_user( 0 );
 
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_add_meta_serialized_array() {
+	public function test_create_item_serialized_array() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => array( 'testvalue1', 'testvalue2' ),
 		);
 
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_add_meta_serialized_object() {
+	public function test_create_item_serialized_object() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ),
 		);
 
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_add_meta_serialized_string() {
+	public function test_create_item_serialized_string() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) ),
 		);
 
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_add_meta_failed_get() {
+	public function test_create_item_failed_get() {
+		$this->markTestSkipped();
+
 		$this->endpoint = $this->getMock( 'WP_JSON_Meta_Posts', array('get_meta'), array( $this->fake_server ) );
 
 		$test_error = new WP_Error( 'json_test_error', 'Test error' );
@@ -327,14 +396,17 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertErrorResponse( 'json_test_error', $response );
 	}
 
-	public function test_add_meta_protected() {
+	public function test_create_item_protected() {
 		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => '_testkey',
 			'value' => 'testvalue',
 		);
 
-		$response = $this->endpoint->add_meta( $post_id, $data );
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 		$this->assertEmpty( get_post_meta( $post_id, '_testkey' ) );
 	}
@@ -346,7 +418,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -370,7 +445,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'key' => 'testnewkey',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -399,7 +477,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -425,7 +506,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$data = array();
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -450,7 +534,11 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( 0, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['id'] = 0;
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
@@ -462,7 +550,11 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( -1, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['id'] = -1;
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
@@ -474,20 +566,28 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, 0, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['mid'] = 0;
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
 	public function test_update_meta_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$data = array(
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, -1, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['mid'] = -1;
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -502,7 +602,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -518,11 +621,17 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id_two, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
-		$response = $this->endpoint->get_meta( $post_id, $meta_id_two, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -534,7 +643,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => array( 'testvalue1', 'testvalue2' ),
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -546,7 +658,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ),
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -558,7 +673,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) ),
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -570,7 +688,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( array( 'testvalue1', 'testvalue2' ) ), get_post_meta( $post_id, 'testkey' ) );
 	}
@@ -582,7 +703,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, '_testkey' ) );
 	}
@@ -595,7 +719,10 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => '_testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 		$this->assertEmpty( get_post_meta( $post_id, '_testnewkey' ) );
@@ -609,16 +736,20 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 			'key' => false,
 			'value' => 'testnewvalue',
 		);
-		$response = $this->endpoint->update_meta( $post_id, $meta_id, $data );
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_delete_meta() {
+	public function test_delete_item() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
@@ -632,109 +763,135 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_TestCase {
 		$this->assertEmpty( $meta );
 	}
 
-	public function test_delete_meta_no_post_id() {
+	public function test_delete_item_no_post_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( 0, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['id'] = 0;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
-	public function test_delete_meta_invalid_post_id() {
+	public function test_delete_item_invalid_post_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( -1, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['id'] = -1;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
-	public function test_delete_meta_no_meta_id() {
+	public function test_delete_item_no_meta_id() {
 		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( $post_id, 0 );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['mid'] = 0;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
-	public function test_delete_meta_invalid_meta_id() {
+	public function test_delete_item_invalid_meta_id() {
 		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( $post_id, -1 );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['mid'] = -1;
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_id', $response, 404 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
-	public function test_delete_meta_unauthenticated() {
+	public function test_delete_item_unauthenticated() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		wp_set_current_user( 0 );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_cannot_edit', $response, 403 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
-	public function test_delete_meta_wrong_post() {
+	public function test_delete_item_wrong_post() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$post_id_two = $this->factory->post->create();
 		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( $post_id_two, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id_two );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_delete_meta_serialized_array() {
+	public function test_delete_item_serialized_array() {
 		$post_id = $this->factory->post->create();
 		$value = array( 'testvalue1', 'testvalue2' );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_delete_meta_serialized_object() {
+	public function test_delete_item_serialized_object() {
 		$post_id = $this->factory->post->create();
 		$value = (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_delete_meta_serialized_string() {
+	public function test_delete_item_serialized_string() {
 		$post_id = $this->factory->post->create();
 		$value = serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_post_invalid_action', $response, 400 );
 		$this->assertEquals( array( $value ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
-	public function test_delete_meta_protected() {
+	public function test_delete_item_protected() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$response = $this->endpoint->delete_meta( $post_id, $meta_id );
+		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_protected', $response, 403 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, '_testkey' ) );
 	}
