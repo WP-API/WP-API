@@ -288,7 +288,13 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_post_missing_value', $response, 400 );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'id', $data );
+		$this->assertEquals( 'testkey', $data['key'] );
+		$this->assertEquals( '', $data['value'] );
 	}
 
 	public function test_create_item_no_key() {
