@@ -232,7 +232,7 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = json_ensure_response( $this->get_post( $result ) );
+		$response = json_ensure_response( $this->get_post( $result, 'edit' ) );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
@@ -345,7 +345,7 @@ class WP_JSON_Posts {
 			return $retval;
 		}
 
-		return $this->get_post( $id );
+		return $this->get_post( $id, 'edit' );
 	}
 
 	/**
@@ -567,6 +567,7 @@ class WP_JSON_Posts {
 			'content_raw' => $post['post_content'],
 			'excerpt_raw' => $post['post_excerpt'],
 			'guid_raw'    => $post['guid'],
+			'post_meta'   => $this->handle_get_post_meta( $post['ID'] ),
 		);
 
 		// Dates
@@ -938,6 +939,14 @@ class WP_JSON_Posts {
 			$post['ID'] = $post_ID;
 		}
 
+		// Post meta
+		if ( ! empty( $data['post_meta'] ) ) {
+			$result = $this->handle_post_meta_action( $post_ID, $data );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+
 		// Sticky
 		if ( isset( $data['sticky'] ) ) {
 			if ( $data['sticky'] ) {
@@ -1008,6 +1017,31 @@ class WP_JSON_Posts {
 		_deprecated_function( __CLASS__ . '::' . __METHOD__, 'WPAPI-1.2', 'WP_JSON_Comments::prepare_comment' );
 
 		return $this->comments->_deprecated_call( 'prepare_comment', array( $comment, $requested_fields, $context ) );
+	}
+
+	/**
+	 * Update/add/delete meta for a post.
+	 *
+	 * @param int $post_id
+	 * @param array $data
+	 * @return bool|WP_Error
+	 */
+	protected function handle_post_meta_action( $post_id, $data ) {
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+
+		return $handler->handle_inline_meta( $post_id, $data['post_meta'] );
+	}
+
+	/**
+	 * Retrieve all meta for a post.
+	 *
+	 * @param int $post_id Post ID
+	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
+	 */
+	protected function handle_get_post_meta( $post_id ) {
+		$handler = new WP_JSON_Meta_Posts( $this->server );
+
+		return $handler->get_all_meta( $post_id );
 	}
 
 	/**
@@ -1112,22 +1146,6 @@ class WP_JSON_Posts {
 
 		$handler = new WP_JSON_Meta_Posts( $this->server );
 		return $handler->_deprecated_call( 'prepare_meta', array( $post, $data, $is_raw ) );
-	}
-
-	/**
-	 * Update/add/delete meta for an object
-	 *
-	 * @deprecated WPAPI-1.2
-	 *
-	 * @param array $data
-	 * @param int $parent_id
-	 * @return bool|WP_Error
-	 */
-	protected function handle_post_meta_action( $post_id, $data ) {
-		_deprecated_function( 'WP_JSON_Posts::handle_post_meta_action', 'WPAPI-1.2', 'WP_JSON_Meta_Posts::handle_inline_meta' );
-
-		$handler = new WP_JSON_Meta_Posts( $this->server );
-		return $handler->_deprecated_call( 'handle_inline_meta', array( $post, $data, $is_raw ) );
 	}
 
 	/**

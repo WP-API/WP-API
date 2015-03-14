@@ -528,6 +528,52 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertFalse( is_sticky( $response_data['ID'] ) );
 	}
 
+	function test_create_post_with_meta() {
+		$data = $this->set_data( array(
+			'post_meta' => array(
+				array(
+					'key' => 'testkey',
+					'value' => 'testvalue',
+				),
+		) ) );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$this->assertEquals( 1, count( $response_data['post_meta'] ) );
+
+		$post_meta_value = get_post_meta( $response_data['ID'], 'testkey', true );
+		$this->assertEquals( 'testvalue', $post_meta_value );
+	}
+
+	function test_create_post_with_multiple_meta() {
+		$data = $this->set_data( array(
+			'post_meta' => array(
+				array(
+					'key' => 'some_meta',
+					'value' => 'some_value',
+				),
+				array(
+					'key' => 'some_other_meta',
+					'value' => 'some_other_value',
+				),
+		) ) );
+
+		$response = $this->endpoint->create_post( $data );
+		$response = json_ensure_response( $response );
+		$this->check_create_response( $response );
+
+		$response_data = $response->get_data();
+		$this->assertEquals( 2, count( $response_data['post_meta'] ) );
+
+		$post_meta_first_value = get_post_meta( $response_data['ID'], 'some_meta', true );
+		$post_meta_second_value = get_post_meta( $response_data['ID'], 'some_other_meta', true );
+		$this->assertEquals( 'some_value', $post_meta_first_value );
+		$this->assertEquals( 'some_other_value', $post_meta_second_value );
+	}
+
 	function test_get_post() {
 		$response = $this->endpoint->get_post( $this->post_id );
 
@@ -540,6 +586,24 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->assertArrayHasKey( 'Last-Modified', $headers );
 
 		$this->check_get_post_response( $response, $this->post_obj );
+	}
+
+	function test_get_post_edit_context() {
+		add_post_meta( $this->post_id, 'some_meta', 'some_value', true );
+		add_post_meta( $this->post_id, 'some_other_meta', 'some_other_value', true );
+
+		$response = $this->endpoint->get_post( $this->post_id, 'edit' );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->check_get_post_response( $response, $this->post_obj );
+
+		$headers = $response->get_headers();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'Last-Modified', $headers );
+
+		$response_data = $response->get_data();
+		$this->assertEquals( 2, count( $response_data['post_meta'] ) );
 	}
 
 	function test_get_revisions() {
