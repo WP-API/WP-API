@@ -58,6 +58,9 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	 * Retrieve a page by path name
 	 *
 	 * @param string $path
+	 * @param string $context
+	 *
+	 * @return array|WP_Error
 	 */
 	public function get_post_by_path( $path, $context = 'view' ) {
 		$post = get_page_by_path( $path, ARRAY_A );
@@ -72,7 +75,11 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	/**
 	 * Edit a page by path name
 	 *
-	 * @param string $path
+	 * @param $path
+	 * @param $data
+	 * @param array $_headers
+	 *
+	 * @return true|WP_Error
 	 */
 	public function edit_post_by_path( $path, $data, $_headers = array() ) {
 		$post = get_page_by_path( $path, ARRAY_A );
@@ -87,7 +94,10 @@ class WP_JSON_Pages extends WP_JSON_CustomPostType {
 	/**
 	 * Delete a page by path name
 	 *
-	 * @param string $path
+	 * @param $path
+	 * @param bool $force
+	 *
+	 * @return true|WP_Error
 	 */
 	public function delete_post_by_path( $path, $force = false ) {
 		$post = get_page_by_path( $path, ARRAY_A );
