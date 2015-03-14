@@ -187,7 +187,11 @@ class WP_JSON_Comments {
 		}
 
 		// Date
+		$timezone     = json_get_timezone();
+		$comment_date = WP_JSON_DateTime::createFromFormat( 'Y-m-d H:i:s', $comment->comment_date, $timezone );
+
 		$fields['date']     = json_mysql_to_rfc3339( $comment->comment_date );
+		$fields['date_tz']  = $comment_date->format( 'e' );
 		$fields['date_gmt'] = json_mysql_to_rfc3339( $comment->comment_date_gmt );
 
 		// Meta
