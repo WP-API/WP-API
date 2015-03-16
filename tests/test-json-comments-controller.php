@@ -76,7 +76,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$request = new WP_JSON_Request( 'GET', '/wp/comments' );
 		$request->set_query_params( array(
-			'post_id' => $second_post_id,
+			'post' => $second_post_id,
 		) );
 
 		$response = $this->server->dispatch( $request );
@@ -133,7 +133,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%d', $this->hold_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_comment_not_approved_same_user() {
@@ -149,7 +149,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		wp_set_current_user( 0 );
 
 		$params = array(
-			'post_id'      => $this->post_id,
+			'post'         => $this->post_id,
 			'author'       => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
@@ -175,12 +175,12 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'post_id'      => $this->post_id,
+			'post'         => $this->post_id,
 			'author'       => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
-			'user_id'      => 0,
+			'user'         => 0,
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
@@ -191,7 +191,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['user_id'] );
+		$this->assertEquals( 0, $data['user'] );
 	}
 
 	public function test_create_item_duplicate() {
@@ -207,7 +207,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		wp_set_current_user( 0 );
 
 		$params = array(
-			'post_id'      => $this->post_id,
+			'post'         => $this->post_id,
 			'author'       => 'Guy N. Cognito',
 			'author_email' => 'chunkylover53@aol.co.uk',
 			'content'      => 'Homer? Who is Homer? My name is Guy N. Cognito.',
@@ -229,7 +229,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		wp_set_current_user( 0 );
 
 		$params = array(
-			'post_id'      => $post_id,
+			'post'      => $post_id,
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
@@ -238,7 +238,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 
 		$response = json_ensure_response( $response );
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertEquals( 403, $response->get_status() );
 	}
 
 	public function test_update_item() {
@@ -320,7 +320,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_edit_comment', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -354,7 +354,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/comments/%d', $this->approved_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete_comment', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_item_schema() {
@@ -370,20 +370,20 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
-		$this->assertArrayHasKey( 'parent_id', $properties );
-		$this->assertArrayHasKey( 'post_id', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
+		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
-		$this->assertArrayHasKey( 'user_id', $properties );
+		$this->assertArrayHasKey( 'user', $properties );
 	}
 
 	protected function check_comment_data( $data, $context ) {
 		$comment = get_comment( $data['id'] );
 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
-		$this->assertEquals( $comment->comment_post_ID, $data['post_id'] );
-		$this->assertEquals( $comment->comment_parent, $data['parent_id'] );
-		$this->assertEquals( $comment->user_id, $data['user_id' ] );
+		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
+		$this->assertEquals( $comment->comment_parent, $data['parent'] );
+		$this->assertEquals( $comment->user_id, $data['user' ] );
 		$this->assertEquals( $comment->comment_author, $data['author'] );
 		$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
@@ -392,13 +392,19 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 
 		if ( 'edit' === $context ) {
+			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
+			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
 			$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
+			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}
 
 		if ( 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'author_ip', $data );
+			$this->assertArrayNotHasKey( 'author_user_agent', $data );
 			$this->assertArrayNotHasKey( 'date_gmt', $data );
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
+			$this->assertArrayNotHasKey( 'karma', $data );
 		}
 	}
 

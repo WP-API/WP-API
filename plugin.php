@@ -127,8 +127,9 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 function create_initial_json_routes() {
 
 	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
-
+		
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
+
 		if ( ! class_exists( $class ) ) {
 			continue;
 		}
@@ -136,358 +137,39 @@ function create_initial_json_routes() {
 		if ( ! is_subclass_of( $controller, 'WP_JSON_Controller' ) ) {
 			continue;
 		}
-		$base = $controller->get_post_type_base( $post_type->name );
 
-		$schema = $controller->get_item_schema();
-		$post_type_fields = ! empty( $schema['properties'] ) ? array_keys( $schema['properties'] ) : array();
-
-		register_json_route( 'wp', '/' . $base, array(
-			array(
-				'methods'         => WP_JSON_Server::READABLE,
-				'callback'        => array( $controller, 'get_items' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
-					'type'            => array(),
-					'page'            => array(),
-				),
-			),
-			array(
-				'methods'         => WP_JSON_Server::CREATABLE,
-				'callback'        => array( $controller, 'create_item' ),
-				'args'            => $post_type_fields,
-			),
-		) );
-		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
-			array(
-				'methods'         => WP_JSON_Server::READABLE,
-				'callback'        => array( $controller, 'get_item' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
-				),
-			),
-			array(
-				'methods'         => WP_JSON_Server::EDITABLE,
-				'callback'        => array( $controller, 'update_item' ),
-				'accept_json'     => true,
-				'args'            => $post_type_fields,
-			),
-			array(
-				'methods'  => WP_JSON_Server::DELETABLE,
-				'callback' => array( $controller, 'delete_item' ),
-				'args'     => array(
-					'force'    => array(),
-				),
-			),
-		) );
-		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item_revisions' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view-revision',
-				),
-			),
-		) );
-		register_json_route( 'wp', '/' . $base . '/schema', array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item_schema' ),
-		) );
-
+		$controller->register_routes();
 	}
 
 	/*
 	 * Post types
 	 */
 	$controller = new WP_JSON_Post_Types_Controller;
-	register_json_route( 'wp', '/types', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'post_type'          => array(),
-		),
-	) );
-
-	register_json_route( 'wp', '/types/schema', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_schema' ),
-	) );
-
-	register_json_route( 'wp', '/types/(?P<type>[\w-]+)', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item' ),
-	) );
+	$controller->register_routes();
 
 	/*
 	 * Taxonomies
 	 */
 	$controller = new WP_JSON_Taxonomies_Controller;
-	register_json_route( 'wp', '/taxonomies', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'post_type'          => array(),
-		),
-	) );
-	register_json_route( 'wp', '/taxonomies/schema', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_schema' ),
-	) );
-	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item' ),
-	) );
+	$controller->register_routes();
 
 	/*
 	 * Terms
 	 */
 	$controller = new WP_JSON_Terms_Controller;
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
-		array(
-			'methods'  => WP_JSON_Server::READABLE,
-			'callback' => array( $controller, 'get_items' ),
-			'args'     => array(
-				'search'   => array(),
-				'per_page' => array(),
-				'page'     => array(),
-				'order'    => array(),
-				'orderby'  => array(),
-			),
-		),
-		array(
-			'methods'     => WP_JSON_Server::CREATABLE,
-			'callback'    => array( $controller, 'create_item' ),
-			'args'        => array(
-				'name'        => array(
-					'required'    => true,
-				),
-				'description' => array(),
-				'slug'        => array(),
-				'parent_id'   => array(),
-			),
-		),
-	));
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
-		array(
-			'methods'    => WP_JSON_Server::READABLE,
-			'callback'   => array( $controller, 'get_item' ),
-		),
-		array(
-			'methods'    => WP_JSON_Server::EDITABLE,
-			'callback'   => array( $controller, 'update_item' ),
-			'args'       => array(
-				'name'           => array(),
-				'description'    => array(),
-				'slug'           => array(),
-				'parent_id'      => array(),
-			),
-		),
-		array(
-			'methods'    => WP_JSON_Server::DELETABLE,
-			'callback'   => array( $controller, 'delete_item' ),
-		),
-	) );
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_schema' ),
-	) );
+	$controller->register_routes();
 
 	/*
 	 * Users
 	 */
 	$controller = new WP_JSON_Users_Controller;
-	register_json_route( 'wp', '/users', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_items' ),
-			'args'            => array(
-				'context'          => array(),
-				'order'            => array(),
-				'orderby'          => array(),
-				'per_page'         => array(),
-				'page'             => array(),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::CREATABLE,
-			'callback'        => array( $controller, 'create_item' ),
-			'args'            => array(
-				'email'           => array(
-					'required'        => true,
-				),
-				'username'        => array(
-					'required'        => true,
-				),
-				'password'        => array(
-					'required'        => true,
-				),
-				'name'            => array(),
-				'first_name'      => array(),
-				'last_name'       => array(),
-				'nickname'        => array(),
-				'slug'            => array(),
-				'description'     => array(),
-				'role'            => array(),
-				'url'             => array(),
-			),
-		),
-	) );
-	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item' ),
-			'args'            => array(
-				'context'          => array(),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::EDITABLE,
-			'callback'        => array( $controller, 'update_item' ),
-			'args'            => array(
-				'email'           => array(),
-				'username'        => array(),
-				'password'        => array(),
-				'name'            => array(),
-				'first_name'      => array(),
-				'last_name'       => array(),
-				'nickname'        => array(),
-				'slug'            => array(),
-				'description'     => array(),
-				'role'            => array(),
-				'url'             => array(),
-			),
-		),
-		array(
-			'methods' => WP_JSON_Server::DELETABLE,
-			'callback' => array( $controller, 'delete_item' ),
-			'args' => array(
-				'reassign' => array(),
-			),
-		),
-	) );
-
-	register_json_route( 'wp', '/users/me', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_current_item' ),
-		'args'            => array(
-			'context'          => array(),
-		)
-	));
-
-	register_json_route( 'wp', '/users/schema', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_schema' ),
-	) );
+	$controller->register_routes();
 
 	/**
 	 * Comments
 	 */
 	$controller = new WP_JSON_Comments_Controller;
-	register_json_route( 'wp', '/comments', array(
-		array(
-			'methods'   => WP_JSON_Server::READABLE,
-			'callback'  => array( $controller, 'get_items' ),
-			'args'      => array(
-				'post_id'      => array(
-					'default'      => null,
-				),
-				'user_id'      => array(
-					'default'      => 0,
-				),
-				'per_page'     => array(
-					'default'      => 10,
-				),
-				'page'         => array(
-					'default'      => 1,
-				),
-				'status'       => array(
-					'default'      => 'approve',
-				),
-				'type'         => array(
-					'default'      => 'comment',
-				),
-				'parent_id'    => array(),
-				'search'       => array(),
-				'order'        => array(
-					'default'      => 'DESC',
-				),
-				'orderby'      => array(
-					'default'      => 'date_gmt',
-				),
-				'author_email' => array(),
-				'karma'        => array(),
-				'post_author'  => array(),
-				'post_name'    => array(),
-				'post_parent'  => array(),
-				'post_status'  => array(),
-				'post_type'    => array(),
-			),
-		),
-		array(
-			'methods'  => WP_JSON_Server::CREATABLE,
-			'callback' => array( $controller, 'create_item' ),
-			'args'     => array(
-				'post_id'      => array(
-					'required'     => true,
-				),
-				'type'         => array(
-					'default'      => 'comment',
-				),
-				'user_id'      => array(
-					'default'      => 0,
-				),
-				'parent_id'    => array(
-					'default'      => 0,
-				),
-				'content'      => array(),
-				'author'       => array(),
-				'author_email' => array(),
-				'author_url'   => array(),
-				'date'         => array(),
-				'date_gmt'     => array(),
-			),
-		),
-	) );
-
-	register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
-		array(
-			'methods'  => WP_JSON_Server::READABLE,
-			'callback' => array( $controller, 'get_item' ),
-			'args'     => array(
-				'context'  => array(
-					'default'  => 'view',
-				),
-			),
-		),
-		array(
-			'methods'  => WP_JSON_Server::EDITABLE,
-			'callback' => array( $controller, 'update_item' ),
-			'args'     => array(
-				'post_id'      => array(),
-				'status'       => array(),
-				'content'      => array(),
-				'author'       => array(),
-				'author_email' => array(),
-				'author_url'   => array(),
-				'date'         => array(),
-			),
-		),
-		array(
-			'methods'  => WP_JSON_Server::DELETABLE,
-			'callback' => array( $controller, 'delete_item' ),
-			'args'     => array(
-				'force'    => array(),
-			),
-		),
-	) );
-
-	register_json_route( 'wp', '/comments/schema', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item_schema' ),
-	) );
+	$controller->register_routes();
 
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
@@ -554,7 +236,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
 
 	// Default serving
-	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
+	add_filter( 'json_pre_serve_request', 'json_send_cors_headers' );
 	add_filter( 'json_post_dispatch',  'json_send_allow_header', 10, 3 );
 
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );

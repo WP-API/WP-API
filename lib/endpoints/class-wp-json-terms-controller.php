@@ -6,6 +6,62 @@
 class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_items' ),
+				'args'     => array(
+					'search'   => array(),
+					'per_page' => array(),
+					'page'     => array(),
+					'order'    => array(),
+					'orderby'  => array(),
+				),
+			),
+			array(
+				'methods'     => WP_JSON_Server::CREATABLE,
+				'callback'    => array( $this, 'create_item' ),
+				'args'        => array(
+					'name'        => array(
+						'required'    => true,
+					),
+					'description' => array(),
+					'slug'        => array(),
+					'parent'      => array(),
+				),
+			),
+		));
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+			array(
+				'methods'    => WP_JSON_Server::READABLE,
+				'callback'   => array( $this, 'get_item' ),
+			),
+			array(
+				'methods'    => WP_JSON_Server::EDITABLE,
+				'callback'   => array( $this, 'update_item' ),
+				'args'       => array(
+					'name'           => array(),
+					'description'    => array(),
+					'slug'           => array(),
+					'parent'         => array(),
+				),
+			),
+			array(
+				'methods'    => WP_JSON_Server::DELETABLE,
+				'callback'   => array( $this, 'delete_item' ),
+			),
+		) );
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get terms associated with a taxonomy
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
@@ -186,7 +242,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'name'         => $item->name,
 			'slug'         => $item->slug,
 			'taxonomy'     => $item->taxonomy,
-			'parent_id'    => (int) $parent_id,
+			'parent'       => (int) $parent_id,
 		);
 
 		if ( ! empty( $parent_term ) ) {
@@ -232,7 +288,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
 					),
-				'parent_id'        => array(
+				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
 					),
