@@ -612,6 +612,29 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Sanitize (where possible) the params on the request.
+	 *
+	 * This is primarily based off the sanitize_callback param on each regsitered
+	 * argument.
+	 * 
+	 * @return null
+	 */
+	public function sanitize_params() {
+
+		$attributes = $this->get_attributes();
+		$order = $this->get_parameter_order();
+
+		foreach ( $order as $type ) {
+			foreach ( $this->params[$type] as $key => $value ) {
+				// check if this param has a sanitize_callback added
+				if ( isset( $attributes[$key] ) && ! empty( $attributes[$key]['sanitize_callback'] ) ) {
+					$this->params[$type][$key] = call_user_func( $attributes[$key]['sanitize_callback'], $value, $this );
+				}
+			}
+		}
+	}
+
+	/**
 	 * Check whether this request is valid according to its attributes
 	 *
 	 * @return bool|WP_Error
