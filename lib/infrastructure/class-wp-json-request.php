@@ -661,6 +661,24 @@ class WP_JSON_Request implements ArrayAccess {
 			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
 		}
 
+		// check the validation callbacks for each registered arg.
+		// This is done after required checking as required checking is cheaper.
+		foreach ( $attributes['args'] as $key => $arg ) {
+
+			$param = $this->get_param( $key );
+			if ( $param !== null && ! empty( $arg['validate_callback']) ) {
+				$valid_check = call_user_func( $args['validate_callback'], $param, $this );
+
+				if ( $valid_check === false ) {
+					return new WP_Error( 'json_invalid_param', sprintf( __( 'Invalid parameter: %s' ), $key ), array( 'status' => 400 ) );
+				}
+
+				if ( is_wp_error( $valid_check ) ) {
+					return $valid_check;
+				}
+			}
+		}
+
 		return true;
 
 	}
