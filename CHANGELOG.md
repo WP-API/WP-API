@@ -1,5 +1,325 @@
 # Changelog
 
+## 1.2.0
+
+- Add handling for Cross-Origin Resource Sharing (CORS) OPTIONS requests.
+
+  Preflighted requests (using the OPTIONS method) include the headers
+  `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods`, and
+  `Access-Control-Allow-Credentials` in the response, if the HTTP origin is
+  set.
+
+  (props @rmccue, [#281][gh-281])
+
+- Allow overriding full requests.
+
+  The `json_pre_dispatch` filter allows a request to be hijacked before it is
+  dispatched. Hijacked requests can be anything a normal endpoint can return.
+
+  (props @rmccue, [#281][gh-281])
+
+- Check for JSON encoding/decoding errors.
+
+  Returns the last error (if any) occurred during the last JSON encoding or
+  decoding operation.
+
+  (props @joshkadis, @rmccue, [#461][gh-461])
+
+- Add filtering to the terms collection endpoint.
+
+  Available filter arguments are based on the `get_terms()` function. Example:
+  `/taxonomies/category/terms?filter[number]=10` would limit the response to 10
+  category terms.
+
+	(props @mauteri, [#401][gh-401], [#347][gh-347])
+
+- Add handling for the `role` parameter when creating or updating a user.
+
+  Allow users to be created or updated with a provided `role`.
+
+  (props @pippinsplugins, [#392][gh-392], [#335][gh-335])
+
+- Add handling for the `post_id` parameter when creating media.
+
+  Allow passing the `post_id` parameter to associate a new media item with
+  a post.
+
+  (props @pkevan, [#294][gh-294])
+
+- Handle route matching for `-` in taxonomy and terms.
+
+  Previously the regular expression used to match taxonomy and term names did
+  not support names with dashes.
+
+  (props @EdHurtig, @evansobkowicz, [#410][gh-410])
+
+- Handle JSONP callback matching for `.` in the function name.
+
+  Previously the regular expression used to match JSONP callback functions did
+  not support names with periods.
+
+  (props @codonnell822, [#455][gh-455])
+
+- Fix the Content-Type header for JSONP requests.
+
+  Previously JSONP requests sent the incorrect `application/json` Content-Type
+  header with the response.  This would result in an error if strict MIME
+  checking was enabled. The Content-Type header was corrected to
+  `application/javascript` for JSONP responses.
+
+  (props @simonlampen, [#380][gh-380])
+
+- Add `$context` parameter to `json_prepare_term` filter.
+
+  Terms responses can now be modified based on the `context` parameter of the
+  request.
+
+  (props @traversal, [#316][gh-316])
+
+- Move the JavaScript client library into the plugin.
+
+  Previously, the `wp-api.js` file was a separate repository. The JavaScript
+  client has moved back into the plugin to coordinate code changes.
+
+  (props @tlovett1, [#730][gh-730])
+
+- Always return an object for media sizes
+
+  The media sizes value should always be an object even when empty. Previously,
+  if a media item did not have any sizes set, an empty array was returned.
+
+  **Compatibility warning**: Clients should be prepared to accept an empty
+  object as a value for media sizes.
+
+  (props @maxcutler, [#300][gh-300])
+
+- Give top-level posts a `null` parent value.
+
+  For date type consistency, post parent property should be `null`. Previously,
+  parent-less posts returned `0` for parent.
+
+  **Compatibility warning**: Clients should be prepared to accept `null` as a
+  value for post parent.
+
+  (props @maxcutler, [#391][gh-391])
+
+- Move permission checks out of `WP_JSON_Posts`.
+
+  Introduce `json_check_post_permission()` function to allow post object
+  capability checks to be used outside the `WP_JSON_Posts` class.
+
+  **Deprecation warning:** Calling `WP_JSON_Posts::check_read_permission` and
+  `WP_JSON_Posts::check_edit_permission` is now deprecated.
+
+  (props @rachelbaker, [#486][gh-486], [#378][gh-378])
+
+- Split comment endpoints into separate class.
+
+  All comment handling has moved to the `WP_JSON_Comments` class.
+
+  **Deprecation warning:** Calling `WP_JSON_Posts::get_comments`,
+  `WP_JSON_Posts::get_comment`, `WP_JSON_Posts::delete_comment`, and
+  `WP_JSON_Posts::prepare_comment` is now deprecated.
+
+  (props @whyisjake, @rmccue, @rachelbaker, [#378][gh-378])
+
+- Split meta endpoints into separate class.
+
+  All post meta handling has moved to the new `WP_JSON_Meta_Posts` class.
+
+  **Deprecation warning:** Calling `WP_JSON_Posts::get_all_meta`,
+  `WP_JSON_Posts::get_meta`, `WP_JSON_Posts::update_meta`,
+  `WP_JSON_Posts::add_meta`, `WP_JSON_Posts::delete_meta`,
+  `WP_JSON_Posts::prepare_meta`, and `WP_JSON_Posts::is_valid_meta_data` is
+  now deprecated.
+
+  (props @rmccue, @rachelbaker, [#358][gh-358], [#474][gh-474])
+
+- Rename internal create methods.
+
+  **Deprecation warning:** Calling `WP_JSON_Posts::new_post`,
+  `WP_JSON_CustomPostType::new_post` and `WP_JSON_Posts::new_post`
+  is now deprecated.
+
+  (props @rachelbaker, @rmccue, [#374][gh-374], [#377][gh-377], [#376][gh-376])
+
+- Fix discrepancies in edit and create posts documentation examples.
+
+  Corrected the edit and create posts code examples in the Getting Started
+  section.  The new post example was updated to include the required
+  `content_raw` parameter. The new and edit posts examples were updated to use
+  a correct date parameter.
+
+  (props @rachelbaker, [#305][gh-305])
+
+- Update the cookie authentication documentation examples.
+
+  With 1.1 the localized JavaScript object for `wp-api.js` changed to
+  `WP_API_Settings`. This updates the Authentication section documentation
+  nonce example to use the updated object name.
+
+  (props @rachelbaker, [#321][gh-321])
+
+- Add flexibly and multisite support to unit tests.
+
+  Tests can be run from any WordPress install, and are not limited to only as
+  a plugin installed within a WordPress.org develop checkout. Unit tests are
+  now run against a multisite installation.
+
+  (props @danielbachhuber, [#397][gh-397])
+
+- Add `taxonomy` slug to the term response.
+
+  (props @kalenjohnson, [#481][gh-481])
+
+- Fix error when getting child comment.
+
+  Previously an error occurred when a requested comment had a parent.
+
+  (props @EdHurtig, [#413][gh-413], [#411][gh-411])
+
+- Parse query strings before returning a JSON decode error.
+
+  (props @jtsternberg, [#499][gh-499])
+
+- Typecast the user ID parameter to be an integer for the `/users/{ID}` route.
+
+  (props @dimadin, [#333][gh-333])
+
+- Confirm a given JSONP callback is a string.
+
+  (props @ircrash, @rmccue, [#405][gh-405])
+
+- Register the JavaScript client in the admin.
+
+  (props @tlovett1, [#473][gh-473])
+
+- Remove duplicate error checks on post ids.
+
+	(props @danielbachhuber, [#271][gh-271])
+
+- Update documentation link references to wp-api.org.
+
+  (props @pollyplummer, [#320][gh-320])
+
+- Update documentation to note routes needing authentication.
+
+  (props @kellbot, [#402][gh-402], [#309][gh-309])
+
+- Correct Post route documentation filter parameters.
+
+  (props @modemlooper, @rachelbaker, @rmccue, [#357][gh-357], [#462][gh-462])
+
+- Update taxonomy route documentation with correct paths.
+
+  (props @davidbhayes, [#364][gh-364], [#355][gh-355])
+
+- Remove references to legacy `$fields` parameter.
+
+  (props @JDGrimes, [#326][gh-326])
+
+- Alter readme installation steps to use wp-cli for plugin and permalink setup.
+
+  (props @kadamwhite, [#390][gh-390])
+
+- Add steps to readme for executing tests with `vagrant ssh -c`.
+
+  (props @kadamwhite, [#416][gh-416])
+
+- Update readme to include provision step for testing suite.
+
+  (props @ironpaperweight, [#396][gh-396])
+
+- Update readme Getting Started link.
+
+  (props @NikV, [#519][gh-519])
+
+- Update readme Chassis repository links.
+
+  (props @Japh, [#505][gh-505])
+
+- Clean-up of `docs` folder.
+
+  (props @pollyplummer, [#441][gh-441])
+
+- Documentation audit for plugin.php file.
+
+  (props @DrewAPicture, [#293][gh-293])
+
+- Rename tests to match class file naming.
+
+  (props @danielbachhuber, @rmccue, [#359][gh-359])
+
+- Add license.txt file with license terms.
+
+  (props @rachelbaker, [#393][gh-393], [#384][gh-384])
+
+- Fix test_root when using WordPress.org developer checkout.
+
+  (props @markoheijnen, [#437][gh-437])
+
+[View all changes](https://github.com/rmccue/WP-API/compare/1.1.1...1.2)
+
+[gh-316]: https://github.com/WP-API/WP-API/issues/316
+[gh-305]: https://github.com/WP-API/WP-API/issues/305
+[gh-321]: https://github.com/WP-API/WP-API/issues/321
+[gh-333]: https://github.com/WP-API/WP-API/issues/333
+[gh-333]: https://github.com/WP-API/WP-API/issues/333
+[gh-326]: https://github.com/WP-API/WP-API/issues/326
+[gh-293]: https://github.com/WP-API/WP-API/issues/293
+[gh-300]: https://github.com/WP-API/WP-API/issues/300
+[gh-294]: https://github.com/WP-API/WP-API/issues/294
+[gh-320]: https://github.com/WP-API/WP-API/issues/320
+[gh-364]: https://github.com/WP-API/WP-API/issues/364
+[gh-355]: https://github.com/WP-API/WP-API/issues/355
+[gh-359]: https://github.com/WP-API/WP-API/issues/359
+[gh-357]: https://github.com/WP-API/WP-API/issues/357
+[gh-374]: https://github.com/WP-API/WP-API/issues/374
+[gh-377]: https://github.com/WP-API/WP-API/issues/377
+[gh-376]: https://github.com/WP-API/WP-API/issues/376
+[gh-390]: https://github.com/WP-API/WP-API/issues/390
+[gh-391]: https://github.com/WP-API/WP-API/issues/391
+[gh-393]: https://github.com/WP-API/WP-API/issues/393
+[gh-384]: https://github.com/WP-API/WP-API/issues/384
+[gh-396]: https://github.com/WP-API/WP-API/issues/396
+[gh-405]: https://github.com/WP-API/WP-API/issues/405
+[gh-380]: https://github.com/WP-API/WP-API/issues/380
+[gh-410]: https://github.com/WP-API/WP-API/issues/410
+[gh-416]: https://github.com/WP-API/WP-API/issues/416
+[gh-397]: https://github.com/WP-API/WP-API/issues/397
+[gh-437]: https://github.com/WP-API/WP-API/issues/437
+[gh-438]: https://github.com/WP-API/WP-API/issues/438
+[gh-402]: https://github.com/WP-API/WP-API/issues/402
+[gh-309]: https://github.com/WP-API/WP-API/issues/309
+[gh-413]: https://github.com/WP-API/WP-API/issues/413
+[gh-411]: https://github.com/WP-API/WP-API/issues/411
+[gh-458]: https://github.com/WP-API/WP-API/issues/458
+[gh-281]: https://github.com/WP-API/WP-API/issues/281
+[gh-392]: https://github.com/WP-API/WP-API/issues/392
+[gh-335]: https://github.com/WP-API/WP-API/issues/335
+[gh-271]: https://github.com/WP-API/WP-API/issues/271
+[gh-462]: https://github.com/WP-API/WP-API/issues/462
+[gh-461]: https://github.com/WP-API/WP-API/issues/461
+[gh-441]: https://github.com/WP-API/WP-API/issues/441
+[gh-455]: https://github.com/WP-API/WP-API/issues/455
+[gh-486]: https://github.com/WP-API/WP-API/issues/486
+[gh-358]: https://github.com/WP-API/WP-API/issues/358
+[gh-473]: https://github.com/WP-API/WP-API/issues/473
+[gh-505]: https://github.com/WP-API/WP-API/issues/505
+[gh-499]: https://github.com/WP-API/WP-API/issues/499
+[gh-519]: https://github.com/WP-API/WP-API/issues/519
+[gh-401]: https://github.com/WP-API/WP-API/issues/401
+[gh-347]: https://github.com/WP-API/WP-API/issues/347
+[gh-378]: https://github.com/WP-API/WP-API/issues/378
+[gh-528]: https://github.com/WP-API/WP-API/issues/528
+[gh-595]: https://github.com/WP-API/WP-API/issues/595
+[gh-730]: https://github.com/WP-API/WP-API/issues/730
+[gh-481]: https://github.com/WP-API/WP-API/issues/481
+[gh-524]: https://github.com/WP-API/WP-API/issues/524
+[gh-933]: https://github.com/WP-API/WP-API/issues/933
+[gh-474]: https://github.com/WP-API/WP-API/issues/474
+[gh-985]: https://github.com/WP-API/WP-API/issues/985
+
 ## 1.1.1
 
 - Mitigate Flash CSRF exploit
