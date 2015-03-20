@@ -863,9 +863,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
         $priv_cust_post = get_post( $privatecustom_pid, ARRAY_A );
         $pub_post = get_post( $publish_pid, ARRAY_A );
         
-        $this->assertTrue($pub_cust_post);
-        $this->assertFalse($priv_cust_post);
-        $this->assertTrue($pub_post);
+        $this->assertTrue(!empty($pub_cust_post));
+        $this->assertFalse(empty($priv_cust_post));
+        $this->assertTrue(!empty($pub_post));
     }
 
 }
