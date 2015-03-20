@@ -30,4 +30,5 @@ require $test_root . '/includes/bootstrap.php';
 // Helper classes
 require_once dirname( __FILE__ ) . '/class-wp-test-json-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-json-controller-testcase.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-json-post-type-controller-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-spy-json-server.php';

@@ -6,6 +6,95 @@
 class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		register_json_route( 'wp', '/users', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'args'            => array(
+					'context'          => array(),
+					'order'            => array(),
+					'orderby'          => array(),
+					'per_page'         => array(),
+					'page'             => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+				'args'            => array(
+					'email'           => array(
+						'required'        => true,
+					),
+					'username'        => array(
+						'required'        => true,
+					),
+					'password'        => array(
+						'required'        => true,
+					),
+					'name'            => array(),
+					'first_name'      => array(),
+					'last_name'       => array(),
+					'nickname'        => array(),
+					'slug'            => array(),
+					'description'     => array(),
+					'role'            => array(),
+					'url'             => array(),
+				),
+			),
+		) );
+		register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
+			array(
+				'methods'         => WP_JSON_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+				'args'            => array(
+					'context'          => array(),
+				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::EDITABLE,
+				'callback'        => array( $this, 'update_item' ),
+				'args'            => array(
+					'email'           => array(),
+					'username'        => array(),
+					'password'        => array(),
+					'name'            => array(),
+					'first_name'      => array(),
+					'last_name'       => array(),
+					'nickname'        => array(),
+					'slug'            => array(),
+					'description'     => array(),
+					'role'            => array(),
+					'url'             => array(),
+				),
+			),
+			array(
+				'methods' => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'args' => array(
+					'reassign' => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/users/me', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_current_item' ),
+			'args'            => array(
+				'context'          => array(),
+			)
+		));
+
+		register_json_route( 'wp', '/users/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get all users
 	 *
 	 * @param WP_JSON_Request $request Full details about the request.
@@ -53,9 +142,25 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 		}
 
+		$can_view = false;
+
 		$current_user_id = get_current_user_id();
-		if ( $current_user_id !== $id && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
+		if ( $current_user_id === $id || current_user_can( 'edit_user', $id ) ) {
+			$can_view = true;
+		} else if ( current_user_can( 'list_users' ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || 'edit' === $request['context'] ) {
+				$request->set_param( 'context', 'view' );
+			}
+		} else if ( count_user_posts( $id ) ) {
+			$can_view = true;
+			if ( empty( $request['context'] ) || in_array( $request['context'], array( 'edit', 'view' ) ) ) {
+				$request->set_param( 'context', 'embed' );
+			}
+		}
+
+		if ( ! $can_view ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
 		$user = $this->prepare_item_for_response( $user, $request );
@@ -230,6 +335,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			'name'        => $user->display_name,
 			'first_name'  => $user->first_name,
 			'last_name'   => $user->last_name,
+			'link'        => get_author_posts_url( $user->ID ),
 			'nickname'    => $user->nickname,
 			'slug'        => $user->user_nicename,
 			'url'         => $user->user_url,
@@ -314,5 +420,41 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		return apply_filters( 'json_pre_insert_user', $prepared_user, $request );
+	}
+
+	/**
+	 * Get the User's schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+
+		$schema = array(
+			'$schema'              => 'http://json-schema.org/draft-04/schema#',
+			'title'                => 'user',
+			'type'                 => 'object',
+			'properties'           => array(
+				'id'               => array(
+					'description'  => 'Unique identifier for the object.',
+					'type'         => 'integer',
+					),
+				'name'             => array(
+					'description'  => 'Display name for the object.',
+					'type'         => 'string',
+					),
+				'email'            => array(
+					'description'  => 'The email address for the object.',
+					'type'         => 'string',
+					'format'       => 'email',
+					),
+				'link'             => array(
+					'description'  => 'URL to the object.',
+					'type'         => 'string',
+					'format'       => 'uri',
+					),
+				),
+			);
+		return $schema;
+
 	}
 }

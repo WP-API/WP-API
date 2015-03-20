@@ -22,15 +22,11 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		) );
 
 		$this->endpoint = new WP_JSON_Users_Controller();
-		$this->server = $GLOBALS['wp_json_server'];
 	}
 
 	public function test_register_routes() {
-		global $wp_json_server;
-		$wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
+		$routes = $this->server->get_routes();
 
-		$routes = $wp_json_server->get_routes();
 		$this->assertArrayHasKey( '/wp/users', $routes );
 		$this->assertCount( 2, $routes['/wp/users'] );
 		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
@@ -88,12 +84,25 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
+	}
+
+	public function test_get_item_published_author() {
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+		$this->post_id = $this->factory->post->create( array(
+			'post_author' => $this->author_id
+		));
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->author_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->check_get_user_response( $response, 'embed' );
 	}
 
 	public function test_get_user_with_edit_context() {
 		$user_id = $this->factory->user->create();
-		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 		$request->set_param( 'context', 'edit' );
@@ -432,16 +441,33 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_user_invalid_reassign', $response, 400 );
 	}
 
+	public function test_get_item_schema() {
+		$request = new WP_JSON_Request( 'GET', '/wp/users/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 4, count( $properties ) );
+		$this->assertArrayHasKey( 'email', $properties );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+	}
+
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->first_name, $data['first_name'] );
-		$this->assertEquals( $user->last_name, $data['last_name' ] );
+		$this->assertEquals( $user->last_name, $data['last_name'] );
 		$this->assertEquals( $user->nickname, $data['nickname'] );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( json_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
+		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
 		if ( 'view' == $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );

@@ -207,9 +207,15 @@ class WP_JSON_Server {
 		$request->set_headers( $this->get_headers( $_SERVER ) );
 		$request->set_body( $this->get_raw_data() );
 
-		// Compatibility for clients that can't use PUT/PATCH/DELETE
+		/**
+		 * HTTP method override for clients that can't use PUT/PATCH/DELETE. First, we check
+		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
+		 * header.
+		 */
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
+		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
+			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 		}
 
 		$result = $this->check_authentication();
@@ -364,11 +370,23 @@ class WP_JSON_Server {
 
 				// Run through our internal routing and serve
 				$route = substr( $item['href'], strlen( $api_root ) );
-				$request = new WP_JSON_Request( 'GET', $route );
+				$parsed = parse_url( $route );
+				if ( empty( $parsed['path'] ) ) {
+					$embeds[] = array();
+					continue;
+				}
+
+				$query_params = array();
+				// If the route has query parameter, pass them along
+				if ( ! empty( $parsed['query'] ) ) {
+					parse_str( $parsed['query'], $query_params );
+				}
 
 				// Embedded resources get passed context=embed
-				$request->set_query_params( array( 'context' => 'embed' ) );
+				$query_params['context'] = 'embed';
 
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
+				$request->set_query_params( $query_params );
 				$response = $this->dispatch( $request );
 
 				$embeds[] = $response;
@@ -490,40 +508,10 @@ class WP_JSON_Server {
 	}
 
 	/**
-	 * Check that all required parameters are present in the request.
-	 *
-	 * @param WP_JSON_Request $request Request with parameters to check.
-	 * @return true|WP_Error
-	 */
-	protected function check_required_parameters( $request ) {
-		$attributes = $request->get_attributes();
-		$required = array();
-
-		// No arguments set, skip validation
-		if ( empty( $attributes['args'] ) ) {
-			return true;
-		}
-
-		foreach ( $attributes['args'] as $key => $arg ) {
-
-			$param = $request->get_param( $key );
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
-				$required[] = $key;
-			}
-		}
-
-		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
-	 * @return WP_JSON_Response Response returned by the callback, or a WP_Error instance
+	 * @return WP_JSON_Response Response returned by the callback
 	 */
 	public function dispatch( $request ) {
 		$method = $request->get_method();
@@ -533,7 +521,7 @@ class WP_JSON_Server {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
-				$response  = null;
+				$response = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
@@ -581,37 +569,52 @@ class WP_JSON_Server {
 
 				if ( ! is_wp_error( $response ) ) {
 
-				$request->set_url_params( $args );
-				$request->set_attributes( $handler );
+					$request->set_url_params( $args );
+					$request->set_attributes( $handler );
 
-				$defaults = array();
+					$defaults = array();
 
-				foreach ( $handler['args'] as $arg => $options ) {
-					if ( isset( $options['default'] ) ) {
-						$defaults[$arg] = $options['default'];
+					foreach ( $handler['args'] as $arg => $options ) {
+						if ( isset( $options['default'] ) ) {
+							$defaults[$arg] = $options['default'];
+						}
+					}
+
+					$request->set_default_params( $defaults );
+
+					$check_required = $request->has_valid_params();
+					if ( is_wp_error( $check_required ) ) {
+						$response = $check_required;
 					}
 				}
 
-				$request->set_default_params( $defaults );
+				if ( ! is_wp_error( $response ) ) {
+					// check permission specified on the route.
+					if ( ! empty( $handler['permission_callback'] ) ) {
+						$permission = call_user_func( $handler['permission_callback'], $request );
 
-				$check_required = $this->check_required_parameters( $request );
-				if ( is_wp_error( $check_required ) ) {
-						$response = $check_required;
-					} else {
-				/**
-				 * Allow plugins to override dispatching the request
-				 *
-				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-				 * @param WP_JSON_Request $request
-				 */
-				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
-
-				// Allow plugins to halt the request via this filter
-				if ( $dispatch_result !== null ) {
-							$response = $dispatch_result;
-						} else {
-							$response = call_user_func( $callback, $request );
+						if ( is_wp_error( $permission ) ) {
+							$response = $permission;
+						} else if ( false === $permission || null === $permission ) {
+							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
 						}
+					}
+				}
+
+				if ( ! is_wp_error( $response ) ) {
+					/**
+					 * Allow plugins to override dispatching the request
+					 *
+					 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+					 * @param WP_JSON_Request $request
+					 */
+					$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+
+					// Allow plugins to halt the request via this filter
+					if ( $dispatch_result !== null ) {
+						$response = $dispatch_result;
+					} else {
+						$response = call_user_func( $callback, $request );
 					}
 				}
 
