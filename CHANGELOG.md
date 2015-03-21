@@ -160,7 +160,7 @@
 
   (props @rachelbaker, [#321][gh-321])
 
-- Add flexibly and multisite support to unit tests.
+- Add flexibility and multisite support to unit tests.
 
   Tests can be run from any WordPress install, and are not limited to only as
   a plugin installed within a WordPress.org develop checkout. Unit tests are
@@ -196,7 +196,7 @@
 
 - Remove duplicate error checks on post ids.
 
-	(props @danielbachhuber, [#271][gh-271])
+  (props @danielbachhuber, [#271][gh-271])
 
 - Update documentation link references to wp-api.org.
 
