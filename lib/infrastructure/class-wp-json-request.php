@@ -625,6 +625,9 @@ class WP_JSON_Request implements ArrayAccess {
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
+			if ( empty( $this->params[$type] ) ) {
+				continue;
+			}
 			foreach ( $this->params[$type] as $key => $value ) {
 				// check if this param has a sanitize_callback added
 				if ( isset( $attributes[$key] ) && ! empty( $attributes[$key]['sanitize_callback'] ) ) {
