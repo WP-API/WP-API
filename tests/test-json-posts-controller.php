@@ -525,6 +525,32 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
+	public function test_create_post_with_invalid_date() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'date' => '2010-60-01T02:00:00Z',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_date', $response, 400 );
+	}
+
+	public function test_create_post_with_invalid_date_gmt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'date_gmt' => '2010-60-01T02:00:00',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_date', $response, 400 );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( $this->editor_id );
 
