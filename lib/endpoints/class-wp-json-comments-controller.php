@@ -402,10 +402,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
-			'user'         => (int) $comment->user_id,
-			'author'       => $comment->comment_author,
-			'author_email' => $comment->comment_author_email,
-			'author_url'   => $comment->comment_author_url,
+			'author'       => array(
+				'id'    => (int) $comment->user_id,
+				'name'  => $comment->comment_author,
+				'email' => false,
+				'url'   => $comment->comment_author_url,
+			),
 			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
@@ -416,11 +418,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
-			$fields['author_ip']           = $comment->comment_author_IP;
-			$fields['author_user_agent']   = $comment->comment_agent;
-			$fields['date_gmt']            = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']      = $comment->comment_content;
-			$fields['karma']               = $comment->comment_karma;
+			$fields['author']['email']      = $comment->comment_author_email;
+			$fields['author']['ip']         = $comment->comment_author_IP;
+			$fields['author']['user_agent'] = $comment->comment_agent;
+			$fields['date_gmt']             = json_mysql_to_rfc3339( $comment->comment_date_gmt );
+			$fields['content']['raw']       = $comment->comment_content;
+			$fields['karma']                = $comment->comment_karma;
 		}
 
 		$links = array();
@@ -561,9 +564,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
+			'comment_author'       => isset( $request['author']['name'] ) ? sanitize_text_field( $request['author']['name'] ) : '',
+			'comment_author_email' => isset( $request['author']['email'] ) ? sanitize_email( $request['author']['email'] ) : '',
+			'comment_author_url'   => isset( $request['author']['url'] ) ? esc_url_raw( $request['author']['url'] ) : '',
 			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
 			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
@@ -588,16 +591,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
 
-		if ( isset( $request['author'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author'] );
+		if ( isset( $request['author']['name'] ) ) {
+			$prepared_comment['comment_author'] = sanitize_text_field( $request['author']['name'] );
 		}
 
-		if ( isset( $request['author_email'] ) ) {
-			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
+		if ( isset( $request['author']['email'] ) ) {
+			$prepared_comment['comment_author_email'] = sanitize_email( $request['author']['email'] );
 		}
 
-		if ( isset( $request['author_url'] ) ) {
-			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+		if ( isset( $request['author']['url'] ) ) {
+			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author']['url'] );
 		}
 
 		if ( ! empty( $request['date'] ) ) {
