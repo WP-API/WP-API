@@ -95,9 +95,10 @@ class WP_JSON_Media extends WP_JSON_Posts {
 		}
 
 		// $thumbnail_size = current_theme_supports( 'post-thumbnail' ) ? 'post-thumbnail' : 'thumbnail';
-		$data['source']          = wp_get_attachment_url( $post['ID'] );
-		$data['is_image']        = wp_attachment_is_image( $post['ID'] );
-		$data['attachment_meta'] = wp_get_attachment_metadata( $post['ID'] );
+		$data['source']                 = wp_get_attachment_url( $post['ID'] );
+		$data['is_image']               = wp_attachment_is_image( $post['ID'] );
+		$data['attachment_meta']        = wp_get_attachment_metadata( $post['ID'] );
+		$data['attachment_meta']['alt'] = get_post_meta( $post['ID'], '_wp_attachment_image_alt', true );
 
 		// Ensure empty meta is an empty object
 		if ( empty( $data['attachment_meta'] ) ) {
