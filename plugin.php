@@ -36,6 +36,7 @@ include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
 include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/class-wp-json-menus.php' );
 
 /**
  * Register rewrite rules for the API.
@@ -131,6 +132,10 @@ function json_api_default_filters( $server ) {
 	// Default serving
 	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 2 );
+
+    // Menus
+    $wp_json_menus = new WP_JSON_Menus( $server );
+    add_filter( 'json_endpoints', array( $wp_json_menus, 'register_routes' ), 0 );
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
