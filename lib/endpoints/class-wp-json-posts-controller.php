@@ -667,14 +667,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
 		}
 
-		/**
-		 * @TODO: reconnect the json_pre_insert_post() filter after all related
-		 * routes are finished converting to new structure.
-		 *
-		 * return apply_filters( 'json_pre_insert_post', $prepared_post, $request );
-		 */
-
-		return $prepared_post;
+		return apply_filters( 'json_pre_insert_' . $this->post_type, $prepared_post, $request );
 	}
 
 	/**
