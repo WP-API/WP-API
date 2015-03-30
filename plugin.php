@@ -105,8 +105,6 @@ function json_api_default_filters( $server ) {
 	// Post meta.
 	$wp_json_post_meta = new WP_JSON_Meta_Posts( $server );
 	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
-	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
-	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
 
 	// Media.
 	$wp_json_media = new WP_JSON_Media( $server );
