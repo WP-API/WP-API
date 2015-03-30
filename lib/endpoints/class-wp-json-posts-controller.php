@@ -1059,14 +1059,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			) );
 		}
 
-		/**
-		 * @TODO: reconnect the json_prepare_post() filter after all related
-		 * routes are finished converting to new structure.
-		 *
-		 * return apply_filters( 'json_prepare_post', $data, $post, $request );
-		 */
-
-		return $data;
+		return apply_filters( 'json_prepare_' . $this->post_type, $data, $post, $request );
 	}
 
 	/**
