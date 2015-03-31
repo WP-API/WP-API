@@ -333,7 +333,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user with edit context' ), array( 'status' => 403 ) );
 		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user with view context' ), array( 'status' => 403 ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id ) ) {
+		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user' ), array( 'status' => 403 ) );
 		}
 

@@ -57,7 +57,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->check_get_user_response( $response, 'view' );
+		$this->check_get_user_response( $response, 'embed' );
 	}
 
 	public function test_prepare_item() {
