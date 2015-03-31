@@ -203,6 +203,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$schema['properties']['post'] = array(
 			'description'     => 'The ID for the associated post of the attachment.',
 			'type'            => 'integer',
+			'relation'        => 'post'
 			);
 		$schema['properties']['source_url'] = array(
 			'description'     => 'URL to the original attachment file.',

@@ -314,10 +314,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'count'            => array(
 					'description'  => 'Number of published posts for the object.',
 					'type'         => 'integer',
+					'readonly'     => true,
 					),
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
@@ -335,6 +337,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'relation'     => 'term',
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
