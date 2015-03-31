@@ -1124,7 +1124,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 		}
 
-		if ( 'attachment' !== $post->post_type ) {
+		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = json_url( 'wp/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
 			$links['attachments'] = array(
