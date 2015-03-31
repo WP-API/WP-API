@@ -54,7 +54,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => array(),
+					'context'          => array(
+						'default'      => 'embed',
+						),
 				),
 			),
 			array(
