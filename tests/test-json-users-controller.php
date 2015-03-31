@@ -57,7 +57,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->check_get_user_response( $response, 'view' );
+		$this->check_get_user_response( $response, 'embed' );
 	}
 
 	public function test_prepare_item() {
@@ -83,7 +83,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
 	}
 
 	public function test_get_item_published_author() {
@@ -108,6 +108,20 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'edit' );
+	}
+
+	public function test_get_item_published_author_wrong_context() {
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+		$this->post_id = $this->factory->post->create( array(
+			'post_author' => $this->author_id
+		));
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->author_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
 	}
 
 	public function test_get_current_user() {
