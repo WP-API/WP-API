@@ -99,6 +99,10 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
 
 		$this->assertEquals( json_url( '/wp/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
+
+		$attachments_url = json_url( 'wp/media' );
+		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
+		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
 	}
 
 	public function test_get_post_without_permission() {

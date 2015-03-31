@@ -449,7 +449,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
 		/**
@@ -1124,6 +1124,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 		}
 
+		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
+			$attachments_url = json_url( 'wp/media' );
+			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
+			$links['attachments'] = array(
+				'href'       => $attachments_url,
+				'embeddable' => true,
+			);
+		}
+
 		return $links;
 	}
 
@@ -1337,7 +1346,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					break;
 
 			}
-
 		}
 
 		if ( 'post' === $this->post_type ) {
