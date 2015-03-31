@@ -310,7 +310,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * Check if a given request has access to read a user
 	 * 
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return mixed bool or WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -321,25 +321,18 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 		}
 
-		$can_view = false;
-
-		$current_user_id = get_current_user_id();
-		if ( $current_user_id === $id || current_user_can( 'edit_user', $id ) ) {
-			$can_view = true;
-		} else if ( current_user_can( 'list_users' ) ) {
-			$can_view = true;
-			if ( empty( $request['context'] ) || 'edit' === $request['context'] ) {
-				$request->set_param( 'context', 'view' );
-			}
-		} else if ( count_user_posts( $id ) ) {
-			$can_view = true;
-			if ( empty( $request['context'] ) || in_array( $request['context'], array( 'edit', 'view' ) ) ) {
-				$request->set_param( 'context', 'embed' );
-			}
+		if ( $id === get_current_user_id() ) {
+			return true;
 		}
 
-		if ( ! $can_view ) {
-			return false;
+		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
+
+		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user with edit context' ), array( 'status' => 403 ) );
+		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user with view context' ), array( 'status' => 403 ) );
+		} else if ( 'embed' === $context && ! count_user_posts( $id ) ) {
+			return new WP_Error( 'json_user_cannot_view', __( 'Sorry, you cannot view this user' ), array( 'status' => 403 ) );
 		}
 
 		return true;
