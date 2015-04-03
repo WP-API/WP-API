@@ -103,6 +103,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$attachments_url = json_url( 'wp/media' );
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
+
+		$tags_url = json_url( 'wp/terms/post_tags' );
+		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
+		$this->assertEquals( $tags_url, $links['post_tags']['href'] );
+
+		$category_url = json_url( 'wp/terms/category' );
+		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
+		$this->assertEquals( $category_url, $links['post_tags']['href'] );
 	}
 
 	public function test_get_post_without_permission() {

@@ -1135,12 +1135,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
-			$terms = wp_get_object_terms( $post->ID, $taxonomies );
-			foreach ( $terms as $term ) {
-				$term_url = json_url( 'wp/terms/' . $term->taxonomy . '/' . $term->term_taxonomy_id );
-				$links[ $term->taxonomy ]['id'] = $term->term_taxonomy_id;
-				$links[ $term->taxonomy ]['href'] = $term_url;
-				$links[ $term->taxonomy ]['embeddable'] = true;
+			foreach ( $taxonomies as $tax ) {
+				$terms_url = json_url( 'wp/terms/' . $tax );
+				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+
+				$links[ $tax ] = array(
+					'href' => $terms_url,
+					'embeddable' => true,
+				);
 			}
 		}
 
