@@ -994,60 +994,54 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Base fields for every post
 		$data = array(
-			'id'       => $post->ID,
-			'type'     => $post->post_type,
-			'slug'     => $post->post_name,
-			'link'     => get_permalink( $post->ID ),
-			'guid'     => array(
+			'id'           => $post->ID,
+			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
+			'guid'         => array(
 				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+				'raw'      => $post->guid,
 			),
-			'date'     => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified' => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+			'password'     => $post->post_password,
+			'slug'         => $post->post_name,
+			'status'       => $post->post_status,
+			'type'         => $post->post_type,
+			'link'         => get_permalink( $post->ID ),
 		);
-
-		if ( 'edit' === $request['context'] ) {
-
-			$data_raw = array(
-				'guid'         => array(
-					'raw' => $post->guid,
-				),
-				'status'       => $post->post_status,
-				'password'     => $this->prepare_password_response( $post->post_password ),
-				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			);
-
-			$data = array_merge_recursive( $data, $data_raw );
-
-		}
 
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
+				'raw'      => $post->post_title,
 				'rendered' => get_the_title( $post->ID ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['title']['raw'] = $post->post_title;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
+
+			if ( ! empty( $post->post_password ) ) {
+				$this->prepare_password_response( $post->post_password );
+			}
+
 			$data['content'] = array(
+				'raw'      => $post->post_content,
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['content']['raw'] = $post->post_content;
+
+			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
+			if ( ! empty( $post->post_password ) ) {
+				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
+
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
+				'raw'      => $post->post_excerpt,
 				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['excerpt']['raw'] = $post->post_excerpt;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['author'] ) ) {
@@ -1109,6 +1103,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'context' => 'embed',
 			) );
 		}
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
 
 		/**
 		 * @TODO: reconnect the json_prepare_post() filter after all related
@@ -1196,22 +1193,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			 * Base properties for every Post
 			 */
 			'properties' => array(
-				'id' => array(
-					'description' => 'Unique identifier for the object.',
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-				),
-				'type' => array(
-					'description' => 'Type of Post for the object.',
+				'date'            => array(
+					'description' => 'The date the object was published.',
 					'type'        => 'string',
+					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'slug' => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
+				'date_gmt'        => array(
+					'description' => 'The date the object was published, as GMT.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'format'      => 'date-time',
+					'context'     => array( 'edit' ),
 				),
-				'guid' => array(
+				'guid'            => array(
 					'description' => 'The globally unique identifier for the object.',
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
@@ -1228,22 +1222,48 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						),
 					),
 				),
-				'link' => array(
+				'id'              => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'date' => array(
-					'description' => 'The date the object was published.',
+				'modified'        => array(
+					'description' => 'The date the object was last modified.',
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'modified' => array(
-					'description' => 'The date the object was last modified.',
+				'modified_gmt'    => array(
+					'description' => 'The date the object was last modified, as GMT.',
 					'type'        => 'string',
 					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'password'        => array(
+					'description' => 'A password to protect access to the post.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+				'slug'            => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'status'          => array(
+					'description' => 'A named status for the object.',
+					'type'        => 'string',
+					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
+					'context'     => array( 'edit' ),
+				),
+				'type'            => array(
+					'description' => 'Type of Post for the object.',
+					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
 			)
