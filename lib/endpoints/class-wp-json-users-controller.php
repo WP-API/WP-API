@@ -500,31 +500,61 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	public function get_item_schema() {
 
 		$schema = array(
-			'$schema'              => 'http://json-schema.org/draft-04/schema#',
-			'title'                => 'user',
-			'type'                 => 'object',
-			'properties'           => array(
-				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
-					'type'         => 'integer',
-					),
-				'name'             => array(
-					'description'  => 'Display name for the object.',
-					'type'         => 'string',
-					),
-				'email'            => array(
-					'description'  => 'The email address for the object.',
-					'type'         => 'string',
-					'format'       => 'email',
-					),
-				'link'             => array(
-					'description'  => 'URL to the object.',
-					'type'         => 'string',
-					'format'       => 'uri',
-					),
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'user',
+			'type'       => 'object',
+			'properties' => array(
+				'id'          => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
 				),
-			);
-		return $schema;
+				'name'        => array(
+					'description' => 'Display name for the object.',
+					'type'        => 'string',
+				),
+				'first_name'  => array(
+					'description' => 'First name for the object.',
+					'type'        => 'string',
+				),
+				'last_name'   => array(
+					'description' => 'Last name for the object.',
+					'type'        => 'string',
+				),
+				'email'       => array(
+					'description' => 'The email address for the object.',
+					'type'        => 'string',
+					'format'      => 'email',
+				),
+				'link'        => array(
+					'description' => 'Author URL to the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+				'nickname'    => array(
+					'description' => 'The nickname for the object.',
+					'type'        => 'string',
+				),
+				'slug'        => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+				),
+				'url'         => array(
+					'description' => 'URL of the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+				'avatar_url'  => array(
+					'description' => 'Avatar URL for the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+				),
+				'description' => array(
+					'description' => 'Description of the object.',
+					'type'        => 'string',
+				),
+			)
+		);
 
+		return $schema;
 	}
 }
