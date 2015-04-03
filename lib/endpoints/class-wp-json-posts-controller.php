@@ -204,7 +204,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post->post_type = $this->post_type;
 		$post_id = wp_insert_post( $post, true );
+
 		if ( is_wp_error( $post_id ) ) {
+
+			if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ) ) ) {
+				$post_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$post_id->add_data( array( 'status' => 400 ) );
+			}
 			return $post_id;
 		}
 		$post->ID = $post_id;
@@ -267,6 +274,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_id = wp_update_post( $post, true );
 		if ( is_wp_error( $post_id ) ) {
+			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ) ) ) {
+				$post_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$post_id->add_data( array( 'status' => 400 ) );
+			}
 			return $post_id;
 		}
 
