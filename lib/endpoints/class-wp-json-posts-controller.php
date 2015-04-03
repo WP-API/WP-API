@@ -338,7 +338,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -351,15 +351,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( $post ) {
-			return $this->check_read_permission( $post );	
+			return $this->check_read_permission( $post );
 		}
-		
+
 		return true;
 	}
 
 	/**
 	 * Check if a given request has access to read a post's revisions
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -376,7 +376,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to create a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -389,7 +389,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -406,7 +406,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
