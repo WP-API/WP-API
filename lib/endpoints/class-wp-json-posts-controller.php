@@ -1009,6 +1009,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
 
+			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
 			if ( ! empty( $post->post_password ) ) {
 				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
