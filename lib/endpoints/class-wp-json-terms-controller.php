@@ -291,6 +291,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'parent'       => (int) $parent_id,
 		);
 
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+
 		if ( ! empty( $parent_term ) ) {
 			$data['_links'] = array(
 				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
