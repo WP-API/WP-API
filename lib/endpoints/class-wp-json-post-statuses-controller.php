@@ -36,7 +36,7 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 		} else {
 			$statuses = get_post_stati( array( 'public' => true ), 'object' );
 		}
-		foreach( $statuses as $obj ) {
+		foreach ( $statuses as $obj ) {
 			$status = $this->prepare_item_for_response( $obj, $request );
 			if ( is_wp_error( $status ) ) {
 				continue;
