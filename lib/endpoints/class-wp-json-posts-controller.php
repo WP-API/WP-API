@@ -973,7 +973,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			),
 			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			'password'     => $this->prepare_password_response( $post->post_password ),
+			'password'     => $post->post_password,
 			'slug'         => $post->post_name,
 			'status'       => $post->post_status,
 			'type'         => $post->post_type,
@@ -990,10 +990,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
+
+			if ( ! empty( $post->post_password ) ) {
+				$this->prepare_password_response( $post->post_password );
+			}
+
 			$data['content'] = array(
 				'raw'      => $post->post_content,
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
+
+			if ( ! empty( $post->post_password ) ) {
+				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
+			}
+
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
