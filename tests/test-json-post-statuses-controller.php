@@ -14,7 +14,23 @@ class WP_Test_JSON_Post_Statuses_Controller extends WP_Test_JSON_Controller_Test
 
 		$data = $response->get_data();
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
-		$this->assertEquals( count( $statuses ), count( $data ) );
+		$this->assertEquals( 1, count( $data ) );
+		// Check each key in $data against those in $statuses
+		foreach ( $data as $obj ) {
+			$this->check_post_status_obj( $statuses[ $obj['slug'] ], $obj );
+		}
+	}
+
+	public function test_get_items_logged_in() {
+		$user_id = $this->factory->user->create();
+		wp_set_current_user( $user_id );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/statuses' );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$statuses = get_post_stati( array( 'internal' => false ), 'objects' );
+		$this->assertEquals( 5, count( $data ) );
 		// Check each key in $data against those in $statuses
 		foreach ( $data as $obj ) {
 			$this->check_post_status_obj( $statuses[ $obj['slug'] ], $obj );
@@ -31,6 +47,21 @@ class WP_Test_JSON_Post_Statuses_Controller extends WP_Test_JSON_Controller_Test
 		$request = new WP_JSON_Request( 'GET', '/wp/statuses/invalid' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_status_invalid', $response, 404 );
+	}
+
+	public function test_get_item_invalid_access() {
+		$request = new WP_JSON_Request( 'GET', '/wp/statuses/draft' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_read_status', $response, 403 );
+	}
+
+	public function test_get_item_invalid_internal() {
+		$user_id = $this->factory->user->create();
+		wp_set_current_user( $user_id );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/statuses/inherit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_read_status', $response, 403 );
 	}
 
 	public function test_create_item() {

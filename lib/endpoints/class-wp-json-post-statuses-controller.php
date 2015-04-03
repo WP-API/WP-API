@@ -24,14 +24,19 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Get all public post statuses
+	 * Get all post statuses, depending on user context
 	 *
 	 * @param WP_JSON_Request $request
 	 * @return array|WP_Error
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		foreach ( get_post_stati( array( 'public' => true ), 'object' ) as $obj ) {
+		if ( is_user_logged_in() ) {
+			$statuses = get_post_stati( array( 'internal' => false ), 'object' );
+		} else {
+			$statuses = get_post_stati( array( 'public' => true ), 'object' );
+		}
+		foreach( $statuses as $obj ) {
 			$status = $this->prepare_item_for_response( $obj, $request );
 			if ( is_wp_error( $status ) ) {
 				continue;
@@ -63,7 +68,7 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 	 * @return array Post status data
 	 */
 	public function prepare_item_for_response( $status, $request ) {
-		if ( false === $status->public ) {
+		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
 			return new WP_Error( 'json_cannot_read_status', __( 'Cannot view status.' ), array( 'status' => 403 ) );
 		}
 
