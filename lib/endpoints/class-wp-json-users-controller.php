@@ -525,50 +525,61 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'name'        => array(
 					'description' => 'Display name for the object.',
 					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'email'       => array(
 					'description' => 'The email address for the object.',
 					'type'        => 'string',
 					'format'      => 'email',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'url'         => array(
 					'description' => 'URL of the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'avatar_url'  => array(
 					'description' => 'Avatar URL for the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 			)
 		);
