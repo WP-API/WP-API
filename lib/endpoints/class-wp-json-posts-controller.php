@@ -1169,26 +1169,32 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'id' => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'type' => array(
 					'description' => 'Type of Post for the object.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'slug' => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'guid' => array(
 					'description' => 'The globally unique identifier for the object.',
 					'type'        => 'object',
+					'context'     => array( 'view', 'edit' ),
 					'properties'  => array(
 						'raw'      => array(
 							'description' => 'GUID for the object, as it exists in the database.',
 							'type'        => 'string',
+							'context'     => array( 'edit' ),
 						),
 						'rendered' => array(
 							'description' => 'GUID for the object, transformed for display.',
 							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
 						),
 					),
 				),
@@ -1196,16 +1202,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'date' => array(
 					'description' => 'The date the object was published.',
 					'type'        => 'string',
 					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
 				),
 				'modified' => array(
 					'description' => 'The date the object was last modified.',
 					'type'        => 'string',
 					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
 				),
 			)
 		);
@@ -1215,6 +1224,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['parent'] = array(
 				'description' => 'The ID for the parent of the object.',
 				'type'        => 'integer',
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
@@ -1270,14 +1280,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['title'] = array(
 						'description' => 'The title for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Title for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Title for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1287,14 +1300,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['content'] = array(
 						'description' => 'The content for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Content for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Content for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1304,6 +1320,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['author'] = array(
 						'description' => 'The ID for the author of the object.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1311,14 +1328,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => 'The excerpt for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Excerpt for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Excerpt for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1328,6 +1348,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['featured_image'] = array(
 						'description' => 'ID of the featured image for the object.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1336,11 +1357,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description' => 'Whether or not comments are open on the object.',
 						'type'        => 'string',
 						'enum'        => array( 'open', 'closed' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					$schema['properties']['ping_status'] = array(
 						'description' => 'Whether or not the object can be pinged.',
 						'type'        => 'string',
 						'enum'        => array( 'open', 'closed' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1348,6 +1371,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['menu_order'] = array(
 						'description' => 'The order of the object in relation to other object of its type.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1356,6 +1380,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description' => 'The format for the object.',
 						'type'        => 'string',
 						'enum'        => get_post_format_slugs(),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1366,6 +1391,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['sticky'] = array(
 				'description' => 'Whether or not the object should be treated as sticky.',
 				'type'        => 'boolean',
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
@@ -1374,6 +1400,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'description' => 'The theme file to use to display the object.',
 				'type'        => 'string',
 				'enum'        => array_values( get_page_templates() ),
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
