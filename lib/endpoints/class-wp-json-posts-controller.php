@@ -1237,6 +1237,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'status'          => array(
 					'description' => 'A named status for the object.',
 					'type'        => 'string',
+					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
 					'context'     => array( 'edit' ),
 				),
 				'type'            => array(
