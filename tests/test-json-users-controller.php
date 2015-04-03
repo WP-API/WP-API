@@ -460,18 +460,22 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 11, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_url', $properties );
+		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'email', $properties );
+		$this->assertArrayHasKey( 'extra_capabilities', $properties );
 		$this->assertArrayHasKey( 'first_name', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'last_name', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'nickname', $properties );
+		$this->assertArrayHasKey( 'registered_date', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
+		$this->assertArrayHasKey( 'username', $properties );
 	}
 
 	public function tearDown() {
