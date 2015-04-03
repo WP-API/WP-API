@@ -1166,22 +1166,19 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			 * Base properties for every Post
 			 */
 			'properties' => array(
-				'id' => array(
-					'description' => 'Unique identifier for the object.',
-					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
-				),
-				'type' => array(
-					'description' => 'Type of Post for the object.',
+				'date'            => array(
+					'description' => 'The date the object was published.',
 					'type'        => 'string',
+					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'slug' => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
+				'date_gmt'        => array(
+					'description' => 'The date the object was published, as GMT.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'format'      => 'date-time',
+					'context'     => array( 'edit' ),
 				),
-				'guid' => array(
+				'guid'            => array(
 					'description' => 'The globally unique identifier for the object.',
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
@@ -1198,22 +1195,47 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						),
 					),
 				),
-				'link' => array(
+				'id'              => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'date' => array(
-					'description' => 'The date the object was published.',
+				'modified'        => array(
+					'description' => 'The date the object was last modified.',
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'modified' => array(
-					'description' => 'The date the object was last modified.',
+				'modified_gmt'    => array(
+					'description' => 'The date the object was last modified, as GMT.',
 					'type'        => 'string',
 					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'password'        => array(
+					'description' => 'A password to protect access to the post.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+				'slug'            => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'status'          => array(
+					'description' => 'A named status for the object.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+				'type'            => array(
+					'description' => 'Type of Post for the object.',
+					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
 			)
