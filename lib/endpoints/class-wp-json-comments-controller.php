@@ -625,32 +625,39 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'author'           => array(
 					'description'  => 'Name of the object author.',
 					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
 					'type'         => 'string',
 					'format'       => 'email',
+					'context'      => array( 'edit' ),
 					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
+					'context'         => array( 'view', 'edit' ),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => 'Content for the object, as it exists in the database.',
 							'type'            => 'string',
+							'context'         => array( 'edit' ),
 							),
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
+							'context'         => array( 'view', 'edit' ),
 							),
 						),
 					),
@@ -658,31 +665,38 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
+					'context'      => array( 'view', 'edit' ),
 				),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'status'           => array(
 					'description'  => 'State of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'user'             => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				),
 			);
