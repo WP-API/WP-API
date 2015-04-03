@@ -639,6 +639,20 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 				return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 			}
+
+			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A post can not be sticky and have a password.' ), array( 'status' => 400 ) );
+			}
+
+			if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A sticky post can not be password protected.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		if ( ! empty( $request['sticky'] ) ) {
+			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A password protected post can not be set to sticky.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		// Parent

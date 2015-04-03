@@ -495,6 +495,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( '0', $data['password'] );
 	}
 
+	public function test_create_post_with_password_and_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'password' => '123',
+			'sticky'   => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
 	public function test_create_post_custom_date() {
 		wp_set_current_user( $this->editor_id );
 
@@ -769,6 +783,50 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$new_data = $response->get_data();
 		$this->assertEquals( '', $new_data['content']['raw'] );
+	}
+
+	public function test_update_post_with_password_and_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'password' => '123',
+			'sticky'   => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
+	public function test_update_stick_post_with_password_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		stick_post( $this->post_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'password' => '123'
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
+	public function test_update_password_protected_post_with_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		wp_update_post( array( 'ID' => $this->post_id, 'post_password' => '123' ) );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'sticky' => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
 	}
 
 	public function test_delete_item() {
