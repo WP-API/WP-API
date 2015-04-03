@@ -97,30 +97,37 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 				'name'             => array(
 					'description'  => 'The title for the status.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'private'          => array(
 					'description'  => 'Whether posts with this status should be private.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'protected'        => array(
 					'description'  => 'Whether posts with this status should be protected.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'public'           => array(
 					'description'  => 'Whether posts of this status should be shown in the front end of the site.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'queryable'        => array(
 					'description'  => 'Whether posts with this status should be publicly-queryable.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'show_in_list'     => array(
 					'description'  => 'Whether to include posts in the edit listing for their post type.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the status.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				),
 			);
