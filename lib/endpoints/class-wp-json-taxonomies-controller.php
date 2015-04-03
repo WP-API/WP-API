@@ -100,6 +100,9 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 		);
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
 		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
