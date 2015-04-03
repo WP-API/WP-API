@@ -152,8 +152,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$params = array(
-			'username'    => 'test_user',
-			'password'    => 'test_password',
+			'username'    => 'testuser',
+			'password'    => 'testpassword',
 			'email'       => 'test@example.com',
 			'name'        => 'Test User',
 			'nickname'    => 'testuser',
@@ -176,8 +176,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$params = array(
-			'username' => 'test_json_user',
-			'password' => 'test_json_password',
+			'username' => 'testjsonuser',
+			'password' => 'testjsonpassword',
 			'email'    => 'testjson@example.com',
 		);
 
