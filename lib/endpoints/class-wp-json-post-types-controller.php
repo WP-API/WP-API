@@ -39,7 +39,7 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			if ( is_wp_error( $post_type ) ) {
 				continue;
 			}
-			$data[] = $post_type;
+			$data[ $obj->name ] = $post_type;
 		}
 		return $data;
 	}
