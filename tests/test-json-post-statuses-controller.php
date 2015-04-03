@@ -57,13 +57,23 @@ class WP_Test_JSON_Post_Statuses_Controller extends WP_Test_JSON_Controller_Test
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 2, count( $properties ) );
+		$this->assertEquals( 7, count( $properties ) );
 		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'private', $properties );
+		$this->assertArrayHasKey( 'protected', $properties );
+		$this->assertArrayHasKey( 'public', $properties );
+		$this->assertArrayHasKey( 'queryable', $properties );
+		$this->assertArrayHasKey( 'show_in_list', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 	}
 
 	protected function check_post_status_obj( $status_obj, $data ) {
 		$this->assertEquals( $status_obj->label, $data['name'] );
+		$this->assertEquals( $status_obj->private, $data['private'] );
+		$this->assertEquals( $status_obj->protected, $data['protected'] );
+		$this->assertEquals( $status_obj->public, $data['public'] );
+		$this->assertEquals( $status_obj->publicly_queryable, $data['queryable'] );
+		$this->assertEquals( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
 		$this->assertEquals( $status_obj->name, $data['slug'] );
 	}
 

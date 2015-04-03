@@ -69,6 +69,11 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 
 		return array(
 			'name'         => $status->label,
+			'private'      => (bool) $status->private,
+			'protected'    => (bool) $status->protected,
+			'public'       => (bool) $status->public,
+			'queryable'    => (bool) $status->publicly_queryable,
+			'show_in_list' => (bool) $status->show_in_admin_all_list,
 			'slug'         => $status->name,
 		);
 	}
@@ -87,6 +92,26 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 				'name'             => array(
 					'description'  => 'The title for the status.',
 					'type'         => 'string',
+					),
+				'private'          => array(
+					'description'  => 'Whether posts with this status should be private.',
+					'type'         => 'boolean',
+					),
+				'protected'        => array(
+					'description'  => 'Whether posts with this status should be protected.',
+					'type'         => 'boolean',
+					),
+				'public'           => array(
+					'description'  => 'Whether posts of this status should be shown in the front end of the site.',
+					'type'         => 'boolean',
+					),
+				'queryable'        => array(
+					'description'  => 'Whether posts with this status should be publicly-queryable.',
+					'type'         => 'boolean',
+					),
+				'show_in_list'     => array(
+					'description'  => 'Whether to include posts in the edit listing for their post type.',
+					'type'         => 'boolean',
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the status.',
