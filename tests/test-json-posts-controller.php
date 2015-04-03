@@ -555,11 +555,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		 * trigger a DB error.
 		 */
 		global $wpdb;
-		$wpdb->show_errors = false;
-		add_filter( 'query', array( $this, 'disable_insert_query' ) );
+		$wpdb->suppress_errors = true;
+		add_filter( 'query', array( $this, 'error_insert_query' ) );
 		
 		$response = $this->server->dispatch( $request );
-		remove_filter( 'query', array( $this, 'disable_insert_query' ) );
+		remove_filter( 'query', array( $this, 'error_insert_query' ) );
 		$wpdb->show_errors = true;
 
 		$this->assertErrorResponse( 'db_insert_error', $response, 500 );
@@ -927,9 +927,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */
-	public function disable_insert_query( $query ) {
+	public function error_insert_query( $query ) {
 		if ( strpos( $query, 'INSERT' ) === 0 ) {
-			$query = '';
+			$query = '],';
 		}
 		return $query;
 	}
