@@ -38,6 +38,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php'
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-statuses-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
@@ -121,6 +122,12 @@ function create_initial_json_routes() {
 	 * Post types
 	 */
 	$controller = new WP_JSON_Post_Types_Controller;
+	$controller->register_routes();
+
+	/*
+	 * Post statuses
+	 */
+	$controller = new WP_JSON_Post_Statuses_Controller;
 	$controller->register_routes();
 
 	/*

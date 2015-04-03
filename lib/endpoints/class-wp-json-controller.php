@@ -60,6 +60,29 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Filter a response based on the context defined in the schema
+	 *
+	 * @param array $data
+	 * @param string $context
+	 * @return array
+	 */
+	public function filter_response_by_context( $data, $context ) {
+
+		$schema = $this->get_item_schema();
+		foreach( $data as $key => $value ) {
+			if ( empty( $schema['properties'][ $key ] ) || empty( $schema['properties'][ $key ]['context'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $context, $schema['properties'][ $key ]['context'] ) ) {
+				unset( $data[ $key ] );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema
 	 *
 	 * @return array
