@@ -536,7 +536,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'email'       => array(
 					'description' => 'The email address for the object.',
@@ -552,7 +552,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
@@ -562,7 +562,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
@@ -578,7 +578,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'registered_date' => array(
 					'description' => 'Registration date for the user.',
