@@ -314,36 +314,44 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'count'            => array(
 					'description'  => 'Number of published posts for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'taxonomy'         => array(
 					'description'  => 'Type attribution for the object.',
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
+					'context'      => array( 'view' ),
 					),
 				),
 			);
