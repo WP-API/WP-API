@@ -72,7 +72,7 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_cannot_read_status', __( 'Cannot view status.' ), array( 'status' => 403 ) );
 		}
 
-		return array(
+		$data = array(
 			'name'         => $status->label,
 			'private'      => (bool) $status->private,
 			'protected'    => (bool) $status->protected,
@@ -81,6 +81,9 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 			'show_in_list' => (bool) $status->show_in_admin_all_list,
 			'slug'         => $status->name,
 		);
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+		return $data;
 	}
 
 	/**

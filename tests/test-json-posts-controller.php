@@ -19,6 +19,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->author_id = $this->factory->user->create( array(
 			'role' => 'author',
 		) );
+		$this->contributor_id = $this->factory->user->create( array(
+			'role' => 'contributor',
+		) );
 
 		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_json' => true ) );
 	}
@@ -240,6 +243,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'json_post_exists', $response, 400 );
 	}
 
+	public function test_create_post_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data(array(
+			'status' => 'pending'
+		));
+
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$this->check_create_update_post_response( $response );
+	}
+
 	public function test_create_post_sticky() {
 		wp_set_current_user( $this->editor_id );
 
@@ -256,11 +272,27 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
+	public function test_create_post_sticky_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'sticky' => true,
+			'status' => 'pending'
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_create_post_other_author_without_permission() {
 		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
-		$params = $this->set_post_data();
+		$params = $this->set_post_data(array(
+			'author' => $this->editor_id
+		));
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
@@ -657,6 +689,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data();
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
+	public function test_update_post_sticky_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'sticky' => true,
+			'status' => 'pending'
+		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 

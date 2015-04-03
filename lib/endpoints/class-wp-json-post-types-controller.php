@@ -70,13 +70,16 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => 403 ) );
 		}
 
-		return array(
+		$data = array(
 			'description'  => $post_type->description,
 			'hierarchical' => $post_type->hierarchical,
 			'labels'       => $post_type->labels,
 			'name'         => $post_type->label,
 			'slug'         => $post_type->name,
 		);
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+		return $data;
 	}
 
 	/**
