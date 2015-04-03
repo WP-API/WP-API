@@ -160,6 +160,28 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
+	/**
+	 * @depends test_get_post_with_password
+	 */
+	public function test_password_isolation() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => 'ivemadeahugemistake',
+		) );
+
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		// We should be able to access while authenticated as the author
+		wp_set_current_user( $this->editor_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertInstanceOf( 'WP_JSON_Response', $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		// But it shouldn't affect future requests
+		$this->assertTrue( post_password_required( $post_id ) );
+	}
+
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
 

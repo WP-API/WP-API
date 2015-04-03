@@ -4,6 +4,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	protected $post_type;
 
+	/**
+	 * Password cookie value.
+	 *
+	 * In {@see setup_password_cookie}, we override the password cookie for the
+	 * request to allow accessing passworded posts with the correct permissions.
+	 * This property stores the "backed up" original cookie value, so that we
+	 * can restore it afterwards.
+	 *
+	 * @var string|null
+	 */
+	protected $previous_password_cookie;
+
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
 	}
@@ -555,19 +567,32 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		return json_mysql_to_rfc3339( $date_gmt );
 	}
 
-	protected function prepare_password_response( $password ) {
-		if ( ! empty( $password ) ) {
-			/**
-			 * Fake the correct cookie to fool post_password_required().
-			 * Without this, get_the_content() will give a password form.
-			 */
-			require_once ABSPATH . 'wp-includes/class-phpass.php';
-			$hasher = new PasswordHash( 8, true );
-			$value = $hasher->HashPassword( $password );
-			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
-		}
+	/**
+	 * Set up the post password cookie.
+	 *
+	 * Fake the correct cookie to fool {@see post_password_required}. Without
+	 * this, {@see get_the_content} will give a password form.
+	 *
+	 * @param string $password Post password.
+	 */
+	protected function setup_password_cookie( $password ) {
+		require_once ABSPATH . 'wp-includes/class-phpass.php';
+		$hasher = new PasswordHash( 8, true );
+		$value = $hasher->HashPassword( $password );
 
-		return $password;
+		$key = 'wp-postpass_' . COOKIEHASH;
+		$this->previous_password_cookie = isset( $_COOKIE[ $key ] ) ? $_COOKIE[ $key ] : null;
+		$_COOKIE[ $key ] = wp_slash( $value );
+	}
+
+	/**
+	 * Reset the post password cookie.
+	 *
+	 * Restores the original value as set in {@see setup_password_cookie}.
+	 */
+	protected function reset_password_cookie() {
+		$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = $this->previous_password_cookie;
+		$this->previous_password_cookie = null;
 	}
 
 	/**
@@ -989,8 +1014,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
+		$previous_post = null;
+		if ( ! empty( $GLOBALS['post'] ) ) {
+			$previous_post = $GLOBALS['post'];
+		}
+
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
+
+		// Ensure passworded posts are visible, if we allow that
+		if ( ! empty( $post->post_password ) && 'edit' === $request['context'] ) {
+			$this->setup_password_cookie( $post->post_password );
+		}
 
 		// Base fields for every post
 		$data = array(
@@ -1012,7 +1047,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'raw' => $post->guid,
 				),
 				'status'       => $post->post_status,
-				'password'     => $this->prepare_password_response( $post->post_password ),
+				'password'     => $post->post_password,
 				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
 				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
 			);
@@ -1116,6 +1151,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		 *
 		 * return apply_filters( 'json_prepare_post', $data, $post, $request );
 		 */
+
+		$GLOBALS['post'] = $previous_post;
+		if ( ! empty( $previous_post ) ) {
+			setup_postdata( $previous_post );
+		}
 
 		return $data;
 	}
