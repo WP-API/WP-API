@@ -41,7 +41,7 @@ class WP_JSON_Post_Statuses_Controller extends WP_JSON_Controller {
 			if ( is_wp_error( $status ) ) {
 				continue;
 			}
-			$data[] = $status;
+			$data[ $obj->name ] = $status;
 		}
 		return $data;
 	}

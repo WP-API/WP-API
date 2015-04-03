@@ -16,7 +16,8 @@ class WP_Test_JSON_Post_Statuses_Controller extends WP_Test_JSON_Controller_Test
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
 		$this->assertEquals( 1, count( $data ) );
 		// Check each key in $data against those in $statuses
-		foreach ( $data as $obj ) {
+		foreach ( $data as $key => $obj ) {
+			$this->assertEquals( $statuses[ $obj['slug'] ]->name, $key );
 			$this->check_post_status_obj( $statuses[ $obj['slug'] ], $obj );
 		}
 	}
