@@ -384,6 +384,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
+		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+		}
+
 		return current_user_can( $post_type->cap->create_posts );
 	}
 
@@ -396,9 +400,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	public function update_item_permissions_check( $request ) {
 
 		$post = get_post( $request['id'] );
+		$post_type = get_post_type_object( $this->post_type );
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
 			return false;
+		}
+
+		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return true;
