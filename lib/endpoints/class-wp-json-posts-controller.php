@@ -396,6 +396,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
+		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
+		}
+
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
@@ -418,6 +426,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return false;
 		}
 
+		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
+		}
+		
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
@@ -657,10 +673,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( isset( $request['password'] ) ) {
 			$prepared_post->post_password = $request['password'];
 
-			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-				return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
-			}
-
 			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
 				return new WP_Error( 'json_invalid_field', __( 'A post can not be sticky and have a password.' ), array( 'status' => 400 ) );
 			}
@@ -766,9 +778,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Only check edit others' posts if we are another user
 		if ( $post_author !== get_current_user_id() ) {
-			if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-				return new WP_Error( 'json_forbidden', __( 'You are not allowed to create or edit posts as this user.' ), array( 'status' => 403 ) );
-			}
 
 			$author = get_userdata( $post_author );
 
