@@ -20,6 +20,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'page'     => array(),
 					'order'    => array(),
 					'orderby'  => array(),
+					'post'     => array(),
 				),
 			),
 			array(
@@ -83,12 +84,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return $taxonomy;
 		}
 
-		$terms = get_terms( $taxonomy, $prepared_args );
+		if ( isset( $request['post'] ) ) {
+			$post_id = absint( $request['post'] );
+			$terms = wp_get_object_terms( $post_id, $taxonomy, $prepared_args );
+		} else {
+			$terms = get_terms( $taxonomy, $prepared_args );
+		}
 		if ( is_wp_error( $terms ) ) {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
-		
-		foreach( $terms as &$term ) { 
+
+		foreach ( $terms as &$term ) {
 			$term = self::prepare_item_for_response( $term, $request );
 		}
 		return $terms;
