@@ -540,7 +540,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'extra_capabilities' => array(
 					'description' => 'Any extra capabilities assigned to the user.',
 					'type'        => 'object',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					),
 				'first_name'  => array(
 					'description' => 'First name for the object.',
