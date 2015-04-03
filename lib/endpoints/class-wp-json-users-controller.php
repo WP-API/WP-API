@@ -202,12 +202,23 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		$user_id = wp_insert_user( $user );
-		if ( is_wp_error( $user_id ) ) {
-			return $user_id;
+		if ( is_multisite() ) {
+			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
+			if ( ! $user_id ) {
+				return new WP_Error( 'json_user_create', __( 'Error creating new user.' ), array( 'status' => 500 ) );
+			}
+			$user->ID = $user_id;
+			$user_id = wp_update_user( $user );
+			if ( is_wp_error( $user_id ) ) {
+				return $user_id;
+			}
+		} else {
+			$user_id = wp_insert_user( $user );
+			if ( is_wp_error( $user_id ) ) {
+				return $user_id;
+			}
+			$user->ID = $user_id;
 		}
-
-		$user->ID = $user_id;
 		do_action( 'json_insert_user', $user, $request, false );
 
 		$response = $this->get_item( array(
