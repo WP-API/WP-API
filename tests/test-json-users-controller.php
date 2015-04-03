@@ -38,6 +38,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'GET', '/wp/users' );
+		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_users_response( $response );
 	}

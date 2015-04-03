@@ -416,35 +416,28 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return array $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
 
 		$data = array(
-			'id'          => $user->ID,
-			'name'        => $user->display_name,
-			'first_name'  => $user->first_name,
-			'last_name'   => $user->last_name,
-			'link'        => get_author_posts_url( $user->ID ),
-			'nickname'    => $user->nickname,
-			'slug'        => $user->user_nicename,
-			'url'         => $user->user_url,
-			'avatar_url'  => json_get_avatar_url( $user->user_email ),
-			'description' => $user->description,
+			'avatar_url'         => json_get_avatar_url( $user->user_email ),
+			'capabilities'       => $user->allcaps,
+			'description'        => $user->description,
+			'email'              => $user->user_email,
+			'extra_capabilities' => $user->caps,
+			'first_name'         => $user->first_name,
+			'id'                 => $user->ID,
+			'last_name'          => $user->last_name,
+			'link'               => get_author_posts_url( $user->ID ),
+			'name'               => $user->display_name,
+			'nickname'           => $user->nickname,
+			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
+			'roles'              => $user->roles,
+			'slug'               => $user->user_nicename,
+			'url'                => $user->user_url,
+			'username'           => $user->user_login,
 		);
 
-		if ( 'view' === $request['context'] || 'edit' === $request['context'] ) {
-			$data['roles']              = $user->roles;
-			$data['capabilities']       = $user->allcaps;
-			$data['email']              = false;
-			$data['registered_date']    = date( 'c', strtotime( $user->user_registered ) );
-		}
-
-		if ( 'edit' === $request['context'] ) {
-			$data['username']           = $user->user_login;
-			// The user's specific caps should only be needed if you're editing
-			// the user, as allcaps should handle most uses
-			$data['email']              = $user->user_email;
-			$data['extra_capabilities'] = $user->caps;
-		}
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+		$data = $this->filter_response_by_context( $data, $context );
 
 		$data['_links'] = array(
 			'self'     => array(
