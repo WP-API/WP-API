@@ -38,6 +38,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'GET', '/wp/users' );
+		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_users_response( $response );
 	}
@@ -460,18 +461,22 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 11, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_url', $properties );
+		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'email', $properties );
+		$this->assertArrayHasKey( 'extra_capabilities', $properties );
 		$this->assertArrayHasKey( 'first_name', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'last_name', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'nickname', $properties );
+		$this->assertArrayHasKey( 'registered_date', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
+		$this->assertArrayHasKey( 'username', $properties );
 	}
 
 	public function tearDown() {
@@ -495,7 +500,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
-			$this->assertEquals( false, $data['email'] );
+			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
 
