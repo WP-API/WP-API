@@ -500,7 +500,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
-			$this->assertEquals( false, $data['email'] );
+			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
 
