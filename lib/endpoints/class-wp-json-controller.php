@@ -77,6 +77,18 @@ abstract class WP_JSON_Controller {
 			if ( ! in_array( $context, $schema['properties'][ $key ]['context'] ) ) {
 				unset( $data[ $key ] );
 			}
+
+			if ( 'object' === $schema['properties'][ $key ]['type'] && ! empty( $schema['properties'][ $key ]['properties'] ) ) {
+				foreach( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
+					if ( empty( $details['context'] ) ) {
+						continue;
+					}
+					if ( ! in_array( $context, $details['context'] ) ) {
+						unset( $data[ $key ][ $attribute ] );
+					}
+				}
+			}
+
 		}
 
 		return $data;
