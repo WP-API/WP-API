@@ -727,7 +727,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
@@ -741,7 +741,7 @@ class WP_JSON_Server {
 	 *
 	 * @param array Map of header name to header value
 	 */
-	protected function send_headers( $headers ) {
+	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
 			$this->send_header( $key, $value );
 		}
