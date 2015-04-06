@@ -670,7 +670,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 			$param = $this->get_param( $key );
 			if ( $param !== null && ! empty( $arg['validate_callback']) ) {
-				$valid_check = call_user_func( $args['validate_callback'], $param, $this );
+				$valid_check = call_user_func( $arg['validate_callback'], $param, $this );
 
 				if ( $valid_check === false ) {
 					return new WP_Error( 'json_invalid_param', sprintf( __( 'Invalid parameter: %s' ), $key ), array( 'status' => 400 ) );
