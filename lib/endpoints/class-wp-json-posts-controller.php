@@ -219,8 +219,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['sticky'] ) ) {
-			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-			$this->handle_sticky_posts( $sticky, $post_id );
+			if ( ! empty( $request['sticky'] ) ) {
+				stick_post( $post_id );
+			} else {
+				unstick_post( $post_id );
+			}
 		}
 
 		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
@@ -293,8 +296,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
-			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-			$this->handle_sticky_posts( $sticky, $post_id );
+			if ( ! empty( $request['sticky'] ) ) {
+				stick_post( $post_id );
+			} else {
+				unstick_post( $post_id );
+			}
 		}
 
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
@@ -826,22 +832,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		return set_post_format( $post, $post_format );
-	}
-
-	/**
-	 * Determine if a post should be stuck or unstuck from sticky param.
-	 *
-	 * @param boolean $sticky
-	 * @param integer $post_id
-	 */
-	protected function handle_sticky_posts( $sticky, $post_id ) {
-		if ( isset( $sticky ) ) {
-			if ( $sticky ) {
-				stick_post( $post_id );
-			} else {
-				unstick_post( $post_id );
-			}
-		}
 	}
 
 	/**
