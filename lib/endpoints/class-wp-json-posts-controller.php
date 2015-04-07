@@ -15,8 +15,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$base = $this->get_post_type_base( $this->post_type );
 
-		$schema = $this->get_item_schema();
-		$post_type_fields = ! empty( $schema['properties'] ) ? array_keys( $schema['properties'] ) : array();
+		$post_type_fields = $this->get_endpoint_args_for_item_schema();
 
 		register_json_route( 'wp', '/' . $base, array(
 			array(
