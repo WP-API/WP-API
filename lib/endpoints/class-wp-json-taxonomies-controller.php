@@ -100,6 +100,9 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 		);
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
 		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
@@ -117,30 +120,37 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'hierarchical'     => array(
 					'description'  => 'Whether or not the type should have children.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'labels'           => array(
 					'description'  => 'Human-readable labels for the type for various contexts.',
 					'type'         => 'object',
+					'context'      => array( 'view' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'show_cloud'       => array(
 					'description'  => 'Whether or not the term cloud should be displayed.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'types'            => array(
 					'description'  => 'Types associated with taxonomy.',
 					'type'         => 'array',
+					'context'      => array( 'view' ),
 					),
 				),
 			);

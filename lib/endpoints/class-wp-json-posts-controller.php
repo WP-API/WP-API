@@ -204,7 +204,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post->post_type = $this->post_type;
 		$post_id = wp_insert_post( $post, true );
+
 		if ( is_wp_error( $post_id ) ) {
+
+			if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ) ) ) {
+				$post_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$post_id->add_data( array( 'status' => 400 ) );
+			}
 			return $post_id;
 		}
 		$post->ID = $post_id;
@@ -212,8 +219,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['sticky'] ) ) {
-			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-			$this->handle_sticky_posts( $sticky, $post_id );
+			if ( ! empty( $request['sticky'] ) ) {
+				stick_post( $post_id );
+			} else {
+				unstick_post( $post_id );
+			}
 		}
 
 		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
@@ -267,6 +277,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_id = wp_update_post( $post, true );
 		if ( is_wp_error( $post_id ) ) {
+			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ) ) ) {
+				$post_id->add_data( array( 'status' => 500 ) );
+			} else {
+				$post_id->add_data( array( 'status' => 400 ) );
+			}
 			return $post_id;
 		}
 
@@ -281,8 +296,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
-			$sticky = isset( $request['sticky'] ) ? (bool) $request['sticky'] : false;
-			$this->handle_sticky_posts( $sticky, $post_id );
+			if ( ! empty( $request['sticky'] ) ) {
+				stick_post( $post_id );
+			} else {
+				unstick_post( $post_id );
+			}
 		}
 
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
@@ -384,6 +402,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
+		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+		}
+
 		return current_user_can( $post_type->cap->create_posts );
 	}
 
@@ -396,9 +426,22 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	public function update_item_permissions_check( $request ) {
 
 		$post = get_post( $request['id'] );
+		$post_type = get_post_type_object( $this->post_type );
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
 			return false;
+		}
+
+		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
+		}
+		
+		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -449,7 +492,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars
-		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts' );
+		$json_valid = array( 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
 		$valid_vars = array_merge( $valid_vars, $json_valid );
 
 		/**
@@ -636,8 +679,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( isset( $request['password'] ) ) {
 			$prepared_post->post_password = $request['password'];
 
-			if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-				return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A post can not be sticky and have a password.' ), array( 'status' => 400 ) );
+			}
+
+			if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A sticky post can not be password protected.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		if ( ! empty( $request['sticky'] ) ) {
+			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
+				return new WP_Error( 'json_invalid_field', __( 'A password protected post can not be set to sticky.' ), array( 'status' => 400 ) );
 			}
 		}
 
@@ -724,9 +777,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Only check edit others' posts if we are another user
 		if ( $post_author !== get_current_user_id() ) {
-			if ( ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-				return new WP_Error( 'json_forbidden', __( 'You are not allowed to create or edit posts as this user.' ), array( 'status' => 403 ) );
-			}
 
 			$author = get_userdata( $post_author );
 
@@ -775,22 +825,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		return set_post_format( $post, $post_format );
-	}
-
-	/**
-	 * Determine if a post should be stuck or unstuck from sticky param.
-	 *
-	 * @param boolean $sticky
-	 * @param integer $post_id
-	 */
-	protected function handle_sticky_posts( $sticky, $post_id ) {
-		if ( isset( $sticky ) ) {
-			if ( $sticky ) {
-				stick_post( $post_id );
-			} else {
-				unstick_post( $post_id );
-			}
-		}
 	}
 
 	/**
@@ -943,60 +977,54 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		// Base fields for every post
 		$data = array(
-			'id'       => $post->ID,
-			'type'     => $post->post_type,
-			'slug'     => $post->post_name,
-			'link'     => get_permalink( $post->ID ),
-			'guid'     => array(
+			'id'           => $post->ID,
+			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
+			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
+			'guid'         => array(
 				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+				'raw'      => $post->guid,
 			),
-			'date'     => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'modified' => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+			'password'     => $post->post_password,
+			'slug'         => $post->post_name,
+			'status'       => $post->post_status,
+			'type'         => $post->post_type,
+			'link'         => get_permalink( $post->ID ),
 		);
-
-		if ( 'edit' === $request['context'] ) {
-
-			$data_raw = array(
-				'guid'         => array(
-					'raw' => $post->guid,
-				),
-				'status'       => $post->post_status,
-				'password'     => $this->prepare_password_response( $post->post_password ),
-				'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-				'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			);
-
-			$data = array_merge_recursive( $data, $data_raw );
-
-		}
 
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
+				'raw'      => $post->post_title,
 				'rendered' => get_the_title( $post->ID ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['title']['raw'] = $post->post_title;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
+
+			if ( ! empty( $post->post_password ) ) {
+				$this->prepare_password_response( $post->post_password );
+			}
+
 			$data['content'] = array(
+				'raw'      => $post->post_content,
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['content']['raw'] = $post->post_content;
+
+			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
+			if ( ! empty( $post->post_password ) ) {
+				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
+
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
+				'raw'      => $post->post_excerpt,
 				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
 			);
-			if ( 'edit' === $request['context'] ) {
-				$data['excerpt']['raw'] = $post->post_excerpt;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['author'] ) ) {
@@ -1059,6 +1087,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			) );
 		}
 
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
 		return apply_filters( 'json_prepare_' . $this->post_type, $data, $post, $request );
 	}
 
@@ -1110,6 +1140,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			);
 		}
 
+		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
+			$attachments_url = json_url( 'wp/media' );
+			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
+			$links['attachments'] = array(
+				'href'       => $attachments_url,
+				'embeddable' => true,
+			);
+		}
+
 		return $links;
 	}
 
@@ -1129,46 +1168,78 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			 * Base properties for every Post
 			 */
 			'properties' => array(
-				'id' => array(
-					'description' => 'Unique identifier for the object.',
-					'type'        => 'integer',
-				),
-				'type' => array(
-					'description' => 'Type of Post for the object.',
+				'date'            => array(
+					'description' => 'The date the object was published.',
 					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
 				),
-				'slug' => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
+				'date_gmt'        => array(
+					'description' => 'The date the object was published, as GMT.',
 					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'edit' ),
 				),
-				'guid' => array(
+				'guid'            => array(
 					'description' => 'The globally unique identifier for the object.',
 					'type'        => 'object',
+					'context'     => array( 'view', 'edit' ),
 					'properties'  => array(
 						'raw'      => array(
 							'description' => 'GUID for the object, as it exists in the database.',
 							'type'        => 'string',
+							'context'     => array( 'edit' ),
 						),
 						'rendered' => array(
 							'description' => 'GUID for the object, transformed for display.',
 							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
 						),
 					),
 				),
-				'link' => array(
+				'id'              => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
+					'context'     => array( 'view', 'edit' ),
 				),
-				'date' => array(
-					'description' => 'The date the object was published.',
-					'type'        => 'string',
-					'format'      => 'date-time',
-				),
-				'modified' => array(
+				'modified'        => array(
 					'description' => 'The date the object was last modified.',
 					'type'        => 'string',
 					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'modified_gmt'    => array(
+					'description' => 'The date the object was last modified, as GMT.',
+					'type'        => 'string',
+					'format'      => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'password'        => array(
+					'description' => 'A password to protect access to the post.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+				'slug'            => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'status'          => array(
+					'description' => 'A named status for the object.',
+					'type'        => 'string',
+					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
+					'context'     => array( 'edit' ),
+				),
+				'type'            => array(
+					'description' => 'Type of Post for the object.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
 				),
 			)
 		);
@@ -1178,6 +1249,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$schema['properties']['parent'] = array(
 				'description' => 'The ID for the parent of the object.',
 				'type'        => 'integer',
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
@@ -1233,14 +1305,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['title'] = array(
 						'description' => 'The title for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Title for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Title for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1250,14 +1325,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['content'] = array(
 						'description' => 'The content for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Content for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Content for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1267,6 +1345,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['author'] = array(
 						'description' => 'The ID for the author of the object.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1274,14 +1353,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => 'The excerpt for the object.',
 						'type'        => 'object',
+						'context'     => array( 'view', 'edit' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Excerpt for the object, as it exists in the database.',
 								'type'        => 'string',
+								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
 								'description' => 'Excerpt for the object, transformed for display.',
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
 							),
 						),
 					);
@@ -1291,6 +1373,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['featured_image'] = array(
 						'description' => 'ID of the featured image for the object.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1299,11 +1382,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description' => 'Whether or not comments are open on the object.',
 						'type'        => 'string',
 						'enum'        => array( 'open', 'closed' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					$schema['properties']['ping_status'] = array(
 						'description' => 'Whether or not the object can be pinged.',
 						'type'        => 'string',
 						'enum'        => array( 'open', 'closed' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1311,6 +1396,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					$schema['properties']['menu_order'] = array(
 						'description' => 'The order of the object in relation to other object of its type.',
 						'type'        => 'integer',
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -1319,17 +1405,18 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 						'description' => 'The format for the object.',
 						'type'        => 'string',
 						'enum'        => get_post_format_slugs(),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
 			}
-
 		}
 
 		if ( 'post' === $this->post_type ) {
 			$schema['properties']['sticky'] = array(
 				'description' => 'Whether or not the object should be treated as sticky.',
 				'type'        => 'boolean',
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
@@ -1338,6 +1425,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'description' => 'The theme file to use to display the object.',
 				'type'        => 'string',
 				'enum'        => array_values( get_page_templates() ),
+				'context'     => array( 'view', 'edit' ),
 			);
 		}
 
