@@ -647,6 +647,14 @@ class WP_Test_JSON_Posts extends WP_Test_JSON_TestCase {
 		$this->check_get_post_response( $response, $edited_post );
 	}
 
+	function test_edit_post_set_empty_title() {
+		$data = $this->set_data( array( 'ID' => $this->post_id, 'title' => '' ) ) ;
+		$this->endpoint->edit_post( $this->post_id, $data );
+
+		// Check that we have an empty title
+		$this->assertEquals( '', get_the_title( $this->post_id ) );
+	}
+
 	function test_edit_post_without_permission() {
 		$data = $this->set_data( array( 'ID' => $this->post_id ) ) ;
 
