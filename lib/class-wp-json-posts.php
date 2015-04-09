@@ -243,6 +243,8 @@ class WP_JSON_Posts {
 
 			if ( $this->check_read_permission( $parent ) ) {
 				return true;
+			} else {
+				return false;
 			}
 		}
 
