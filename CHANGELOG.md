@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+- Fix information disclosure security vulnerability.
+
+  Unauthenticated users could access revisions of published and unpublished posts. Revisions are now only accessible to authenticated users with permission to edit the revision's post.
+
+  Reported by @chredd on 2015-04-09.
+
 ## 1.0
 
 - Add user endpoints.
