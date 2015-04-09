@@ -271,7 +271,13 @@ class WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! json_check_post_permission( $post, 'read' ) ) {
+		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
+			$checked_post = get_post( $post['post_parent'], ARRAY_A );
+		} else {
+			$checked_post = $post;
+		}
+
+		if ( ! json_check_post_permission( $checked_post, 'read' ) ) {
 			return new WP_Error( 'json_user_cannot_read', __( 'Sorry, you cannot read this post.' ), array( 'status' => 401 ) );
 		}
 
