@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.2
+
+- Fix information disclosure security vulnerability, part two.
+
+  Authenticated users could access revisions of published and unpublished posts. Revisions are genuinely only accessible to authenticated users with permission to edit the revision's post. We tested, we promise.
+
+  Reported by @joehoyle on 2015-04-09.
+
 ## 0.9.1
 
 - Fix information disclosure security vulnerability.
