@@ -78,4 +78,18 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 
 	}
 
+	public function test_access_single_revision() {
+
+		wp_set_current_user( 0 );
+		$response = $this->endpoint->get_post( $this->revision_id );
+		$this->assertErrorResponse( 'json_user_cannot_read', $response, 401 );
+
+		wp_set_current_user( $this->author );
+		$response = $this->endpoint->get_post( $this->revision_id );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+	}
+
 }
