@@ -95,7 +95,7 @@ class WP_Test_JSON_Post_Revisions extends WP_UnitTestCase {
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
-		wp_set_current_user( $this->administrator );
+		wp_set_current_user( $this->admin );
 		$response = $this->endpoint->get_post( $this->revision_id );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
