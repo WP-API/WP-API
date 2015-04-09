@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.1
+
+- Fix information disclosure security vulnerability.
+
+  Unauthenticated users could access revisions of published and unpublished posts. Revisions are now only accessible to authenticated users with permission to edit the revision's post.
+
+  Reported by @chredd on 2015-04-09.
+
 ## 0.8
 - Add compatibility layer for JsonSerializable. You can now return arbitrary
   objects from endpoints and use the `jsonSerialize()` method to return the data
