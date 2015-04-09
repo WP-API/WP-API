@@ -215,7 +215,6 @@ class WP_JSON_Posts {
 		if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
 			$parent = get_post( $post['post_parent'], ARRAY_A );
 
-			$parent_post_type = get_post_type_object( $parent['post_type'] );
 			if ( 'revision' === $post['post_type'] && ! $this->check_edit_permission( $parent ) ) {
 				return false;
 			} else if ( $this->check_read_permission( $parent ) ) {
