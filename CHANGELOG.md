@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.2
+
+- Fix information disclosure security vulnerability.
+
+  Unauthenticated users could access revisions of published and unpublished posts. Revisions are now only accessible to authenticated users with permission to edit the revision's post.
+
+  Reported by @chredd on 2015-04-09.
+
 ## 1.1.1
 
 - Mitigate Flash CSRF exploit
