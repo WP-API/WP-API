@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: Ryan McCue
  * Author URI: http://ryanmccue.info/
- * Version: 1.1.2
+ * Version: 1.1.3
  * Plugin URI: https://github.com/rmccue/WP-API
  */
 
@@ -13,7 +13,7 @@
  *
  * @var string
  */
-define( 'JSON_API_VERSION', '1.1.2' );
+define( 'JSON_API_VERSION', '1.1.3' );
 
 /**
  * Include our files for the API

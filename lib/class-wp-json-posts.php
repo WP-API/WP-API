@@ -233,7 +233,7 @@ class WP_JSON_Posts {
 		}
 
 		// Can we read the post?
-		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
+		if ( 'publish' === $post['post_status'] || ( 'revision' !== $post['post_type'] && current_user_can( $post_type->cap->read_post, $post['ID'] ) ) ) {
 			return true;
 		}
 
