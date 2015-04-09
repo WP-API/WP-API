@@ -161,7 +161,7 @@ class WP_JSON_Posts {
 	protected function check_read_permission( $post ) {
 		// Can we read the post?
 		$post_type = get_post_type_object( $post['post_type'] );
-		if ( 'publish' === $post['post_status'] || current_user_can( $post_type->cap->read_post, $post['ID'] ) ) {
+		if ( 'publish' === $post['post_status'] || ( 'revision' !== $post['post_type'] && current_user_can( $post_type->cap->read_post, $post['ID'] ) ) ) {
 			return true;
 		}
 
