@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Coding Standards for WP-API">
+
+	<rule ref="WordPress-Core" />
+
+	<rule ref="WordPress.NamingConventions.ValidFunctionName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+</ruleset>
