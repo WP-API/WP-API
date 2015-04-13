@@ -234,7 +234,7 @@ class WP_JSON_Posts {
 
 		$context = 'edit';
 
-		if ( !json_check_post_permission( $post, 'edit' ) ) {
+		if ( !json_check_post_permission( get_post( $result, ARRAY_A ), 'edit' ) ) {
 			$context = 'view';
 		}
 
