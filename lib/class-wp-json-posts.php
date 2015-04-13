@@ -232,7 +232,13 @@ class WP_JSON_Posts {
 			return $result;
 		}
 
-		$response = json_ensure_response( $this->get_post( $result, 'edit' ) );
+		$context = 'edit';
+
+		if ( !json_check_post_permission( $post, 'edit' ) ) {
+			$context = 'view';
+		}
+
+		$response = json_ensure_response( $this->get_post( $result, $context ) );
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/posts/' . $result ) );
 
