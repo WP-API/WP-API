@@ -448,6 +448,50 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEmpty( get_post_meta( $post_id, '_testkey' ) );
 	}
 
+	/**
+	 * Ensure slashes aren't added
+	 */
+	public function test_create_item_unslashed() {
+		$post_id = $this->factory->post->create();
+		$data = array(
+			'key' => 'testkey',
+			'value' => "test unslashed ' value",
+		);
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$meta = get_post_meta( $post_id, 'testkey', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertEquals( "test unslashed ' value", $meta[0] );
+	}
+
+	/**
+	 * Ensure slashes aren't touched in data
+	 */
+	public function test_create_item_slashed() {
+		$post_id = $this->factory->post->create();
+		$data = array(
+			'key' => 'testkey',
+			'value' => "test slashed \\' value",
+		);
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$meta = get_post_meta( $post_id, 'testkey', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertEquals( "test slashed \\' value", $meta[0] );
+	}
+
 	public function test_update_item() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
@@ -779,6 +823,54 @@ class WP_Test_JSON_Posts_Meta extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_meta_invalid_key', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
+	}
+
+	/**
+	 * Ensure slashes aren't added
+	 */
+	public function test_update_meta_unslashed() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$data = array(
+			'key' => 'testkey',
+			'value' => "test unslashed ' value",
+		);
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$meta = get_post_meta( $post_id, 'testkey', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertEquals( "test unslashed ' value", $meta[0] );
+	}
+
+	/**
+	 * Ensure slashes aren't touched in data
+	 */
+	public function test_update_meta_slashed() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$data = array(
+			'key' => 'testkey',
+			'value' => "test slashed \\' value",
+		);
+		$request = new WP_JSON_Request( 'POST', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$meta = get_post_meta( $post_id, 'testkey', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 1, $meta );
+		$this->assertEquals( "test slashed \\' value", $meta[0] );
 	}
 
 	public function test_delete_item() {

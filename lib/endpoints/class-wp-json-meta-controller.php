@@ -310,9 +310,6 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return $this->get_item( $request );
 		}
 
-		$key   = wp_slash( $key );
-		$value = wp_slash( $value );
-
 		if ( ! update_metadata_by_mid( $this->type, $mid, $value, $key ) ) {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update meta.' ), array( 'status' => 500 ) );
 		}
