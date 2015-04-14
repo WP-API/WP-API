@@ -507,10 +507,6 @@ function json_handle_options_request( $response, $handler, $request ) {
 
 	$accept = array();
 
-	$handler_class = get_class( $handler );
-	$class_vars = get_class_vars( $handler_class );
-	$map = $class_vars['method_map'];
-
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
 
@@ -519,15 +515,11 @@ function json_handle_options_request( $response, $handler, $request ) {
 		}
 
 		foreach ( $endpoints as $endpoint ) {
-			foreach ( $map as $type => $bitmask ) {
-				if ( $endpoint[1] & $bitmask ) {
-					$accept[] = $type;
-				}
-			}
+			$accept = array_merge( $accept, $endpoint['methods'] );
 		}
 		break;
 	}
-	$accept = array_unique( $accept );
+	$accept = array_keys( $accept );
 
 	$response->header( 'Accept', implode( ', ', $accept ) );
 
