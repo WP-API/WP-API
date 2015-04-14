@@ -1,11 +1,12 @@
 <?php
 /**
- * Plugin Name: JSON REST API
+ * Plugin Name: WP REST API
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
- * Author: Ryan McCue
- * Author URI: http://ryanmccue.info/
+ * Author: WP REST API Team
+ * Author URI: http://wp-api.org
  * Version: 1.1.1
- * Plugin URI: https://github.com/rmccue/WP-API
+ * Plugin URI: https://github.com/WP-API/WP-API
+ * License: GPL2+
  */
 
 /**
@@ -19,28 +20,29 @@ define( 'JSON_API_VERSION', '1.1.1' );
  * Include our files for the API.
  */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-jsonserializable.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-datetime.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-datetime.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-server.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-server.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-responseinterface.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-http-response.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-response.php' );
-require_once( dirname( __FILE__ ) . '/lib/class-wp-json-request.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.php' );
+include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-response.php' );
+require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-json-request.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-posts.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-customposttype.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-pages.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-media.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta.php' );
-include_once( dirname( __FILE__ ) . '/lib/class-wp-json-meta-posts.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta.php' );
+include_once( dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-meta-posts.php' );
 
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-taxonomies-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-terms-controller.php';
-require_once dirname( __FILE__ ) . '/lib/class-wp-json-users-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-statuses-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-comments-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -75,252 +77,83 @@ function register_json_route( $namespace, $route, $args = array(), $override = f
 }
 
 /**
+ * Add the extra Post Type registration arguments we need
+ * These attributes will eventually be committed to core.
+ */
+function _add_extra_api_post_type_arguments() {
+	global $wp_post_types;
+
+	$wp_post_types['post']->show_in_json = true;
+	$wp_post_types['post']->json_base = 'posts';
+	$wp_post_types['post']->json_controller_class = 'WP_JSON_Posts_Controller';
+
+	$wp_post_types['page']->show_in_json = true;
+	$wp_post_types['page']->json_base = 'pages';
+	$wp_post_types['page']->json_controller_class = 'WP_JSON_Posts_Controller';
+
+	$wp_post_types['attachment']->show_in_json = true;
+	$wp_post_types['attachment']->json_base = 'media';
+	$wp_post_types['attachment']->json_controller_class = 'WP_JSON_Attachments_Controller';
+
+}
+add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
+
+/**
  * Register default JSON API routes
  */
 function create_initial_json_routes() {
+
+	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
+		
+		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
+
+		if ( ! class_exists( $class ) ) {
+			continue;
+		}
+		$controller = new $class( $post_type->name );
+		if ( ! is_subclass_of( $controller, 'WP_JSON_Controller' ) ) {
+			continue;
+		}
+
+		$controller->register_routes();
+	}
+
+	/*
+	 * Post types
+	 */
+	$controller = new WP_JSON_Post_Types_Controller;
+	$controller->register_routes();
+
+	/*
+	 * Post statuses
+	 */
+	$controller = new WP_JSON_Post_Statuses_Controller;
+	$controller->register_routes();
 
 	/*
 	 * Taxonomies
 	 */
 	$controller = new WP_JSON_Taxonomies_Controller;
-	register_json_route( 'wp', '/taxonomies', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_items' ),
-		'args'            => array(
-			'post_type'          => array(
-				'required'   => false,
-			),
-		),
-	) );
-	register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_item' ),
-	) );
+	$controller->register_routes();
 
 	/*
 	 * Terms
 	 */
 	$controller = new WP_JSON_Terms_Controller;
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
-		array(
-			'methods'  => WP_JSON_Server::READABLE,
-			'callback' => array( $controller, 'get_items' ),
-			'args'     => array(
-				'search'   => array(
-					'required' => false,
-				),
-				'per_page' => array(
-					'required' => false,
-				),
-				'page'     => array(
-					'required' => false,
-				),
-			),
-		),
-		array(
-			'methods'     => WP_JSON_Server::CREATABLE,
-			'callback'    => array( $controller, 'create_item' ),
-			'args'        => array(
-				'name'        => array(
-					'required'    => true,
-				),
-				'description' => array(
-					'required'    => false,
-				),
-				'slug'        => array(
-					'required'    => false,
-				),
-				'parent_id'   => array(
-					'required'    => false,
-				),
-			),
-		),
-	));
-	register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
-		array(
-			'methods'    => WP_JSON_Server::READABLE,
-			'callback'   => array( $controller, 'get_item' ),
-		),
-		array(
-			'methods'    => WP_JSON_Server::EDITABLE,
-			'callback'   => array( $controller, 'update_item' ),
-			'args'       => array(
-				'name'           => array(
-					'required'   => false,
-				),
-				'description'    => array(
-					'required'   => false,
-				),
-				'slug'           => array(
-					'required'   => false,
-				),
-				'parent_id'      => array(
-					'required'   => false,
-				),
-			),
-		),
-		array(
-			'methods'    => WP_JSON_Server::DELETABLE,
-			'callback'   => array( $controller, 'delete_item' ),
-		),
-	) );
+	$controller->register_routes();
 
 	/*
 	 * Users
 	 */
 	$controller = new WP_JSON_Users_Controller;
-	register_json_route( 'wp', '/users', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_items' ),
-			'args'            => array(
-				'context'          => array(
-					'required'         => false,
-				),
-				'order'            => array(
-					'required'         => false,
-				),
-				'orderby'          => array(
-					'required'         => false,
-				),
-				'per_page'         => array(
-					'required'         => false,
-				),
-				'page'             => array(
-					'required'         => false,
-				),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::CREATABLE,
-			'callback'        => array( $controller, 'create_item' ),
-			'accept_json'     => true,
-			'args'            => array(
-				'email'           => array(
-					'required'        => true,
-				),
-				'username'        => array(
-					'required'        => true,
-				),
-				'password'        => array(
-					'required'        => true,
-				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::DELETABLE,
-			'callback'        => array( $controller, 'delete_item' ),
-			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
-				'reassign'        => array(
-					'required'        => false,
-				),
-			),
-		),
-	) );
+	$controller->register_routes();
 
-	register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
-		array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $controller, 'get_item' ),
-			'args'            => array(
-				'context'          => array(
-					'required'         => false,
-				),
-			),
-		),
-		array(
-			'methods'         => WP_JSON_Server::EDITABLE,
-			'callback'        => array( $controller, 'update_item' ),
-			'accept_json'     => true,
-			'args'            => array(
-				'id'              => array(
-					'required'        => true,
-				),
-				'email'           => array(
-					'required'        => false,
-				),
-				'username'        => array(
-					'required'        => false,
-				),
-				'password'        => array(
-					'required'        => false,
-				),
-				'name'            => array(
-					'required'        => false,
-				),
-				'first_name'      => array(
-					'required'        => false,
-				),
-				'last_name'       => array(
-					'required'        => false,
-				),
-				'nickname'        => array(
-					'required'        => false,
-				),
-				'slug'            => array(
-					'required'        => false,
-				),
-				'description'     => array(
-					'required'        => false,
-				),
-				'role'            => array(
-					'required'        => false,
-				),
-				'url'             => array(
-					'required'        => false,
-				),
-			),
-		),
-		array(
-			'methods' => WP_JSON_Server::DELETABLE,
-			'callback' => array( $controller, 'delete_item' ),
-			'args' => array(
-				'id' => array(
-					'required' => true,
-				),
-				'reassign' => array(
-					'required' => false,
-				),
-			),
-		),
-	) );
+	/**
+	 * Comments
+	 */
+	$controller = new WP_JSON_Comments_Controller;
+	$controller->register_routes();
 
-	register_json_route( 'wp', '/users/me', array(
-		'methods'         => WP_JSON_Server::READABLE,
-		'callback'        => array( $controller, 'get_current_item' ),
-		'args'            => array(
-			'context'          => array(
-				'required'         => false,
-			),
-		)
-	));
 }
 add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
 
@@ -372,30 +205,12 @@ add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
  * @param WP_JSON_Server $server Server object.
  */
 function json_api_default_filters( $server ) {
-	global $wp_json_posts, $wp_json_pages, $wp_json_media, $wp_json_taxonomies;
-
-	// Posts.
-	$wp_json_posts = new WP_JSON_Posts();
-	add_filter( 'json_endpoints', array( $wp_json_posts, 'register_routes' ), 0 );
-	add_filter( 'json_prepare_taxonomy', array( $wp_json_posts, 'add_post_type_data' ), 10, 3 );
-
-	// Pages.
-	$wp_json_pages = new WP_JSON_Pages();
-	$wp_json_pages->register_filters();
 
 	// Post meta.
 	$wp_json_post_meta = new WP_JSON_Meta_Posts();
 	add_filter( 'json_endpoints',    array( $wp_json_post_meta, 'register_routes'    ), 0 );
 	add_filter( 'json_prepare_post', array( $wp_json_post_meta, 'add_post_meta_data' ), 10, 3 );
 	add_filter( 'json_insert_post',  array( $wp_json_post_meta, 'insert_post_meta'   ), 10, 2 );
-
-	// Media.
-	$wp_json_media = new WP_JSON_Media();
-	add_filter( 'json_endpoints',       array( $wp_json_media, 'register_routes'    ), 1     );
-	add_filter( 'json_prepare_post',    array( $wp_json_media, 'add_thumbnail_data' ), 10, 3 );
-	add_filter( 'json_pre_insert_post', array( $wp_json_media, 'preinsert_check'    ), 10, 3 );
-	add_filter( 'json_insert_post',     array( $wp_json_media, 'attach_thumbnail'   ), 10, 3 );
-	add_filter( 'json_post_type_data',  array( $wp_json_media, 'type_archive_link'  ), 10, 2 );
 
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run',           'json_handle_deprecated_function', 10, 3 );
@@ -404,8 +219,11 @@ function json_api_default_filters( $server ) {
 	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
 
 	// Default serving
-	add_filter( 'json_serve_request', 'json_send_cors_headers'             );
+	add_filter( 'json_pre_serve_request', 'json_send_cors_headers' );
+	add_filter( 'json_post_dispatch',  'json_send_allow_header', 10, 3 );
+
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
+
 }
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
@@ -508,40 +326,6 @@ function json_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
- * Add 'show_in_json' {@see register_post_type()} argument.
- *
- * Adds the 'show_in_json' post type argument to {@see register_post_type()}.
- * This value controls whether the post type is available via API endpoints,
- * and defaults to the value of $publicly_queryable.
- *
- * @global array $wp_post_types Post types list.
- *
- * @param string   $post_type Post type to register.
- * @param stdClass $args      Post type arguments.
- */
-function json_register_post_type( $post_type, $args ) {
-	global $wp_post_types;
-
-	$type = &$wp_post_types[ $post_type ];
-
-	// Exception for pages.
-	if ( $post_type === 'page' ) {
-		$type->show_in_json = true;
-	}
-
-	// Exception for revisions.
-	if ( $post_type === 'revision' ) {
-		$type->show_in_json = true;
-	}
-
-	// Default to the value of $publicly_queryable.
-	if ( ! isset( $type->show_in_json ) ) {
-		$type->show_in_json = $type->publicly_queryable;
-	}
-}
-add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
-
-/**
  * Get the URL prefix for any API resource.
  *
  * @return string Prefix.
@@ -635,8 +419,8 @@ function json_ensure_request( $request ) {
  * immediately check for this value.
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return WP_Error|WP_HTTP_ResponseInterface WP_Error if present, WP_HTTP_ResponseInterface
- *                                            instance otherwise.
+ * @return mixed WP_Error if present, WP_HTTP_ResponseInterface if instance,
+ *               otherwise WP_JSON_Response.
  */
 function json_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -746,6 +530,51 @@ function json_handle_options_request( $response, $handler, $request ) {
 	$accept = array_unique( $accept );
 
 	$response->header( 'Accept', implode( ', ', $accept ) );
+
+	return $response;
+}
+
+/**
+ * Send the "Allow" header to state all methods that can be sen
+ * to the current route
+ *
+ * @param  WP_JSON_Response  $response
+ * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
+ * @param  WP_JSON_Request   $request
+ */
+function json_send_allow_header( $response, $server, $request ) {
+
+	$matched_route = $response->get_matched_route();
+
+	if ( ! $matched_route ) {
+		return $response;
+	}
+
+	$routes = $server->get_routes();
+
+	$allowed_methods = array();
+
+	// get the allowed methods across the routes
+	foreach ( $routes[$matched_route] as $_handler ) {
+		foreach ( $_handler['methods'] as $handler_method => $value ) {
+
+			if ( ! empty( $_handler['permission_callback'] ) ) {
+
+				$permission = call_user_func( $_handler['permission_callback'], $request );
+
+				$allowed_methods[$handler_method] = true === $permission;
+			} else {
+				$allowed_methods[$handler_method] = true;
+			}
+		}
+	}
+
+	// strip out all the methods that are not allowed (false values)
+	$allowed_methods = array_filter( $allowed_methods );
+
+	if ( $allowed_methods ) {
+		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
+	}
 
 	return $response;
 }

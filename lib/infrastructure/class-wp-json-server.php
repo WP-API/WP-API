@@ -123,7 +123,7 @@ class WP_JSON_Server {
 		$data = array();
 		foreach ( (array) $error->errors as $code => $messages ) {
 			foreach ( (array) $messages as $message ) {
-				$data[] = array( 'code' => $code, 'message' => $message );
+				$data[] = array( 'code' => $code, 'message' => $message, 'data' => $error->get_error_data( $code ) );
 			}
 		}
 		$response = new WP_JSON_Response( $data, $status );
@@ -164,7 +164,7 @@ class WP_JSON_Server {
 	 */
 	public function serve_request( $path = null ) {
 		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
-		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ), true );
+		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 
 		// Mitigate possible JSONP Flash attacks
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
@@ -207,9 +207,15 @@ class WP_JSON_Server {
 		$request->set_headers( $this->get_headers( $_SERVER ) );
 		$request->set_body( $this->get_raw_data() );
 
-		// Compatibility for clients that can't use PUT/PATCH/DELETE
+		/**
+		 * HTTP method override for clients that can't use PUT/PATCH/DELETE. First, we check
+		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
+		 * header.
+		 */
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
+		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
+			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 		}
 
 		$result = $this->check_authentication();
@@ -245,7 +251,7 @@ class WP_JSON_Server {
 		 * @param WP_JSON_Response $result
 		 * @param WP_JSON_Request $request
 		 */
-		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $request );
+		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $this, $request );
 
 		// Wrap the response in an envelope if asked for
 		if ( isset( $_GET['_envelope'] ) ) {
@@ -367,10 +373,14 @@ class WP_JSON_Server {
 				$query_params = array();
 
 				// Parse out URL query parameters
-				$query = parse_url( $route, PHP_URL_QUERY );
-				if ( ! empty( $query ) ) {
-					$route = str_replace( '?' . $query, '', $route );
-					parse_str( $query, $query_params );
+				$parsed = parse_url( $route );
+				if ( empty( $parsed['path'] ) ) {
+					$embeds[] = array();
+					continue;
+				}
+
+				if ( ! empty( $parsed['query'] ) ) {
+					parse_str( $parsed['query'], $query_params );
 
 					// Ensure magic quotes are stripped
 					// @codeCoverageIgnoreStart
@@ -379,16 +389,14 @@ class WP_JSON_Server {
 					}
 					// @codeCoverageIgnoreEnd
 				}
-				$request = new WP_JSON_Request( 'GET', $route );
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
 
 				// Embedded resources get passed context=embed
 				$query_params['context'] = 'embed';
-				$request->set_query_params( $query_params );
 
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
+				$request->set_query_params( $query_params );
 				$response = $this->dispatch( $request );
-				if ( is_wp_error( $response ) ) {
-					$response = $this->error_to_response( $response );
-				}
 
 				$embeds[] = $response;
 			}
@@ -480,6 +488,7 @@ class WP_JSON_Server {
 			'accept_json'   => false,
 			'accept_raw'    => false,
 			'show_in_index' => true,
+			'args'          => array(),
 		);
 		foreach ( $endpoints as $route => &$handlers ) {
 			if ( isset( $handlers['callback'] ) ) {
@@ -508,39 +517,10 @@ class WP_JSON_Server {
 	}
 
 	/**
-	 * Check that all required parameters are present in the request.
-	 *
-	 * @param WP_JSON_Request $request Request with parameters to check.
-	 * @return true|WP_Error
-	 */
-	protected function check_required_parameters( $request ) {
-		$attributes = $request->get_attributes();
-		$required = array();
-
-		// No arguments set, skip validation
-		if ( empty( $attributes['args'] ) ) {
-			return true;
-		}
-
-		foreach ( $attributes['args'] as $key => $arg ) {
-			$param = $request->get_param( $key );
-			if ( true === $arg['required'] && null === $param ) {
-				$required[] = $key;
-			}
-		}
-
-		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
-	 * @return WP_JSON_Response Response returned by the callback, or a WP_Error instance
+	 * @return WP_JSON_Response Response returned by the callback
 	 */
 	public function dispatch( $request ) {
 		$method = $request->get_method();
@@ -550,6 +530,7 @@ class WP_JSON_Server {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
+				$response = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
 					continue;
@@ -562,7 +543,7 @@ class WP_JSON_Server {
 				}
 
 				if ( ! is_callable( $callback ) ) {
-					return new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
+					$response = new WP_Error( 'json_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
 
 				/*
@@ -595,32 +576,71 @@ class WP_JSON_Server {
 				}
 				*/
 
-				$request->set_url_params( $args );
-				$request->set_attributes( $handler );
+				if ( ! is_wp_error( $response ) ) {
 
-				$check_required = $this->check_required_parameters( $request );
-				if ( is_wp_error( $check_required ) ) {
-					return $check_required;
+					$request->set_url_params( $args );
+					$request->set_attributes( $handler );
+
+					$defaults = array();
+
+					foreach ( $handler['args'] as $arg => $options ) {
+						if ( isset( $options['default'] ) ) {
+							$defaults[$arg] = $options['default'];
+						}
+					}
+
+					$request->set_default_params( $defaults );
+
+					$check_required = $request->has_valid_params();
+					if ( is_wp_error( $check_required ) ) {
+						$response = $check_required;
+					}
 				}
 
-				/**
-				 * Allow plugins to override dispatching the request
-				 *
-				 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-				 * @param WP_JSON_Request $request
-				 */
-				$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+				if ( ! is_wp_error( $response ) ) {
+					// check permission specified on the route.
+					if ( ! empty( $handler['permission_callback'] ) ) {
+						$permission = call_user_func( $handler['permission_callback'], $request );
 
-				// Allow plugins to halt the request via this filter
-				if ( $dispatch_result !== null ) {
-					return json_ensure_response( $dispatch_result );
+						if ( is_wp_error( $permission ) ) {
+							$response = $permission;
+						} else if ( false === $permission || null === $permission ) {
+							$response = new WP_Error( 'json_forbidden', __( "You don't have permission to do this." ), array( 'status' => 403 ) );
+						}
+					}
 				}
 
-				return json_ensure_response( call_user_func( $callback, $request ) );
+				if ( ! is_wp_error( $response ) ) {
+					/**
+					 * Allow plugins to override dispatching the request
+					 *
+					 * @param boolean $dispatch_result Dispatch result, will be used if not empty
+					 * @param WP_JSON_Request $request
+					 */
+					$dispatch_result = apply_filters( 'json_dispatch_request', null, $request );
+
+					// Allow plugins to halt the request via this filter
+					if ( $dispatch_result !== null ) {
+						$response = $dispatch_result;
+					} else {
+						$response = call_user_func( $callback, $request );
+					}
+				}
+
+				if ( is_wp_error( $response ) ) {
+					$response = $this->error_to_response( $response );
+				} else {
+					$response = json_ensure_response( $response );
+				}
+
+				$response->set_matched_route( $route );
+				$response->set_matched_handler( $handler );
+
+				return $response;
 			}
 		}
 
-		return new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) );
+		return $this->error_to_response( new WP_Error( 'json_no_route', __( 'No route was found matching the URL and request method' ), array( 'status' => 404 ) ) );
 	}
 
 	/**
@@ -716,7 +736,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
@@ -730,7 +750,7 @@ class WP_JSON_Server {
 	 *
 	 * @param array Map of header name to header value
 	 */
-	protected function send_headers( $headers ) {
+	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
 			$this->send_header( $key, $value );
 		}
