@@ -129,7 +129,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'permission_callback' => array( $this, 'permission_allowed' )
+			'permission_callback' => '__return_true',
 		) );
 
 		$editor = $this->factory->user->create( array( 'role' => 'editor' ) );
@@ -140,7 +140,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 
 		$result = $this->server->dispatch( $request );
 
-		$this->assertFalse( $result->get_status() !== 200 );
+		$this->assertEquals( 200, $result->get_status() );
 	}
 
 	/**
@@ -226,11 +226,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$this->assertEquals( $sent_headers['Allow'], 'POST' );
 	}
 
-	function permission_allowed() {
-		return true;
-	}
-
-	function permission_denied() {
+	public function permission_denied() {
 		return new WP_Error( 'forbidden', 'You are not allowed to do this', array( 'status' => 403 ) );
 	}
 
