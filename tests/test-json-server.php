@@ -158,8 +158,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
 
 		$result = $this->server->dispatch( $request );
-
-		apply_filters( 'json_post_dispatch', $result, $this->server, $request );
+		$result = apply_filters( 'json_post_dispatch', $result, $this->server, $request );
 
 		$this->assertFalse( $result->get_status() !== 200 );
 
@@ -191,7 +190,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 
 		$this->assertFalse( $result->get_status() !== 200 );
 
-		apply_filters( 'json_post_dispatch', $result, $this->server, $request );
+		$result = apply_filters( 'json_post_dispatch', $result, $this->server, $request );
 
 		$sent_headers = $result->get_headers();
 		$this->assertEquals( $sent_headers['Allow'], 'GET, POST' );
@@ -219,9 +218,8 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		$request = new WP_JSON_Request( 'GET', '/test-ns/test', array() );
 
 		$result = $this->server->dispatch( $request );
+		$result = apply_filters( 'json_post_dispatch', $result, $this->server, $request );
 
-		apply_filters( 'json_post_dispatch', $result, $this->server, $request );
-		
 		$this->assertEquals( $result->get_status(), 403 );
 
 		$sent_headers = $result->get_headers();
