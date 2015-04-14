@@ -389,7 +389,6 @@ class WP_JSON_Server {
 					}
 					// @codeCoverageIgnoreEnd
 				}
-				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
 
 				// Embedded resources get passed context=embed
 				$query_params['context'] = 'embed';
