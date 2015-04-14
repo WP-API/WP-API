@@ -123,8 +123,9 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		global $wpdb;
 		$table = _get_meta_table( $this->type );
 		$parent_column = $this->get_parent_column();
+		$id_column = $this->get_id_column();
 
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_id, meta_key, meta_value FROM $table WHERE $parent_column = %d", $request['id'] ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT $id_column, meta_key, meta_value FROM $table WHERE $parent_column = %d", $request['id'] ) );
 
 		$meta = array();
 
@@ -176,9 +177,10 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function prepare_item_for_response( $data, $request, $is_raw = false ) {
-		$id    = $data->meta_id;
-		$key   = $data->meta_key;
-		$value = $data->meta_value;
+		$id_column = $this->get_id_column();
+		$id        = $data->$id_column;
+		$key       = $data->meta_key;
+		$value     = $data->meta_value;
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {
