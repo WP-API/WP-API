@@ -8,7 +8,15 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	 */
 	protected $type = 'post';
 
+	/**
+	 * Post type base route.
+	 *
+	 * @var string Base route ("/posts", "/media", etc)
+	 */
+	protected $post_base;
+
 	public function __construct( $base ) {
+		$this->post_base = $base;
 		$this->base = $base . '/(?P<id>\d+)/meta';
 	}
 
@@ -65,7 +73,7 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 		}
 
 		$data = $response->get_data();
-		$response->header( 'Location', json_url( '/posts/' . $request['id'] . '/meta/' . $data['id'] ) );
+		$response->header( 'Location', json_url( $this->post_base . '/' . $request['id'] . '/meta/' . $data['id'] ) );
 		return $response;
 	}
 
