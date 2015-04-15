@@ -9,7 +9,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
 		register_json_route( 'wp', '/users', array(
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
@@ -108,7 +108,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_items( $request ) {
-		
+
 		$prepared_args = array();
 		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'asc';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_text_field( $request['orderby'] ) : 'user_login';
@@ -174,9 +174,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$response = json_ensure_response( $response );
-		$data = $response->get_data();
-
-		$response->header( 'Location', $data['_links']['self']['href'] );
+		$response->header( 'Location', json_url( sprintf( '/wp/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -189,7 +187,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function create_item( $request ) {
-		
+
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'json_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
@@ -314,7 +312,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to list users
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -329,7 +327,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read a user
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return mixed bool or WP_Error
 	 */
@@ -361,7 +359,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access create users
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -376,7 +374,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access update a user
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -393,7 +391,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access delete a user
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
