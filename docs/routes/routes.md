@@ -117,7 +117,6 @@ The following query variables are available to the API:
 * `sentence`
 * `calendar`
 * `page`
-* `paged`
 * `more`
 * `tb`
 * `pb`
@@ -181,6 +180,12 @@ In addition, the following are available when authenticated as a user with
 ```
 GET /posts?filter[posts_per_page]=8&filter[order]=ASC
 ```
+
+#### `page`
+
+The `page` parameter sets the page for pagination
+
+Pagination pages are 1-indexed (the first page is `?page=1`)
 
 #### `context`
 The `context` parameter controls the format of the data to return. See the
