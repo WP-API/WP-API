@@ -195,12 +195,30 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$user = $this->prepare_item_for_database( $request );
 
-		$user_id = wp_insert_user( $user );
-		if ( is_wp_error( $user_id ) ) {
-			return $user_id;
+		if ( is_multisite() ) {
+			$ret = wpmu_validate_user_signup( $user->user_login, $user->user_email );
+			if ( is_wp_error( $ret[ 'errors' ] ) && ! empty( $ret[ 'errors' ]->errors ) ) {
+				return $ret['errors'];
+			}
 		}
 
-		$user->ID = $user_id;
+		if ( is_multisite() ) {
+			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
+			if ( ! $user_id ) {
+				return new WP_Error( 'json_user_create', __( 'Error creating new user.' ), array( 'status' => 500 ) );
+			}
+			$user->ID = $user_id;
+			$user_id = wp_update_user( $user );
+			if ( is_wp_error( $user_id ) ) {
+				return $user_id;
+			}
+		} else {
+			$user_id = wp_insert_user( $user );
+			if ( is_wp_error( $user_id ) ) {
+				return $user_id;
+			}
+			$user->ID = $user_id;
+		}
 		do_action( 'json_insert_user', $user, $request, false );
 
 		$response = $this->get_item( array(
@@ -398,35 +416,28 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return array $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-		$request['context'] = isset( $request['context'] ) ? sanitize_text_field( $request['context'] ) : 'view';
 
 		$data = array(
-			'id'          => $user->ID,
-			'name'        => $user->display_name,
-			'first_name'  => $user->first_name,
-			'last_name'   => $user->last_name,
-			'link'        => get_author_posts_url( $user->ID ),
-			'nickname'    => $user->nickname,
-			'slug'        => $user->user_nicename,
-			'url'         => $user->user_url,
-			'avatar_url'  => json_get_avatar_url( $user->user_email ),
-			'description' => $user->description,
+			'avatar_url'         => json_get_avatar_url( $user->user_email ),
+			'capabilities'       => $user->allcaps,
+			'description'        => $user->description,
+			'email'              => $user->user_email,
+			'extra_capabilities' => $user->caps,
+			'first_name'         => $user->first_name,
+			'id'                 => $user->ID,
+			'last_name'          => $user->last_name,
+			'link'               => get_author_posts_url( $user->ID ),
+			'name'               => $user->display_name,
+			'nickname'           => $user->nickname,
+			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
+			'roles'              => $user->roles,
+			'slug'               => $user->user_nicename,
+			'url'                => $user->user_url,
+			'username'           => $user->user_login,
 		);
 
-		if ( 'view' === $request['context'] || 'edit' === $request['context'] ) {
-			$data['roles']              = $user->roles;
-			$data['capabilities']       = $user->allcaps;
-			$data['email']              = false;
-			$data['registered_date']    = date( 'c', strtotime( $user->user_registered ) );
-		}
-
-		if ( 'edit' === $request['context'] ) {
-			$data['username']           = $user->user_login;
-			// The user's specific caps should only be needed if you're editing
-			// the user, as allcaps should handle most uses
-			$data['email']              = $user->user_email;
-			$data['extra_capabilities'] = $user->caps;
-		}
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+		$data = $this->filter_response_by_context( $data, $context );
 
 		$data['_links'] = array(
 			'self'     => array(
@@ -500,31 +511,97 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	public function get_item_schema() {
 
 		$schema = array(
-			'$schema'              => 'http://json-schema.org/draft-04/schema#',
-			'title'                => 'user',
-			'type'                 => 'object',
-			'properties'           => array(
-				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
-					'type'         => 'integer',
-					),
-				'name'             => array(
-					'description'  => 'Display name for the object.',
-					'type'         => 'string',
-					),
-				'email'            => array(
-					'description'  => 'The email address for the object.',
-					'type'         => 'string',
-					'format'       => 'email',
-					),
-				'link'             => array(
-					'description'  => 'URL to the object.',
-					'type'         => 'string',
-					'format'       => 'uri',
-					),
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'user',
+			'type'       => 'object',
+			'properties' => array(
+				'avatar_url'  => array(
+					'description' => 'Avatar URL for the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
-			);
-		return $schema;
+				'capabilities'    => array(
+					'description' => 'All capabilities assigned to the user.',
+					'type'        => 'object',
+					'context'     => array( 'view', 'edit' ),
+					),
+				'description' => array(
+					'description' => 'Description of the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'email'       => array(
+					'description' => 'The email address for the object.',
+					'type'        => 'string',
+					'format'      => 'email',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'extra_capabilities' => array(
+					'description' => 'Any extra capabilities assigned to the user.',
+					'type'        => 'object',
+					'context'     => array( 'edit' ),
+					),
+				'first_name'  => array(
+					'description' => 'First name for the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'id'          => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'integer',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'last_name'   => array(
+					'description' => 'Last name for the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'link'        => array(
+					'description' => 'Author URL to the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'name'        => array(
+					'description' => 'Display name for the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'nickname'    => array(
+					'description' => 'The nickname for the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'registered_date' => array(
+					'description' => 'Registration date for the user.',
+					'type'        => 'date-time',
+					'context'     => array( 'view', 'edit' ),
+					),
+				'roles'           => array(
+					'description' => 'Roles assigned to the user.',
+					'type'        => 'array',
+					'context'     => array( 'view', 'edit' ),
+					),
+				'slug'        => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'url'         => array(
+					'description' => 'URL of the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				),
+				'username'    => array(
+					'description' => 'Login name for the user.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+					),
+			)
+		);
 
+		return $schema;
 	}
 }

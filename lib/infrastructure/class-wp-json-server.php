@@ -369,17 +369,25 @@ class WP_JSON_Server {
 				}
 
 				// Run through our internal routing and serve
-				$route = substr( $item['href'], strlen( $api_root ) );
+				$route = substr( $item['href'], strlen( untrailingslashit( $api_root ) ) );
+				$query_params = array();
+
+				// Parse out URL query parameters
 				$parsed = parse_url( $route );
 				if ( empty( $parsed['path'] ) ) {
 					$embeds[] = array();
 					continue;
 				}
 
-				$query_params = array();
-				// If the route has query parameter, pass them along
 				if ( ! empty( $parsed['query'] ) ) {
 					parse_str( $parsed['query'], $query_params );
+
+					// Ensure magic quotes are stripped
+					// @codeCoverageIgnoreStart
+					if ( get_magic_quotes_gpc() ) {
+						$query_params = stripslashes_deep( $query_params );
+					}
+					// @codeCoverageIgnoreEnd
 				}
 
 				// Embedded resources get passed context=embed
@@ -727,7 +735,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
@@ -741,7 +749,7 @@ class WP_JSON_Server {
 	 *
 	 * @param array Map of header name to header value
 	 */
-	protected function send_headers( $headers ) {
+	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
 			$this->send_header( $key, $value );
 		}
@@ -768,6 +776,8 @@ class WP_JSON_Server {
 	 * Prepares response data to be serialized to JSON
 	 *
 	 * This supports the JsonSerializable interface for PHP 5.2-5.3 as well.
+	 *
+	 * @codeCoverageIgnore This is a compatibility shim.
 	 *
 	 * @param mixed $data Native representation
 	 * @return array|string Data ready for `json_encode()`

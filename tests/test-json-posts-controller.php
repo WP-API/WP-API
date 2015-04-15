@@ -19,6 +19,9 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->author_id = $this->factory->user->create( array(
 			'role' => 'author',
 		) );
+		$this->contributor_id = $this->factory->user->create( array(
+			'role' => 'contributor',
+		) );
 
 		register_post_type( 'youseeme', array( 'supports' => array(), 'show_in_json' => true ) );
 	}
@@ -248,6 +251,19 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'json_post_exists', $response, 400 );
 	}
 
+	public function test_create_post_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data(array(
+			'status' => 'pending'
+		));
+
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$this->check_create_update_post_response( $response );
+	}
+
 	public function test_create_post_sticky() {
 		wp_set_current_user( $this->editor_id );
 
@@ -264,11 +280,27 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( true, is_sticky( $post->ID ) );
 	}
 
+	public function test_create_post_sticky_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'sticky' => true,
+			'status' => 'pending'
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_create_post_other_author_without_permission() {
 		wp_set_current_user( $this->author_id );
 
 		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
-		$params = $this->set_post_data();
+		$params = $this->set_post_data(array(
+			'author' => $this->editor_id
+		));
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
@@ -503,6 +535,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( '0', $data['password'] );
 	}
 
+	public function test_create_post_with_password_and_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params = $this->set_post_data( array(
+			'password' => '123',
+			'sticky'   => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
 	public function test_create_post_custom_date() {
 		wp_set_current_user( $this->editor_id );
 
@@ -535,6 +581,28 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
 		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+	}
+
+	public function test_create_post_with_db_error() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params  = $this->set_post_data( array() );
+		$request->set_body_params( $params );
+
+		/**
+		 * Disable showing error as the below is going to intentionally 
+		 * trigger a DB error.
+		 */
+		global $wpdb;
+		$wpdb->suppress_errors = true;
+		add_filter( 'query', array( $this, 'error_insert_query' ) );
+		
+		$response = $this->server->dispatch( $request );
+		remove_filter( 'query', array( $this, 'error_insert_query' ) );
+		$wpdb->show_errors = true;
+
+		$this->assertErrorResponse( 'db_insert_error', $response, 500 );
 	}
 
 	public function test_create_post_with_invalid_date() {
@@ -651,6 +719,20 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data();
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
+	public function test_update_post_sticky_as_contributor() {
+		wp_set_current_user( $this->contributor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'sticky' => true,
+			'status' => 'pending'
+		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
@@ -779,6 +861,50 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( '', $new_data['content']['raw'] );
 	}
 
+	public function test_update_post_with_password_and_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'password' => '123',
+			'sticky'   => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
+	public function test_update_stick_post_with_password_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		stick_post( $this->post_id );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'password' => '123'
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
+	public function test_update_password_protected_post_with_sticky_fails() {
+		wp_set_current_user( $this->editor_id );
+
+		wp_update_post( array( 'ID' => $this->post_id, 'post_password' => '123' ) );
+
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'sticky' => true
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_field', $response, 400 );
+	}
+
 	public function test_delete_item() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->editor_id );
@@ -824,11 +950,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 20, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_image', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
@@ -836,8 +963,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'modified_gmt', $properties );
+		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'sticky', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
@@ -849,6 +979,17 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 			$this->remove_added_uploads();
 		}
 		parent::tearDown();
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_insert_query( $query ) {
+		if ( strpos( $query, 'INSERT' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
 	}
 
 }

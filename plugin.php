@@ -38,6 +38,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-controller.php'
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-statuses-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
@@ -121,6 +122,12 @@ function create_initial_json_routes() {
 	 * Post types
 	 */
 	$controller = new WP_JSON_Post_Types_Controller;
+	$controller->register_routes();
+
+	/*
+	 * Post statuses
+	 */
+	$controller = new WP_JSON_Post_Statuses_Controller;
 	$controller->register_routes();
 
 	/*
@@ -500,10 +507,6 @@ function json_handle_options_request( $response, $handler, $request ) {
 
 	$accept = array();
 
-	$handler_class = get_class( $handler );
-	$class_vars = get_class_vars( $handler_class );
-	$map = $class_vars['method_map'];
-
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
 
@@ -512,15 +515,11 @@ function json_handle_options_request( $response, $handler, $request ) {
 		}
 
 		foreach ( $endpoints as $endpoint ) {
-			foreach ( $map as $type => $bitmask ) {
-				if ( $endpoint[1] & $bitmask ) {
-					$accept[] = $type;
-				}
-			}
+			$accept = array_merge( $accept, $endpoint['methods'] );
 		}
 		break;
 	}
-	$accept = array_unique( $accept );
+	$accept = array_keys( $accept );
 
 	$response->header( 'Accept', implode( ', ', $accept ) );
 
