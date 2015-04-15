@@ -139,7 +139,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$comments[] = $this->prepare_item_for_response( $comment, $request );
+			$data = $this->prepare_item_for_response( $comment, $request );
+			$comments[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $comments );
@@ -398,7 +399,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return array $fields
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
-		$fields = array(
+		$data = array(
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
@@ -418,37 +419,68 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		if ( 'edit' == $request['context'] ) {
-			$fields['author']['email']      = $comment->comment_author_email;
-			$fields['author']['ip']         = $comment->comment_author_IP;
-			$fields['author']['user_agent'] = $comment->comment_agent;
-			$fields['date_gmt']             = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']       = $comment->comment_content;
-			$fields['karma']                = $comment->comment_karma;
+			$data['author']['email']      = $comment->comment_author_email;
+			$data['author']['ip']         = $comment->comment_author_IP;
+			$data['author']['user_agent'] = $comment->comment_agent;
+			$data['date_gmt']             = json_mysql_to_rfc3339( $comment->comment_date_gmt );
+			$data['content']['raw']       = $comment->comment_content;
+			$data['karma']                = $comment->comment_karma;
 		}
 
-		$links = array();
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $comment );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
+			unset( $other['href'] );
+			$data->add_link( $rel, $attributes['href'], $other );
+		}
+
+		return apply_filters( 'json_prepare_comment', $data, $comment, $request );
+	}
+
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @param object $comment Comment object.
+	 * @return array Links for the given comment.
+	 */
+	protected function prepare_links( $comment ) {
+		$links = array(
+			'self' => array(
+				'href' => json_url( '/wp/comments/' . $comment->comment_ID ),
+			),
+			'collection' => array(
+				'href' => json_url( '/wp/comments' ),
+			),
+		);
 
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href' => json_url( '/wp/users/' . $comment->user_id ),
+				'href'       => json_url( '/wp/users/' . $comment->user_id ),
+				'embeddable' => true,
 			);
 		}
 
 		if ( 0 !== (int) $comment->comment_post_ID ) {
 			$links['post'] = array(
-				'href' => json_url( '/wp/posts/' . $comment->comment_post_ID ),
+				'href'       => json_url( '/wp/posts/' . $comment->comment_post_ID ),
+				'embeddable' => true,
 			);
 		}
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href' => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
+				'href'       => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
+				'embeddable' => true,
 			);
 		}
 
-		$fields['_links'] = $links;
-
-		return apply_filters( 'json_prepare_comment', $fields, $comment, $request );
+		return $links;
 	}
 
 	/**
