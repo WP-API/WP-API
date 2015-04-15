@@ -144,7 +144,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
-		$data = $response->data;
+		$data = $response->get_data();
 
 		$data['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
 		$data['caption']       = $post->post_excerpt;

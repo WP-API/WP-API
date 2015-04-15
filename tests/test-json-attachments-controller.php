@@ -221,10 +221,11 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			'post_excerpt'   => 'A sample caption',
 			'post_author'    => $this->editor_id,
 		) );
-		$endpoint = new WP_JSON_Attachments_Controller( 'attachment' );
-		$request = new WP_JSON_Request;
+
 		$attachment = get_post( $attachment_id );
-		$data = $endpoint->prepare_item_for_response( $attachment, $request );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/media/%d', $attachment_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 		$this->check_post_data( $attachment, $data, 'view' );
 	}
 
