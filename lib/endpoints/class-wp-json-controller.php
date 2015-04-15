@@ -4,6 +4,13 @@
 abstract class WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		_doing_it_wrong( 'WP_JSON_Controller::register_routes', __( 'The register_routes() method must be overriden' ), 'WPAPI-2.0' );
+	}
+
+	/**
 	 * Get a collection of items
 	 *
 	 * @param WP_JSON_Request $request Full data about the request.
@@ -73,6 +80,41 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Filter a response based on the context defined in the schema
+	 *
+	 * @param array $data
+	 * @param string $context
+	 * @return array
+	 */
+	public function filter_response_by_context( $data, $context ) {
+
+		$schema = $this->get_item_schema();
+		foreach( $data as $key => $value ) {
+			if ( empty( $schema['properties'][ $key ] ) || empty( $schema['properties'][ $key ]['context'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( $context, $schema['properties'][ $key ]['context'] ) ) {
+				unset( $data[ $key ] );
+			}
+
+			if ( 'object' === $schema['properties'][ $key ]['type'] && ! empty( $schema['properties'][ $key ]['properties'] ) ) {
+				foreach( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
+					if ( empty( $details['context'] ) ) {
+						continue;
+					}
+					if ( ! in_array( $context, $details['context'] ) ) {
+						unset( $data[ $key ][ $attribute ] );
+					}
+				}
+			}
+
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema
 	 *
 	 * @return array
@@ -81,4 +123,21 @@ abstract class WP_JSON_Controller {
 		return array();
 	}
 
+	/**
+	 * Get an array of endpoint arguments from the item schema for the controller.
+	 *
+	 * @return array
+	 */
+	public function get_endpoint_args_for_item_schema() {
+
+		$schema                = $this->get_item_schema();
+		$post_type_fields      = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
+		$post_type_fields_args = array();
+
+		foreach ( $post_type_fields as $field_id => $params ) {
+			$post_type_fields_args[$field_id] = array();
+		}
+
+		return $post_type_fields_args;
+	}
 }

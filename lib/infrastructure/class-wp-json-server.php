@@ -207,9 +207,15 @@ class WP_JSON_Server {
 		$request->set_headers( $this->get_headers( $_SERVER ) );
 		$request->set_body( $this->get_raw_data() );
 
-		// Compatibility for clients that can't use PUT/PATCH/DELETE
+		/**
+		 * HTTP method override for clients that can't use PUT/PATCH/DELETE. First, we check
+		 * $_GET['_method']. If that is not set, we check for the HTTP_X_HTTP_METHOD_OVERRIDE
+		 * header.
+		 */
 		if ( isset( $_GET['_method'] ) ) {
 			$request->set_method( $_GET['_method'] );
+		} elseif ( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ) {
+			$request->set_method( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 		}
 
 		$result = $this->check_authentication();
@@ -385,14 +391,32 @@ class WP_JSON_Server {
 				}
 
 				// Run through our internal routing and serve
-				$route = substr( $item['href'], strlen( $api_root ) );
-				$request = new WP_JSON_Request( 'GET', $route );
+				$route = substr( $item['href'], strlen( untrailingslashit( $api_root ) ) );
+				$query_params = array();
+
+				// Parse out URL query parameters
+				$parsed = parse_url( $route );
+				if ( empty( $parsed['path'] ) ) {
+					$embeds[] = array();
+					continue;
+				}
+
+				if ( ! empty( $parsed['query'] ) ) {
+					parse_str( $parsed['query'], $query_params );
+
+					// Ensure magic quotes are stripped
+					// @codeCoverageIgnoreStart
+					if ( get_magic_quotes_gpc() ) {
+						$query_params = stripslashes_deep( $query_params );
+					}
+					// @codeCoverageIgnoreEnd
+				}
 
 				// Embedded resources get passed context=embed
-				$query_params = array_merge( array( 'context' => 'embed' ), (array) $item['query_params'] );
+				$query_params['context'] = 'embed';
 
+				$request = new WP_JSON_Request( 'GET', $parsed['path'] );
 				$request->set_query_params( $query_params );
-
 				$response = $this->dispatch( $request );
 
 				$embeds[] = $response;
@@ -514,36 +538,6 @@ class WP_JSON_Server {
 	}
 
 	/**
-	 * Check that all required parameters are present in the request.
-	 *
-	 * @param WP_JSON_Request $request Request with parameters to check.
-	 * @return true|WP_Error
-	 */
-	protected function check_required_parameters( $request ) {
-		$attributes = $request->get_attributes();
-		$required = array();
-
-		// No arguments set, skip validation
-		if ( empty( $attributes['args'] ) ) {
-			return true;
-		}
-
-		foreach ( $attributes['args'] as $key => $arg ) {
-
-			$param = $request->get_param( $key );
-			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
-				$required[] = $key;
-			}
-		}
-
-		if ( ! empty( $required ) ) {
-			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_JSON_Request $request Request to attempt dispatching
@@ -618,7 +612,7 @@ class WP_JSON_Server {
 
 					$request->set_default_params( $defaults );
 
-					$check_required = $this->check_required_parameters( $request );
+					$check_required = $request->has_valid_params();
 					if ( is_wp_error( $check_required ) ) {
 						$response = $check_required;
 					}
@@ -763,7 +757,7 @@ class WP_JSON_Server {
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
-	protected function send_header( $key, $value ) {
+	public function send_header( $key, $value ) {
 		// Sanitize as per RFC2616 (Section 4.2):
 		//   Any LWS that occurs between field-content MAY be replaced with a
 		//   single SP before interpreting the field value or forwarding the
@@ -777,7 +771,7 @@ class WP_JSON_Server {
 	 *
 	 * @param array Map of header name to header value
 	 */
-	protected function send_headers( $headers ) {
+	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
 			$this->send_header( $key, $value );
 		}
@@ -804,6 +798,8 @@ class WP_JSON_Server {
 	 * Prepares response data to be serialized to JSON
 	 *
 	 * This supports the JsonSerializable interface for PHP 5.2-5.3 as well.
+	 *
+	 * @codeCoverageIgnore This is a compatibility shim.
 	 *
 	 * @param mixed $data Native representation
 	 * @return array|string Data ready for `json_encode()`

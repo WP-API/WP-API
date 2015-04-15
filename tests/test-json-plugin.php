@@ -192,4 +192,34 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
 	}
+
+	public function test_options_request() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => 'GET,POST',
+			'callback' => '__return_null',
+		) );
+
+		$request = new WP_JSON_Request( 'OPTIONS', '/test-ns/test' );
+		$response = json_handle_options_request( null, $GLOBALS['wp_json_server'], $request );
+
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Accept', $headers );
+
+		$this->assertEquals( 'GET, POST', $headers['Accept'] );
+	}
+
+	/**
+	 * Ensure that the OPTIONS handler doesn't kick in for non-OPTIONS requests
+	 */
+	public function test_options_request_not_options() {
+		register_json_route( 'test-ns', '/test', array(
+			'methods'  => 'GET,POST',
+			'callback' => '__return_true',
+		) );
+
+		$request = new WP_JSON_Request( 'GET', '/test-ns/test' );
+		$response = json_handle_options_request( null, $GLOBALS['wp_json_server'], $request );
+
+		$this->assertNull( $response );
+	}
 }

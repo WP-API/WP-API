@@ -198,7 +198,7 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 			'excerpt' => rand_str(),
 			'name'    => 'test',
 			'status'  => 'publish',
-			'author'  => $this->editor_id,
+			'author'  => get_current_user_id(),
 			'type'    => 'post',
 		);
 

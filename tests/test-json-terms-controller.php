@@ -133,7 +133,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_create', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item_missing_arguments() {
@@ -185,7 +185,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -215,7 +215,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_prepare_item() {
@@ -237,7 +237,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$data = $endpoint->prepare_item_for_response( $term, $request );
 		$this->check_taxonomy_term( $term, $data );
 
-		$this->assertEquals( 1, $data['parent_id'] );
+		$this->assertEquals( 1, $data['parent'] );
 		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
 	}
 
@@ -252,7 +252,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
-		$this->assertArrayHasKey( 'parent_id', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
 		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
