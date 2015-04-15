@@ -117,14 +117,15 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$prepared_args = apply_filters( 'json_user_query', $prepared_args, $request );
 
-		$users = new WP_User_Query( $prepared_args );
-		if ( is_wp_error( $users ) ) {
-			return $users;
+		$query = new WP_User_Query( $prepared_args );
+		if ( is_wp_error( $query ) ) {
+			return $query;
 		}
 
-		$users = $users->results;
-		foreach ( $users as &$user ) {
-			$user = $this->prepare_item_for_response( $user, $request );
+		$users = array();
+		foreach ( $query->results as $user ) {
+			$data = $this->prepare_item_for_response( $user, $request );
+			$users[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $users );
@@ -416,7 +417,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return array $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-
 		$data = array(
 			'avatar_url'         => json_get_avatar_url( $user->user_email ),
 			'capabilities'       => $user->allcaps,
@@ -439,16 +439,36 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 		$data = $this->filter_response_by_context( $data, $context );
 
-		$data['_links'] = array(
-			'self'     => array(
-				'href' => json_url( '/wp/users/' . $user->ID ),
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $user );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
+			unset( $other['href'] );
+			$data->add_link( $rel, $attributes['href'], $other );
+		}
+
+		return apply_filters( 'json_prepare_user', $data, $user, $request );
+	}
+
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @param WP_Post $user User object.
+	 * @return array Links for the given user.
+	 */
+	protected function prepare_links( $user ) {
+		$links = array(
+			'self' => array(
+				'href' => json_url( sprintf( '/wp/users/%d', $user->ID ) ),
 			),
-			'archives' => array(
-				'href' => json_url( '/wp/users/' . $user->ID . '/posts' ),
+			'collection' => array(
+				'href' => json_url( '/wp/users' ),
 			),
 		);
 
-		return apply_filters( 'json_prepare_user', $data, $user, $request );
+		return $links;
 	}
 
 	/**
