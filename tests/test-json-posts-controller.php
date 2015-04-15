@@ -575,6 +575,28 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
+	public function test_create_post_with_db_error() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_JSON_Request( 'POST', '/wp/posts' );
+		$params  = $this->set_post_data( array() );
+		$request->set_body_params( $params );
+
+		/**
+		 * Disable showing error as the below is going to intentionally 
+		 * trigger a DB error.
+		 */
+		global $wpdb;
+		$wpdb->suppress_errors = true;
+		add_filter( 'query', array( $this, 'error_insert_query' ) );
+		
+		$response = $this->server->dispatch( $request );
+		remove_filter( 'query', array( $this, 'error_insert_query' ) );
+		$wpdb->show_errors = true;
+
+		$this->assertErrorResponse( 'db_insert_error', $response, 500 );
+	}
+
 	public function test_create_post_with_invalid_date() {
 		wp_set_current_user( $this->editor_id );
 
@@ -920,11 +942,12 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 20, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
 		$this->assertArrayHasKey( 'featured_image', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
@@ -932,8 +955,11 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'modified_gmt', $properties );
+		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'sticky', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
@@ -945,6 +971,17 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 			$this->remove_added_uploads();
 		}
 		parent::tearDown();
+	}
+
+	/**
+	 * Internal function used to disable an insert query which
+	 * will trigger a wpdb error for testing purposes.
+	 */
+	public function error_insert_query( $query ) {
+		if ( strpos( $query, 'INSERT' ) === 0 ) {
+			$query = '],';
+		}
+		return $query;
 	}
 
 }

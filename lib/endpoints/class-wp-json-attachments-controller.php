@@ -167,6 +167,9 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		    $response['media_details']['sizes'] = new stdClass;
 		}
 
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$response = $this->filter_response_by_context( $response, $context );
+
 		return $response;
 	}
 
