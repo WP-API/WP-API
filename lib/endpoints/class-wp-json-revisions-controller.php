@@ -38,6 +38,11 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 						'default'      => 'view',
 					),
 				),
+			),
+			array(
+				'methods'         => WP_JSON_Server::DELETABLE,
+				'callback'        => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			))
 		);
 
@@ -114,6 +119,39 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Delete a single revision
+	 *
+	 * @param WP_JSON_Request $request Full details about the request
+	 * @return array|WP_Error
+	 */
+	public function delete_item( $request ) {
+		$result = wp_delete_post( $request['id'], true );
+		if ( $result ) {
+			return true;
+		} else {
+			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
+		}
+	}
+
+	/**
+	 * Check if a given request has access to delete a revision
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+
+		$response = $this->get_items_permissions_check( $request );
+		if ( ! $response || is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$post = get_post( $request['id'] );
+		$post_type = get_post_type_object( 'revision' );
+		return current_user_can( $post_type->cap->delete_post, $post->ID );
 	}
 
 	/**

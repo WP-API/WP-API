@@ -108,6 +108,21 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 		$this->assertErrorResponse( 'json_post_invalid_parent_id', $response, 404 );
 	}
 
+	public function test_delete_item() {
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertNull( get_post( $this->revision_id1 ) );
+	}
+
+	public function test_delete_item_no_permission() {
+		wp_set_current_user( $this->contributor_id );
+		$request = new WP_JSON_Request( 'DELETE', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
 		$request = new WP_JSON_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
@@ -144,12 +159,6 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 
 	public function test_update_item() {
 		$request = new WP_JSON_Request( 'POST', '/wp/posts/revisions/' . $this->revision_id1 );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_no_route', $response, 404 );
-	}
-
-	public function test_delete_item() {
-		$request = new WP_JSON_Request( 'DELETE', '/wp/posts/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_no_route', $response, 404 );
 	}
