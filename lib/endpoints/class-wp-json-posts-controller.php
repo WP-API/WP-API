@@ -1151,8 +1151,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
 			foreach ( $taxonomies as $tax ) {
+				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
-				if ( false === $tax->public ) {
+				if ( false === $taxonomy_obj->public ) {
 					continue;
 				}
 
