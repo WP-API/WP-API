@@ -106,7 +106,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
 
-		$tags_url = json_url( 'wp/terms/post_tag' );
+		$tags_url = json_url( 'wp/terms/tag' );
 		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
 		$this->assertEquals( $tags_url, $links['post_tag'][0]['href'] );
 

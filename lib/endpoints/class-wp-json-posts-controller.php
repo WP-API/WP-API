@@ -1098,7 +1098,12 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					continue;
 				}
 
-				$terms_url = json_url( 'wp/terms/' . $tax );
+				if ( 'post_tag' === $tax ) {
+					$terms_url = json_url( 'wp/terms/tag' );
+				} else {
+					$terms_url = json_url( 'wp/terms/' . $tax );
+				}
+
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
 				$links[ $tax ] = array(
