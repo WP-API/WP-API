@@ -313,7 +313,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -326,15 +326,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( $post ) {
-			return $this->check_read_permission( $post );	
+			return $this->check_read_permission( $post );
 		}
-		
+
 		return true;
 	}
 
 	/**
 	 * Check if a given request has access to create a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -359,7 +359,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -379,7 +379,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
 		}
-		
+
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
@@ -389,7 +389,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -1087,6 +1087,30 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
+		}
+
+		$taxonomies = get_object_taxonomies( $post->post_type );
+		if ( ! empty( $taxonomies ) ) {
+			foreach ( $taxonomies as $tax ) {
+				$taxonomy_obj = get_taxonomy( $tax );
+				// Skip taxonomies that are not public.
+				if ( false === $taxonomy_obj->public ) {
+					continue;
+				}
+
+				if ( 'post_tag' === $tax ) {
+					$terms_url = json_url( 'wp/terms/tag' );
+				} else {
+					$terms_url = json_url( 'wp/terms/' . $tax );
+				}
+
+				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+
+				$links[ $tax ] = array(
+					'href' => $terms_url,
+					'embeddable' => true,
+				);
+			}
 		}
 
 		return $links;

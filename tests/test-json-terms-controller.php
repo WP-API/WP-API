@@ -60,6 +60,39 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
+	public function test_get_items_post_args() {
+		$post_id = $this->factory->post->create();
+		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Marvel' ) );
+		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'DC', $data[0]['name'] );
+	}
+
+	public function test_get_items_custom_tax_post_args() {
+		register_taxonomy( 'batman', 'post' );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
+		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
+		$post_id = $this->factory->post->create();
+		wp_set_object_terms( $post_id, array( $term1, $term2 ), 'batman' );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/batman' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'Cape', $data[0]['name'] );
+	}
+
 	public function test_get_items_search_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
@@ -80,6 +113,16 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 0, count( $data ) );
+	}
+
+	public function test_get_terms_private_taxonomy() {
+		register_taxonomy( 'robin', 'post', array( 'public' => false ) );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
+		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'robin' ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/robin' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_terms_invalid_taxonomy() {
@@ -259,6 +302,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function tearDown() {
+		_unregister_taxonomy( 'batman' );
+		_unregister_taxonomy( 'robin' );
 		parent::tearDown();
 	}
 
