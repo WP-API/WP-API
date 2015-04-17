@@ -81,7 +81,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
 
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		if ( isset( $request['post'] ) ) {
 			$post_id = absint( $request['post'] );
@@ -112,7 +112,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
 		if ( ! $term ) {
@@ -131,7 +131,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function create_item( $request ) {
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 		$name = sanitize_text_field( $request['name'] );
 		$args = array();
 
@@ -162,11 +162,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_item( $request ) {
-
-		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
-		if ( is_wp_error( $term ) ) {
-			return $term;
-		}
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
@@ -201,16 +197,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_item( $request ) {
-
-		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
-		if ( is_wp_error( $term ) ) {
-			return $term;
-		}
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
-		wp_delete_term( $term->term_id, $term->taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
 
+		wp_delete_term( $term->term_id, $term->taxonomy );
 	}
 
 	/**
@@ -220,7 +212,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function get_items_permissions_check( $request ) {
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$valid = $this->check_valid_taxonomy( $taxonomy );
 		if ( is_wp_error( $valid ) ) {
@@ -242,7 +234,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$valid = $this->check_valid_taxonomy( $taxonomy );
 		if ( is_wp_error( $valid ) ) {
@@ -265,16 +257,16 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
-		$taxonomy = sanitize_key( $request['taxonomy'] );
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$valid = $this->check_valid_taxonomy( $taxonomy );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
 		}
 
 		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
-			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
+			return false;
 		}
 
 		return true;
@@ -282,14 +274,19 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a term
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
 	public function update_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
 
+		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
 			return false;
 		}
@@ -304,9 +301,14 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return bool
 	 */
 	public function delete_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
 
+		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
 			return false;
 		}
@@ -415,18 +417,14 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * Check that the taxonomy is valid
 	 *
 	 * @param string
-	 * @return string|WP_Error
+	 * @return bool|WP_Error
 	 */
 	protected function check_valid_taxonomy( $taxonomy ) {
-
-		if ( 'tag' === $taxonomy ) {
-			$taxonomy = 'post_tag';
-		}
 		if ( get_taxonomy( $taxonomy ) ) {
-			return $taxonomy;
-		} else {
-			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
+			return true;
 		}
+
+		return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 	}
 
 	/**
@@ -435,9 +433,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @param string
 	 * @return string
 	 */
-	protected function handle_taxonomy_request( $taxonomy ) {
+	protected function handle_taxonomy_param( $taxonomy ) {
 		if ( 'tag' === $taxonomy ) {
-			return 'post_tag';
+			$taxonomy = 'post_tag';
 		}
 
 		return sanitize_key( $taxonomy );
