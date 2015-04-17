@@ -316,7 +316,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Check if a given request has access to read the comment
 	 * 
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 		$id = (int) $request['id'];
