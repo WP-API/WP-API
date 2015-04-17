@@ -161,10 +161,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'json_comment_cannot_view', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
-		}
-
 		$post = get_post( $comment->comment_post_ID );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
@@ -339,6 +335,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
 			return false;
+		}
+
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
 		}
 
 		return true;

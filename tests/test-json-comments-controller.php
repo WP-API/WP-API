@@ -121,7 +121,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/comments/%s', $this->approved_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_comment_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_comment_invalid_post_id() {
