@@ -624,6 +624,12 @@ class WP_JSON_Request implements ArrayAccess {
 	public function sanitize_params() {
 
 		$attributes = $this->get_attributes();
+
+		// No arguments set, skip sanitizing
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
