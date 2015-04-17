@@ -430,6 +430,20 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Normalizes the post_tag taxonomy and sanitizes the request variable.
+	 *
+	 * @param string
+	 * @return string
+	 */
+	protected function handle_taxonomy_request( $taxonomy ) {
+		if ( 'tag' === $taxonomy ) {
+			return 'post_tag';
+		}
+
+		return sanitize_key( $taxonomy );
+	}
+
+	/**
 	 * Check that the taxonomy is valid for a given post type.
 	 *
 	 * @param string  $taxonomy
