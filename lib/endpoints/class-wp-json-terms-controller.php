@@ -99,10 +99,12 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
 
-		foreach ( $terms as &$term ) {
-			$term = self::prepare_item_for_response( $term, $request );
+		$response = array();
+		foreach ( $terms as $term ) {
+			$response[] = $this->prepare_item_for_response( $term, $request );
 		}
-		return $terms;
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -121,7 +123,10 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
-		return self::prepare_item_for_response( $term, $request );
+
+		$response = $this->prepare_item_for_response( $term, $request );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -186,7 +191,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		if ( is_wp_error( $update ) ) {
 			return $update;
 		}
-		return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
+
+		$response = $this->get_item( array(
+			'id' => $term->term_taxonomy_id,
+			'taxonomy' => $taxonomy,
+		 ) );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
