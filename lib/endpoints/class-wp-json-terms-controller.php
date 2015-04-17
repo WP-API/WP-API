@@ -463,7 +463,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 *
 	 * @param string  $taxonomy
 	 * @param integer $post_id
-	 * @return null|WP_Error
+	 * @return bool|WP_Error
 	 */
 	protected function check_post_taxonomy_permission( $taxonomy, $post_id ) {
 		$post = get_post( $post_id );
@@ -481,6 +481,6 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
 		}
 
-		return;
+		return true;
 	}
 }
