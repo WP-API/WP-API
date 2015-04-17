@@ -198,10 +198,15 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
-		$new_comment = get_comment( $comment_id );
-		$response = $this->prepare_item_for_response( $new_comment, array( 'context' => 'edit' ) );
+		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
+		$response = $this->get_item( array(
+			'id'      => $comment_id,
+			'context' => $context,
+		) );
 		$response = json_ensure_response( $response );
-
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 
@@ -248,6 +253,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'context' => 'edit',
 		) );
 		$response = json_ensure_response( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment->comment_ID ) );
 
@@ -308,7 +316,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Check if a given request has access to read the comment
 	 * 
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 		$id = (int) $request['id'];
@@ -327,6 +335,10 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
 			return false;
+		}
+
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
 		}
 
 		return true;
