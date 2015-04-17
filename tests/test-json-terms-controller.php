@@ -302,6 +302,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function tearDown() {
+		_unregister_taxonomy( 'batman' );
+		_unregister_taxonomy( 'robin' );
 		parent::tearDown();
 	}
 
