@@ -38,6 +38,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_JSON_Request( 'GET', '/wp/users' );
+		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_users_response( $response );
 	}
@@ -47,8 +48,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 
 		$request = new WP_JSON_Request( 'GET', '/wp/users' );
 		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_user_cannot_list', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_get_item() {
@@ -58,7 +58,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->check_get_user_response( $response, 'view' );
+		$this->check_get_user_response( $response, 'embed' );
 	}
 
 	public function test_prepare_item() {
@@ -111,6 +111,20 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_get_user_response( $response, 'edit' );
 	}
 
+	public function test_get_item_published_author_wrong_context() {
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+		$this->post_id = $this->factory->post->create( array(
+			'post_author' => $this->author_id
+		));
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/users/%d', $this->author_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_user_cannot_view', $response, 403 );
+	}
+
 	public function test_get_current_user() {
 		wp_set_current_user( $this->user );
 
@@ -139,8 +153,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$params = array(
-			'username'    => 'test_user',
-			'password'    => 'test_password',
+			'username'    => 'testuser',
+			'password'    => 'testpassword',
 			'email'       => 'test@example.com',
 			'name'        => 'Test User',
 			'nickname'    => 'testuser',
@@ -163,8 +177,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$params = array(
-			'username' => 'test_json_user',
-			'password' => 'test_json_password',
+			'username' => 'testjsonuser',
+			'password' => 'testjsonpassword',
 			'email'    => 'testjson@example.com',
 		);
 
@@ -190,7 +204,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_cannot_create', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_user_invalid_id() {
@@ -341,7 +355,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_update_user_invalid_id() {
@@ -446,11 +460,23 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 4, count( $properties ) );
+
+		$this->assertEquals( 16, count( $properties ) );
+		$this->assertArrayHasKey( 'avatar_url', $properties );
+		$this->assertArrayHasKey( 'capabilities', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'email', $properties );
+		$this->assertArrayHasKey( 'extra_capabilities', $properties );
+		$this->assertArrayHasKey( 'first_name', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'last_name', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'nickname', $properties );
+		$this->assertArrayHasKey( 'registered_date', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'url', $properties );
+		$this->assertArrayHasKey( 'username', $properties );
 	}
 
 	public function tearDown() {
@@ -474,7 +500,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 
-			$this->assertEquals( false, $data['email'] );
+			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
 

@@ -140,7 +140,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		wp_set_current_user( $this->contributor_id );
 		$request = new WP_JSON_Request( 'POST', '/wp/media' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item_invalid_edit_permissions() {
@@ -170,9 +170,9 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$this->assertEquals( 'My title is very cool', $data['title']['raw'] );
 		$this->assertEquals( 'My title is very cool', $attachment->post_title );
 		$this->assertEquals( 'This is a better caption.', $data['caption'] );
-		$this->assertEquals( 'This is a better caption.', $attachment->post_content );
+		$this->assertEquals( 'This is a better caption.', $attachment->post_excerpt );
 		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $data['description'] );
-		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $attachment->post_excerpt );
+		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $attachment->post_content );
 		$this->assertEquals( 'Alt text is stored outside post schema.', $data['alt_text'] );
 		$this->assertEquals( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
 	}
@@ -187,7 +187,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$request = new WP_JSON_Request( 'POST', '/wp/media/' . $attachment_id );
 		$request->set_param( 'caption', 'This is a better caption.' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -212,7 +212,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		) );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_prepare_item() {
@@ -233,21 +233,25 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 18, count( $properties ) );
+		$this->assertEquals( 22, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'media_type', $properties );
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'modified_gmt', $properties );
+		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -265,8 +269,8 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		parent::check_post_data( $attachment, $data, $context );
 
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
-		$this->assertEquals( $attachment->post_content, $data['caption'] );
-		$this->assertEquals( $attachment->post_excerpt, $data['description'] );
+		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );
+		$this->assertEquals( $attachment->post_content, $data['description'] );
 
 		if ( $attachment->post_parent ) {
 			$this->assertEquals( $attachment->post_parent, $data['post'] );

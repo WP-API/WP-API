@@ -6,6 +6,65 @@
 class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+		
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_items' ),
+				'args'     => array(
+					'search'   => array(),
+					'per_page' => array(),
+					'page'     => array(),
+					'order'    => array(),
+					'orderby'  => array(),
+				),
+			),
+			array(
+				'methods'     => WP_JSON_Server::CREATABLE,
+				'callback'    => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'        => array(
+					'name'        => array(
+						'required'    => true,
+					),
+					'description' => array(),
+					'slug'        => array(),
+					'parent'      => array(),
+				),
+			),
+		));
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+			array(
+				'methods'    => WP_JSON_Server::READABLE,
+				'callback'   => array( $this, 'get_item' ),
+			),
+			array(
+				'methods'    => WP_JSON_Server::EDITABLE,
+				'callback'   => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				'args'       => array(
+					'name'           => array(),
+					'description'    => array(),
+					'slug'           => array(),
+					'parent'         => array(),
+				),
+			),
+			array(
+				'methods'    => WP_JSON_Server::DELETABLE,
+				'callback'   => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+			),
+		) );
+		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get terms associated with a taxonomy
 	 *
 	 * @param WP_JSON_Request $request Full details about the request
@@ -105,11 +164,6 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return $term;
 		}
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
-		if ( ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
-			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit terms.' ), array( 'status' => 403 ) );
-		}
-
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
 			$prepared_args['name'] = sanitize_text_field( $request['name'] );
@@ -149,15 +203,65 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return $term;
 		}
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
-		if ( ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
-			return new WP_Error( 'json_user_cannot_delete', __( 'Sorry, you are not allowed to delete terms.' ), array( 'status' => 403 ) );
-		}
-
 		// Get the actual term_id
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
 		wp_delete_term( $term->term_id, $term->taxonomy );
 
+	}
+
+	/**
+	 * Check if a given request has access to create a term
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
+		if ( is_wp_error( $taxonomy ) ) {
+			return $taxonomy;
+		}
+
+		$taxonomy_obj = get_taxonomy( $taxonomy );
+		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to update a term
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function update_item_permissions_check( $request ) {
+
+		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+
+		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to delete a term
+	 * 
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+
+		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+
+		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -187,6 +291,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			'parent'       => (int) $parent_id,
 		);
 
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+
 		if ( ! empty( $parent_term ) ) {
 			$data['_links'] = array(
 				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
@@ -210,36 +317,44 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'count'            => array(
 					'description'  => 'Number of published posts for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'taxonomy'         => array(
 					'description'  => 'Type attribution for the object.',
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
+					'context'      => array( 'view' ),
 					),
 				),
 			);
