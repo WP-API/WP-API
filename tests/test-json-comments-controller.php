@@ -179,6 +179,27 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
+	public function create_item_assign_different_user() {
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'author' => $this->subscriber_id,
+			'content' => 'Worst Comment Ever!',
+			'date'    => '2014-11-07T10:14:25',
+		);
+		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+		$response = json_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( $this->subscriber_id, $data['author'] );
+	}
+
 	public function test_create_comment_other_user() {
 		wp_set_current_user( $this->admin_id );
 
@@ -188,7 +209,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content' => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
-			'user'    => 0,
+			'author'    => 0,
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/comments' );
@@ -370,7 +391,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 17, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_email', $properties );
@@ -387,7 +408,6 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
-		$this->assertArrayHasKey( 'user', $properties );
 	}
 
 	protected function check_comment_data( $data, $context ) {
