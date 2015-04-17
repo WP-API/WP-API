@@ -298,15 +298,17 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		// If the post id isn't specified, presume we can create
-		if ( ! isset( $request['post'] ) ) {
-			return true;
+		// If the post id is specified, check that we can read the post
+		if ( isset( $request['post'] ) ) {
+			$post = get_post( (int) $request['post'] );
+
+			if ( $post && ! $this->check_read_post_permission( $post ) ) {
+				return false;
+			}
 		}
 
-		$post = get_post( (int) $request['post'] );
-
-		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return false;
+		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view comments with edit context' ), array( 'status' => 403 ) );
 		}
 
 		return true;
