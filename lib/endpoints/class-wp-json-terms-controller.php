@@ -131,19 +131,10 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function create_item( $request ) {
-
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
-
-		$taxonomy_obj = get_taxonomy( $taxonomy );
-		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
-			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
-		}
-
+		$taxonomy = sanitize_key( $request['taxonomy'] );
 		$name = sanitize_text_field( $request['name'] );
 		$args = array();
+
 		if ( isset( $request['description'] ) ) {
 			$args['description'] = wp_filter_post_kses( $request['description'] );
 		}
@@ -151,11 +142,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			$args['slug'] = sanitize_title( $request['slug'] );
 		}
 
-		$term = wp_insert_term( $name, $request['taxonomy'], $args );
+		$term = wp_insert_term( $name, $taxonomy, $args );
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
-		return self::get_item( array( 'id' => $term['term_taxonomy_id'], 'taxonomy' => $request['taxonomy'] ) );
+
+		$response = $this->get_item( array(
+			'id' => $term['term_taxonomy_id'],
+			'taxonomy' => $taxonomy,
+		 ) );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -268,15 +265,16 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
+		$taxonomy = sanitize_key( $request['taxonomy'] );
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
+		$valid = $this->check_valid_taxonomy( $taxonomy );
 		if ( is_wp_error( $taxonomy ) ) {
 			return $taxonomy;
 		}
 
 		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
-			return false;
+			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
