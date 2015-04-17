@@ -444,6 +444,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		$posts_controller = new WP_JSON_Posts_Controller( $post->post_type );
+		if ( ! $posts_controller->check_read_permission( $post ) ) {
+			return new WP_Error( 'json_cannot_read', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
+		}
+
 		$valid_taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! in_array( $taxonomy, $valid_taxonomies ) ) {
 			return new WP_Error( 'json_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
