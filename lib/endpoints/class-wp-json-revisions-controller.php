@@ -60,6 +60,12 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error or WP_JSON_Response.
 	 */
 	public function get_items( $request ) {
+
+		$parent = get_post( $request['parent_id'] );
+		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'json_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+		}
+
 		$revisions = wp_get_post_revisions( $request['parent_id'] );
 
 		$struct = array();
@@ -77,12 +83,10 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		$parent_id = ! empty( $request['parent_id'] ) ? $request['parent_id'] : 0;
-		$parent = get_post( $parent_id );
-		if ( ! $parent_id || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'json_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+		$parent = get_post( $request['parent_id'] );
+		if ( ! $parent ) {
+			return true;
 		}
-
 		$parent_post_type_obj = get_post_type_object( $parent->post_type );
 		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
 			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => 403 ) );
@@ -95,7 +99,17 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 	 * Get one revision from the collection
 	 */
 	public function get_item( $request ) {
+
+		$parent = get_post( $request['parent_id'] );
+		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'json_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+		}
+
 		$revision = get_post( $request['id'] );
+		if ( ! $revision || 'revision' !== $revision->post_type ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid revision ID.' ), array( 'status' => 404 ) );
+		}
+
 		$response = $this->prepare_item_for_response( $revision, $request );
 		return $response;
 	}
@@ -107,18 +121,7 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function get_item_permissions_check( $request ) {
-
-		$response = $this->get_items_permissions_check( $request );
-		if ( ! $response || is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$post = get_post( $request['id'] );
-		if ( ! $post || 'revision' !== $post->post_type ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid revision ID.' ), array( 'status' => 404 ) );
-		}
-
-		return true;
+		return $this->get_items_permissions_check( $request );
 	}
 
 	/**
