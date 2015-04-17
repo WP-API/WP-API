@@ -665,7 +665,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['author'] ) ) {
+		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
 			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
