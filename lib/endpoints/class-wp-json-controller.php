@@ -49,6 +49,56 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Check if a given request has access to get items
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function get_items_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to get a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function get_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to create items
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function create_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to update a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function update_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to delete a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function delete_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
 	 * Prepare the item for the JSON response
 	 *
 	 * @param mixed $item WordPress representation of the item.
