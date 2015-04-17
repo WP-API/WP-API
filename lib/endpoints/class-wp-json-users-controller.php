@@ -9,7 +9,9 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+			
+		$user_fields = $this->get_endpoint_args_for_item_schema();
+
 		register_json_route( 'wp', '/users', array(
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
@@ -27,25 +29,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array(
-					'email'           => array(
-						'required'        => true,
-					),
-					'username'        => array(
-						'required'        => true,
-					),
-					'password'        => array(
-						'required'        => true,
-					),
-					'name'            => array(),
-					'first_name'      => array(),
-					'last_name'       => array(),
-					'nickname'        => array(),
-					'slug'            => array(),
-					'description'     => array(),
-					'role'            => array(),
-					'url'             => array(),
-				),
+				'args'            => $user_fields,
 			),
 		) );
 		register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
@@ -56,26 +40,14 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'args'            => array(
 					'context'          => array(
 						'default'      => 'embed',
-						),
+					),
 				),
 			),
 			array(
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array(
-					'email'           => array(),
-					'username'        => array(),
-					'password'        => array(),
-					'name'            => array(),
-					'first_name'      => array(),
-					'last_name'       => array(),
-					'nickname'        => array(),
-					'slug'            => array(),
-					'description'     => array(),
-					'role'            => array(),
-					'url'             => array(),
-				),
+				'args'            => $user_fields,
 			),
 			array(
 				'methods' => WP_JSON_Server::DELETABLE,
