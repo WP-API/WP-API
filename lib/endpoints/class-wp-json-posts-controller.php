@@ -1151,6 +1151,11 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
 			foreach ( $taxonomies as $tax ) {
+				// Skip taxonomies that are not public.
+				if ( false === $tax->public ) {
+					continue;
+				}
+
 				$terms_url = json_url( 'wp/terms/' . $tax );
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
