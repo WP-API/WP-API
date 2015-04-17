@@ -171,7 +171,7 @@ abstract class WP_JSON_Controller {
 			$post_type_fields_args[$field_id] = array();
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
-				$post_type_fields_args[$field_id]['required'] = true				
+				$post_type_fields_args[$field_id]['required'] = true;			
 			}
 		}
 
