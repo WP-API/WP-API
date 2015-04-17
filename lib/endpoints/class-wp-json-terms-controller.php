@@ -12,9 +12,10 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
-				'methods'  => WP_JSON_Server::READABLE,
-				'callback' => array( $this, 'get_items' ),
-				'args'     => array(
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => array(
 					'search'   => array(),
 					'per_page' => array(),
 					'page'     => array(),
@@ -39,8 +40,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		));
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 			array(
-				'methods'    => WP_JSON_Server::READABLE,
-				'callback'   => array( $this, 'get_item' ),
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 			),
 			array(
 				'methods'    => WP_JSON_Server::EDITABLE,
@@ -79,10 +81,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
+		$taxonomy = sanitize_key( $request['taxonomy'] );
 
 		if ( isset( $request['post'] ) ) {
 			$post_id = absint( $request['post'] );
@@ -112,13 +111,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
+		$taxonomy = sanitize_key( $request['taxonomy'] );
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
-
-		$term = get_term_by( 'term_taxonomy_id', $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -221,10 +216,55 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to create a term
-	 * 
+	 * Check if a given request has access to read the terms.
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
+	 */
+	public function get_items_permissions_check( $request ) {
+		$taxonomy = sanitize_key( $request['taxonomy'] );
+
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$tax_obj = get_taxonomy( $taxonomy );
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to read a term.
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function get_item_permissions_check( $request ) {
+		$taxonomy = sanitize_key( $request['taxonomy'] );
+
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$tax_obj = get_taxonomy( $taxonomy );
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Check if a given request has access to create a term
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
 
