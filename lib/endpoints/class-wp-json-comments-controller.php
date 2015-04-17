@@ -414,7 +414,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 				'raw'          => $comment->comment_content,
 			),
-			'karma'        => $comment->comment_karma,
+			'karma'        => (int) $comment->comment_karma,
 			'link'         => get_comment_link( $comment ),
 			'status'       => $this->prepare_status_response( $comment->comment_approved ),
 			'type'         => get_comment_type( $comment->comment_ID ),
@@ -478,7 +478,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'status'       => sanitize_key( $request['status'] ),
 				'type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 				'author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-				'karma'        => isset( $request['karma'] ) ? sanitize_key( $request['karma'] ) : '',
+				'karma'        => isset( $request['karma'] ) ? intval( $request['karma'] ) : '',
 				'post_author'  => isset( $request['post_author'] ) ? sanitize_key( $request['post_author'] ) : '',
 				'post_name'    => isset( $request['post_name'] ) ? sanitize_key( $request['post_name'] ) : '',
 				'post_parent'  => isset( $request['author_email'] ) ? intval( $request['post_parent'] ) : '',
@@ -687,7 +687,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				),
 				'karma'             => array(
 					'description'  => 'Karma for the object.',
-					'type'         => 'string',
+					'type'         => 'integer',
 					'context'      => array( 'edit' ),
 					),
 				'link'             => array(
