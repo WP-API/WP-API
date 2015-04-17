@@ -70,6 +70,14 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertCount( 7, $comments );
 	}
 
+	public function test_get_items_no_permission() {
+		wp_set_current_user( 0 );
+		$request = new WP_JSON_Request( 'GET', '/wp/comments' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_get_items_for_post() {
 		$second_post_id = $this->factory->post->create();
 		$this->factory->comment->create_post_comments( $second_post_id, 2 );
