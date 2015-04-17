@@ -638,8 +638,8 @@ class WP_JSON_Request implements ArrayAccess {
 			}
 			foreach ( $this->params[$type] as $key => $value ) {
 				// check if this param has a sanitize_callback added
-				if ( isset( $attributes[$key] ) && ! empty( $attributes[$key]['sanitize_callback'] ) ) {
-					$this->params[$type][$key] = call_user_func( $attributes[$key]['sanitize_callback'], $value, $this );
+				if ( isset( $attributes['args'][$key] ) && ! empty( $attributes['args'][$key]['sanitize_callback'] ) ) {
+					$this->params[$type][$key] = call_user_func( $attributes['args'][$key]['sanitize_callback'], $value, $this );
 				}
 			}
 		}
