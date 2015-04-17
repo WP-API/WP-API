@@ -62,7 +62,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'type'         => array(
 						'default'      => 'comment',
 					),
-					'user'         => array(
+					'author'         => array(
 						'default'      => 0,
 					),
 					'parent'       => array(
@@ -298,15 +298,17 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		// If the post id isn't specified, presume we can create
-		if ( ! isset( $request['post'] ) ) {
-			return true;
+		// If the post id is specified, check that we can read the post
+		if ( isset( $request['post'] ) ) {
+			$post = get_post( (int) $request['post'] );
+
+			if ( $post && ! $this->check_read_post_permission( $post ) ) {
+				return false;
+			}
 		}
 
-		$post = get_post( (int) $request['post'] );
-
-		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return false;
+		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view comments with edit context' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -571,7 +573,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_post_ID'      => (int) $request['post'],
 			'comment_type'         => sanitize_key( $request['type'] ),
 			'comment_parent'       => (int) $request['parent'],
-			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
+			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
 			'comment_author'       => isset( $request['author_name'] ) ? sanitize_text_field( $request['author_name'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
@@ -637,8 +639,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'context'      => array( 'view', 'edit' ),
 					),
 				'author'           => array(
-					'description'  => 'Name of the object author.',
-					'type'         => 'string',
+					'description'  => 'The ID of the user object, if author was a user.',
+					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'author_email'     => array(
@@ -726,11 +728,6 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
-					),
-				'user'             => array(
-					'description'  => 'The ID of the user object, if author was a user.',
-					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
 					),
 				),
