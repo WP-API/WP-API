@@ -180,16 +180,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			$prepared_args['slug'] = sanitize_title( $request['slug'] );
 		}
 
-		// Bail early becuz no updates
-		if ( empty( $prepared_args ) ) {
-			return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		if ( ! $term ) {
+			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 
-		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
-		$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
-		if ( is_wp_error( $update ) ) {
-			return $update;
+		// Only update the term if we haz something to update.
+		if ( ! empty( $prepared_args ) ) {
+			$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
+			if ( is_wp_error( $update ) ) {
+				return $update;
+			}
 		}
 
 		$response = $this->get_item( array(
@@ -317,6 +318,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$valid = $this->check_valid_taxonomy( $taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
+		}
+
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		if ( ! $term ) {
+			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 
 		$taxonomy_obj = get_taxonomy( $taxonomy );
