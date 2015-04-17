@@ -10,7 +10,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 */
 	public function register_routes() {
 			
-		$user_fields = $this->get_endpoint_args_for_item_schema();
 
 		register_json_route( 'wp', '/users', array(
 			array(
@@ -29,7 +28,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $user_fields, array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
 					'password'    => array(
 						'required' => true
 					)
@@ -51,7 +50,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $user_fields, array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
 					'password'    => array()
 				) ),
 			),
@@ -514,6 +513,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'email',
 					'context'     => array( 'view', 'edit' ),
+					'required'    => true
 				),
 				'extra_capabilities' => array(
 					'description' => 'Any extra capabilities assigned to the user.',
@@ -555,12 +555,12 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Registration date for the user.',
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
-					),
+				),
 				'roles'           => array(
 					'description' => 'Roles assigned to the user.',
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
-					),
+				),
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
@@ -576,7 +576,8 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Login name for the user.',
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
-					),
+					'required'    => true
+				),
 			)
 		);
 
