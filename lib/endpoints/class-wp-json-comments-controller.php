@@ -402,29 +402,26 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
-			'author'       => array(
-				'id'    => (int) $comment->user_id,
-				'name'  => $comment->comment_author,
-				'email' => false,
-				'url'   => $comment->comment_author_url,
-			),
+			'author'       => (int) $comment->user_id,
+			'author_name'  => $comment->comment_author,
+			'author_email' => $comment->comment_author_email,
+			'author_url'   => $comment->comment_author_url,
+			'author_ip'    => $comment->comment_author_IP,
+			'author_user_agent' => $comment->comment_agent,
 			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'     => json_mysql_to_rfc3339( $comment->comment_date_gmt ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'raw'          => $comment->comment_content,
 			),
+			'karma'        => $comment->comment_karma,
 			'link'         => get_comment_link( $comment ),
 			'status'       => $this->prepare_status_response( $comment->comment_approved ),
 			'type'         => get_comment_type( $comment->comment_ID ),
 		);
 
-		if ( 'edit' == $request['context'] ) {
-			$fields['author']['email']      = $comment->comment_author_email;
-			$fields['author']['ip']         = $comment->comment_author_IP;
-			$fields['author']['user_agent'] = $comment->comment_agent;
-			$fields['date_gmt']             = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']       = $comment->comment_content;
-			$fields['karma']                = $comment->comment_karma;
-		}
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$fields = $this->filter_response_by_context( $fields, $context );
 
 		$links = array();
 
@@ -564,9 +561,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author']['name'] ) ? sanitize_text_field( $request['author']['name'] ) : '',
-			'comment_author_email' => isset( $request['author']['email'] ) ? sanitize_email( $request['author']['email'] ) : '',
-			'comment_author_url'   => isset( $request['author']['url'] ) ? esc_url_raw( $request['author']['url'] ) : '',
+			'comment_author'       => isset( $request['author_name'] ) ? sanitize_text_field( $request['author_name'] ) : '',
+			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
+			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
 			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
 			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
@@ -591,16 +588,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
 
-		if ( isset( $request['author']['name'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author']['name'] );
+		if ( isset( $request['author_name'] ) ) {
+			$prepared_comment['comment_author'] = sanitize_text_field( $request['author_name'] );
 		}
 
-		if ( isset( $request['author']['email'] ) ) {
-			$prepared_comment['comment_author_email'] = sanitize_email( $request['author']['email'] );
+		if ( isset( $request['author_email'] ) ) {
+			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
 		}
 
-		if ( isset( $request['author']['url'] ) ) {
-			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author']['url'] );
+		if ( isset( $request['author_url'] ) ) {
+			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
 		}
 
 		if ( ! empty( $request['date'] ) ) {
@@ -638,11 +635,26 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'format'       => 'email',
 					'context'      => array( 'edit' ),
 					),
+				'author_ip'     => array(
+					'description'  => 'IP address for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'edit' ),
+					),
+				'author_name'     => array(
+					'description'  => 'Display name for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
+					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit' ),
+					),
+				'author_user_agent'     => array(
+					'description'  => 'User agent for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'edit' ),
 					),
 				'content'          => array(
 					'description'     => 'The content for the object.',
@@ -667,6 +679,17 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'format'       => 'date-time',
 					'context'      => array( 'view', 'edit' ),
 				),
+				'date_gmt'         => array(
+					'description'  => 'The date the object was published as GMT.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+					'context'      => array( 'edit' ),
+				),
+				'karma'             => array(
+					'description'  => 'Karma for the object.',
+					'type'         => 'string',
+					'context'      => array( 'edit' ),
+					),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',

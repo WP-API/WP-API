@@ -150,11 +150,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$params = array(
 			'post'    => $this->post_id,
-			'author'  => array(
-				'name'  => 'Comic Book Guy',
-				'email' => 'cbg@androidsdungeon.com',
-				'url'   => 'http://androidsdungeon.com',
-			),
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
 			'content' => 'Worst Comment Ever!',
 			'date'    => '2014-11-07T10:14:25',
 		);
@@ -178,11 +176,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$params = array(
 			'post'    => $this->post_id,
-			'author'  => array(
-				'name'  => 'Homer Jay Simpson',
-				'email' => 'chunkylover53@aol.com',
-				'url'   => 'http://compuglobalhypermeganet.com',
-			),
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content' => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
 			'user'    => 0,
 		);
@@ -195,8 +191,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = json_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertInternalType( 'array', $data['author'] );
-		$this->assertEquals( 0, $data['author']['id'] );
+		$this->assertEquals( 0, $data['author'] );
 	}
 
 	public function test_create_item_duplicate() {
@@ -213,10 +208,8 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$params = array(
 			'post'    => $this->post_id,
-			'author'  => array(
-				'name'  => 'Guy N. Cognito',
-				'email' => 'chunkylover53@aol.co.uk',
-			),
+			'author_name'  => 'Guy N. Cognito',
+			'author_email' => 'chunkylover53@aol.co.uk',
 			'content' => 'Homer? Who is Homer? My name is Guy N. Cognito.',
 		);
 
@@ -253,11 +246,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 
 		$params = array(
 			'content' => "Disco Stu doesn't advertise.",
-			'author'  => array(
-				'name'  => 'Disco Stu',
-				'url'   => 'http://stusdisco.com',
-				'email' => 'stu@stusdisco.com',
-			),
+			'author_name'  => 'Disco Stu',
+			'author_url'   => 'http://stusdisco.com',
+			'author_email' => 'stu@stusdisco.com',
 			'date'    => '2014-11-07T10:14:25',
 		);
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/comments/%d', $this->approved_id ) );
@@ -271,10 +262,9 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
 		$this->assertEquals( $params['content'], $comment['content']['raw'] );
-		$this->assertInternalType( 'array', $comment['author'] );
-		$this->assertEquals( $params['author']['name'], $comment['author']['name'] );
-		$this->assertEquals( $params['author']['url'], $comment['author']['url'] );
-		$this->assertEquals( $params['author']['email'], $comment['author']['email'] );
+		$this->assertEquals( $params['author_name'], $comment['author_name'] );
+		$this->assertEquals( $params['author_url'], $comment['author_url'] );
+		$this->assertEquals( $params['author_email'], $comment['author_email'] );
 
 		$this->assertEquals( json_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
@@ -372,13 +362,18 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 12, count( $properties ) );
+		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_email', $properties );
+		$this->assertArrayHasKey( 'author_ip', $properties );
+		$this->assertArrayHasKey( 'author_name', $properties );
 		$this->assertArrayHasKey( 'author_url', $properties );
+		$this->assertArrayHasKey( 'author_user_agent', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'date_gmt', $properties );
+		$this->assertArrayHasKey( 'karma', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
@@ -393,27 +388,26 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
 		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
 		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertInternalType( 'array', $data['author'] );
-		$this->assertEquals( $comment->user_id, $data['author']['id' ] );
-		$this->assertEquals( $comment->comment_author, $data['author']['name'] );
-		$this->assertEquals( $comment->comment_author_url, $data['author']['url'] );
+		$this->assertEquals( $comment->user_id, $data['author' ] );
+		$this->assertEquals( $comment->comment_author, $data['author_name'] );
+		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 
 		if ( 'edit' === $context ) {
-			$this->assertEquals( $comment->comment_author_email, $data['author']['email'] );
-			$this->assertEquals( $comment->comment_author_IP, $data['author']['ip'] );
-			$this->assertEquals( $comment->comment_agent, $data['author']['user_agent'] );
+			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
+			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
+			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
 			$this->assertEquals( json_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
 			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}
 
 		if ( 'edit' !== $context ) {
-			$this->assertFalse( $data['author']['email'] );
-			$this->assertArrayNotHasKey( 'ip', $data['author'] );
-			$this->assertArrayNotHasKey( 'user_agent', $data['author'] );
+			$this->assertArrayNotHasKey( 'author_email', $data );
+			$this->assertArrayNotHasKey( 'author_ip', $data );
+			$this->assertArrayNotHasKey( 'author_user_agent', $data );
 			$this->assertArrayNotHasKey( 'date_gmt', $data );
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
 			$this->assertArrayNotHasKey( 'karma', $data );
