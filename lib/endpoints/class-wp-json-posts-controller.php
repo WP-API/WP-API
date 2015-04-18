@@ -63,16 +63,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				),
 			),
 		) );
-		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $this, 'get_item_revisions' ),
-			'permission_callback' => array( $this, 'get_item_revisions_permissions_check' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view-revision',
-				),
-			),
-		) );
 		register_json_route( 'wp', '/' . $base . '/schema', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
@@ -142,38 +132,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
-		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-
-		return $response;
-	}
-
-	/**
-	 * Get revisions for a specific post.
-	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
-	 */
-	public function get_item_revisions( $request ) {
-		$id = (int) $request['id'];
-		$parent = get_post( $id );
-
-		if ( empty( $id ) || empty( $parent->ID ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! post_type_supports( $parent->post_type, 'revisions' ) ) {
-			return new WP_Error( 'json_no_support', __( 'Revisions are not supported for this post.' ), array( 'status' => 404 ) );
-		}
-
-		// Todo: Query args filter for wp_get_post_revisions
-		$revisions = wp_get_post_revisions( $parent->ID );
-
-		$struct = array();
-		foreach ( $revisions as $revision ) {
-			$struct[] = $this->prepare_item_for_response( $revision, $request );
-		}
-
-		$response = json_ensure_response( $struct );
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $response;
@@ -363,23 +321,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		if ( $post ) {
 			return $this->check_read_permission( $post );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a given request has access to read a post's revisions
-	 *
-	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function get_item_revisions_permissions_check( $request ) {
-
-		$post = get_post( $request['id'] );
-
-		if ( $post && ! $this->check_update_permission( $post ) ) {
-			return false;
 		}
 
 		return true;
@@ -659,7 +600,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['author'] ) ) {
+		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
 			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
@@ -1151,6 +1092,30 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
+		}
+
+		$taxonomies = get_object_taxonomies( $post->post_type );
+		if ( ! empty( $taxonomies ) ) {
+			foreach ( $taxonomies as $tax ) {
+				$taxonomy_obj = get_taxonomy( $tax );
+				// Skip taxonomies that are not public.
+				if ( false === $taxonomy_obj->public ) {
+					continue;
+				}
+
+				if ( 'post_tag' === $tax ) {
+					$terms_url = json_url( 'wp/terms/tag' );
+				} else {
+					$terms_url = json_url( 'wp/terms/' . $tax );
+				}
+
+				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+
+				$links[ $tax ] = array(
+					'href' => $terms_url,
+					'embeddable' => true,
+				);
+			}
 		}
 
 		return $links;

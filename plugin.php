@@ -39,6 +39,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controlle
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-statuses-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-revisions-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
@@ -116,6 +117,10 @@ function create_initial_json_routes() {
 		}
 
 		$controller->register_routes();
+		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
+			$revisions_controller = new WP_JSON_Revisions_Controller( $post_type->name );
+			$revisions_controller->register_routes();
+		}
 	}
 
 	/*

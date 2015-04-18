@@ -33,7 +33,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$this->assertCount( 2, $routes['/wp/posts'] );
 		$this->assertArrayHasKey( '/wp/posts/(?P<id>[\d]+)', $routes );
 		$this->assertCount( 3, $routes['/wp/posts/(?P<id>[\d]+)'] );
-		$this->assertArrayHasKey( '/wp/posts/(?P<id>\d+)/revisions', $routes );
 	}
 
 	public function test_get_items() {
@@ -106,6 +105,14 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$attachments_url = json_url( 'wp/media' );
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
+
+		$tags_url = json_url( 'wp/terms/tag' );
+		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
+		$this->assertEquals( $tags_url, $links['post_tag'][0]['href'] );
+
+		$category_url = json_url( 'wp/terms/category' );
+		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
+		$this->assertEquals( $category_url, $links['category'][0]['href'] );
 	}
 
 	public function test_get_post_without_permission() {
@@ -168,42 +175,6 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 
 		$this->check_get_post_response( $response, 'edit' );
-	}
-
-	function test_get_post_revisions() {
-		wp_set_current_user( $this->editor_id );
-
-		wp_update_post( array( 'post_content' => 'This content is better.', 'ID' => $this->post_id ) );
-		wp_update_post( array( 'post_content' => 'This content is marvelous.', 'ID' => $this->post_id ) );
-		$revisions = wp_get_post_revisions( $this->post_id );
-
-		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$response_data = $response->get_data();
-		// Check that we succeeded
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertCount( 2, $response_data );
-	}
-
-	public function test_get_post_revisions_invalid_id() {
-		$request = new WP_JSON_Request( 'GET', '/wp/posts/100/revisions' );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
-	}
-
-	function test_get_post_revisions_without_permission() {
-		wp_update_post( array( 'post_content' => 'This content is always changing.', 'ID' => $this->post_id ) );
-		wp_set_current_user( 0 );
-
-		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/revisions', $this->post_id ) );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item() {
