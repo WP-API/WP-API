@@ -693,7 +693,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Remove the offset from every group
 		foreach ( $order as $type ) {
-			unset( $this->params[ $type ][ $offset] );
+			unset( $this->params[ $type ][ $offset ] );
 		}
 	}
 }

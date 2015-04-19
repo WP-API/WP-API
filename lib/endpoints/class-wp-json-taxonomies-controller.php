@@ -6,7 +6,7 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
 		register_json_route( 'wp', '/taxonomies', array(
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_items' ),
@@ -64,7 +64,7 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access a taxonomy
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
