@@ -38,7 +38,8 @@ tools:
     extensions:
       - php
 
-path_configs: {  }
+  path_configs: {  }
+
 before_commands: {  }
 after_commands: {  }
 artifacts: {  }
