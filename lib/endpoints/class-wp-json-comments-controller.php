@@ -477,7 +477,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		if ( 0 !== (int) $comment->comment_post_ID ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! empty( $post->ID ) ) {
-				$posts_controller = new WP_JSON_Posts_Controller;
+				$posts_controller = new WP_JSON_Posts_Controller( $post->post_type );
 				$base = $posts_controller->get_post_type_base( $post->post_type );
 
 				$links[ $post->post_type ] = array(
