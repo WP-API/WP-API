@@ -91,20 +91,21 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				return $permission_check;
 			}
 
-			$terms = wp_get_object_terms( $post_id, $taxonomy, $prepared_args );
+			$query_result = wp_get_object_terms( $post_id, $taxonomy, $prepared_args );
 		} else {
-			$terms = get_terms( $taxonomy, $prepared_args );
+			$query_result = get_terms( $taxonomy, $prepared_args );
 		}
 		if ( is_wp_error( $terms ) ) {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
 
-		$response = array();
-		foreach ( $terms as $term ) {
-			$response[] = $this->prepare_item_for_response( $term, $request );
+		$terms = array();
+		foreach ( $query_result as $term ) {
+			$data = $this->prepare_item_for_response( $term, $request );
+			$terms[] = $this->prepare_response_for_collection( $data );
 		}
 
-		return json_ensure_response( $response );
+		return json_ensure_response( $terms );
 	}
 
 	/**
@@ -334,6 +335,22 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Get the base path for a term's taxonomy endpoints.
+	 *
+	 * @param object|string $taxonomy
+	 * @return string       $base
+	 */
+	public function get_taxonomy_base( $taxonomy ) {
+		if ( ! is_object( $taxonomy ) ) {
+			$taxonomy = get_taxonomy( $taxonomy );
+		}
+
+		$base = ! empty( $taxonomy->json_base ) ? $taxonomy->json_base : $taxonomy->name;
+
+		return $base;
+	}
+
+	/**
 	 * Prepare a single term output for response
 	 *
 	 * @param obj $item Term object
@@ -363,13 +380,47 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 
-		if ( ! empty( $parent_term ) ) {
-			$data['_links'] = array(
-				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
-				);
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $item );
+		foreach ( $links as $rel => $attributes ) {
+			$other = $attributes;
+			unset( $other['href'] );
+			$data->add_link( $rel, $attributes['href'], $other );
 		}
 
 		return apply_filters( 'json_prepare_term', $data, $item, $request );
+	}
+
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @param object $term Term object.
+	 * @return array Links for the given term.
+	 */
+	protected function prepare_links( $term ) {
+		$base = '/wp/terms/' . $this->get_taxonomy_base( $term->taxonomy );
+		$links = array(
+			'self'       => array(
+				'href'       => json_url( trailingslashit( $base ) . $term->term_taxonomy_id ),
+			),
+			'collection' => array(
+				'href'       => json_url( $base ),
+			),
+		);
+
+		if ( $term->parent ) {
+			$parent_term = get_term_by( 'id', (int) $term->parent, $term->taxonomy );
+			if ( $parent_term ) {
+				$links['up'] = array(
+					'href'       => json_url( sprintf( 'wp/terms/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
+					'embeddable' => true,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 	/**
