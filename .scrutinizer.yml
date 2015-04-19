@@ -1,10 +1,7 @@
 #  Scrutinizer Configuration File
 
 tools:
-  external_code_coverage:
-    timeout: 900
-
-  php_code_coverage: true
+  external_code_coverage: true
 
   php_sim:
     enabled: true
