@@ -34,6 +34,11 @@ tools:
             - php
 
         path_configs: {  }
+  external_code_coverage:
+    timeout: 900
+
+  php_code_coverage: true
+
 before_commands: {  }
 after_commands: {  }
 artifacts: {  }
