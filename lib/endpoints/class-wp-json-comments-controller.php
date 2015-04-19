@@ -9,7 +9,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
 		register_json_route( 'wp', '/comments', array(
 			array(
 				'methods'   => WP_JSON_Server::READABLE,
@@ -292,7 +292,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read comments
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -316,7 +316,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read the comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool|WP_Error
 	 */
@@ -348,7 +348,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to create a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -377,7 +377,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -396,7 +396,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */

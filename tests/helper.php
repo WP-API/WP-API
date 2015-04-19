@@ -16,8 +16,8 @@ class WP_JSON_Server_TestHelper {
 	protected $reports = array();
 
 	public function __construct() {
-		add_action('init', array($this, 'start_coverage'));
-		add_filter('json_endpoints', array($this, 'add_endpoints'));
+		add_action( 'init', array( $this, 'start_coverage' ) );
+		add_filter( 'json_endpoints', array( $this, 'add_endpoints' ) );
 	}
 
 	public function start_coverage() {
@@ -29,8 +29,8 @@ class WP_JSON_Server_TestHelper {
 			return;
 		}
 
-		$this->reports = get_transient('json_testhelper_coverage');
-		if (empty($this->reports))
+		$this->reports = get_transient( 'json_testhelper_coverage' );
+		if ( empty( $this->reports ) )
 			$this->reports = array();
 
 		$this->coverage = new PHP_CodeCoverage();
@@ -44,8 +44,8 @@ class WP_JSON_Server_TestHelper {
 		}
 
 		$this->coverage->end();
-		$this->reports[] = serialize($this->coverage);
-		set_transient('json_testhelper_coverage', $this->reports, 30 * MINUTE_IN_SECONDS);
+		$this->reports[] = serialize( $this->coverage );
+		set_transient( 'json_testhelper_coverage', $this->reports, 30 * MINUTE_IN_SECONDS );
 	}
 
 	public function add_endpoints($routes) {
@@ -56,26 +56,26 @@ class WP_JSON_Server_TestHelper {
 	}
 
 	public function get_reports() {
-		$this->reports = get_transient('json_testhelper_coverage');
-		if (empty($this->reports)) {
-			return new WP_Error('json_testhelper_no_report', __('No report data available', 'json_testhelper'), array('status' => 400));
+		$this->reports = get_transient( 'json_testhelper_coverage' );
+		if ( empty( $this->reports ) ) {
+			return new WP_Error( 'json_testhelper_no_report', __( 'No report data available', 'json_testhelper' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! class_exists( 'PHP_CodeCoverage' ) ) {
-			return new WP_Error('json_testhelper_missing_codecoverage', __('The CodeCoverage classes are missing', 'json_testhelper'), array('status' => 500));
+			return new WP_Error( 'json_testhelper_missing_codecoverage', __( 'The CodeCoverage classes are missing', 'json_testhelper' ), array( 'status' => 500 ) );
 		}
 
 		$master = new PHP_CodeCoverage();
-		foreach ($this->reports as $report) {
-			$master->merge($report);
+		foreach ( $this->reports as $report ) {
+			$master->merge( $report );
 		}
 
 		// Clean up
-		delete_transient('json_testhelper_coverage');
+		delete_transient( 'json_testhelper_coverage' );
 
 		$data = array(
-			'reports' => count($this->reports),
-			'data' => serialize($master)
+			'reports' => count( $this->reports ),
+			'data' => serialize( $master )
 		);
 		return $data;
 	}

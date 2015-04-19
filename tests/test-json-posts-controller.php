@@ -554,13 +554,13 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 
 		/**
-		 * Disable showing error as the below is going to intentionally 
+		 * Disable showing error as the below is going to intentionally
 		 * trigger a DB error.
 		 */
 		global $wpdb;
 		$wpdb->suppress_errors = true;
 		add_filter( 'query', array( $this, 'error_insert_query' ) );
-		
+
 		$response = $this->server->dispatch( $request );
 		remove_filter( 'query', array( $this, 'error_insert_query' ) );
 		$wpdb->show_errors = true;

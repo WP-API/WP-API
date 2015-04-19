@@ -285,7 +285,7 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			switch( $property ) {
+			switch ( $property ) {
 
 				case 'title':
 					$schema['properties']['title'] = array(
@@ -312,7 +312,6 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 					break;
 
 			}
-
 		}
 
 		return $schema;

@@ -424,7 +424,7 @@ class WP_Test_JSON_Comments_Controller extends WP_Test_JSON_Controller_Testcase 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
 		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
 		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertEquals( $comment->user_id, $data['author' ] );
+		$this->assertEquals( $comment->user_id, $data['author'] );
 		$this->assertEquals( $comment->comment_author, $data['author_name'] );
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
