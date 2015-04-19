@@ -284,7 +284,9 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertEquals( 1, $data['parent'] );
-		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
+
+		$links = $response->get_links();
+		$this->assertEquals( json_url( '/wp/terms/category/1' ), $links['up'][0]['href'] );
 	}
 
 	public function test_get_item_schema() {
