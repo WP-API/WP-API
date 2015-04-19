@@ -1,39 +1,44 @@
 #  Scrutinizer Configuration File
 
 tools:
-    php_sim:
-        enabled: true
-        min_mass: 50
+  external_code_coverage:
+    timeout: 900
 
-    php_pdepend:
-        enabled: true
-        configuration_file: null
-        suffixes:
-            - php
-        excluded_dirs: {  }
+  php_code_coverage: true
 
-    php_analyzer:
-        enabled: true
-        extensions:
-            - php
-        dependency_paths: {  }
-        path_configs: {  }
+  php_sim:
+    enabled: true
+    min_mass: 50
 
-    php_changetracking:
-        enabled: true
-        bug_patterns:
-            - '\bfix(?:es|ed)?\b'
-        feature_patterns:
-            - '\badd(?:s|ed)?\b'
-            - '\bimplement(?:s|ed)?\b'
+  php_pdepend:
+    enabled: true
+    configuration_file: null
+    suffixes:
+      - php
+    excluded_dirs: {  }
 
-    php_hhvm:
-        enabled: true
-        command: hhvm
-        extensions:
-            - php
+  php_analyzer:
+    enabled: true
+    extensions:
+      - php
+    dependency_paths: {  }
+    path_configs: {  }
 
-        path_configs: {  }
+  php_changetracking:
+    enabled: true
+    bug_patterns:
+      - '\bfix(?:es|ed)?\b'
+    feature_patterns:
+      - '\badd(?:s|ed)?\b'
+      - '\bimplement(?:s|ed)?\b'
+
+  php_hhvm:
+    enabled: true
+    command: hhvm
+    extensions:
+      - php
+    path_configs: {  }
+
 before_commands: {  }
 after_commands: {  }
 artifacts: {  }
