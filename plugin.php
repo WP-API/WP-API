@@ -100,6 +100,21 @@ function _add_extra_api_post_type_arguments() {
 add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 
 /**
+ * Add the extra Taxonomy registration arguments we need.
+ * These attributes will eventually be committed to core.
+ */
+function _add_extra_api_taxonomy_arguments() {
+	global $wp_taxonomies;
+
+	$wp_taxonomies['category']->show_in_json = true;
+	$wp_taxonomies['category']->json_base = 'category';
+
+	$wp_taxonomies['post_tag']->show_in_json = true;
+	$wp_taxonomies['post_tag']->json_base = 'tag';
+}
+add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
+
+/**
  * Register default JSON API routes
  */
 function create_initial_json_routes() {
