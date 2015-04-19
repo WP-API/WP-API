@@ -138,6 +138,16 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
 	}
 
+	public function test_get_items_invalid_taxonomy_for_post_type() {
+		$page_id = $this->factory->post->create( array(
+			'post_type' => 'page',
+		) );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', $page_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_taxonomy_invalid', $response, 404 );
+	}
+
 	public function test_get_item() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/1' );
 		$response = $this->server->dispatch( $request );
