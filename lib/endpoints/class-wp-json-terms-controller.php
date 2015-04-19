@@ -95,17 +95,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		} else {
 			$query_result = get_terms( $taxonomy, $prepared_args );
 		}
-		if ( is_wp_error( $terms ) ) {
+		if ( is_wp_error( $query_result ) ) {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
 
-		$terms = array();
+		$response = array();
 		foreach ( $query_result as $term ) {
 			$data = $this->prepare_item_for_response( $term, $request );
-			$terms[] = $this->prepare_response_for_collection( $data );
+			$response[] = $this->prepare_response_for_collection( $data );
 		}
 
-		return json_ensure_response( $terms );
+		return json_ensure_response( $response );
 	}
 
 	/**
