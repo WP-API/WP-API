@@ -176,6 +176,15 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
 	}
 
+	public function test_get_term_private_taxonomy() {
+		register_taxonomy( 'robin', 'post', array( 'public' => false ) );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/robin/' . $term1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
