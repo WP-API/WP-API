@@ -262,10 +262,12 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function test_prepare_item() {
-		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
-		$endpoint = new WP_JSON_Terms_Controller;
-		$data = $endpoint->prepare_item_for_response( $term, $request );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/1' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
 		$this->check_taxonomy_term( $term, $data );
 	}
 
@@ -273,11 +275,12 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$child = $this->factory->category->create( array(
 			'parent' => 1,
 		) );
-
-		$request = new WP_JSON_Request;
 		$term = get_term( $child, 'category' );
-		$endpoint = new WP_JSON_Terms_Controller;
-		$data = $endpoint->prepare_item_for_response( $term, $request );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/' . $child );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertEquals( 1, $data['parent'] );
