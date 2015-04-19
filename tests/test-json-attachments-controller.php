@@ -279,7 +279,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			$this->assertNull( $data['post'] );
 		}
 
-		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url']  );
+		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
 
 	}
 

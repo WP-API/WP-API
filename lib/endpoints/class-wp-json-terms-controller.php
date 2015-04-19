@@ -9,7 +9,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
 				'methods'             => WP_JSON_Server::READABLE,
@@ -76,7 +76,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
 		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0; 
+		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0;
 		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
 		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
 		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
@@ -309,7 +309,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a term
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
