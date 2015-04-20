@@ -177,9 +177,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 
 		$links = parent::prepare_links( $post );
 		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$data->add_link( $rel, $attributes['href'], $other );
+			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
 
 		return apply_filters( 'json_prepare_attachment', $data, $post, $request );

@@ -442,9 +442,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 
 		$links = $this->prepare_links( $user );
 		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$data->add_link( $rel, $attributes['href'], $other );
+			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
 
 		return apply_filters( 'json_prepare_user', $data, $user, $request );

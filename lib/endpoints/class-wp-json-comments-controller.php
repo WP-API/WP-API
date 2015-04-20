@@ -443,9 +443,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		$links = $this->prepare_links( $comment );
 		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$data->add_link( $rel, $attributes['href'], $other );
+			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
 
 		return apply_filters( 'json_prepare_comment', $data, $comment, $request );

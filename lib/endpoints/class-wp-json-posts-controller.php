@@ -1029,9 +1029,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$links = $this->prepare_links( $post );
 		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$data->add_link( $rel, $attributes['href'], $other );
+			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
 
 		return apply_filters( 'json_prepare_' . $this->post_type, $data, $post, $request );
