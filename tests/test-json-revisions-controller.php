@@ -164,17 +164,17 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 	}
 
 	protected function check_get_revision_response( $response, $revision ) {
-		$this->assertEquals( $response['author'], $revision->post_author );
-		$this->assertEquals( $response['content'], $revision->post_content );
-		$this->assertEquals( $response['date'], json_mysql_to_rfc3339( $revision->post_date ) );
-		$this->assertEquals( $response['date_gmt'], json_mysql_to_rfc3339( $revision->post_date_gmt ) );
-		$this->assertEquals( $response['excerpt'], $revision->post_excerpt );
-		$this->assertEquals( $response['guid'], $revision->guid );
-		$this->assertEquals( $response['id'], $revision->ID );
-		$this->assertEquals( $response['modified'], json_mysql_to_rfc3339( $revision->post_modified ) );
-		$this->assertEquals( $response['modified_gmt'], json_mysql_to_rfc3339( $revision->post_modified_gmt ) );
-		$this->assertEquals( $response['slug'], $revision->post_name );
-		$this->assertEquals( $response['title'], $revision->post_title );
+		$this->assertEquals( $revision->post_author, $response['author'] );
+		$this->assertEquals( $revision->post_content, $response['content'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $revision->post_date ), $response['date'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $revision->post_date_gmt ), $response['date_gmt'] );
+		$this->assertEquals( $revision->post_excerpt, $response['excerpt'] );
+		$this->assertEquals( $revision->guid, $response['guid'] );
+		$this->assertEquals( $revision->ID, $response['id'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $revision->post_modified ), $response['modified'] );
+		$this->assertEquals( json_mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
+		$this->assertEquals( $revision->post_name, $response['slug'] );
+		$this->assertEquals( $revision->post_title, $response['title'] );
 	}
 
 }
