@@ -137,7 +137,7 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 11, count( $properties ) );
+		$this->assertEquals( 12, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -147,6 +147,7 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'modified_gmt', $properties );
+		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 	}
