@@ -175,6 +175,10 @@ class WP_Test_JSON_Revisions_Controller extends WP_Test_JSON_Controller_Testcase
 		$this->assertEquals( json_mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
 		$this->assertEquals( $revision->post_name, $response['slug'] );
 		$this->assertEquals( $revision->post_title, $response['title'] );
+		$parent = get_post( $revision->post_parent );
+		$parent_controller = new WP_JSON_Posts_Controller( $parent->post_type );
+		$parent_base = $parent_controller->get_post_type_base( $parent->post_type );
+		$this->assertEquals( json_url( 'wp/' . $parent_base . '/' . $revision->post_parent ), $response['_links']['parent'] );
 	}
 
 }
