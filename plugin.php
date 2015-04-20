@@ -160,7 +160,7 @@ function create_initial_json_routes() {
 	$controller->register_routes();
 
 }
-add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
+add_action( 'wp_json_init', 'create_initial_json_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
@@ -230,7 +230,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
 
 }
-add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
+add_action( 'wp_json_init', 'json_api_default_filters', 10, 1 );
 
 /**
  * Load the JSON API.
@@ -274,7 +274,7 @@ function json_api_loaded() {
 	 *
 	 * @param WP_JSON_Server $wp_json_server Server object.
 	 */
-	do_action( 'wp_json_server_before_serve', $wp_json_server );
+	do_action( 'wp_json_init', $wp_json_server );
 
 	// Fire off the request.
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
