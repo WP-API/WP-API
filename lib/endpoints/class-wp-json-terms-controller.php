@@ -365,7 +365,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $parent_term ) ) {
 			$data['_links'] = array(
-				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
+				'parent'     => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) ),
+				'embeddable' => true,
 				);
 		}
 
