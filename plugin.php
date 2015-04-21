@@ -51,8 +51,8 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
 /**
  * Register a JSON API route
  *
- * @param string $namespace
- * @param string $route
+ * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
+ * @param string $route The base URL for route you are adding.
  * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
  * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
@@ -351,7 +351,7 @@ function json_get_url_prefix() {
  *
  * @todo Check if this is even necessary
  *
- * @param int    $blog_id Blog ID.
+ * @param int    $blog_id Blog ID. Optional. The ID of the multisite blog to get URL for. Default null of null returns URL for current blog.
  * @param string $path    Optional. JSON route. Default empty.
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
@@ -535,9 +535,9 @@ function json_handle_options_request( $response, $handler, $request ) {
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
  *
- * @param  WP_JSON_Response  $response
+ * @param  WP_JSON_Response  $response Current response being served.
  * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
- * @param  WP_JSON_Request   $request
+ * @param  WP_JSON_Request   $request The request that was used to make current response.
  */
 function json_send_allow_header( $response, $server, $request ) {
 
