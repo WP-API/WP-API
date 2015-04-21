@@ -35,8 +35,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'orderby'  => array(
 						'sanitize_callback' => 'sanitize_key',
 						'default'           => ''
+					'post'     => array(
+						'sanitize_callback' => 'absint',
 					),
-					'post'     => array(),
 				),
 			),
 			array(
@@ -112,7 +113,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		if ( isset( $request['post'] ) ) {
-			$post_id = absint( $request['post'] );
+			$post_id = $request['post'];
 
 			$permission_check = $this->check_post_taxonomy_permission( $taxonomy, $post_id );
 			if ( is_wp_error( $permission_check ) ) {
