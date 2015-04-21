@@ -30,11 +30,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					),
 					'order'    => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => '',
+						'default'           => 'ASC',
 					),
 					'orderby'  => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => '',
+						'default'           => 'name',
 					),
 					'post'     => array(
 						'sanitize_callback' => 'absint',
