@@ -18,23 +18,24 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'args'                => array(
 					'search'   => array(
 						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => ''
+						'default'           => '',
 					),
 					'per_page' => array(
 						'sanitize_callback' => 'absint',
-						'default'           => 10
+						'default'           => 10,
 					),
 					'page'     => array(
 						'sanitize_callback' => 'absint',
-						'default'           => 1
+						'default'           => 1,
 					),
 					'order'    => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => ''
+						'default'           => '',
 					),
 					'orderby'  => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => ''
+						'default'           => '',
+					),
 					'post'     => array(
 						'sanitize_callback' => 'absint',
 					),
@@ -47,13 +48,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'args'        => array(
 					'name'        => array(
 						'required'          => true,
-						'sanitize_callback' => 'sanitize_text_field'
+						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'description' => array(
-						'sanitize_callback' => 'wp_filter_post_kses'
+						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title'
+						'sanitize_callback' => 'sanitize_title',
 					),
 					'parent'      => array(),
 				),
@@ -72,13 +73,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'args'       => array(
 					'name'        => array(
 						'required'          => true,
-						'sanitize_callback' => 'sanitize_text_field'
+						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'description' => array(
-						'sanitize_callback' => 'wp_filter_post_kses'
+						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title'
+						'sanitize_callback' => 'sanitize_title',
 					),
 					'parent'         => array(),
 				),
