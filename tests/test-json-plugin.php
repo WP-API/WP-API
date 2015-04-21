@@ -147,7 +147,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		) );
 
 		$routes = $GLOBALS['wp_json_server']->get_routes();
-		
+
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
@@ -161,7 +161,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		) );
 
 		$routes = $GLOBALS['wp_json_server']->get_routes();
-		
+
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
 
@@ -175,7 +175,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		) );
 
 		$routes = $GLOBALS['wp_json_server']->get_routes();
-		
+
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
 	}
 
@@ -189,7 +189,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 		) );
 
 		$routes = $GLOBALS['wp_json_server']->get_routes();
-		
+
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
 	}
 

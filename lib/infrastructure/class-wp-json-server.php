@@ -227,8 +227,9 @@ class WP_JSON_Server {
 			 * If `$result` is non-empty, this value will be used to serve the
 			 * request instead.
 			 *
-			 * @param mixed $result Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
-			 * @param WP_JSON_Server $this Server instance
+			 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+			 * @param WP_JSON_Server  $this    Server instance
+			 * @param WP_JSON_Request $request Request used to generate the response
 			 */
 			$result = apply_filters( 'json_pre_dispatch', null, $this, $request );
 		}
@@ -248,8 +249,9 @@ class WP_JSON_Server {
 		/**
 		 * Allow modifying the response before returning
 		 *
-		 * @param WP_JSON_Response $result
-		 * @param WP_JSON_Request $request
+		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_JSON_Response
+		 * @param WP_JSON_Server            $this    Server instance
+		 * @param WP_JSON_Request           $request Request used to generate the response
 		 */
 		$result = apply_filters( 'json_post_dispatch', json_ensure_response( $result ), $this, $request );
 
@@ -273,10 +275,10 @@ class WP_JSON_Server {
 		 * This is a filter rather than an action, since this is designed to be
 		 * re-entrant if needed.
 		 *
-		 * @param bool $served Whether the request has already been served
-		 * @param mixed $result Result to send to the client. JsonSerializable, or other value to pass to `json_encode`
-		 * @param WP_JSON_Request $request Request used to generate the response
-		 * @param WP_JSON_Server $this Server instance
+		 * @param bool                      $served  Whether the request has already been served
+		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_JSON_Response
+		 * @param WP_JSON_Request           $request Request used to generate the response
+		 * @param WP_JSON_Server            $this    Server instance
 		 */
 		$served = apply_filters( 'json_pre_serve_request', false, $result, $request, $this );
 
@@ -586,7 +588,7 @@ class WP_JSON_Server {
 
 					foreach ( $handler['args'] as $arg => $options ) {
 						if ( isset( $options['default'] ) ) {
-							$defaults[$arg] = $options['default'];
+							$defaults[ $arg ] = $options['default'];
 						}
 					}
 
@@ -767,7 +769,7 @@ class WP_JSON_Server {
 
 		// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
 		// but we can do it ourself.
-		if ( !isset( $HTTP_RAW_POST_DATA ) ) {
+		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
 
@@ -800,7 +802,7 @@ class WP_JSON_Server {
 
 			case 'array':
 				// Arrays must be mapped in case they also return objects
-				return array_map( array( $this, 'prepare_response' ), $data);
+				return array_map( array( $this, 'prepare_response' ), $data );
 
 			case 'object':
 				if ( $data instanceof JsonSerializable ) {

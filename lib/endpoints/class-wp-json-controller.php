@@ -49,6 +49,56 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Check if a given request has access to get items
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function get_items_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to get a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function get_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to create items
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function create_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to update a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function update_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Check if a given request has access to delete a specific item
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return mixed WP_Error|bool.
+	 */
+	public function delete_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+	}
+
+	/**
 	 * Prepare the item for the JSON response
 	 *
 	 * @param mixed $item WordPress representation of the item.
@@ -69,7 +119,7 @@ abstract class WP_JSON_Controller {
 	public function filter_response_by_context( $data, $context ) {
 
 		$schema = $this->get_item_schema();
-		foreach( $data as $key => $value ) {
+		foreach ( $data as $key => $value ) {
 			if ( empty( $schema['properties'][ $key ] ) || empty( $schema['properties'][ $key ]['context'] ) ) {
 				continue;
 			}
@@ -79,7 +129,7 @@ abstract class WP_JSON_Controller {
 			}
 
 			if ( 'object' === $schema['properties'][ $key ]['type'] && ! empty( $schema['properties'][ $key ]['properties'] ) ) {
-				foreach( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
+				foreach ( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
 					if ( empty( $details['context'] ) ) {
 						continue;
 					}
@@ -88,7 +138,6 @@ abstract class WP_JSON_Controller {
 					}
 				}
 			}
-
 		}
 
 		return $data;
@@ -105,7 +154,7 @@ abstract class WP_JSON_Controller {
 
 	/**
 	 * Get an array of endpoint arguments from the item schema for the controller.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function get_endpoint_args_for_item_schema() {
@@ -115,7 +164,7 @@ abstract class WP_JSON_Controller {
 		$post_type_fields_args = array();
 
 		foreach ( $post_type_fields as $field_id => $params ) {
-			$post_type_fields_args[$field_id] = array();
+			$post_type_fields_args[ $field_id ] = array();
 		}
 
 		return $post_type_fields_args;

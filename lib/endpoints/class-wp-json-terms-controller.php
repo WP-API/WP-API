@@ -9,12 +9,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		
+
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
-				'methods'  => WP_JSON_Server::READABLE,
-				'callback' => array( $this, 'get_items' ),
-				'args'     => array(
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => array(
 					'search'   => array(
 						'sanitize_callback' => 'sanitize_text_field',
 						'default'           => ''
@@ -35,6 +36,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 						'sanitize_callback' => 'sanitize_key',
 						'default'           => ''
 					),
+					'post'     => array(),
 				),
 			),
 			array(
@@ -50,7 +52,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 						'sanitize_callback' => 'wp_filter_post_kses'
 					),
 					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title'	
+						'sanitize_callback' => 'sanitize_title'
 					),
 					'parent'      => array(),
 				),
@@ -58,8 +60,9 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 		));
 		register_json_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 			array(
-				'methods'    => WP_JSON_Server::READABLE,
-				'callback'   => array( $this, 'get_item' ),
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 			),
 			array(
 				'methods'    => WP_JSON_Server::EDITABLE,
@@ -74,7 +77,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 						'sanitize_callback' => 'wp_filter_post_kses'
 					),
 					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title'	
+						'sanitize_callback' => 'sanitize_title'
 					),
 					'parent'         => array(),
 				),
@@ -99,26 +102,37 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
+
 		$prepared_args['number']  = $request['per_page'];
-		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number']; 
+		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
 		$prepared_args['search']  = $request['search'];
 		$prepared_args['order']   = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$terms = get_terms( $taxonomy, $prepared_args );
+		if ( isset( $request['post'] ) ) {
+			$post_id = absint( $request['post'] );
+
+			$permission_check = $this->check_post_taxonomy_permission( $taxonomy, $post_id );
+			if ( is_wp_error( $permission_check ) ) {
+				return $permission_check;
+			}
+
+			$terms = wp_get_object_terms( $post_id, $taxonomy, $prepared_args );
+		} else {
+			$terms = get_terms( $taxonomy, $prepared_args );
+		}
 		if ( is_wp_error( $terms ) ) {
 			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
-		
-		foreach( $terms as &$term ) { 
-			$term = self::prepare_item_for_response( $term, $request );
+
+		$response = array();
+		foreach ( $terms as $term ) {
+			$response[] = $this->prepare_item_for_response( $term, $request );
 		}
-		return $terms;
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -128,20 +142,19 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
-
-		$term = get_term_by( 'term_taxonomy_id', $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
-		return self::prepare_item_for_response( $term, $request );
+
+		$response = $this->prepare_item_for_response( $term, $request );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -151,19 +164,11 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function create_item( $request ) {
-
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
-		}
-
-		$taxonomy_obj = get_taxonomy( $taxonomy );
-		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
-			return new WP_Error( 'json_user_cannot_create', __( 'Sorry, you are not allowed to create terms.' ), array( 'status' => 403 ) );
-		}
-
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 		$name = $request['name'];
+
 		$args = array();
+
 		if ( isset( $request['description'] ) ) {
 			$args['description'] = $request['description'];
 		}
@@ -171,11 +176,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			$args['slug'] = $request['slug'];
 		}
 
-		$term = wp_insert_term( $name, $request['taxonomy'], $args );
+		$term = wp_insert_term( $name, $taxonomy, $args );
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
-		return self::get_item( array( 'id' => $term['term_taxonomy_id'], 'taxonomy' => $request['taxonomy'] ) );
+
+		$response = $this->get_item( array(
+			'id' => $term['term_taxonomy_id'],
+			'taxonomy' => $taxonomy,
+		 ) );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -185,11 +196,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_item( $request ) {
-
-		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
-		if ( is_wp_error( $term ) ) {
-			return $term;
-		}
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
@@ -202,18 +209,25 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 			$prepared_args['slug'] = $request['slug'];
 		}
 
-		// Bail early becuz no updates
-		if ( empty( $prepared_args ) ) {
-			return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		if ( ! $term ) {
+			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 
-		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
-		$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
-		if ( is_wp_error( $update ) ) {
-			return $update;
+		// Only update the term if we haz something to update.
+		if ( ! empty( $prepared_args ) ) {
+			$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
+			if ( is_wp_error( $update ) ) {
+				return $update;
+			}
 		}
-		return self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ), $request );
+
+		$response = $this->get_item( array(
+			'id' => $term->term_taxonomy_id,
+			'taxonomy' => $taxonomy,
+		 ) );
+
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -224,29 +238,71 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_item( $request ) {
-
-		$term = self::get_item( array( 'id' => $request['id'], 'taxonomy' => $request['taxonomy'] ) );
-		if ( is_wp_error( $term ) ) {
-			return $term;
-		}
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $request['taxonomy'] );
-		wp_delete_term( $term->term_id, $term->taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
 
+		wp_delete_term( $term->term_id, $term->taxonomy );
 	}
 
 	/**
-	 * Check if a given request has access to create a term
-	 * 
+	 * Check if a given request has access to read the terms.
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
+	 */
+	public function get_items_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
+
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$tax_obj = get_taxonomy( $taxonomy );
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a given request has access to read a term.
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function get_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
+
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
+		$tax_obj = get_taxonomy( $taxonomy );
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Check if a given request has access to create a term
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy = $this->check_valid_taxonomy( $request['taxonomy'] );
-		if ( is_wp_error( $taxonomy ) ) {
-			return $taxonomy;
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
 		}
 
 		$taxonomy_obj = get_taxonomy( $taxonomy );
@@ -259,14 +315,19 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a term
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
 	public function update_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
 
+		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
 			return false;
 		}
@@ -276,14 +337,24 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a term
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
 	public function delete_item_permissions_check( $request ) {
+		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$taxonomy_obj = get_taxonomy( $request['taxonomy'] );
+		$valid = $this->check_valid_taxonomy( $taxonomy );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
 
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		if ( ! $term ) {
+			return new WP_Error( 'json_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+		}
+
+		$taxonomy_obj = get_taxonomy( $taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
 			return false;
 		}
@@ -323,7 +394,8 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 		if ( ! empty( $parent_term ) ) {
 			$data['_links'] = array(
-				'parent'    => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) )
+				'parent'     => json_url( sprintf( 'wp/terms/%s/%d', $parent_term->taxonomy, $parent_term->term_taxonomy_id ) ),
+				'embeddable' => true,
 				);
 		}
 
@@ -392,18 +464,53 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 * Check that the taxonomy is valid
 	 *
 	 * @param string
-	 * @return string|WP_Error
+	 * @return bool|WP_Error
 	 */
 	protected function check_valid_taxonomy( $taxonomy ) {
+		if ( get_taxonomy( $taxonomy ) ) {
+			return true;
+		}
 
+		return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
+	}
+
+	/**
+	 * Normalizes the post_tag taxonomy and sanitizes the request variable.
+	 *
+	 * @param string
+	 * @return string
+	 */
+	protected function handle_taxonomy_param( $taxonomy ) {
 		if ( 'tag' === $taxonomy ) {
 			$taxonomy = 'post_tag';
 		}
-		if ( get_taxonomy( $taxonomy ) ) {
-			return $taxonomy;
-		} else {
-			return new WP_Error( 'json_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
-		}
+
+		return sanitize_key( $taxonomy );
 	}
 
+	/**
+	 * Check that the taxonomy is valid for a given post type.
+	 *
+	 * @param string  $taxonomy
+	 * @param integer $post_id
+	 * @return bool|WP_Error
+	 */
+	protected function check_post_taxonomy_permission( $taxonomy, $post_id ) {
+		$post = get_post( $post_id );
+		if ( empty( $post->ID ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
+
+		$posts_controller = new WP_JSON_Posts_Controller( $post->post_type );
+		if ( ! $posts_controller->check_read_permission( $post ) ) {
+			return new WP_Error( 'json_cannot_read', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
+		}
+
+		$valid_taxonomies = get_object_taxonomies( $post->post_type );
+		if ( ! in_array( $taxonomy, $valid_taxonomies ) ) {
+			return new WP_Error( 'json_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
+		}
+
+		return true;
+	}
 }
