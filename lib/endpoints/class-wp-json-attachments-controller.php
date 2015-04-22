@@ -121,11 +121,11 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
 
 		if ( isset( $request['caption'] ) ) {
-			$prepared_attachment->post_content = wp_filter_post_kses( $request['caption'] );
+			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['caption'] );
 		}
 
 		if ( isset( $request['description'] ) ) {
-			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['description'] );
+			$prepared_attachment->post_content = wp_filter_post_kses( $request['description'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -146,8 +146,8 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$response = parent::prepare_item_for_response( $post, $request );
 
 		$response['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$response['caption']       = $post->post_content;
-		$response['description']   = $post->post_excerpt;
+		$response['caption']       = $post->post_excerpt;
+		$response['description']   = $post->post_content;
 		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$response['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
@@ -167,6 +167,9 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		    $response['media_details']['sizes'] = new stdClass;
 		}
 
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$response = $this->filter_response_by_context( $response, $context );
+
 		return $response;
 	}
 
@@ -182,32 +185,39 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 		$schema['properties']['alt_text'] = array(
 			'description'     => 'Alternative text to display when attachment is not displayed.',
 			'type'            => 'string',
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
 			'type'            => 'string',
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['description'] = array(
 			'description'     => 'The description for the attachment.',
 			'type'            => 'string',
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['media_type'] = array(
 			'description'     => 'Type of attachment.',
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['post'] = array(
 			'description'     => 'The ID for the associated post of the attachment.',
 			'type'            => 'integer',
+			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['source_url'] = array(
 			'description'     => 'URL to the original attachment file.',
 			'type'            => 'string',
 			'format'          => 'uri',
+			'context'         => array( 'view', 'edit' ),
 			);
 		return $schema;
 	}

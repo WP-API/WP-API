@@ -564,9 +564,11 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Amazingly, parse_str follows magic quote rules. Sigh.
 		// NOTE: Do not refactor to use `wp_unslash`.
+		// @codeCoverageIgnoreStart
 		if ( get_magic_quotes_gpc() ) {
 			$params = stripslashes_deep( $params );
 		}
+		// @codeCoverageIgnoreEnd
 
 		// Add to the POST parameters stored internally. If a user has already
 		// set these manually (via `set_body_params`), don't override them.
@@ -609,6 +611,37 @@ class WP_JSON_Request implements ArrayAccess {
 	 */
 	public function set_attributes( $attributes ) {
 		$this->attributes = $attributes;
+	}
+
+	/**
+	 * Check whether this request is valid according to its attributes
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function has_valid_params() {
+
+		$attributes = $this->get_attributes();
+		$required = array();
+
+		// No arguments set, skip validation
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
+		foreach ( $attributes['args'] as $key => $arg ) {
+
+			$param = $this->get_param( $key );
+			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
+				$required[] = $key;
+			}
+		}
+
+		if ( ! empty( $required ) ) {
+			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+		}
+
+		return true;
+
 	}
 
 	/**
@@ -660,7 +693,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Remove the offset from every group
 		foreach ( $order as $type ) {
-			unset( $this->params[ $type ][ $offset] );
+			unset( $this->params[ $type ][ $offset ] );
 		}
 	}
 }

@@ -6,6 +6,120 @@
 class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		register_json_route( 'wp', '/comments', array(
+			array(
+				'methods'   => WP_JSON_Server::READABLE,
+				'callback'  => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'      => array(
+					'post'         => array(
+						'default'      => null,
+					),
+					'user'         => array(
+						'default'      => 0,
+					),
+					'per_page'     => array(
+						'default'      => 10,
+					),
+					'page'         => array(
+						'default'      => 1,
+					),
+					'status'       => array(
+						'default'      => 'approve',
+					),
+					'type'         => array(
+						'default'      => 'comment',
+					),
+					'parent'       => array(),
+					'search'       => array(),
+					'order'        => array(
+						'default'      => 'DESC',
+					),
+					'orderby'      => array(
+						'default'      => 'date_gmt',
+					),
+					'author_email' => array(),
+					'karma'        => array(),
+					'post_author'  => array(),
+					'post_name'    => array(),
+					'post_parent'  => array(),
+					'post_status'  => array(),
+					'post_type'    => array(),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::CREATABLE,
+				'callback' => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'     => array(
+					'post'         => array(
+						'required'     => true,
+					),
+					'type'         => array(
+						'default'      => 'comment',
+					),
+					'author'         => array(
+						'default'      => 0,
+					),
+					'parent'       => array(
+						'default'      => 0,
+					),
+					'content'      => array(),
+					'author'       => array(),
+					'author_email' => array(),
+					'author_url'   => array(),
+					'date'         => array(),
+					'date_gmt'     => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+			array(
+				'methods'  => WP_JSON_Server::READABLE,
+				'callback' => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				'args'     => array(
+					'context'  => array(
+						'default'  => 'view',
+					),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::EDITABLE,
+				'callback' => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				'args'     => array(
+					'post'         => array(),
+					'status'       => array(),
+					'content'      => array(),
+					'author'       => array(),
+					'author_email' => array(),
+					'author_url'   => array(),
+					'date'         => array(),
+				),
+			),
+			array(
+				'methods'  => WP_JSON_Server::DELETABLE,
+				'callback' => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+				'args'     => array(
+					'force'    => array(),
+				),
+			),
+		) );
+
+		register_json_route( 'wp', '/comments/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
 	 * Get a list of comments.
 	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
@@ -84,10 +198,15 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
-		$new_comment = get_comment( $comment_id );
-		$response = $this->prepare_item_for_response( $new_comment, array( 'context' => 'edit' ) );
+		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
+		$response = $this->get_item( array(
+			'id'      => $comment_id,
+			'context' => $context,
+		) );
 		$response = json_ensure_response( $response );
-
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment_id ) );
 
@@ -134,6 +253,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'context' => 'edit',
 		) );
 		$response = json_ensure_response( $response );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
 		$response->set_status( 201 );
 		$response->header( 'Location', json_url( '/wp/comments/' . $comment->comment_ID ) );
 
@@ -170,21 +292,23 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read comments
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		// If the post id isn't specified, presume we can create
-		if ( ! isset( $request['post'] ) ) {
-			return true;
+		// If the post id is specified, check that we can read the post
+		if ( isset( $request['post'] ) ) {
+			$post = get_post( (int) $request['post'] );
+
+			if ( $post && ! $this->check_read_post_permission( $post ) ) {
+				return false;
+			}
 		}
 
-		$post = get_post( (int) $request['post'] );
-
-		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return false;
+		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view comments with edit context' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -192,9 +316,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read the comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 		$id = (int) $request['id'];
@@ -215,12 +339,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return false;
 		}
 
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
+		}
+
 		return true;
 	}
 
 	/**
 	 * Check if a given request has access to create a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -249,7 +377,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -268,7 +396,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a comment
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -288,26 +416,26 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
-			'user'         => (int) $comment->user_id,
-			'author'       => $comment->comment_author,
+			'author'       => (int) $comment->user_id,
+			'author_name'  => $comment->comment_author,
 			'author_email' => $comment->comment_author_email,
 			'author_url'   => $comment->comment_author_url,
+			'author_ip'    => $comment->comment_author_IP,
+			'author_user_agent' => $comment->comment_agent,
 			'date'         => json_mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'     => json_mysql_to_rfc3339( $comment->comment_date_gmt ),
 			'content'      => array(
 				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'raw'          => $comment->comment_content,
 			),
+			'karma'        => (int) $comment->comment_karma,
 			'link'         => get_comment_link( $comment ),
 			'status'       => $this->prepare_status_response( $comment->comment_approved ),
 			'type'         => get_comment_type( $comment->comment_ID ),
 		);
 
-		if ( 'edit' == $request['context'] ) {
-			$fields['author_ip']           = $comment->comment_author_IP;
-			$fields['author_user_agent']   = $comment->comment_agent;
-			$fields['date_gmt']            = json_mysql_to_rfc3339( $comment->comment_date_gmt );
-			$fields['content']['raw']      = $comment->comment_content;
-			$fields['karma']               = $comment->comment_karma;
-		}
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$fields = $this->filter_response_by_context( $fields, $context );
 
 		$links = array();
 
@@ -364,7 +492,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'status'       => sanitize_key( $request['status'] ),
 				'type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 				'author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-				'karma'        => isset( $request['karma'] ) ? sanitize_key( $request['karma'] ) : '',
+				'karma'        => isset( $request['karma'] ) ? intval( $request['karma'] ) : '',
 				'post_author'  => isset( $request['post_author'] ) ? sanitize_key( $request['post_author'] ) : '',
 				'post_name'    => isset( $request['post_name'] ) ? sanitize_key( $request['post_name'] ) : '',
 				'post_parent'  => isset( $request['author_email'] ) ? intval( $request['post_parent'] ) : '',
@@ -445,9 +573,9 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			'comment_post_ID'      => (int) $request['post'],
 			'comment_type'         => sanitize_key( $request['type'] ),
 			'comment_parent'       => (int) $request['parent'],
-			'user_id'              => isset( $request['user'] ) ? (int) $request['user'] : get_current_user_id(),
+			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author'] ) ? sanitize_text_field( $request['author'] ) : '',
+			'comment_author'       => isset( $request['author_name'] ) ? sanitize_text_field( $request['author_name'] ) : '',
 			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
 			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
 			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
@@ -474,8 +602,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
 
-		if ( isset( $request['author'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author'] );
+		if ( isset( $request['author_name'] ) ) {
+			$prepared_comment['comment_author'] = sanitize_text_field( $request['author_name'] );
 		}
 
 		if ( isset( $request['author_email'] ) ) {
@@ -508,32 +636,54 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'author'           => array(
-					'description'  => 'Name of the object author.',
-					'type'         => 'string',
+					'description'  => 'The ID of the user object, if author was a user.',
+					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
 					'type'         => 'string',
 					'format'       => 'email',
+					'context'      => array( 'edit' ),
+					),
+				'author_ip'     => array(
+					'description'  => 'IP address for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'edit' ),
+					),
+				'author_name'     => array(
+					'description'  => 'Display name for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view', 'edit' ),
+					),
+				'author_user_agent'     => array(
+					'description'  => 'User agent for the object author.',
+					'type'         => 'string',
+					'context'      => array( 'edit' ),
 					),
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
+					'context'         => array( 'view', 'edit' ),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => 'Content for the object, as it exists in the database.',
 							'type'            => 'string',
+							'context'         => array( 'edit' ),
 							),
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
+							'context'         => array( 'view', 'edit' ),
 							),
 						),
 					),
@@ -541,31 +691,44 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
+					'context'      => array( 'view', 'edit' ),
 				),
+				'date_gmt'         => array(
+					'description'  => 'The date the object was published as GMT.',
+					'type'         => 'string',
+					'format'       => 'date-time',
+					'context'      => array( 'edit' ),
+				),
+				'karma'             => array(
+					'description'  => 'Karma for the object.',
+					'type'         => 'integer',
+					'context'      => array( 'edit' ),
+					),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'status'           => array(
 					'description'  => 'State of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view', 'edit' ),
 					),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
-					),
-				'user'             => array(
-					'description'  => 'The ID of the user object, if author was a user.',
-					'type'         => 'integer',
+					'context'      => array( 'view', 'edit' ),
 					),
 				),
 			);

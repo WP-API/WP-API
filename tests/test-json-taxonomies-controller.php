@@ -17,10 +17,10 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
 		// Check each key in $data against those in $taxonomies
 		foreach ( array_keys( $data ) as $key ) {
-			$this->assertEquals( $taxonomies[$key]->label, $data[$key]['name'] );
-			$this->assertEquals( $taxonomies[$key]->name, $data[$key]['slug'] );
-			$this->assertEquals( $taxonomies[$key]->hierarchical, $data[$key]['hierarchical'] );
-			$this->assertEquals( $taxonomies[$key]->show_tagcloud, $data[$key]['show_cloud'] );
+			$this->assertEquals( $taxonomies[ $key ]->label, $data[ $key ]['name'] );
+			$this->assertEquals( $taxonomies[ $key ]->name, $data[ $key ]['slug'] );
+			$this->assertEquals( $taxonomies[ $key ]->hierarchical, $data[ $key ]['hierarchical'] );
+			$this->assertEquals( $taxonomies[ $key ]->show_tagcloud, $data[ $key ]['show_cloud'] );
 		}
 	}
 
@@ -41,6 +41,14 @@ class WP_Test_JSON_Taxonomies_Controller extends WP_Test_JSON_Controller_Testcas
 		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/invalid' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
+	}
+
+	public function test_get_non_public_taxonomy() {
+		register_taxonomy( 'api-private', 'post', array( 'public' => false ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/taxonomies/api-private' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item() {

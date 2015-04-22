@@ -39,8 +39,13 @@ function json_register_scripts() {
  * Add the API URL to the WP RSD endpoint.
  */
 function json_output_rsd() {
+	$api_root = get_json_url();
+
+	if ( empty( $api_root ) ) {
+		return;
+	}
 	?>
-	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo get_json_url() ?>" />
+	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo esc_url( $api_root ); ?>" />
 <?php
 }
 
@@ -73,7 +78,7 @@ function json_output_link_header() {
 		return;
 	}
 
-	header( 'Link: <' . $api_root . '>; rel="https://github.com/WP-API/WP-API"', false );
+	header( 'Link: <' . esc_url_raw( $api_root ) . '>; rel="https://github.com/WP-API/WP-API"', false );
 }
 
 /**
@@ -165,7 +170,7 @@ function json_get_avatar_url( $email ) {
 	$avatar_html = get_avatar( $email );
 
 	// Strip the avatar url from the get_avatar img tag.
-	preg_match('/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches);
+	preg_match( '/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches );
 
 	if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
 		return esc_url_raw( $matches[1] );

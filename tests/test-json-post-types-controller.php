@@ -16,7 +16,8 @@ class WP_Test_JSON_Post_Types_Controller extends WP_Test_JSON_Controller_Testcas
 		$post_types = get_post_types( array( 'public' => true ), 'objects' );
 		$this->assertEquals( count( $post_types ), count( $data ) );
 		// Check each key in $data against those in $post_types
-		foreach ( $data as $obj ) {
+		foreach ( $data as $key => $obj ) {
+			$this->assertEquals( $post_types[ $obj['slug'] ]->name, $key );
 			$this->check_post_type_obj( $post_types[ $obj['slug'] ], $obj );
 		}
 	}

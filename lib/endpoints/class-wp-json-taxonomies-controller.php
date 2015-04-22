@@ -3,6 +3,29 @@
 class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 
 	/**
+	 * Register the routes for the objects of the controller.
+	 */
+	public function register_routes() {
+
+		register_json_route( 'wp', '/taxonomies', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_items' ),
+			'args'            => array(
+				'post_type'   => array(),
+			),
+		) );
+		register_json_route( 'wp', '/taxonomies/schema', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
+		register_json_route( 'wp', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+			'methods'         => WP_JSON_Server::READABLE,
+			'callback'        => array( $this, 'get_item' ),
+			'permission_callback' => array( $this, 'get_item_permissions_check' ),
+		) );
+	}
+
+	/**
 	 * Get all public taxonomies
 	 *
 	 * @param WP_JSON_Request $request
@@ -40,6 +63,23 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 	}
 
 	/**
+	 * Check if a given request has access a taxonomy
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function get_item_permissions_check( $request ) {
+
+		$tax_obj = get_taxonomy( $request['taxonomy'] );
+
+		if ( $tax_obj && false === $tax_obj->public ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Prepare a taxonomy object for serialization
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
@@ -60,6 +100,9 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 			'show_cloud'   => $taxonomy->show_tagcloud,
 			'hierarchical' => $taxonomy->hierarchical,
 		);
+
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
 		return apply_filters( 'json_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
@@ -77,30 +120,37 @@ class WP_JSON_Taxonomies_Controller extends WP_JSON_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'hierarchical'     => array(
 					'description'  => 'Whether or not the type should have children.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'labels'           => array(
 					'description'  => 'Human-readable labels for the type for various contexts.',
 					'type'         => 'object',
+					'context'      => array( 'view' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'show_cloud'       => array(
 					'description'  => 'Whether or not the term cloud should be displayed.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'types'            => array(
 					'description'  => 'Types associated with taxonomy.',
 					'type'         => 'array',
+					'context'      => array( 'view' ),
 					),
 				),
 			);
