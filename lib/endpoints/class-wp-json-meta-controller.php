@@ -260,6 +260,9 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! isset( $request['key'] ) && ! isset( $request['value'] ) ) {
+			return new WP_Error( 'json_meta_data_invalid', __( 'Invalid meta parameters.' ), array( 'status' => 400 ) );
+		}
 		if ( isset( $request['key'] ) ) {
 			$key = $request['key'];
 		} else {
