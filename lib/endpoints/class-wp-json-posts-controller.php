@@ -59,7 +59,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'     => array(
-					'force'    => array(),
+					'force'    => array(
+						'default'      => false,
+					),
 				),
 			),
 		) );
@@ -289,7 +291,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
-		$force = isset( $request['force'] ) ? (bool) $request['force']: false;
+		$force = (bool) $request['force'];
 
 		$post = get_post( $id );
 
