@@ -586,20 +586,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
-
-		$this->assertEquals( 200, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertEquals( $meta_id, $data['id'] );
-		$this->assertEquals( 'testkey', $data['key'] );
-		$this->assertEquals( 'testvalue', $data['value'] );
-
-		$meta = get_post_meta( $post_id, 'testkey', false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertEquals( 'testvalue', $meta[0] );
+		$this->assertErrorResponse( 'json_meta_data_invalid', $response, 400 );
 	}
 
 	public function test_update_meta_no_post_id() {
@@ -610,8 +597,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['parent_id'] = 0;
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', 0, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -626,8 +612,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['parent_id'] = -1;
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', 99999, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -642,8 +627,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['id'] = 0;
+		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, 0 ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );

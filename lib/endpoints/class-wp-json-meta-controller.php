@@ -419,6 +419,6 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
 		}
 
-		return array( 'message' => __( 'Deleted meta' ) );;
+		return json_ensure_response( array( 'message' => __( 'Deleted meta' ) ) );
 	}
 }
