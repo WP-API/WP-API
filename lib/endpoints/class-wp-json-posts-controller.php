@@ -183,7 +183,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post->ID );
 		}
 
@@ -248,7 +248,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
@@ -973,7 +973,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( ! empty( $post->post_password ) ) {
 				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
-
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
@@ -1266,7 +1265,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			switch( $attribute ) {
+			switch ( $attribute ) {
 
 				case 'title':
 					$schema['properties']['title'] = array(
