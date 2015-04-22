@@ -59,7 +59,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'     => array(
-					'force'    => array(),
+					'force'    => array(
+						'default'      => false,
+					),
 				),
 			),
 		) );
@@ -183,7 +185,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post->ID );
 		}
 
@@ -248,7 +250,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
@@ -289,7 +291,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
-		$force = isset( $request['force'] ) ? (bool) $request['force']: false;
+		$force = (bool) $request['force'];
 
 		$post = get_post( $id );
 
@@ -297,7 +299,23 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$result = wp_delete_post( $id, $force );
+		if ( ! $this->check_delete_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
+		}
+
+		// If we're forcing, then delete permanently
+		if ( $force ) {
+			$result = wp_delete_post( $id, true );
+		} else {
+			// Otherwise, only trash if we haven't already
+			if ( EMPTY_TRASH_DAYS && $post->post_status == 'trash' ) {
+				return new WP_Error( 'json_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
+			}
+
+			// (Note that internally this falls through to `wp_delete_post` if
+			// the trash is disabled.)
+			$result = wp_trash_post( $id );
+		}
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
@@ -957,7 +975,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( ! empty( $post->post_password ) ) {
 				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
-
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
@@ -1250,7 +1267,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			switch( $attribute ) {
+			switch ( $attribute ) {
 
 				case 'title':
 					$schema['properties']['title'] = array(
