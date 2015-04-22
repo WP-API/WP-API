@@ -13,11 +13,6 @@
         </testsuite>
     </testsuites>
 
-	<logging>
-		<log type="coverage-html" target="coverage" title="PHPUnit"
-			 charset="UTF-8" yui="true" highlight="true" />
-	</logging>
-
 	<filter>
 		<blacklist>
 			<directory suffix=".php">.</directory>

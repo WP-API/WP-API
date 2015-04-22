@@ -564,9 +564,11 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Amazingly, parse_str follows magic quote rules. Sigh.
 		// NOTE: Do not refactor to use `wp_unslash`.
+		// @codeCoverageIgnoreStart
 		if ( get_magic_quotes_gpc() ) {
 			$params = stripslashes_deep( $params );
 		}
+		// @codeCoverageIgnoreEnd
 
 		// Add to the POST parameters stored internally. If a user has already
 		// set these manually (via `set_body_params`), don't override them.
@@ -691,7 +693,7 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// Remove the offset from every group
 		foreach ( $order as $type ) {
-			unset( $this->params[ $type ][ $offset] );
+			unset( $this->params[ $type ][ $offset ] );
 		}
 	}
 }
