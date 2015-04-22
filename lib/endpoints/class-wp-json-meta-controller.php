@@ -70,13 +70,11 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 				),
 			),
 			array(
-				'methods'  => WP_JSON_Server::EDITABLE,
-				'callback' => array( $this, 'update_item' ),
+				'methods'             => WP_JSON_Server::EDITABLE,
+				'callback'            => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'                => array(
-					'key'                 => array(
-						'required'            => true,
-					),
+					'key'                 => array(),
 					'value'               => array(),
 				),
 			),
@@ -274,7 +272,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			$value = $current->meta_value;
 		}
 
-		if ( empty( $key ) ) {
+		if ( ! $key ) {
 			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
 		}
 
