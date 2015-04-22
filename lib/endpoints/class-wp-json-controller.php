@@ -119,7 +119,7 @@ abstract class WP_JSON_Controller {
 	public function filter_response_by_context( $data, $context ) {
 
 		$schema = $this->get_item_schema();
-		foreach( $data as $key => $value ) {
+		foreach ( $data as $key => $value ) {
 			if ( empty( $schema['properties'][ $key ] ) || empty( $schema['properties'][ $key ]['context'] ) ) {
 				continue;
 			}
@@ -129,7 +129,7 @@ abstract class WP_JSON_Controller {
 			}
 
 			if ( 'object' === $schema['properties'][ $key ]['type'] && ! empty( $schema['properties'][ $key ]['properties'] ) ) {
-				foreach( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
+				foreach ( $schema['properties'][ $key ]['properties'] as $attribute => $details ) {
 					if ( empty( $details['context'] ) ) {
 						continue;
 					}
@@ -138,7 +138,6 @@ abstract class WP_JSON_Controller {
 					}
 				}
 			}
-
 		}
 
 		return $data;
