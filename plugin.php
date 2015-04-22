@@ -39,6 +39,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-posts-controlle
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-attachments-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-types-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-post-statuses-controller.php';
+require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-revisions-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-taxonomies-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-terms-controller.php';
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-json-users-controller.php';
@@ -50,8 +51,8 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
 /**
  * Register a JSON API route
  *
- * @param string $namespace
- * @param string $route
+ * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
+ * @param string $route The base URL for route you are adding.
  * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
  * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
@@ -103,8 +104,8 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
  */
 function create_initial_json_routes() {
 
-	foreach( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
-		
+	foreach ( get_post_types( array( 'show_in_json' => true ), 'objects' ) as $post_type ) {
+
 		$class = ! empty( $post_type->json_controller_class ) ? $post_type->json_controller_class : 'WP_JSON_Posts_Controller';
 
 		if ( ! class_exists( $class ) ) {
@@ -116,6 +117,10 @@ function create_initial_json_routes() {
 		}
 
 		$controller->register_routes();
+		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
+			$revisions_controller = new WP_JSON_Revisions_Controller( $post_type->name );
+			$revisions_controller->register_routes();
+		}
 	}
 
 	/*
@@ -155,7 +160,7 @@ function create_initial_json_routes() {
 	$controller->register_routes();
 
 }
-add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
+add_action( 'wp_json_init', 'create_initial_json_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
@@ -225,7 +230,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
 
 }
-add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
+add_action( 'wp_json_init', 'json_api_default_filters', 10, 1 );
 
 /**
  * Load the JSON API.
@@ -269,7 +274,7 @@ function json_api_loaded() {
 	 *
 	 * @param WP_JSON_Server $wp_json_server Server object.
 	 */
-	do_action( 'wp_json_server_before_serve', $wp_json_server );
+	do_action( 'wp_json_init', $wp_json_server );
 
 	// Fire off the request.
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
@@ -346,7 +351,7 @@ function json_get_url_prefix() {
  *
  * @todo Check if this is even necessary
  *
- * @param int    $blog_id Blog ID.
+ * @param int    $blog_id Blog ID. Optional. The ID of the multisite blog to get URL for. Default null of null returns URL for current blog.
  * @param string $path    Optional. JSON route. Default empty.
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
@@ -443,10 +448,10 @@ function json_ensure_response( $response ) {
  */
 function json_handle_deprecated_function( $function, $replacement, $version ) {
 	if ( ! empty( $replacement ) ) {
-		$string = sprintf( __('%1$s (since %2$s; use %3$s instead)'), $function, $version, $replacement );
+		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $function, $version, $replacement );
 	}
 	else {
-		$string = sprintf( __('%1$s (since %2$s; no alternative available)'), $function, $version );
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
 
 	header( sprintf( 'X-WP-DeprecatedFunction: %s', $string ) );
@@ -461,10 +466,10 @@ function json_handle_deprecated_function( $function, $replacement, $version ) {
  */
 function json_handle_deprecated_argument( $function, $message, $version ) {
 	if ( ! empty( $message ) ) {
-		$string = sprintf( __('%1$s (since %2$s; %3$s)'), $function, $version, $message );
+		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $message );
 	}
 	else {
-		$string = sprintf( __('%1$s (since %2$s; no alternative available)'), $function, $version );
+		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
 
 	header( sprintf( 'X-WP-DeprecatedParam: %s', $string ) );
@@ -530,9 +535,9 @@ function json_handle_options_request( $response, $handler, $request ) {
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
  *
- * @param  WP_JSON_Response  $response
+ * @param  WP_JSON_Response  $response Current response being served.
  * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
- * @param  WP_JSON_Request   $request
+ * @param  WP_JSON_Request   $request The request that was used to make current response.
  */
 function json_send_allow_header( $response, $server, $request ) {
 
@@ -547,16 +552,16 @@ function json_send_allow_header( $response, $server, $request ) {
 	$allowed_methods = array();
 
 	// get the allowed methods across the routes
-	foreach ( $routes[$matched_route] as $_handler ) {
+	foreach ( $routes[ $matched_route ] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
 			if ( ! empty( $_handler['permission_callback'] ) ) {
 
 				$permission = call_user_func( $_handler['permission_callback'], $request );
 
-				$allowed_methods[$handler_method] = true === $permission;
+				$allowed_methods[ $handler_method ] = true === $permission;
 			} else {
-				$allowed_methods[$handler_method] = true;
+				$allowed_methods[ $handler_method ] = true;
 			}
 		}
 	}
@@ -571,55 +576,55 @@ function json_send_allow_header( $response, $server, $request ) {
 	return $response;
 }
 
-if ( ! function_exists( 'json_last_error_msg' ) ):
-/**
- * Returns the error string of the last json_encode() or json_decode() call
- *
- * @internal This is a compatibility function for PHP <5.5
- *
- * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
- */
-function json_last_error_msg() {
-	// see https://core.trac.wordpress.org/ticket/27799
-	if ( ! function_exists( 'json_last_error' ) ) {
-		return false;
+if ( ! function_exists( 'json_last_error_msg' ) ) :
+	/**
+	 * Returns the error string of the last json_encode() or json_decode() call
+	 *
+	 * @internal This is a compatibility function for PHP <5.5
+	 *
+	 * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
+	 */
+	function json_last_error_msg() {
+		// see https://core.trac.wordpress.org/ticket/27799
+		if ( ! function_exists( 'json_last_error' ) ) {
+			return false;
+		}
+
+		$last_error_code = json_last_error();
+
+		// just in case JSON_ERROR_NONE is not defined
+		$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
+
+		switch ( true ) {
+			case $last_error_code === $error_code_none:
+				return 'No error';
+
+			case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code:
+				return 'Maximum stack depth exceeded';
+
+			case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code:
+				return 'State mismatch (invalid or malformed JSON)';
+
+			case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code:
+				return 'Control character error, possibly incorrectly encoded';
+
+			case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code:
+				return 'Syntax error';
+
+			case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code:
+				return 'Malformed UTF-8 characters, possibly incorrectly encoded';
+
+			case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code:
+				return 'Recursion detected';
+
+			case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code:
+				return 'Inf and NaN cannot be JSON encoded';
+
+			case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code:
+				return 'Type is not supported';
+
+			default:
+				return 'An unknown error occurred';
+		}
 	}
-
-	$last_error_code = json_last_error();
-
-	// just in case JSON_ERROR_NONE is not defined
-	$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
-
-	switch ( true ) {
-		case $last_error_code === $error_code_none:
-			return 'No error';
-
-		case defined( 'JSON_ERROR_DEPTH' ) && JSON_ERROR_DEPTH === $last_error_code:
-			return 'Maximum stack depth exceeded';
-
-		case defined( 'JSON_ERROR_STATE_MISMATCH' ) && JSON_ERROR_STATE_MISMATCH === $last_error_code:
-			return 'State mismatch (invalid or malformed JSON)';
-
-		case defined( 'JSON_ERROR_CTRL_CHAR' ) && JSON_ERROR_CTRL_CHAR === $last_error_code:
-			return 'Control character error, possibly incorrectly encoded';
-
-		case defined( 'JSON_ERROR_SYNTAX' ) && JSON_ERROR_SYNTAX === $last_error_code:
-			return 'Syntax error';
-
-		case defined( 'JSON_ERROR_UTF8' ) && JSON_ERROR_UTF8 === $last_error_code:
-			return 'Malformed UTF-8 characters, possibly incorrectly encoded';
-
-		case defined( 'JSON_ERROR_RECURSION' ) && JSON_ERROR_RECURSION === $last_error_code:
-			return 'Recursion detected';
-
-		case defined( 'JSON_ERROR_INF_OR_NAN' ) && JSON_ERROR_INF_OR_NAN === $last_error_code:
-			return 'Inf and NaN cannot be JSON encoded';
-
-		case defined( 'JSON_ERROR_UNSUPPORTED_TYPE' ) && JSON_ERROR_UNSUPPORTED_TYPE === $last_error_code:
-			return 'Type is not supported';
-
-		default:
-			return 'An unknown error occurred';
-	}
-}
 endif;

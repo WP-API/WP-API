@@ -142,6 +142,22 @@ look at the [recent updates][] for the project.
 Previous issues can be found on the [GSOC Trac][] issue tracker, however new
 issues should not be filed there.
 
+## Security
+
+We take the security of the API extremely seriously. If you think you've found
+a security issue with the API (whether information disclosure, privilege
+escalation, or another issue), we'd appreciate responsible disclosure as soon as
+possible.
+
+To report a security issue, you can either email `security[at]wordpress.org`, or
+[file an issue on HackerOne][hackerone]. We will attempt to give an initial
+response to security issues within 48 hours at most, however keep in mind that
+the team is distributed across various timezones, and delays may occur as we
+discuss internally.
+
+(Please note: For testing, you should install a copy of the project and
+WordPress on your own server. **Do not test on servers you do not own.**)
+
 ## License
 
 [GPLv2+](http://www.gnu.org/licenses/gpl-2.0.html)
@@ -150,3 +166,4 @@ issues should not be filed there.
 [GitHub]: https://github.com/WP-API/WP-API/issues
 [GSOC Trac]: https://gsoc.trac.wordpress.org/query?component=JSON+REST+API
 [recent updates]: https://make.wordpress.org/core/tag/json-api/
+[hackerone]: https://hackerone.com/wp-api

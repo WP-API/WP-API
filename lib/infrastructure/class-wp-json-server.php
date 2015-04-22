@@ -582,11 +582,13 @@ class WP_JSON_Server {
 					$request->set_url_params( $args );
 					$request->set_attributes( $handler );
 
+					$request->sanitize_params();
+
 					$defaults = array();
 
 					foreach ( $handler['args'] as $arg => $options ) {
 						if ( isset( $options['default'] ) ) {
-							$defaults[$arg] = $options['default'];
+							$defaults[ $arg ] = $options['default'];
 						}
 					}
 
@@ -767,7 +769,7 @@ class WP_JSON_Server {
 
 		// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
 		// but we can do it ourself.
-		if ( !isset( $HTTP_RAW_POST_DATA ) ) {
+		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
 
@@ -800,7 +802,7 @@ class WP_JSON_Server {
 
 			case 'array':
 				// Arrays must be mapped in case they also return objects
-				return array_map( array( $this, 'prepare_response' ), $data);
+				return array_map( array( $this, 'prepare_response' ), $data );
 
 			case 'object':
 				if ( $data instanceof JsonSerializable ) {
