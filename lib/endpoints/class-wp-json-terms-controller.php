@@ -16,12 +16,29 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'                => array(
-					'search'   => array(),
-					'per_page' => array(),
-					'page'     => array(),
-					'order'    => array(),
-					'orderby'  => array(),
-					'post'     => array(),
+					'search'   => array(
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => '',
+					),
+					'per_page' => array(
+						'sanitize_callback' => 'absint',
+						'default'           => 10,
+					),
+					'page'     => array(
+						'sanitize_callback' => 'absint',
+						'default'           => 1,
+					),
+					'order'    => array(
+						'sanitize_callback' => 'sanitize_key',
+						'default'           => 'ASC',
+					),
+					'orderby'  => array(
+						'sanitize_callback' => 'sanitize_key',
+						'default'           => 'name',
+					),
+					'post'     => array(
+						'sanitize_callback' => 'absint',
+					),
 				),
 			),
 			array(
@@ -30,10 +47,15 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'        => array(
 					'name'        => array(
-						'required'    => true,
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
 					),
-					'description' => array(),
-					'slug'        => array(),
+					'description' => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
+					'slug'        => array(
+						'sanitize_callback' => 'sanitize_title',
+					),
 					'parent'      => array(),
 				),
 			),
@@ -49,9 +71,16 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 				'callback'   => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'       => array(
-					'name'           => array(),
-					'description'    => array(),
-					'slug'           => array(),
+					'name'        => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'description' => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
+					'slug'        => array(
+						'sanitize_callback' => 'sanitize_title',
+					),
 					'parent'         => array(),
 				),
 			),
@@ -75,16 +104,17 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
-		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0;
-		$prepared_args['search'] = isset( $request['search'] ) ? sanitize_text_field( $request['search'] ) : '';
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_key( $request['order'] ) : '';
-		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_key( $request['orderby'] ) : '';
+
+		$prepared_args['number']  = $request['per_page'];
+		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
+		$prepared_args['search']  = $request['search'];
+		$prepared_args['order']   = $request['order'];
+		$prepared_args['orderby'] = $request['orderby'];
 
 		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		if ( isset( $request['post'] ) ) {
-			$post_id = absint( $request['post'] );
+			$post_id = $request['post'];
 
 			$permission_check = $this->check_post_taxonomy_permission( $taxonomy, $post_id );
 			if ( is_wp_error( $permission_check ) ) {
@@ -137,14 +167,15 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 	 */
 	public function create_item( $request ) {
 		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
-		$name = sanitize_text_field( $request['name'] );
+		$name = $request['name'];
+
 		$args = array();
 
 		if ( isset( $request['description'] ) ) {
-			$args['description'] = wp_filter_post_kses( $request['description'] );
+			$args['description'] = $request['description'];
 		}
 		if ( isset( $request['slug'] ) ) {
-			$args['slug'] = sanitize_title( $request['slug'] );
+			$args['slug'] = $request['slug'];
 		}
 
 		$term = wp_insert_term( $name, $taxonomy, $args );
@@ -171,13 +202,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
-			$prepared_args['name'] = sanitize_text_field( $request['name'] );
+			$prepared_args['name'] = $request['name'];
 		}
 		if ( isset( $request['description'] ) ) {
-			$prepared_args['description'] = wp_filter_post_kses( $request['description'] );
+			$prepared_args['description'] = $request['description'];
 		}
 		if ( isset( $request['slug'] ) ) {
-			$prepared_args['slug'] = sanitize_title( $request['slug'] );
+			$prepared_args['slug'] = $request['slug'];
 		}
 
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
