@@ -144,16 +144,20 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
-		$response = $this->get_item_permissions_check( $request );
-		if ( ! $response || is_wp_error( $response ) ) {
-			return $response;
-		}
-
 		$parent = get_post( (int) $request['parent_id'] );
-		if ( ! $this->parent_controller->check_update_permission( $parent ) ) {
-			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot delete meta for this post.' ), array( 'status' => 403 ) );
+
+		if ( empty( $parent ) || empty( $parent->ID ) ) {
+			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		if ( ! $this->parent_controller->check_read_permission( $parent ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
+		}
+
+		$post_type = get_post_type_object( $parent->post_type );
+		if ( ! current_user_can( $post_type->cap->delete_post, $parent->ID ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot delete the meta for this post.' ), array( 'status' => 403 ) );
+		}
 		return true;
 	}
 
