@@ -6,52 +6,67 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	 *
 	 * @var string Type slug ("post" or "user")
 	 */
-	protected $type = 'post';
+	protected $parent_type = 'post';
 
 	/**
-	 * Post type base route.
+	 * Associated post type name.
 	 *
-	 * @var string Base route ("/posts", "/media", etc)
+	 * @var string
 	 */
-	protected $post_base;
+	protected $parent_post_type;
 
-	public function __construct( $base ) {
-		$this->post_base = $base;
-		$this->base = $base . '/(?P<id>\d+)/meta';
+	/**
+	 * Associated post type controller class object.
+	 *
+	 * @var WP_JSON_Posts_Controller
+	 */
+	protected $parent_controller;
+
+	/**
+	 * Base path for post type endpoints.
+	 *
+	 * @var string
+	 */
+	protected $parent_base;
+
+	public function __construct( $parent_post_type ) {
+		$this->parent_post_type = $parent_post_type;
+		$this->parent_controller = new WP_JSON_Posts_Controller( $this->parent_post_type );
+		$this->parent_base = $this->parent_controller->get_post_type_base( $this->parent_post_type );
 	}
 
 	/**
-	 * Check if we can edit a post.
+	 * Check if a given request has access to get meta for a post.
 	 *
-	 * @param array $post Post data
-	 * @return boolean Can we edit it?
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return WP_Error|boolean
 	 */
-	protected function check_edit_permission( $post ) {
-		$post_type = get_post_type_object( $post['post_type'] );
-		
-		return ! empty( $post_type ) && current_user_can( $post_type->cap->edit_post, $post['ID'] );
-	}
+	public function get_items_permissions_check( $request ) {
+		$parent = get_post( (int) $request['parent_id'] );
 
-	/**
-	 * Check that the object can be accessed.
-	 *
-	 * @param mixed $id Object ID
-	 * @return boolean|WP_Error
-	 */
-	protected function check_object( $id ) {
-		$id = (int) $id;
-
-		$post = get_post( $id, ARRAY_A );
-
-		if ( empty( $id ) || empty( $post['ID'] ) ) {
+		if ( empty( $parent ) || empty( $parent->ID ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( ! $this->check_edit_permission( $post ) ) {
-			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you cannot edit this post' ), array( 'status' => 403 ) );
+		if ( ! $this->parent_controller->check_read_permission( $parent ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
 		}
 
+		$post_type = get_post_type_object( $parent->post_type );
+		if ( ! current_user_can( $post_type->cap->edit_post, $parent->ID ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view the meta for this post.' ), array( 'status' => 403 ) );
+		}
 		return true;
+	}
+
+	/**
+	 * Check if a given request has access to get a specific meta entry for a post.
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_item_permissions_check( $request ) {
+		return $this->get_items_permissions_check( $request );
 	}
 
 	/**
@@ -72,9 +87,74 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 			return $response;
 		}
 
+		$response->set_status( 201 );
 		$data = $response->get_data();
-		$response->header( 'Location', json_url( $this->post_base . '/' . $request['id'] . '/meta/' . $data['id'] ) );
+		$response->header( 'Location', json_url( $this->parent_base . '/' . $request['parent_id'] . '/meta/' . $data['id'] ) );
 		return $response;
+	}
+
+	/**
+	 * Check if a given request has access to create a meta entry for a post.
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function create_item_permissions_check( $request ) {
+		return $this->get_items_permissions_check( $request );
+	}
+
+	/**
+	 * Add meta to a post.
+	 *
+	 * Ensures that the correct location header is sent with the response.
+	 *
+	 * @param int $id Post ID
+	 * @param array $data {
+	 *     @type string|null $key Meta key
+	 *     @type string|null $key Meta value
+	 * }
+	 * @return bool|WP_Error
+	 */
+	public function update_item( $request ) {
+		$response = parent::update_item( $request );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$response->set_status( 201 );
+		$data = $response->get_data();
+		$response->header( 'Location', json_url( $this->parent_base . '/' . $request['parent_id'] . '/meta/' . $data['id'] ) );
+		return $response;
+	}
+
+	/**
+	 * Check if a given request has access to update a meta entry for a post.
+	 *
+	 * @param WP_JSON_Request $request Full data about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function update_item_permissions_check( $request ) {
+		return $this->get_items_permissions_check( $request );
+	}
+
+	/**
+	 * Check if a given request has access to delete meta for a post.
+	 *
+	 * @param  WP_JSON_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function delete_item_permissions_check( $request ) {
+		$response = $this->get_item_permissions_check( $request );
+		if ( ! $response || is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$parent = get_post( (int) $request['parent_id'] );
+		if ( ! $this->parent_controller->check_update_permission( $parent ) ) {
+			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot delete meta for this post.' ), array( 'status' => 403 ) );
+		}
+
+		return true;
 	}
 
 	/**

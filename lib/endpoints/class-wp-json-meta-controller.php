@@ -4,29 +4,29 @@
  */
 abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	/**
-	 * Base route name.
-	 *
-	 * @var string Route base (e.g. /my-plugin/my-type)
-	 */
-	protected $base = null;
-
-	/**
 	 * Associated object type.
 	 *
-	 * @var string Type slug ("post" or "user")
+	 * @var string Type slug ("post", "user", or "comment")
 	 */
-	protected $type = null;
+	protected $parent_type = null;
+
+	/**
+	 * Base path for parent meta type endpoints.
+	 *
+	 * @var string
+	 */
+	protected $parent_base = null;
 
 	/**
 	 * Construct the API handler object.
 	 */
 	public function __construct() {
-		if ( empty( $this->base ) ) {
-			_doing_it_wrong( 'WP_JSON_Meta::__construct', __( 'The route base must be overridden' ), 'WPAPI-1.2' );
+		if ( empty( $this->parent_type ) ) {
+			_doing_it_wrong( 'WP_JSON_Meta_Controller::__construct', __( 'The object type must be overridden' ), 'WPAPI-2.0' );
 			return;
 		}
-		if ( empty( $this->type ) ) {
-			_doing_it_wrong( 'WP_JSON_Meta::__construct', __( 'The object type must be overridden' ), 'WPAPI-1.2' );
+		if ( empty( $this->parent_base ) ) {
+			_doing_it_wrong( 'WP_JSON_Meta_Controller::__construct', __( 'The parent base must be overridden' ), 'WPAPI-2.0' );
 			return;
 		}
 	}
@@ -35,60 +35,63 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * Register the meta-related routes.
 	 */
 	public function register_routes() {
-		$base_args = array(
-			'id' => array(
-				'required' => true,
-			),
-		);
-		$single_args = $base_args + array(
-			'mid'   => array(
-				'required' => true,
-			),
-		);
-
-		$data_args = array(
-			'key'   => array(),
-			'value' => array(),
-		);
-
-		register_json_route( 'wp', $this->base, array(
+		register_json_route( 'wp', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta', array(
 			array(
-				'callback' => array( $this, 'get_items' ),
-				'methods'  => WP_JSON_Server::READABLE,
-				'args'     => $base_args,
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => array(
+					'context'             => array(
+						'default'             => 'view',
+					),
+				),
 			),
 			array(
-				'callback' => array( $this, 'create_item' ),
-				'methods'  => WP_JSON_Server::CREATABLE,
-				'args'     => $base_args + $data_args,
+				'methods'             => WP_JSON_Server::CREATABLE,
+				'callback'            => array( $this, 'create_item' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'                => array(
+					'key'                 => array(
+						'required'            => true,
+					),
+					'value'               => array(),
+				),
 			),
 		) );
-		register_json_route( 'wp', $this->base . '/(?P<mid>\d+)', array(
+		register_json_route( 'wp', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
 			array(
-				'callback' => array( $this, 'get_item' ),
-				'methods'  => WP_JSON_Server::READABLE,
-				'args'     => $single_args,
+				'methods'             => WP_JSON_Server::READABLE,
+				'callback'            => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				'args'                => array(
+					'context'             => array(
+						'default'             => 'view',
+					),
+				),
 			),
 			array(
-				'callback' => array( $this, 'update_item' ),
 				'methods'  => WP_JSON_Server::EDITABLE,
-				'args'     => $single_args + $data_args,
+				'callback' => array( $this, 'update_item' ),
+				'permission_callback' => array( $this, 'update_item_permissions_check' ),
+				'args'                => array(
+					'key'                 => array(
+						'required'            => true,
+					),
+					'value'               => array(),
+				),
 			),
 			array(
-				'callback' => array( $this, 'delete_item' ),
-				'methods'  => WP_JSON_Server::DELETABLE,
-				'args'     => $single_args,
+				'methods'             => WP_JSON_Server::DELETABLE,
+				'callback'            => array( $this, 'delete_item' ),
+				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+				'args'                => array(),
 			),
 		) );
+		// register_json_route( 'wp', $this->parent_base . '/meta/schema', array(
+		// 	'methods'  => WP_JSON_Server::READABLE,
+		// 	'callback' => array( $this, 'get_item_schema' ),
+		// ) );
 	}
-
-	/**
-	 * Check that the object is valid and can be accessed.
-	 *
-	 * @param mixed $id Object ID (can be any data from the API, will be validated)
-	 * @return boolean|WP_Error True if valid and accessible, error otherwise.
-	 */
-	abstract protected function check_object( $id );
 
 	/**
 	 * Get the meta ID column for the relevant table.
@@ -96,7 +99,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return string
 	 */
 	protected function get_id_column() {
-		return ( 'user' === $this->type ) ? 'umeta_id' : 'meta_id';
+		return ( 'user' === $this->parent_type ) ? 'umeta_id' : 'meta_id';
 	}
 
 	/**
@@ -105,7 +108,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return string
 	 */
 	protected function get_parent_column() {
-		return ( 'user' === $this->type ) ? 'user_id' : 'post_id';
+		return ( 'user' === $this->parent_type ) ? 'user_id' : 'post_id';
 	}
 
 	/**
@@ -115,17 +118,14 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
 	 */
 	public function get_items( $request ) {
-		$check = $this->check_object( $request['id'] );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
+		$parent_id = (int) $request['parent_id'];
 
 		global $wpdb;
-		$table = _get_meta_table( $this->type );
+		$table = _get_meta_table( $this->parent_type );
 		$parent_column = $this->get_parent_column();
 		$id_column = $this->get_id_column();
 
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT $id_column, meta_key, meta_value FROM $table WHERE $parent_column = %d", $request['id'] ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT $id_column, meta_key, meta_value FROM $table WHERE $parent_column = %d", $parent_id ) );
 
 		$meta = array();
 
@@ -149,20 +149,18 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function get_item( $request ) {
-		$check = $this->check_object( $request['id'] );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
+		$parent_id = (int) $request['parent_id'];
+		$mid = (int) $request['id'];
 
 		$parent_column = $this->get_parent_column();
-		$meta = get_metadata_by_mid( $this->type, $request['mid'] );
+		$meta = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $meta ) ) {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $meta->$parent_column ) !== (int) $request['id'] ) {
-			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
+		if ( absint( $meta->$parent_column ) !== $parent_id ) {
+			return new WP_Error( 'json_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
 		return $this->prepare_item_for_response( $meta, $request );
@@ -250,23 +248,18 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function update_item( $request ) {
-		$id   = (int) $request['id'];
-		$mid  = (int) $request['mid'];
-
-		$check = $this->check_object( $id );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
+		$parent_id = (int) $request['parent_id'];
+		$mid = (int) $request['id'];
 
 		$parent_column = $this->get_parent_column();
-		$current = get_metadata_by_mid( $this->type, $mid );
+		$current = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $current ) ) {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $current->$parent_column ) !== $id ) {
-			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
+		if ( absint( $current->$parent_column ) !== $parent_id ) {
+			return new WP_Error( 'json_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
 		if ( isset( $request['key'] ) ) {
@@ -287,12 +280,12 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			$code = ( $this->parent_type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 			return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! $this->is_valid_meta_data( $value ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			$code = ( $this->parent_type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
@@ -310,9 +303,18 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return $this->get_item( $request );
 		}
 
-		if ( ! update_metadata_by_mid( $this->type, $mid, $value, $key ) ) {
+		if ( ! update_metadata_by_mid( $this->parent_type, $mid, $value, $key ) ) {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update meta.' ), array( 'status' => 500 ) );
 		}
+
+		$request = array(
+			'context'   => 'edit',
+			'parent_id' => $parent_id,
+			'id'        => $mid,
+		);
+		$response = $this->get_item( $request );
+
+		return json_ensure_response( $response );
 
 		return $this->get_item( $request );
 	}
@@ -345,17 +347,10 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function create_item( $request ) {
-		$check = $this->check_object( $request['id'] );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
-
-		if ( empty( $request['key'] ) ) {
-			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
-		}
+		$parent_id = (int) $request['parent_id'];
 
 		if ( ! $this->is_valid_meta_data( $request['value'] ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			$code = ( $this->parent_type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 
 			// for now let's not allow updating of arrays, objects or serialized values.
 			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
@@ -365,26 +360,26 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $request['key'] ), array( 'status' => 403 ) );
 		}
 
+		if ( empty( $request['key'] ) ) {
+			return new WP_Error( 'json_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
+		}
+
 		$meta_key = wp_slash( $request['key'] );
 		$value    = wp_slash( $request['value'] );
 
-		$result = add_metadata( $this->type, $request['id'], $meta_key, $value );
-
-		if ( ! $result ) {
+		$mid = add_metadata( $this->parent_type, $parent_id, $meta_key, $value );
+		if ( ! $mid ) {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add meta.' ), array( 'status' => 400 ) );
 		}
 
-		$created = new WP_JSON_Request();
-		$created['id'] = $request['id'];
-		$created['mid'] = (int) $result;
+		$request = array(
+			'context'   => 'edit',
+			'parent_id' => $parent_id,
+			'id'        => $mid,
+		);
+		$response = $this->get_item( $request );
 
-		$response = json_ensure_response( $this->get_item( $created ) );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response->set_status( 201 );
-		return $response;
+		return json_ensure_response( $response );
 	}
 
 	/**
@@ -395,25 +390,23 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * @return array|WP_Error Message on success, WP_Error otherwise
 	 */
 	public function delete_item( $request ) {
-		$check = $this->check_object( $request['id'] );
-		if ( is_wp_error( $check ) ) {
-			return $check;
-		}
+		$parent_id = (int) $request['parent_id'];
+		$mid = (int) $request['id'];
 
 		$parent_column = $this->get_parent_column();
-		$current = get_metadata_by_mid( $this->type, $request['mid'] );
+		$current = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $current ) ) {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $current->$parent_column ) !== (int) $request['id'] ) {
-			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
+		if ( absint( $current->$parent_column ) !== (int) $parent_id ) {
+			return new WP_Error( 'json_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
 		// for now let's not allow updating of arrays, objects or serialized values.
 		if ( ! $this->is_valid_meta_data( $current->meta_value ) ) {
-			$code = ( $this->type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
+			$code = ( $this->parent_type === 'post' ) ? 'json_post_invalid_action' : 'json_meta_invalid_action';
 			return new WP_Error( $code, __( 'Invalid existing meta data for action.' ), array( 'status' => 400 ) );
 		}
 
@@ -421,7 +414,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $current->meta_key ), array( 'status' => 403 ) );
 		}
 
-		if ( ! delete_metadata_by_mid( $this->type, $request['mid'] ) ) {
+		if ( ! delete_metadata_by_mid( $this->parent_type, $mid ) ) {
 			return new WP_Error( 'json_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
 		}
 

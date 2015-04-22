@@ -117,7 +117,7 @@ function create_initial_json_routes() {
 		$controller->register_routes();
 
 		if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
-			$meta_controller = new WP_JSON_Meta_Posts_Controller( $post_type->json_base );
+			$meta_controller = new WP_JSON_Meta_Posts_Controller( $post_type->name );
 			$meta_controller->register_routes();
 		}
 		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
