@@ -1,0 +1,16 @@
+{
+  "name": "WP-API/WP-API",
+  "authors": [
+    {
+      "name": "WP-API Team",
+      "email": "info@wp-api.org"
+    }
+  ],
+  "require-dev": {
+    "wp-coding-standards/wpcs": "dev-master"
+  },
+  "scripts": {
+    "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs",
+    "post-update-cmd" : "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs"
+  }
+}
