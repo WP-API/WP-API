@@ -674,6 +674,8 @@ class WP_JSON_Request implements ArrayAccess {
 
 		// check the validation callbacks for each registered arg.
 		// This is done after required checking as required checking is cheaper.
+		$invalid_params = array();
+
 		foreach ( $attributes['args'] as $key => $arg ) {
 
 			$param = $this->get_param( $key );
@@ -681,13 +683,17 @@ class WP_JSON_Request implements ArrayAccess {
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this );
 
 				if ( $valid_check === false ) {
-					return new WP_Error( 'json_invalid_param', sprintf( __( 'Invalid parameter: %s' ), $key ), array( 'status' => 400 ) );
+					$invalid_params[] = $key;
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
-					return $valid_check;
+					$invalid_params[] = sprintf( '%s (%s)', $key, $valid_check->get_error_message() );
 				}
 			}
+		}
+
+		if ( $invalid_params ) {
+			return new WP_Error( 'json_invalid_param', sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $invalid_params ) ), array( 'status' => 400 ) );
 		}
 
 		return true;
