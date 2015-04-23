@@ -28,11 +28,11 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 						'sanitize_callback' => 'sanitize_key'
 					),
 					'per_page'         => array(
-						'default'            => 10
+						'default'           => 10,
 						'sanitize_callback' => 'absint'
 					),
 					'page'             => array(
-						'default'            => 1
+						'default'           => 1,
 						'sanitize_callback' => 'absint'
 					),
 				),
@@ -127,7 +127,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$prepared_args['order'] = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 		$prepared_args['number'] = $request['per_page'];
-		$prepared_args['offset'] = $request['page'] - 1 ) * $prepared_args['number'] : 0;
+		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
 
 		$prepared_args = apply_filters( 'json_user_query', $prepared_args, $request );
 
