@@ -139,7 +139,8 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$comments[] = $this->prepare_item_for_response( $comment, $request );
+			$data = $this->prepare_item_for_response( $comment, $request );
+			$comments[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $comments );
@@ -412,7 +413,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 	 * @return array $fields
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
-		$fields = array(
+		$data = array(
 			'id'           => (int) $comment->comment_ID,
 			'post'         => (int) $comment->comment_post_ID,
 			'parent'       => (int) $comment->comment_parent,
@@ -435,31 +436,63 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$fields = $this->filter_response_by_context( $fields, $context );
+		$data = $this->filter_response_by_context( $data, $context );
 
-		$links = array();
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $comment );
+		foreach ( $links as $rel => $attributes ) {
+			$data->add_link( $rel, $attributes['href'], $attributes );
+		}
+
+		return apply_filters( 'json_prepare_comment', $data, $comment, $request );
+	}
+
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @param object $comment Comment object.
+	 * @return array Links for the given comment.
+	 */
+	protected function prepare_links( $comment ) {
+		$links = array(
+			'self' => array(
+				'href' => json_url( '/wp/comments/' . $comment->comment_ID ),
+			),
+			'collection' => array(
+				'href' => json_url( '/wp/comments' ),
+			),
+		);
 
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href' => json_url( '/wp/users/' . $comment->user_id ),
+				'href'       => json_url( '/wp/users/' . $comment->user_id ),
+				'embeddable' => true,
 			);
 		}
 
 		if ( 0 !== (int) $comment->comment_post_ID ) {
-			$links['post'] = array(
-				'href' => json_url( '/wp/posts/' . $comment->comment_post_ID ),
-			);
+			$post = get_post( $comment->comment_post_ID );
+			if ( ! empty( $post->ID ) ) {
+				$posts_controller = new WP_JSON_Posts_Controller( $post->post_type );
+				$base = $posts_controller->get_post_type_base( $post->post_type );
+
+				$links[ $post->post_type ] = array(
+					'href'       => json_url( '/wp/' . $base . '/' . $comment->comment_post_ID ),
+					'embeddable' => true,
+				);
+			}
 		}
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href' => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
+				'href'       => json_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
+				'embeddable' => true,
 			);
 		}
 
-		$fields['_links'] = $links;
-
-		return apply_filters( 'json_prepare_comment', $fields, $comment, $request );
+		return $links;
 	}
 
 	/**
