@@ -588,7 +588,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_invalid_date', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_param', $response, 400 );
 	}
 
 	public function test_create_post_with_invalid_date_gmt() {
@@ -601,7 +601,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_invalid_date', $response, 400 );
+		$this->assertErrorResponse( 'json_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {
