@@ -685,6 +685,13 @@ class WP_JSON_Request implements ArrayAccess {
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
+
+					$error_data = $valid_check->get_error_data();
+
+					// add a status code of 400 if one wasn't set
+					if ( ! $error_data || ! isset( $error_data['status'] ) ) {
+						$valid_check->add_data( array( 'status' => 400 ) );
+					}
 					return $valid_check;
 				}
 			}
