@@ -39,6 +39,11 @@ class WP_JSON_Response extends WP_HTTP_Response {
 			$this->links[ $rel ] = array();
 		}
 
+		if ( isset( $attributes['href'] ) ) {
+			// Remove the href attribute, as it's used for the main URL
+			unset( $attributes['href'] );
+		}
+
 		$this->links[ $rel ][] = array(
 			'href'       => $href,
 			'attributes' => $attributes,
