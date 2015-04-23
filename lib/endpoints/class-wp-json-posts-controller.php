@@ -17,17 +17,27 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$post_type_fields = $this->get_endpoint_args_for_item_schema();
 
+		$posts_args = array(
+			'context'          => array(
+				'default'      => 'view',
+			),
+			'page'            => array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint'
+			),
+		);
+
+		foreach ( $this->get_allowed_query_vars() as $var ) {
+			if ( ! isset( $posts_args[$var] ) ) {
+				$posts_args[$var] = array();	
+			}
+		}
+
 		register_json_route( 'wp', '/' . $base, array(
 			array(
 				'methods'         => WP_JSON_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
-					'type'            => array(),
-					'page'            => array(),
-				),
+				'args'            => $posts_args,
 			),
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
@@ -80,7 +90,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 		$args = (array) $request->get_params();
 		$args['post_type'] = $this->post_type;
-		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
+		$args['paged'] = $args['page'];
 		unset( $args['page'] );
 
 		/**
@@ -107,7 +117,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$posts[] = $this->prepare_item_for_response( $post, $request );
+			$data = $this->prepare_item_for_response( $post, $request );
+			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $posts );
@@ -132,13 +143,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
-
-		$links = $this->prepare_links( $post );
-		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$response->add_link( $rel, $attributes['href'], $other );
-		}
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
@@ -430,6 +434,28 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 * @return array $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array() ) {
+		
+		$valid_vars = array_flip( $this->get_allowed_query_vars() );
+		$query_args = array();
+		foreach ( $valid_vars as $var => $index ) {
+			if ( isset( $prepared_args[ $var ] ) ) {
+				$query_args[ $var ] = apply_filters( 'json_query_var-' . $var, $prepared_args[ $var ] );
+			}
+		}
+
+		if ( empty( $query_args['post_status'] ) && 'attachment' === $this->post_type ) {
+			$query_args['post_status'] = 'inherit';
+		}
+
+		return $query_args;
+	}
+
+	/**
+	 * Get all the WP Query vars that are allowed for the API request.
+	 * 
+	 * @return array
+	 */
+	protected function get_allowed_query_vars() {
 		global $wp;
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
@@ -463,20 +489,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		 * @param array $valid_vars List of allowed query vars.
 		 */
 		$valid_vars = apply_filters( 'json_query_vars', $valid_vars );
-		$valid_vars = array_flip( $valid_vars );
-
-		$query_args = array();
-		foreach ( $valid_vars as $var => $index ) {
-			if ( isset( $prepared_args[ $var ] ) ) {
-				$query_args[ $var ] = apply_filters( 'json_query_var-' . $var, $prepared_args[ $var ] );
-			}
-		}
-
-		if ( empty( $query_args['post_status'] ) && 'attachment' === $this->post_type ) {
-			$query_args['post_status'] = 'inherit';
-		}
-
-		return $query_args;
+		
+		return $valid_vars;
 	}
 
 	/**
@@ -927,7 +941,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 *
 	 * @param WP_Post $post Post object
 	 * @param WP_JSON_Request $request Request object
-	 * @return array $data
+	 * @return WP_JSON_Response $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$GLOBALS['post'] = $post;
@@ -1033,6 +1047,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$data->add_link( $rel, $attributes['href'], $attributes );
+		}
+
 		return apply_filters( 'json_prepare_' . $this->post_type, $data, $post, $request );
 	}
 

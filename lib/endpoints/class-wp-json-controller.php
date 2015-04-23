@@ -110,6 +110,26 @@ abstract class WP_JSON_Controller {
 	}
 
 	/**
+	 * Prepare a response for inserting into a collection.
+	 *
+	 * @param WP_JSON_Response $response Response object.
+	 * @return array Response data, ready for insertion into collection data.
+	 */
+	public function prepare_response_for_collection( $response ) {
+		if ( ! ( $response instanceof WP_JSON_Response ) ) {
+			return $response;
+		}
+
+		$data = (array) $response->get_data();
+		$links = WP_JSON_Server::get_response_links( $response );
+		if ( ! empty( $links ) ) {
+			$data['_links'] = $links;
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Filter a response based on the context defined in the schema
 	 *
 	 * @param array $data
@@ -155,18 +175,26 @@ abstract class WP_JSON_Controller {
 	/**
 	 * Get an array of endpoint arguments from the item schema for the controller.
 	 *
+	 * @param $add_required_flag Whether to use the 'required' flag from the schema proprties.
+	 *                           This is because update requests will not have any required params
+	 *                           Where as create requests will.
 	 * @return array
 	 */
-	public function get_endpoint_args_for_item_schema() {
+	public function get_endpoint_args_for_item_schema( $add_required_flag = true ) {
 
 		$schema                = $this->get_item_schema();
 		$post_type_fields      = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 		$post_type_fields_args = array();
 
 		foreach ( $post_type_fields as $field_id => $params ) {
+
 			$post_type_fields_args[ $field_id ] = array(
 				'validate_callback' => array( $this, 'validate_schema_property' )
 			);
+
+			if ( $add_required_flag && ! empty( $params['required'] ) ) {
+				$post_type_fields_args[$field_id]['required'] = true;			
+			}
 		}
 
 		return $post_type_fields_args;
