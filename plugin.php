@@ -51,8 +51,8 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
 /**
  * Register a JSON API route
  *
- * @param string $namespace
- * @param string $route
+ * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
+ * @param string $route The base URL for route you are adding.
  * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
  * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
@@ -175,7 +175,7 @@ function create_initial_json_routes() {
 	$controller->register_routes();
 
 }
-add_action( 'wp_json_server_before_serve', 'create_initial_json_routes', 0 );
+add_action( 'wp_json_init', 'create_initial_json_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
@@ -245,7 +245,7 @@ function json_api_default_filters( $server ) {
 	add_filter( 'json_pre_dispatch',  'json_handle_options_request', 10, 3 );
 
 }
-add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
+add_action( 'wp_json_init', 'json_api_default_filters', 10, 1 );
 
 /**
  * Load the JSON API.
@@ -289,7 +289,7 @@ function json_api_loaded() {
 	 *
 	 * @param WP_JSON_Server $wp_json_server Server object.
 	 */
-	do_action( 'wp_json_server_before_serve', $wp_json_server );
+	do_action( 'wp_json_init', $wp_json_server );
 
 	// Fire off the request.
 	$wp_json_server->serve_request( $GLOBALS['wp']->query_vars['json_route'] );
@@ -366,7 +366,7 @@ function json_get_url_prefix() {
  *
  * @todo Check if this is even necessary
  *
- * @param int    $blog_id Blog ID.
+ * @param int    $blog_id Blog ID. Optional. The ID of the multisite blog to get URL for. Default null of null returns URL for current blog.
  * @param string $path    Optional. JSON route. Default empty.
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
@@ -550,9 +550,9 @@ function json_handle_options_request( $response, $handler, $request ) {
  * Send the "Allow" header to state all methods that can be sen
  * to the current route
  *
- * @param  WP_JSON_Response  $response
+ * @param  WP_JSON_Response  $response Current response being served.
  * @param  WP_JSON_Server    $server ResponseHandler instance (usually WP_JSON_Server)
- * @param  WP_JSON_Request   $request
+ * @param  WP_JSON_Request   $request The request that was used to make current response.
  */
 function json_send_allow_header( $response, $server, $request ) {
 

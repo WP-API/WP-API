@@ -175,6 +175,7 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 			'id'           => $post->ID,
 			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+			'parent'       => (int) $post->post_parent,
 			'slug'         => $post->post_name,
 		);
 
@@ -194,6 +195,13 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+
+		if ( ! empty( $data['parent'] ) ) {
+			$data['_links'] = array(
+				'parent'    => json_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) )
+				);
+		}
+
 		return $data;
 	}
 
@@ -228,7 +236,7 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 			'title'      => "{$this->parent_base}-revision",
 			'type'       => 'object',
 			/*
-			 * Base properties for every Post
+			 * Base properties for every Revision
 			 */
 			'properties' => array(
 				'author'          => array(
@@ -270,6 +278,11 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
+				'parent'          => array(
+					'description' => 'The ID for the parent of the object.',
+					'type'        => 'integer',
+					'context'     => array( 'view' ),
+					),
 				'slug'            => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
