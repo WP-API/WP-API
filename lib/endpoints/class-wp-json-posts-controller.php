@@ -21,12 +21,16 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			'context'          => array(
 				'default'      => 'view',
 			),
-			'type'            => array(),
-			'page'            => array(),
+			'page'            => array(
+				'default'           => 0,
+				'sanitize_callback' => 'absint'
+			),
 		);
 
 		foreach ( $this->get_allowed_query_vars() as $var ) {
-			$posts_args[$var] = array();
+			if ( ! isset( $posts_args[$var] ) ) {
+				$posts_args[$var] = array();	
+			}
 		}
 
 		register_json_route( 'wp', '/' . $base, array(
@@ -65,17 +69,9 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'     => array(
-					'force'    => array(),
-				),
-			),
-		) );
-		register_json_route( 'wp', '/' . $base . '/(?P<id>\d+)/revisions', array(
-			'methods'         => WP_JSON_Server::READABLE,
-			'callback'        => array( $this, 'get_item_revisions' ),
-			'permission_callback' => array( $this, 'get_item_revisions_permissions_check' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view-revision',
+					'force'    => array(
+						'default'      => false,
+					),
 				),
 			),
 		) );
@@ -94,7 +90,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 		$args = (array) $request->get_params();
 		$args['post_type'] = $this->post_type;
-		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
+		$args['paged'] = $args['page'];
 		unset( $args['page'] );
 
 		/**
@@ -121,7 +117,8 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$posts[] = $this->prepare_item_for_response( $post, $request );
+			$data = $this->prepare_item_for_response( $post, $request );
+			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $posts );
@@ -147,45 +144,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = json_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
-		foreach ( $links as $rel => $attributes ) {
-			$other = $attributes;
-			unset( $other['href'] );
-			$response->add_link( $rel, $attributes['href'], $other );
-		}
-
-		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
-
-		return $response;
-	}
-
-	/**
-	 * Get revisions for a specific post.
-	 *
-	 * @param WP_JSON_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
-	 */
-	public function get_item_revisions( $request ) {
-		$id = (int) $request['id'];
-		$parent = get_post( $id );
-
-		if ( empty( $id ) || empty( $parent->ID ) ) {
-			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		if ( ! post_type_supports( $parent->post_type, 'revisions' ) ) {
-			return new WP_Error( 'json_no_support', __( 'Revisions are not supported for this post.' ), array( 'status' => 404 ) );
-		}
-
-		// Todo: Query args filter for wp_get_post_revisions
-		$revisions = wp_get_post_revisions( $parent->ID );
-
-		$struct = array();
-		foreach ( $revisions as $revision ) {
-			$struct[] = $this->prepare_item_for_response( $revision, $request );
-		}
-
-		$response = json_ensure_response( $struct );
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 
 		return $response;
@@ -231,7 +189,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post->ID );
 		}
 
@@ -296,7 +254,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			$this->handle_format_param( $request['format'], $post );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image' ] ) ) {
+		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
 			$this->handle_featured_image( $request['featured_image'], $post_id );
 		}
 
@@ -337,7 +295,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
-		$force = isset( $request['force'] ) ? (bool) $request['force']: false;
+		$force = (bool) $request['force'];
 
 		$post = get_post( $id );
 
@@ -345,7 +303,23 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$result = wp_delete_post( $id, $force );
+		if ( ! $this->check_delete_permission( $post ) ) {
+			return new WP_Error( 'json_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
+		}
+
+		// If we're forcing, then delete permanently
+		if ( $force ) {
+			$result = wp_delete_post( $id, true );
+		} else {
+			// Otherwise, only trash if we haven't already
+			if ( EMPTY_TRASH_DAYS && $post->post_status == 'trash' ) {
+				return new WP_Error( 'json_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
+			}
+
+			// (Note that internally this falls through to `wp_delete_post` if
+			// the trash is disabled.)
+			$result = wp_trash_post( $id );
+		}
 
 		if ( ! $result ) {
 			return new WP_Error( 'json_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
@@ -361,7 +335,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to read a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -374,24 +348,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( $post ) {
-			return $this->check_read_permission( $post );	
-		}
-		
-		return true;
-	}
-
-	/**
-	 * Check if a given request has access to read a post's revisions
-	 * 
-	 * @param  WP_JSON_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function get_item_revisions_permissions_check( $request ) {
-
-		$post = get_post( $request['id'] );
-
-		if ( $post && ! $this->check_update_permission( $post ) ) {
-			return false;
+			return $this->check_read_permission( $post );
 		}
 
 		return true;
@@ -399,7 +356,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to create a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -424,7 +381,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to update a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -444,7 +401,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
 		}
-		
+
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
@@ -454,7 +411,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 	/**
 	 * Check if a given request has access to delete a post
-	 * 
+	 *
 	 * @param  WP_JSON_Request $request Full details about the request.
 	 * @return bool
 	 */
@@ -681,7 +638,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		// Author
-		if ( ! empty( $schema['properties']['title'] ) && ! empty( $request['author'] ) ) {
+		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
 			$author = $this->handle_author_param( $request['author'], $post_type );
 			if ( is_wp_error( $author ) ) {
 				return $author;
@@ -984,7 +941,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	 *
 	 * @param WP_Post $post Post object
 	 * @param WP_JSON_Request $request Request object
-	 * @return array $data
+	 * @return WP_JSON_Response $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$GLOBALS['post'] = $post;
@@ -1032,7 +989,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			if ( ! empty( $post->post_password ) ) {
 				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
 			}
-
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
@@ -1089,21 +1045,17 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 			}
 		}
 
-		if ( ( 'view' === $request['context'] || 'view-revision' === $request['context'] ) && 0 !== $post->post_parent ) {
-			/**
-			 * Avoid nesting too deeply.
-			 *
-			 * This gives post + post-extended + meta for the main post,
-			 * post + meta for the parent and just meta for the grandparent
-			 */
-			$parent = get_post( $post->post_parent );
-			$data['parent'] = $this->prepare_item_for_response( $parent, array(
-				'context' => 'embed',
-			) );
-		}
-
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$data->add_link( $rel, $attributes['href'], $attributes );
+		}
+
 		return apply_filters( 'json_prepare_' . $this->post_type, $data, $post, $request );
 	}
 
@@ -1162,6 +1114,30 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
+		}
+
+		$taxonomies = get_object_taxonomies( $post->post_type );
+		if ( ! empty( $taxonomies ) ) {
+			foreach ( $taxonomies as $tax ) {
+				$taxonomy_obj = get_taxonomy( $tax );
+				// Skip taxonomies that are not public.
+				if ( false === $taxonomy_obj->public ) {
+					continue;
+				}
+
+				if ( 'post_tag' === $tax ) {
+					$terms_url = json_url( 'wp/terms/tag' );
+				} else {
+					$terms_url = json_url( 'wp/terms/' . $tax );
+				}
+
+				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+
+				$links[ $tax ] = array(
+					'href' => $terms_url,
+					'embeddable' => true,
+				);
+			}
 		}
 
 		return $links;
@@ -1314,7 +1290,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			switch( $attribute ) {
+			switch ( $attribute ) {
 
 				case 'title':
 					$schema['properties']['title'] = array(

@@ -13,7 +13,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		global $wp_json_server;
 		$this->server = $wp_json_server = new WP_Test_Spy_JSON_Server();
 
-		do_action( 'wp_json_server_before_serve', $this->server );
+		do_action( 'wp_json_init', $this->server );
 	}
 
 	public function test_envelope() {
@@ -27,11 +27,11 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 		);
 
 		$response = new WP_JSON_Response( $data, $status );
-		$response->header('Arbitrary-Header', 'value');
+		$response->header( 'Arbitrary-Header', 'value' );
 
 		// Check header concatenation as well
-		$response->header('Multiple', 'maybe');
-		$response->header('Multiple', 'yes', false);
+		$response->header( 'Multiple', 'maybe' );
+		$response->header( 'Multiple', 'yes', false );
 
 		$envelope_response = $this->server->envelope_response( $response, false );
 
@@ -103,7 +103,7 @@ class WP_Test_JSON_Server extends WP_Test_JSON_TestCase {
 	}
 
 	/**
-	 * Pass a capability which the user does not have, this should 
+	 * Pass a capability which the user does not have, this should
 	 * result in a 403 error
 	 */
 	function test_json_route_capability_authorization_fails() {

@@ -280,4 +280,64 @@ class WP_Test_JSON_Request extends WP_UnitTestCase {
 		);
 		$this->assertEquals( $expected, $this->request->get_params() );
 	}
+
+	public function test_sanitize_params() {
+
+		$this->request->set_url_params(array(
+			'someinteger' => '123',
+			'somestring'  => 'hello'
+		));
+
+		$this->request->set_attributes(array(
+			'args' => array(
+				'someinteger' => array(
+					'sanitize_callback' => 'absint'
+				),
+				'somestring'  => array(
+					'sanitize_callback' => 'absint'
+				)
+			)
+		));
+
+		$this->request->sanitize_params();
+
+		$this->assertEquals( 123, $this->request->get_param( 'someinteger' ) );
+		$this->assertEquals( 0, $this->request->get_param( 'somestring' ) );
+	}
+
+	public function test_has_valid_params_required_flag() {
+
+		$this->request->set_attributes(array(
+			'args' => array(
+				'someinteger' => array(
+					'required' => true
+				)
+			)
+		));
+
+		$valid = $this->request->has_valid_params();
+
+		$this->assertWPError( $valid );
+		$this->assertEquals( 'json_missing_callback_param', $valid->get_error_code() );
+	}
+
+	public function test_has_valid_params_validate_callback() {
+
+		$this->request->set_url_params(array(
+			'someinteger' => '123'
+		));
+
+		$this->request->set_attributes(array(
+			'args' => array(
+				'someinteger' => array(
+					'validate_callback' => '__return_false'
+				)
+			)
+		));
+
+		$valid = $this->request->has_valid_params();
+
+		$this->assertWPError( $valid );
+		$this->assertEquals( 'json_invalid_param', $valid->get_error_code() );
+	}
 }
