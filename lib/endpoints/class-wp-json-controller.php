@@ -241,6 +241,22 @@ abstract class WP_JSON_Controller {
 			return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
 		}
 
+		if ( isset( $property['format'] ) ) {
+			switch ( $property['format'] ) {
+				case 'date-time' :
+					if ( ! json_parse_date( $value ) ) {
+						return new WP_Error( 'json_invalid_param', __( 'The date you provided is invalid.' ) );
+					}
+					break;
+
+				case 'email' :
+					if ( ! is_email( $value ) ) {
+						return new WP_Error( 'json_invalid_param', __( 'The email address you provided is invalid.' ) );
+					}
+					break;
+			}
+		}
+
 		return true;
 	}
 }
