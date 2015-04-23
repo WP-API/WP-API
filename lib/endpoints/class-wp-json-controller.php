@@ -164,9 +164,55 @@ abstract class WP_JSON_Controller {
 		$post_type_fields_args = array();
 
 		foreach ( $post_type_fields as $field_id => $params ) {
-			$post_type_fields_args[ $field_id ] = array();
+			$post_type_fields_args[ $field_id ] = array(
+				'validate_callback' => array( $this, 'validate_schema_property' )
+			);
 		}
 
 		return $post_type_fields_args;
+	}
+
+	/**
+	 * Validate an parameter value that's based on a property from the item schema.
+	 * 
+	 * @param  mixed $value
+	 * @param  WP_JSON_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_schema_property( $value, $request, $parameter ) {
+
+		/**
+		 * We don't currently validate against empty values, as lots of checks 
+		 * can unintentially fail, as the callback will often handle an empty
+		 * value it's self.
+		 */
+		if ( ! $value ) {
+			return true;
+		}
+
+		$schema = $this->get_item_schema();
+
+		if ( ! isset( $schema['properties'][$parameter] ) ) {
+			return true;
+		}
+		
+		$property = $schema['properties'][$parameter];
+
+		if ( ! empty( $property['enum'] ) ) {
+			if ( ! in_array( $value, $property['enum'] ) ) {
+				return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not one of %s' ), $parameter, implode( ', ', $property['enum'] ) ) );
+			}
+		}
+
+		if ( $property['type'] === 'integer' && ! is_numeric( $value ) ) {
+			return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
+		}
+
+		if ( $property['type'] === 'string' && ! is_string( $value ) ) {
+			return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
+		}
+
+		return true;
 	}
 }
