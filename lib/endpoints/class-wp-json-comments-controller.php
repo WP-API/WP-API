@@ -17,38 +17,64 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'      => array(
 					'post'         => array(
-						'default'      => null,
+						'default'           => null,
+						'sanitize_callback' => 'absint'
 					),
 					'user'         => array(
-						'default'      => 0,
+						'default'           => 0,
+						'sanitize_callback' => 'absint'
 					),
 					'per_page'     => array(
-						'default'      => 10,
+						'default'           => 10,
+						'sanitize_callback' => 'absint'
 					),
 					'page'         => array(
-						'default'      => 1,
+						'default'           => 1,
+						'sanitize_callback' => 'absint'
 					),
 					'status'       => array(
-						'default'      => 'approve',
+						'default'           => 'approve',
+						'sanitize_callback' => 'sanitize_key'
 					),
 					'type'         => array(
-						'default'      => 'comment',
+						'default'           => 'comment',
+						'sanitize_callback' => 'sanitize_key'
 					),
-					'parent'       => array(),
-					'search'       => array(),
+					'parent'       => array(
+						'sanitize_callback' => 'absint'
+					),
+					'search'       => array(
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => ''
+					),
 					'order'        => array(
-						'default'      => 'DESC',
+						'default'           => 'DESC',
+						'sanitize_callback' => 'sanitize_key'
 					),
 					'orderby'      => array(
 						'default'      => 'date_gmt',
 					),
-					'author_email' => array(),
-					'karma'        => array(),
-					'post_author'  => array(),
-					'post_name'    => array(),
-					'post_parent'  => array(),
-					'post_status'  => array(),
-					'post_type'    => array(),
+					'author_email' => array(
+						'sanitize_callback' => 'sanitize_email'
+					),
+					'karma'        => array(
+						'sanitize_callback' => 'absint'
+					),
+					'post_author'  => array(
+						'sanitize_callback' => 'absint'
+					),
+					'post_name'    => array(
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'post_parent'  => array(
+						'sanitize_callback' => 'absint'
+					),
+					'post_status'  => array(
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'post_type'    => array(
+						'sanitize_callback' => 'sanitize_key'
+					),
 				),
 			),
 			array(
@@ -58,20 +84,32 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 				'args'     => array(
 					'post'         => array(
 						'required'     => true,
+						'sanitize_callback' => 'absint'
 					),
 					'type'         => array(
-						'default'      => 'comment',
+						'default'           => 'comment',
+						'sanitize_callback' => 'sanitize_key'
 					),
 					'author'         => array(
-						'default'      => 0,
+						'default'           => 0,
+						'sanitize_callback' => 'absint'
 					),
 					'parent'       => array(
-						'default'      => 0,
+						'default'           => 0,
+						'sanitize_callback' => 'absint'
 					),
-					'content'      => array(),
-					'author'       => array(),
-					'author_email' => array(),
-					'author_url'   => array(),
+					'content'      => array(
+						'sanitize_callback' => 'wp_filter_post_kses'
+					),
+					'author'       => array(
+						'sanitize_callback' => 'absint'
+					),
+					'author_email' => array(
+						'sanitize_callback' => 'sanitize_email'
+					),
+					'author_url'   => array(
+						'sanitize_callback' => 'esc_url_raw'
+					),
 					'date'         => array(),
 					'date_gmt'     => array(),
 				),
@@ -184,7 +222,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
 		}
 
-		$post = get_post( (int) $request['post'] );
+		$post = get_post( $request['post'] );
 		if ( empty( $post ) ) {
 			return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
@@ -507,12 +545,12 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 		$order_by = sanitize_key( $request['orderby'] );
 
 		$prepared_args = array(
-			'number'  => absint( $request['per_page'] ),
-			'post_id' => isset( $request['post'] ) ? absint( $request['post'] ) : '',
-			'parent'  => isset( $request['parent'] ) ? intval( $request['parent'] ) : '',
-			'search'  => $request['search'] ? sanitize_text_field( $request['search'] ) : '',
+			'number'  => $request['per_page'],
+			'post_id' => $request['post'] ? $request['post'] : '',
+			'parent'  => isset( $request['parent'] ) ? $request['parent'] : '',
+			'search'  => $request['search'],
 			'orderby' => $this->normalize_query_param( $order_by ),
-			'order'   => sanitize_key( $request['order'] ),
+			'order'   => $request['order'],
 			'status'  => 'approve',
 			'type'    => 'comment',
 		);
@@ -521,16 +559,16 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			$protected_args = array(
-				'user'         => $request['user'] ? absint( $request['user'] ) : '',
-				'status'       => sanitize_key( $request['status'] ),
-				'type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
-				'author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-				'karma'        => isset( $request['karma'] ) ? intval( $request['karma'] ) : '',
-				'post_author'  => isset( $request['post_author'] ) ? sanitize_key( $request['post_author'] ) : '',
-				'post_name'    => isset( $request['post_name'] ) ? sanitize_key( $request['post_name'] ) : '',
-				'post_parent'  => isset( $request['author_email'] ) ? intval( $request['post_parent'] ) : '',
-				'post_status'  => isset( $request['post_status'] ) ? sanitize_key( $request['post_status'] ) : '',
-				'post_type'    => isset( $request['post_type'] ) ? sanitize_key( $request['post_type'] ) : '',
+				'user'         => $request['user'] ? $request['user'] : '',
+				'status'       => $request['status'],
+				'type'         => isset( $request['type'] ) ? $request['type'] : '',
+				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
+				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
+				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
+				'post_name'    => isset( $request['post_name'] ) ? $request['post_name'] : '',
+				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
+				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
+				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
 			);
 
 			$prepared_args = array_merge( $prepared_args, $protected_args );

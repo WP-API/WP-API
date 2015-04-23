@@ -25,8 +25,10 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'context'          => array(
 						'default'      => 'view',
 					),
-					'type'            => array(),
-					'page'            => array(),
+					'page'            => array(
+						'sanitize_callback' => 'absint',
+						'default'           => 1
+					),
 				),
 			),
 			array(
@@ -80,7 +82,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 		$args = (array) $request->get_params();
 		$args['post_type'] = $this->post_type;
-		$args['paged'] = isset( $args['page'] ) ? absint( $args['page'] ) : 1;
+		$args['paged'] = $args['page'];
 		unset( $args['page'] );
 
 		/**

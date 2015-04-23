@@ -16,11 +16,25 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => array(
-					'context'          => array(),
-					'order'            => array(),
-					'orderby'          => array(),
-					'per_page'         => array(),
-					'page'             => array(),
+					'context'          => array(
+						'default' => 'view'
+					),
+					'order'            => array(
+						'default'           => 'asc',
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'orderby'          => array(
+						'default'           => 'user_login',
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'per_page'         => array(
+						'default'           => 10,
+						'sanitize_callback' => 'absint'
+					),
+					'page'             => array(
+						'default'           => 1,
+						'sanitize_callback' => 'absint'
+					),
 				),
 			),
 			array(
@@ -110,10 +124,10 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 
 		$prepared_args = array();
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'asc';
-		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_text_field( $request['orderby'] ) : 'user_login';
-		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0;
+		$prepared_args['order'] = $request['order'];
+		$prepared_args['orderby'] = $request['orderby'];
+		$prepared_args['number'] = $request['per_page'];
+		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
 
 		$prepared_args = apply_filters( 'json_user_query', $prepared_args, $request );
 

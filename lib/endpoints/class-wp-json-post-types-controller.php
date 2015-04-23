@@ -11,7 +11,9 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_items' ),
 			'args'            => array(
-				'post_type'          => array(),
+				'post_type'          => array(
+					'sanitize_callback' => 'sanitize_key'
+				),
 			),
 		) );
 
