@@ -214,7 +214,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			'id'       => '156',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
-			'email'    => 'smartgirl63_\@yahoo.com',
+			'email'    => 'smartgirl63_@yahoo.com',
 		);
 
 		$request = new WP_JSON_Request( 'POST', '/wp/users' );
@@ -223,6 +223,24 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'json_user_exists', $response, 400 );
+	}
+
+	public function test_create_user_invalid_email() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'username' => 'lisasimpson',
+			'password' => 'DavidHasselhoff',
+			'email'    => 'something',
+		);
+
+		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'json_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -365,7 +383,7 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 			'id'       => '156',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
-			'email'    => 'smartgirl63_\@yahoo.com',
+			'email'    => 'smartgirl63_@yahoo.com',
 		);
 
 		$request = new WP_JSON_Request( 'PUT', sprintf( '/wp/users/%d', $this->editor ) );
