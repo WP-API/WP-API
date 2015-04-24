@@ -1175,6 +1175,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'description' => 'The globally unique identifier for the object.',
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 					'properties'  => array(
 						'raw'      => array(
 							'description' => 'GUID for the object, as it exists in the database.',
@@ -1192,12 +1193,14 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'modified'        => array(
 					'description' => 'The date the object was last modified.',
@@ -1231,6 +1234,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 					'description' => 'Type of Post for the object.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 			)
 		);
