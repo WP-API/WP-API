@@ -269,7 +269,7 @@ abstract class WP_JSON_Controller {
 	 * @param  string $parameter
 	 * @return WP_Error|bool
 	 */
-	public function sanitize_schema_property( $value, $request, $property ) {
+	public function sanitize_schema_property( $value, $request, $parameter ) {
 
 		$schema = $this->get_item_schema();
 
