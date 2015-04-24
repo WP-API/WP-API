@@ -280,7 +280,7 @@ abstract class WP_JSON_Controller {
 		$property = $schema['properties'][$parameter];
 
 		if ( $property['type'] === 'integer' ) {
-			return absint( $value );
+			return intval( $value );
 		}
 		
 		if ( isset( $property['format'] ) ) {
