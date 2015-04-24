@@ -189,7 +189,8 @@ abstract class WP_JSON_Controller {
 		foreach ( $post_type_fields as $field_id => $params ) {
 
 			$post_type_fields_args[ $field_id ] = array(
-				'validate_callback' => array( $this, 'validate_schema_property' )
+				'validate_callback' => array( $this, 'validate_schema_property' ),
+				'sanitize_callback' => array( $this, 'sanitize_schema_property' )
 			);
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
@@ -258,5 +259,50 @@ abstract class WP_JSON_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Sanitize an parameter value that's based on a property from the item schema.
+	 * 
+	 * @param  mixed $value
+	 * @param  WP_JSON_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function sanitize_schema_property( $value, $request, $property ) {
+
+		$schema = $this->get_item_schema();
+
+		if ( ! isset( $schema['properties'][$parameter] ) ) {
+			return true;
+		}
+		
+		$property = $schema['properties'][$parameter];
+
+		if ( $property['type'] === 'integer' ) {
+			return absint( $value );
+		}
+		
+		if ( isset( $property['format'] ) ) {
+			switch ( $property['format'] ) {
+				case 'date-time' :
+					return sanitize_text_field( $value );
+					break;
+
+				case 'email' :
+					return sanitize_email( $value; )
+					break;
+
+				case 'uri' :
+					return esc_url_raw( $value );
+					break;
+			}
+		}
+
+		if ( $property['type'] === 'string' ) {
+			return sanitize_text_field( $value );
+		}
+
+		return $value;
 	}
 }
