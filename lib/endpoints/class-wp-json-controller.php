@@ -187,6 +187,12 @@ abstract class WP_JSON_Controller {
 		$post_type_fields_args = array();
 
 		foreach ( $post_type_fields as $field_id => $params ) {
+
+			// Anything marked as readonly should not be a arg
+			if ( ! empty( $params['readonly'] ) ) {
+				continue;
+			}
+
 			$post_type_fields_args[$field_id] = array();
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
