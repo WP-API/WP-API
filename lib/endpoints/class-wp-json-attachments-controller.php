@@ -212,11 +212,13 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
 			'description'     => 'The ID for the associated post of the attachment.',
@@ -228,6 +230,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		return $schema;
 	}

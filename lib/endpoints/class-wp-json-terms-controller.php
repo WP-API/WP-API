@@ -465,11 +465,13 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
+					'readonly'     => true,
 					),
 				'count'            => array(
 					'description'  => 'Number of published posts for the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
+					'readonly'     => true,
 					),
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
@@ -481,6 +483,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view' ),
+					'readonly'     => true,
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
@@ -502,6 +505,7 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
 					'context'      => array( 'view' ),
+					'readonly'     => true,
 					),
 				),
 			);

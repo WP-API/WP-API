@@ -708,6 +708,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
+					'readonly'     => true,
 					),
 				'author'           => array(
 					'description'  => 'The ID of the user object, if author was a user.',
@@ -724,6 +725,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'IP address for the object author.',
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
+					'readonly'     => true,
 					),
 				'author_name'     => array(
 					'description'  => 'Display name for the object author.',
@@ -740,6 +742,7 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'User agent for the object author.',
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
+					'readonly'     => true,
 					),
 				'content'          => array(
 					'description'     => 'The content for the object.',
@@ -774,35 +777,37 @@ class WP_JSON_Comments_Controller extends WP_JSON_Controller {
 					'description'  => 'Karma for the object.',
 					'type'         => 'integer',
 					'context'      => array( 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'link'             => array(
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
-					),
+				),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
-					),
+				),
 				'status'           => array(
 					'description'  => 'State of the object.',
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
+				),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
 				),
-			);
+			),
+		);
 		return $schema;
 	}
 

@@ -526,6 +526,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'capabilities'    => array(
 					'description' => 'All capabilities assigned to the user.',
@@ -548,6 +549,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Any extra capabilities assigned to the user.',
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
+					'readonly'    => true,
 					),
 				'first_name'  => array(
 					'description' => 'First name for the object.',
@@ -558,6 +560,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
@@ -569,6 +572,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'name'        => array(
 					'description' => 'Display name for the object.',
@@ -584,6 +588,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Registration date for the user.',
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'roles'           => array(
 					'description' => 'Roles assigned to the user.',
@@ -600,6 +605,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'username'    => array(
 					'description' => 'Login name for the user.',
