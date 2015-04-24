@@ -15,8 +15,6 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 
 		$base = $this->get_post_type_base( $this->post_type );
 
-		$post_type_fields = $this->get_endpoint_args_for_item_schema();
-
 		$posts_args = array(
 			'context'          => array(
 				'default'      => 'view',
@@ -43,7 +41,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => $post_type_fields,
+				'args'            => $this->get_endpoint_args_for_item_schema( true ),
 			),
 		) );
 		register_json_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
@@ -62,7 +60,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'accept_json'     => true,
-				'args'            => $post_type_fields,
+				'args'            => $this->get_endpoint_args_for_item_schema( false ),
 			),
 			array(
 				'methods'  => WP_JSON_Server::DELETABLE,
