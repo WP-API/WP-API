@@ -287,15 +287,17 @@ abstract class WP_JSON_Controller {
 			switch ( $property['format'] ) {
 				case 'date-time' :
 					return sanitize_text_field( $value );
-					break;
 
 				case 'email' :
-					return sanitize_email( $value; )
-					break;
+					// as sanitize_email is very lossy, we just want to 
+					// make sure the string is safe
+					if ( sanitize_email( $value ) ) {
+						return sanitize_email( $value );
+					}
+					return sanitize_text_field( $value );
 
 				case 'uri' :
 					return esc_url_raw( $value );
-					break;
 			}
 		}
 
