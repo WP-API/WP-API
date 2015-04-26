@@ -943,6 +943,61 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		}
 		parent::tearDown();
 	}
+	
+	function test_check_read_permission() {
+        $publicstatusargs = array(
+            'label'                     => _x( 'testpublicstatus', 'Status General Name', 'wp-api' ),
+            'label_count'               => _n_noop( 'Testpublicstatus (%s)',  'Testpublicstatuses (%s)', 'wp-api' ), 
+            'public'                    => true,
+            'show_in_admin_all_list'    => true,
+            'show_in_admin_status_list' => true,
+            'exclude_from_search'       => false,
+        );
+        register_post_status( 'testpublicstatus', $publicstatusargs );
+        
+        $privatestatusargs = array(
+            'label'                     => _x( 'testprivatestatus', 'Status General Name', 'wp-api' ),
+            'label_count'               => _n_noop( 'Testprivatestatus (%s)',  'Testprivatestatuses (%s)', 'wp-api' ), 
+            'public'                    => false,
+            'show_in_admin_all_list'    => true,
+            'show_in_admin_status_list' => true,
+            'exclude_from_search'       => false,
+        );
+        register_post_status( 'testprivatestatus', $privatestatusargs );
+        
+        $publiccustom_args = array(
+            'post_content'   => 'this one is with a public status',
+            'post_name'      => 'publicstatus-post',
+            'post_title'     => 'Post with a custom public status',
+            'post_status'    => 'testpublicstatus'
+        );
+        
+        $privatecustom_args = array(
+            'post_content'   => 'this one is with a private status',
+            'post_name'      => 'privatestatus-post',
+            'post_title'     => 'Post with a custom private status',
+            'post_status'    => 'testprivatestatus'
+        );
+        
+        $publish_args = array(
+            'post_content'   => 'this one is with a publish status',
+            'post_name'      => 'publish-post',
+            'post_title'     => 'Post with publish status',
+            'post_status'    => 'publish'
+        );
+        
+        $publiccustom_pid = wp_insert_post( $publiccustom_args );
+        $privatecustom_pid = wp_insert_post( $privatecustom_args );
+        $publish_pid = wp_insert_post( $publish_args );
+        
+        $pub_cust_post = get_post( $publiccustom_pid, ARRAY_A );
+        $priv_cust_post = get_post( $privatecustom_pid, ARRAY_A );
+        $pub_post = get_post( $publish_pid, ARRAY_A );
+        
+        $this->assertTrue(!empty($pub_cust_post));
+        $this->assertFalse(empty($priv_cust_post));
+        $this->assertTrue(!empty($pub_post));
+    }
 
 	/**
 	 * Internal function used to disable an insert query which
