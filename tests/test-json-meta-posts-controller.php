@@ -501,7 +501,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertEquals( $meta_id, $data['id'] );
@@ -528,7 +528,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertEquals( $meta_id, $data['id'] );
@@ -560,7 +560,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertEquals( $meta_id, $data['id'] );
