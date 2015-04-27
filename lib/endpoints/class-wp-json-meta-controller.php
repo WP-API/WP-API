@@ -416,9 +416,13 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			'parent_id' => $parent_id,
 			'id'        => $mid,
 		);
-		$response = $this->get_item( $request );
+		$response = json_ensure_response( $this->get_item( $request ) );
 
-		return json_ensure_response( $response );
+		$response->set_status( 201 );
+		$data = $response->get_data();
+		$response->header( 'Location', json_url( $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
+
+		return $response;
 	}
 
 	/**

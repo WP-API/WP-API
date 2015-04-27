@@ -70,30 +70,6 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	}
 
 	/**
-	 * Add meta to a post.
-	 *
-	 * Ensures that the correct location header is sent with the response.
-	 *
-	 * @param int $id Post ID
-	 * @param array $data {
-	 *     @type string|null $key Meta key
-	 *     @type string|null $key Meta value
-	 * }
-	 * @return bool|WP_Error
-	 */
-	public function create_item( $request ) {
-		$response = parent::create_item( $request );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response->set_status( 201 );
-		$data = $response->get_data();
-		$response->header( 'Location', json_url( $this->parent_base . '/' . $request['parent_id'] . '/meta/' . $data['id'] ) );
-		return $response;
-	}
-
-	/**
 	 * Check if a given request has access to create a meta entry for a post.
 	 *
 	 * @param WP_JSON_Request $request Full data about the request.
@@ -101,30 +77,6 @@ class WP_JSON_Meta_Posts_Controller extends WP_JSON_Meta_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
-	}
-
-	/**
-	 * Add meta to a post.
-	 *
-	 * Ensures that the correct location header is sent with the response.
-	 *
-	 * @param int $id Post ID
-	 * @param array $data {
-	 *     @type string|null $key Meta key
-	 *     @type string|null $key Meta value
-	 * }
-	 * @return bool|WP_Error
-	 */
-	public function update_item( $request ) {
-		$response = parent::update_item( $request );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$response->set_status( 201 );
-		$data = $response->get_data();
-		$response->header( 'Location', json_url( $this->parent_base . '/' . $request['parent_id'] . '/meta/' . $data['id'] ) );
-		return $response;
 	}
 
 	/**
