@@ -6,7 +6,6 @@ language: php
 php:
   - 5.2
   - 5.3
-  - 5.5
 
 env:
   - WP_VERSION=latest WP_MULTISITE=0
