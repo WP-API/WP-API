@@ -178,13 +178,26 @@ abstract class WP_Test_JSON_Post_Type_Controller_Testcase extends WP_Test_JSON_C
 		$this->check_post_data( $post, $data, $context );
 	}
 
-	protected function check_create_update_post_response( $response ) {
+	protected function check_create_post_response( $response ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = json_ensure_response( $response );
 
 		$this->assertEquals( 201, $response->get_status() );
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'Location', $headers );
+
+		$data = $response->get_data();
+		$post = get_post( $data['id'] );
+		$this->check_post_data( $post, $data, 'edit' );
+	}
+
+	protected function check_update_post_response( $response ) {
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = json_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$headers = $response->get_headers();
+		$this->assertArrayNotHasKey( 'Location', $headers );
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
