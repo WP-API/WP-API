@@ -212,7 +212,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		) );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_delete', $response, 403 );
 	}
 
 	public function test_prepare_item() {

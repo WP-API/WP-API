@@ -141,7 +141,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden_context', $response, 403 );
 	}
 
 	public function test_get_post_with_password() {
@@ -254,7 +254,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_assign_sticky', $response, 403 );
 	}
 
 	public function test_create_post_other_author_without_permission() {
@@ -267,7 +267,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 403 );
 	}
 
 	public function test_create_post_without_permission() {
@@ -338,7 +338,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
 	public function test_create_post_publish_without_permission() {
@@ -356,7 +356,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
 	public function test_create_post_invalid_status() {
@@ -446,7 +446,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_edit_others', $response, 403 );
 	}
 
 	public function test_create_post_with_password() {
@@ -480,7 +480,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_publish', $response, 403 );
 	}
 
 	public function test_create_post_with_falsy_password() {
@@ -895,7 +895,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request = new WP_JSON_Request( 'DELETE', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'json_cannot_delete', $response, 403 );
 	}
 
 	public function test_register_post_type_invalid_controller() {
