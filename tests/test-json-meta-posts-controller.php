@@ -53,6 +53,7 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 		$this->assertCount( 3, $data );
 
 		foreach ( $data as $row ) {
+			$row = (array) $row;
 			$this->assertArrayHasKey( 'id', $row );
 			$this->assertArrayHasKey( 'key', $row );
 			$this->assertArrayHasKey( 'value', $row );
@@ -84,7 +85,6 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 	public function test_prepare_item() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
-		$meta = get_metadata_by_mid( 'post', $meta_id );
 
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
@@ -457,7 +457,6 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -479,7 +478,6 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -820,7 +818,6 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -844,7 +841,6 @@ class WP_Test_JSON_Meta_Posts_Controller extends WP_Test_JSON_Controller_Testcas
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = json_ensure_response( $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
