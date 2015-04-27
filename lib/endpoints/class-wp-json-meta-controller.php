@@ -240,43 +240,6 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	}
 
 	/**
-	 * Update/add/delete meta for an object.
-	 *
-	 * Meta data is expected to be sent in the same format as it's output:
-	 *
-	 *     {
-	 *         "ID": 42,
-	 *         "key" : "meta_key",
-	 *         "value" : "meta_value"
-	 *     }
-	 *
-	 * If ID is not specified, the meta value will be created; otherwise, the
-	 * value (and key, if it differs) will be updated. If ID is specified, and
-	 * the key is set to `null`, the data will be deleted.
-	 *
-	 * @param array $data
-	 * @param int $parent_id
-	 * @return bool|WP_Error
-	 */
-	public function handle_inline_meta( $parent_id, $data ) {
-		foreach ( $data as $meta_array ) {
-			if ( empty( $meta_array['ID'] ) ) {
-				// Creation
-				$result = $this->create_item( $parent_id, $meta_array );
-			} else {
-				// Update
-				$result = $this->update_item( $parent_id, $meta_array['ID'], $meta_array );
-			}
-
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-		}
-
-		return true;
-	}
-
-	/**
 	 * Add meta to an object.
 	 *
 	 * @param WP_JSON_Request $request
