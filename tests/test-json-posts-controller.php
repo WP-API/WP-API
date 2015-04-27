@@ -146,7 +146,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 	public function test_get_post_with_password() {
 		$post_id = $this->factory->post->create( array(
-			'post_password' => 'always$inthebananastand',
+			'post_password' => '$inthebananastand',
 		) );
 
 		wp_set_current_user( $this->editor_id );
@@ -159,7 +159,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 	public function test_get_post_with_password_without_permission() {
 		$post_id = $this->factory->post->create( array(
-			'post_password' => 'always$inthebananastand',
+			'post_password' => '$inthebananastand',
 		) );
 		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/posts/%d', $post_id ) );
 		$response = $this->server->dispatch( $request );
