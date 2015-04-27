@@ -195,7 +195,14 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
-		return $this->prepare_item_for_response( $meta, $request );
+		$data = $this->prepare_item_for_response( $meta, $request );
+		if ( is_wp_error( $data ) ) {
+			return $data;
+		}
+
+		$response = new WP_JSON_Response( $data );
+		$response->add_link( 'about', json_url( 'wp/' . $this->parent_base . '/' . $parent_id ), array( 'embeddable' => true ) );
+		return $response;
 	}
 
 	/**
