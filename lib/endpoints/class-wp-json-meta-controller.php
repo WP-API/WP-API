@@ -157,7 +157,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 		$parent_column = $this->get_parent_column();
 		$id_column = $this->get_id_column();
 
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT $id_column, meta_key, meta_value FROM $table WHERE $parent_column = %d", $parent_id ) );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT $id_column, $parent_column, meta_key, meta_value FROM $table WHERE $parent_column = %d", $parent_id ) );
 
 		$meta = array();
 
