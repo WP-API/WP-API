@@ -122,7 +122,6 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 				),
 			),
 		);
-		return $schema;
 	}
 
 	/**
@@ -201,10 +200,10 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	/**
 	 * Prepares meta data for return as an object.
 	 *
-	 * @param int $parent_id Object ID
 	 * @param stdClass $data Metadata row from database
+	 * @param WP_JSON_Request $request
 	 * @param boolean $is_raw Is the value field still serialized? (False indicates the value has been unserialized)
-	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 * @return WP_JSON_Response|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function prepare_item_for_response( $data, $request, $is_raw = false ) {
 		$id_column = $this->get_id_column();
@@ -281,7 +280,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	 * Add meta to an object.
 	 *
 	 * @param WP_JSON_Request $request
-	 * @return bool|WP_Error
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function update_item( $request ) {
 		$parent_id = (int) $request['parent_id'];
@@ -378,12 +377,8 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	/**
 	 * Add meta to an object.
 	 *
-	 * @param int $id Object ID
-	 * @param array $data {
-	 *     @type string|null $key Meta key
-	 *     @type string|null $key Meta value
-	 * }
-	 * @return bool|WP_Error
+	 * @param WP_JSON_Request $request
+	 * @return WP_JSON_Response|WP_Error
 	 */
 	public function create_item( $request ) {
 		$parent_id = (int) $request['parent_id'];
@@ -428,9 +423,8 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 	/**
 	 * Delete meta from an object.
 	 *
-	 * @param int $id Object ID
-	 * @param int $mid Metadata ID
-	 * @return array|WP_Error Message on success, WP_Error otherwise
+	 * @param WP_JSON_Request $request
+	 * @return WP_JSON_Response|WP_Error Message on success, WP_Error otherwise
 	 */
 	public function delete_item( $request ) {
 		$parent_id = (int) $request['parent_id'];
