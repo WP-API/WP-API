@@ -338,7 +338,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post = get_post( (int) $request['id'] );
 
 		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
-			return false;
+			return new WP_Error( 'json_forbidden_context', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( $post ) {
@@ -359,15 +359,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post_type = get_post_type_object( $this->post_type );
 
 		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return current_user_can( $post_type->cap->create_posts );
@@ -389,15 +389,15 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_edit_others', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'json_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -414,7 +414,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		$post = get_post( $request['id'] );
 
 		if ( $post && ! $this->check_delete_permission( $post ) ) {
-			return false;
+			return new WP_Error( 'json_cannot_delete', __( 'Sorry, you are not allowed to delete posts.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -705,13 +705,13 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 				break;
 			case 'private':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			case 'publish':
 			case 'future':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'json_forbidden', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'json_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			default:

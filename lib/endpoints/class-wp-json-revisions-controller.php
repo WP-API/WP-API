@@ -89,7 +89,7 @@ class WP_JSON_Revisions_Controller extends WP_JSON_Controller {
 		}
 		$parent_post_type_obj = get_post_type_object( $parent->post_type );
 		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
-			return new WP_Error( 'json_forbidden', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'json_cannot_read', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
