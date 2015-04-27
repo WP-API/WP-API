@@ -85,10 +85,44 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 				'args'                => array(),
 			),
 		) );
-		// register_json_route( 'wp', $this->parent_base . '/meta/schema', array(
-		// 	'methods'  => WP_JSON_Server::READABLE,
-		// 	'callback' => array( $this, 'get_item_schema' ),
-		// ) );
+		register_json_route( 'wp', $this->parent_base . '/meta/schema', array(
+			'methods'  => WP_JSON_Server::READABLE,
+			'callback' => array( $this, 'get_item_schema' ),
+		) );
+	}
+
+	/**
+	 * Get the meta schema, conforming to JSON Schema
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'meta',
+			'type'       => 'object',
+			/*
+			 * Base properties for every Post
+			 */
+			'properties' => array(
+				'id' => array(
+					'description' => 'Unique identifier for the object.',
+					'type'        => 'int',
+					'context'     => array( 'edit' ),
+				),
+				'key' => array(
+					'description' => 'The key for the custom field.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+				'value' => array(
+					'description' => 'The value of the custom field.',
+					'type'        => 'string',
+					'context'     => array( 'edit' ),
+				),
+			),
+		);
+		return $schema;
 	}
 
 	/**
