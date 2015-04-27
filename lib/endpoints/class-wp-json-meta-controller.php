@@ -313,7 +313,7 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			'context'   => 'edit',
 			'parent_id' => $parent_id,
 			'id'        => $mid,
-		) )
+		) );
 		$response = $this->get_item( $request );
 
 		return json_ensure_response( $response );
