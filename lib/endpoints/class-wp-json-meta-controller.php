@@ -167,10 +167,10 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 				continue;
 			}
 
-			$meta[] = $value;
+			$meta[] = $this->prepare_response_for_collection( $value );
 		}
 
-		return $meta;
+		return json_ensure_response( $meta );
 	}
 
 	/**
