@@ -308,16 +308,15 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_could_not_update', __( 'Could not update meta.' ), array( 'status' => 500 ) );
 		}
 
-		$request = array(
+		$request = new WP_JSON_Request( 'GET' );
+		$request->set_query_params( array(
 			'context'   => 'edit',
 			'parent_id' => $parent_id,
 			'id'        => $mid,
-		);
+		) )
 		$response = $this->get_item( $request );
 
 		return json_ensure_response( $response );
-
-		return $this->get_item( $request );
 	}
 
 	/**
@@ -369,11 +368,12 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_meta_could_not_add', __( 'Could not add meta.' ), array( 'status' => 400 ) );
 		}
 
-		$request = array(
+		$request = new WP_JSON_Request( 'GET' );
+		$request->set_query_params( array(
 			'context'   => 'edit',
 			'parent_id' => $parent_id,
 			'id'        => $mid,
-		);
+		) );
 		$response = json_ensure_response( $this->get_item( $request ) );
 
 		$response->set_status( 201 );
