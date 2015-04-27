@@ -140,7 +140,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		wp_set_current_user( $this->contributor_id );
 		$request = new WP_JSON_Request( 'POST', '/wp/media' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_cannot_create', $response, 400 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item_invalid_edit_permissions() {
@@ -187,7 +187,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$request = new WP_JSON_Request( 'POST', '/wp/media/' . $attachment_id );
 		$request->set_param( 'caption', 'This is a better caption.' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_post_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -212,7 +212,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		) );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete_post', $response, 401 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_prepare_item() {
@@ -221,10 +221,11 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			'post_excerpt'   => 'A sample caption',
 			'post_author'    => $this->editor_id,
 		) );
-		$endpoint = new WP_JSON_Attachments_Controller( 'attachment' );
-		$request = new WP_JSON_Request;
+
 		$attachment = get_post( $attachment_id );
-		$data = $endpoint->prepare_item_for_response( $attachment, $request );
+		$request = new WP_JSON_Request( 'GET', sprintf( '/wp/media/%d', $attachment_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 		$this->check_post_data( $attachment, $data, 'view' );
 	}
 
@@ -233,21 +234,25 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
-		$this->assertEquals( 18, count( $properties ) );
+		$this->assertEquals( 22, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
+		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'media_type', $properties );
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
+		$this->assertArrayHasKey( 'modified_gmt', $properties );
+		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
@@ -274,7 +279,7 @@ class WP_Test_JSON_Attachments_Controller extends WP_Test_JSON_Post_Type_Control
 			$this->assertNull( $data['post'] );
 		}
 
-		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url']  );
+		$this->assertEquals( wp_get_attachment_url( $attachment->ID ), $data['source_url'] );
 
 	}
 

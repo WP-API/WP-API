@@ -11,7 +11,9 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			'methods'         => WP_JSON_Server::READABLE,
 			'callback'        => array( $this, 'get_items' ),
 			'args'            => array(
-				'post_type'          => array(),
+				'post_type'          => array(
+					'sanitize_callback' => 'sanitize_key'
+				),
 			),
 		) );
 
@@ -39,7 +41,7 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			if ( is_wp_error( $post_type ) ) {
 				continue;
 			}
-			$data[] = $post_type;
+			$data[ $obj->name ] = $post_type;
 		}
 		return $data;
 	}
@@ -70,13 +72,16 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 			return new WP_Error( 'json_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => 403 ) );
 		}
 
-		return array(
+		$data = array(
 			'description'  => $post_type->description,
 			'hierarchical' => $post_type->hierarchical,
 			'labels'       => $post_type->labels,
 			'name'         => $post_type->label,
 			'slug'         => $post_type->name,
 		);
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data = $this->filter_response_by_context( $data, $context );
+		return $data;
 	}
 
 	/**
@@ -93,22 +98,27 @@ class WP_JSON_Post_Types_Controller extends WP_JSON_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'hierarchical'     => array(
 					'description'  => 'Whether or not the type should have children.',
 					'type'         => 'boolean',
+					'context'      => array( 'view' ),
 					),
 				'labels'           => array(
 					'description'  => 'Human-readable labels for the type for various contexts.',
 					'type'         => 'object',
+					'context'      => array( 'view' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object.',
 					'type'         => 'string',
+					'context'      => array( 'view' ),
 					),
 				),
 			);

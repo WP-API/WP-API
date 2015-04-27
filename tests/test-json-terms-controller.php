@@ -60,6 +60,49 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
+	public function test_get_items_post_args() {
+		$post_id = $this->factory->post->create();
+		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Marvel' ) );
+		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'DC', $data[0]['name'] );
+	}
+
+	public function test_get_items_custom_tax_post_args() {
+		register_taxonomy( 'batman', 'post' );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
+		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
+		$post_id = $this->factory->post->create();
+		wp_set_object_terms( $post_id, array( $term1, $term2 ), 'batman' );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/batman' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'Cape', $data[0]['name'] );
+	}
+
+	public function test_get_terms_post_args_no_permission() {
+		$draft_id = $this->factory->post->create( array(
+			'post_status' => 'draft',
+		) );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', $draft_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_cannot_read', $response, 403 );
+	}
+
 	public function test_get_items_search_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
@@ -82,10 +125,37 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 0, count( $data ) );
 	}
 
+	public function test_get_terms_private_taxonomy() {
+		register_taxonomy( 'robin', 'post', array( 'public' => false ) );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
+		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'robin' ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/robin' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
+	}
+
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_taxonomy_invalid', $response, 404 );
+	}
+
+	public function test_get_items_invalid_post() {
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', 9999 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_invalid_id', $response, 404 );
+	}
+
+	public function test_get_items_invalid_taxonomy_for_post_type() {
+		$page_id = $this->factory->post->create( array(
+			'post_type' => 'page',
+		) );
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/tag' );
+		$request->set_param( 'post', $page_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_post_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_item() {
@@ -104,6 +174,15 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/2' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'json_term_invalid', $response, 404 );
+	}
+
+	public function test_get_term_private_taxonomy() {
+		register_taxonomy( 'robin', 'post', array( 'public' => false ) );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/robin/' . $term1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item() {
@@ -133,7 +212,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category' );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_create', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_create_item_missing_arguments() {
@@ -185,7 +264,7 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$request = new WP_JSON_Request( 'POST', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_delete_item() {
@@ -215,14 +294,16 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 		$request = new WP_JSON_Request( 'DELETE', '/wp/terms/category/' . $term->term_taxonomy_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'json_user_cannot_delete', $response, 403 );
+		$this->assertErrorResponse( 'json_forbidden', $response, 403 );
 	}
 
 	public function test_prepare_item() {
-		$request = new WP_JSON_Request;
 		$term = get_term( 1, 'category' );
-		$endpoint = new WP_JSON_Terms_Controller;
-		$data = $endpoint->prepare_item_for_response( $term, $request );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/1' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
 		$this->check_taxonomy_term( $term, $data );
 	}
 
@@ -230,15 +311,18 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 		$child = $this->factory->category->create( array(
 			'parent' => 1,
 		) );
-
-		$request = new WP_JSON_Request;
 		$term = get_term( $child, 'category' );
-		$endpoint = new WP_JSON_Terms_Controller;
-		$data = $endpoint->prepare_item_for_response( $term, $request );
+
+		$request = new WP_JSON_Request( 'GET', '/wp/terms/category/' . $child );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
 		$this->check_taxonomy_term( $term, $data );
 
 		$this->assertEquals( 1, $data['parent'] );
-		$this->assertEquals( json_url( 'wp/terms/category/1' ), $data['_links']['parent'] );
+
+		$links = $response->get_links();
+		$this->assertEquals( json_url( '/wp/terms/category/1' ), $links['up'][0]['href'] );
 	}
 
 	public function test_get_item_schema() {
@@ -259,6 +343,8 @@ class WP_Test_JSON_Terms_Controller extends WP_Test_JSON_Controller_Testcase {
 	}
 
 	public function tearDown() {
+		_unregister_taxonomy( 'batman' );
+		_unregister_taxonomy( 'robin' );
 		parent::tearDown();
 	}
 

@@ -8,7 +8,7 @@ abstract class WP_Test_JSON_Controller_Testcase extends WP_Test_JSON_TestCase {
 		parent::setUp();
 		global $wp_json_server;
 		$this->server = $wp_json_server = new WP_JSON_Server;
-		do_action( 'wp_json_server_before_serve' );
+		do_action( 'wp_json_init' );
 	}
 
 	public function tearDown() {
