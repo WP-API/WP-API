@@ -232,8 +232,8 @@ abstract class WP_JSON_Meta_Controller extends WP_JSON_Controller {
 			'value' => $value,
 		);
 
+		$response = json_ensure_response( $meta );
 		$parent_column = $this->get_parent_column();
-		$response = new WP_JSON_Response( $meta );
 		$response->add_link( 'about', json_url( 'wp/' . $this->parent_base . '/' . $data->$parent_column ), array( 'embeddable' => true ) );
 
 		return apply_filters( 'json_prepare_meta_value', $response, $request );
