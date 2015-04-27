@@ -186,7 +186,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_create_post_response( $response );
 	}
 
 	public function test_json_create_item() {
@@ -198,7 +198,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_create_post_response( $response );
 	}
 
 	public function test_create_post_invalid_id() {
@@ -224,7 +224,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
-		$this->check_create_update_post_response( $response );
+		$this->check_create_post_response( $response );
 	}
 
 	public function test_create_post_sticky() {
@@ -603,7 +603,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
 		$this->assertEquals( $this->post_id, $new_data['id'] );
 		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
@@ -624,7 +624,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
 		$this->assertEquals( $this->post_id, $new_data['id'] );
 		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
@@ -645,7 +645,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
 		$this->assertEquals( $this->post_id, $new_data['id'] );
 		$this->assertEquals( $params['title']['raw'], $new_data['title']['raw'] );
@@ -669,7 +669,7 @@ class WP_Test_JSON_Posts_Controller extends WP_Test_JSON_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->check_create_update_post_response( $response );
+		$this->check_update_post_response( $response );
 	}
 
 	public function test_update_post_without_permission() {
