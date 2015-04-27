@@ -356,7 +356,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	public function create_item_permissions_check( $request ) {
 
 		if ( ! current_user_can( 'create_users' ) ) {
-			return false;
+			return new WP_Error( 'json_cannot_create_user', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -373,7 +373,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$id = (int) $request['id'];
 
 		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return false;
+			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit users.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
