@@ -135,9 +135,8 @@ class WP_Test_JSON_Users_Controller extends WP_Test_JSON_Controller_Testcase {
 		$this->assertEquals( 302, $response->get_status() );
 
 		$headers = $response->get_headers();
-		$response_data = $response->get_data();
 		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertEquals( $response_data['_links']['self']['href'], $headers['Location'] );
+		$this->assertEquals( json_url( '/wp/users/' . $this->user ), $headers['Location'] );
 	}
 
 	public function test_get_current_user_without_permission() {

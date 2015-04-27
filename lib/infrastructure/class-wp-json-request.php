@@ -614,6 +614,38 @@ class WP_JSON_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Sanitize (where possible) the params on the request.
+	 *
+	 * This is primarily based off the sanitize_callback param on each regsitered
+	 * argument.
+	 * 
+	 * @return null
+	 */
+	public function sanitize_params() {
+
+		$attributes = $this->get_attributes();
+
+		// No arguments set, skip sanitizing
+		if ( empty( $attributes['args'] ) ) {
+			return true;
+		}
+
+		$order = $this->get_parameter_order();
+
+		foreach ( $order as $type ) {
+			if ( empty( $this->params[$type] ) ) {
+				continue;
+			}
+			foreach ( $this->params[$type] as $key => $value ) {
+				// check if this param has a sanitize_callback added
+				if ( isset( $attributes['args'][$key] ) && ! empty( $attributes['args'][$key]['sanitize_callback'] ) ) {
+					$this->params[$type][$key] = call_user_func( $attributes['args'][$key]['sanitize_callback'], $value, $this );
+				}
+			}
+		}
+	}
+
+	/**
 	 * Check whether this request is valid according to its attributes
 	 *
 	 * @return bool|WP_Error
@@ -638,6 +670,30 @@ class WP_JSON_Request implements ArrayAccess {
 
 		if ( ! empty( $required ) ) {
 			return new WP_Error( 'json_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+		}
+
+		// check the validation callbacks for each registered arg.
+		// This is done after required checking as required checking is cheaper.
+		$invalid_params = array();
+
+		foreach ( $attributes['args'] as $key => $arg ) {
+
+			$param = $this->get_param( $key );
+			if ( $param !== null && ! empty( $arg['validate_callback']) ) {
+				$valid_check = call_user_func( $arg['validate_callback'], $param, $this );
+
+				if ( $valid_check === false ) {
+					$invalid_params[] = $key;
+				}
+
+				if ( is_wp_error( $valid_check ) ) {
+					$invalid_params[] = sprintf( '%s (%s)', $key, $valid_check->get_error_message() );
+				}
+			}
+		}
+
+		if ( $invalid_params ) {
+			return new WP_Error( 'json_invalid_param', sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $invalid_params ) ), array( 'status' => 400 ) );
 		}
 
 		return true;

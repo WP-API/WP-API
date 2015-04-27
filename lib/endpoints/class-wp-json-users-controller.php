@@ -16,36 +16,36 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => array(
-					'context'          => array(),
-					'order'            => array(),
-					'orderby'          => array(),
-					'per_page'         => array(),
-					'page'             => array(),
+					'context'          => array(
+						'default' => 'view'
+					),
+					'order'            => array(
+						'default'           => 'asc',
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'orderby'          => array(
+						'default'           => 'user_login',
+						'sanitize_callback' => 'sanitize_key'
+					),
+					'per_page'         => array(
+						'default'           => 10,
+						'sanitize_callback' => 'absint'
+					),
+					'page'             => array(
+						'default'           => 1,
+						'sanitize_callback' => 'absint'
+					),
 				),
 			),
 			array(
 				'methods'         => WP_JSON_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array(
-					'email'           => array(
-						'required'        => true,
-					),
-					'username'        => array(
-						'required'        => true,
-					),
-					'password'        => array(
-						'required'        => true,
-					),
-					'name'            => array(),
-					'first_name'      => array(),
-					'last_name'       => array(),
-					'nickname'        => array(),
-					'slug'            => array(),
-					'description'     => array(),
-					'role'            => array(),
-					'url'             => array(),
-				),
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
+					'password'    => array(
+						'required' => true,
+					)
+				) ),
 			),
 		) );
 		register_json_route( 'wp', '/users/(?P<id>[\d]+)', array(
@@ -56,26 +56,16 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 				'args'            => array(
 					'context'          => array(
 						'default'      => 'embed',
-						),
+					),
 				),
 			),
 			array(
 				'methods'         => WP_JSON_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array(
-					'email'           => array(),
-					'username'        => array(),
-					'password'        => array(),
-					'name'            => array(),
-					'first_name'      => array(),
-					'last_name'       => array(),
-					'nickname'        => array(),
-					'slug'            => array(),
-					'description'     => array(),
-					'role'            => array(),
-					'url'             => array(),
-				),
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
+					'password'    => array()
+				) ),
 			),
 			array(
 				'methods' => WP_JSON_Server::DELETABLE,
@@ -110,21 +100,22 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	public function get_items( $request ) {
 
 		$prepared_args = array();
-		$prepared_args['order'] = isset( $request['order'] ) ? sanitize_text_field( $request['order'] ) : 'asc';
-		$prepared_args['orderby'] = isset( $request['orderby'] ) ? sanitize_text_field( $request['orderby'] ) : 'user_login';
-		$prepared_args['number'] = isset( $request['per_page'] ) ? (int) $request['per_page'] : 10;
-		$prepared_args['offset'] = isset( $request['page'] ) ? ( absint( $request['page'] ) - 1 ) * $prepared_args['number'] : 0;
+		$prepared_args['order'] = $request['order'];
+		$prepared_args['orderby'] = $request['orderby'];
+		$prepared_args['number'] = $request['per_page'];
+		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
 
 		$prepared_args = apply_filters( 'json_user_query', $prepared_args, $request );
 
-		$users = new WP_User_Query( $prepared_args );
-		if ( is_wp_error( $users ) ) {
-			return $users;
+		$query = new WP_User_Query( $prepared_args );
+		if ( is_wp_error( $query ) ) {
+			return $query;
 		}
 
-		$users = $users->results;
-		foreach ( $users as &$user ) {
-			$user = $this->prepare_item_for_response( $user, $request );
+		$users = array();
+		foreach ( $query->results as $user ) {
+			$data = $this->prepare_item_for_response( $user, $request );
+			$users[] = $this->prepare_response_for_collection( $data );
 		}
 
 		$response = json_ensure_response( $users );
@@ -173,9 +164,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		}
 
 		$response = json_ensure_response( $response );
-		$data = $response->get_data();
-
-		$response->header( 'Location', $data['_links']['self']['href'] );
+		$response->header( 'Location', json_url( sprintf( '/wp/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -416,7 +405,6 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 	 * @return array $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-
 		$data = array(
 			'avatar_url'         => json_get_avatar_url( $user->user_email ),
 			'capabilities'       => $user->allcaps,
@@ -439,16 +427,34 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 		$data = $this->filter_response_by_context( $data, $context );
 
-		$data['_links'] = array(
-			'self'     => array(
-				'href' => json_url( '/wp/users/' . $user->ID ),
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = $this->prepare_links( $user );
+		foreach ( $links as $rel => $attributes ) {
+			$data->add_link( $rel, $attributes['href'], $attributes );
+		}
+
+		return apply_filters( 'json_prepare_user', $data, $user, $request );
+	}
+
+	/**
+	 * Prepare links for the request.
+	 *
+	 * @param WP_Post $user User object.
+	 * @return array Links for the given user.
+	 */
+	protected function prepare_links( $user ) {
+		$links = array(
+			'self' => array(
+				'href' => json_url( sprintf( '/wp/users/%d', $user->ID ) ),
 			),
-			'archives' => array(
-				'href' => json_url( '/wp/users/' . $user->ID . '/posts' ),
+			'collection' => array(
+				'href' => json_url( '/wp/users' ),
 			),
 		);
 
-		return apply_filters( 'json_prepare_user', $data, $user, $request );
+		return $links;
 	}
 
 	/**
@@ -520,6 +526,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'capabilities'    => array(
 					'description' => 'All capabilities assigned to the user.',
@@ -536,11 +543,13 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'email',
 					'context'     => array( 'view', 'edit' ),
+					'required'    => true,
 				),
 				'extra_capabilities' => array(
 					'description' => 'Any extra capabilities assigned to the user.',
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
+					'readonly'    => true,
 					),
 				'first_name'  => array(
 					'description' => 'First name for the object.',
@@ -551,6 +560,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
@@ -562,6 +572,7 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'name'        => array(
 					'description' => 'Display name for the object.',
@@ -577,12 +588,13 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'description' => 'Registration date for the user.',
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
-					),
+					'readonly'    => true,
+				),
 				'roles'           => array(
 					'description' => 'Roles assigned to the user.',
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
-					),
+				),
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
@@ -593,12 +605,14 @@ class WP_JSON_Users_Controller extends WP_JSON_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'username'    => array(
 					'description' => 'Login name for the user.',
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
-					),
+					'required'    => true,
+				),
 			)
 		);
 

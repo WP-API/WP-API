@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 1.1.1
+ * Version: 2.0-alpha
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -14,7 +14,7 @@
  *
  * @var string
  */
-define( 'JSON_API_VERSION', '1.1.1' );
+define( 'JSON_API_VERSION', '2.0-alpha' );
 
 /**
  * Include our files for the API.
@@ -97,6 +97,21 @@ function _add_extra_api_post_type_arguments() {
 
 }
 add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
+
+/**
+ * Add the extra Taxonomy registration arguments we need.
+ * These attributes will eventually be committed to core.
+ */
+function _add_extra_api_taxonomy_arguments() {
+	global $wp_taxonomies;
+
+	$wp_taxonomies['category']->show_in_json = true;
+	$wp_taxonomies['category']->json_base = 'category';
+
+	$wp_taxonomies['post_tag']->show_in_json = true;
+	$wp_taxonomies['post_tag']->json_base = 'tag';
+}
+add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
 /**
  * Register default JSON API routes

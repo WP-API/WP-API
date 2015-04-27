@@ -144,33 +144,43 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );
+		$data = $response->get_data();
 
-		$response['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$response['caption']       = $post->post_excerpt;
-		$response['description']   = $post->post_content;
-		$response['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
-		$response['media_details'] = wp_get_attachment_metadata( $post->ID );
-		$response['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
-		$response['source_url']    = wp_get_attachment_url( $post->ID );
+		$data['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
+		$data['caption']       = $post->post_excerpt;
+		$data['description']   = $post->post_content;
+		$data['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
+		$data['media_details'] = wp_get_attachment_metadata( $post->ID );
+		$data['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
+		$data['source_url']    = wp_get_attachment_url( $post->ID );
 
 		// Ensure empty details is an empty object
-		if ( empty( $response['media_details'] ) ) {
-			$response['media_details'] = new stdClass;
-		} elseif ( ! empty( $response['media_details']['sizes'] ) ) {
-			$img_url_basename = wp_basename( $response['source_url'] );
+		if ( empty( $data['media_details'] ) ) {
+			$data['media_details'] = new stdClass;
+		} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
+			$img_url_basename = wp_basename( $data['source_url'] );
 
-			foreach ( $response['media_details']['sizes'] as $size => &$size_data ) {
+			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
 				// Use the same method image_downsize() does
-				$size_data['source_url'] = str_replace( $img_url_basename, $size_data['file'], $response['source_url'] );
+				$size_data['source_url'] = str_replace( $img_url_basename, $size_data['file'], $data['source_url'] );
 			}
 		} else {
-		    $response['media_details']['sizes'] = new stdClass;
+			$data['media_details']['sizes'] = new stdClass;
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$response = $this->filter_response_by_context( $response, $context );
 
-		return $response;
+		$data = $this->filter_response_by_context( $data, $context );
+
+		// Wrap the data in a response object
+		$data = json_ensure_response( $data );
+
+		$links = parent::prepare_links( $post );
+		foreach ( $links as $rel => $attributes ) {
+			$data->add_link( $rel, $attributes['href'], $attributes );
+		}
+
+		return apply_filters( 'json_prepare_attachment', $data, $post, $request );
 	}
 
 	/**
@@ -202,11 +212,13 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
 			'description'     => 'The ID for the associated post of the attachment.',
@@ -218,6 +230,7 @@ class WP_JSON_Attachments_Controller extends WP_JSON_Posts_Controller {
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit' ),
+			'readonly'        => true,
 			);
 		return $schema;
 	}
