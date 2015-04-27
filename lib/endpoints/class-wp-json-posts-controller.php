@@ -1118,7 +1118,7 @@ class WP_JSON_Posts_Controller extends WP_JSON_Controller {
 		}
 
 		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['http://wp-api.org/2.0/collections/meta/'] = array(
+			$links['http://wp-api.org/2.0/meta'] = array(
 				'href' => json_url( trailingslashit( $base ) . $post->ID . '/meta' ),
 				'embeddable' => true,
 			);
