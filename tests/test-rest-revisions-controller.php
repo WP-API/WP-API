@@ -31,15 +31,15 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( '/wp/posts/(?P<parent_id>[\d]+)/revisions', $routes );
-		$this->assertArrayHasKey( '/wp/posts/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
-		$this->assertArrayHasKey( '/wp/pages/(?P<parent_id>[\d]+)/revisions', $routes );
-		$this->assertArrayHasKey( '/wp/pages/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<parent_id>[\d]+)/revisions', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pages/(?P<parent_id>[\d]+)/revisions', $routes );
+		$this->assertArrayHasKey( '/wp/v2/pages/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
 	}
 
 	public function test_get_items() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
@@ -53,7 +53,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
@@ -64,21 +64,21 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_items_missing_parent() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/9999999999999/revisions' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/9999999999999/revisions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}
 
 	public function test_get_items_invalid_parent_post_type() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->page_id . '/revisions' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->page_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}
 
 	public function test_get_item() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
@@ -87,7 +87,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
@@ -98,21 +98,21 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_item_missing_parent() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/9999999999999/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/9999999999999/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}
 
 	public function test_get_item_invalid_parent_post_type() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->page_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->page_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}
 
 	public function test_delete_item() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'DELETE', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertNull( get_post( $this->revision_id1 ) );
@@ -120,14 +120,14 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_delete_item_no_permission() {
 		wp_set_current_user( $this->contributor_id );
-		$request = new WP_REST_Request( 'DELETE', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
@@ -135,7 +135,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/posts/revisions/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/revisions/schema' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];
@@ -155,13 +155,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_create_item() {
-		$request = new WP_REST_Request( 'POST', '/wp/posts/revisions' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/revisions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_update_item() {
-		$request = new WP_REST_Request( 'POST', '/wp/posts/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}

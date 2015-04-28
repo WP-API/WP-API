@@ -19,10 +19,10 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/posts/(?P<parent_id>[\d]+)/meta', $routes );
-		$this->assertCount( 2, $routes['/wp/posts/(?P<parent_id>[\d]+)/meta'] );
-		$this->assertArrayHasKey( '/wp/posts/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', $routes );
-		$this->assertCount( 3, $routes['/wp/posts/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)'] );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<parent_id>[\d]+)/meta', $routes );
+		$this->assertCount( 2, $routes['/wp/v2/posts/(?P<parent_id>[\d]+)/meta'] );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', $routes );
+		$this->assertCount( 3, $routes['/wp/v2/posts/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)'] );
 	}
 
 	public function test_get_items() {
@@ -42,7 +42,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		// protected
 		add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
@@ -86,7 +86,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 
@@ -100,7 +100,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -119,7 +119,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		// Override the id parameter to ensure meta is checking it
 		$request['parent_id'] = 0;
 
@@ -132,7 +132,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		// Override the id parameter to ensure meta is checking it
 		$request['parent_id'] = -1;
 
@@ -145,7 +145,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Override the mid parameter to ensure meta is checking it
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', 0, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', 0, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -156,7 +156,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		// Override the mid parameter to ensure meta is checking it
 		$request['id'] = -1;
 
@@ -168,7 +168,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_protected', $response, 403 );
 	}
@@ -177,7 +177,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', array( 'testvalue' => 'test' ) );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_protected', $response, 403 );
 	}
@@ -186,7 +186,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', (object) array( 'testvalue' => 'test' ) );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_protected', $response, 403 );
 	}
@@ -197,7 +197,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
@@ -209,11 +209,11 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id_two = $this->factory->post->create();
 		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id_two, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id_two ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
 	}
@@ -222,7 +222,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request['parent_id'] = 0;
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response );
@@ -232,7 +232,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request['parent_id'] = -1;
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response );
@@ -244,7 +244,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response );
 	}
@@ -255,7 +255,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -280,7 +280,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => 'testvalue',
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$request['parent_id'] = 0;
@@ -296,7 +296,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => 'testvalue',
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$request['parent_id'] = -1;
@@ -310,7 +310,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'key' => 'testkey',
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -328,7 +328,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => 'testvalue',
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -341,7 +341,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => false,
 			'value' => 'testvalue',
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -357,7 +357,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -372,7 +372,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => array( 'testvalue1', 'testvalue2' ),
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -387,7 +387,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ),
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -402,7 +402,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) ),
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -435,7 +435,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'value' => 'testvalue',
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -452,7 +452,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testkey',
 			'value' => "test unslashed ' value",
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -473,7 +473,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testkey',
 			'value' => "test slashed \\' value",
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -492,7 +492,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -519,7 +519,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'key' => 'testnewkey',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -551,7 +551,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -580,7 +580,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$data = array();
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -595,7 +595,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', 0, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', 0, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -610,7 +610,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', 99999, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', 99999, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -625,7 +625,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, 0 ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 0 ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -641,7 +641,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['id'] = -1;
 		$request->set_body_params( $data );
 
@@ -660,7 +660,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -679,14 +679,14 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id_two, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id_two ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -701,7 +701,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => array( 'testvalue1', 'testvalue2' ),
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -716,7 +716,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ),
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -731,7 +731,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) ),
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -746,7 +746,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -761,7 +761,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$data = array(
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -777,7 +777,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => '_testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -794,7 +794,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => false,
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -813,7 +813,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testkey',
 			'value' => "test unslashed ' value",
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -836,7 +836,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testkey',
 			'value' => "test slashed \\' value",
 		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -852,7 +852,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
@@ -871,7 +871,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['parent_id'] = 0;
 
 		$response = $this->server->dispatch( $request );
@@ -884,7 +884,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['parent_id'] = -1;
 
 		$response = $this->server->dispatch( $request );
@@ -897,7 +897,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['id'] = 0;
 
 		$response = $this->server->dispatch( $request );
@@ -910,7 +910,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['id'] = -1;
 
 		$response = $this->server->dispatch( $request );
@@ -925,7 +925,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
@@ -940,13 +940,13 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id_two = $this->factory->post->create();
 		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id_two, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id_two ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
@@ -958,7 +958,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$value = array( 'testvalue1', 'testvalue2' );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -970,7 +970,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$value = (object) array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -982,7 +982,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$value = serialize( array( 'testkey1' => 'testvalue1', 'testkey2' => 'testvalue2' ) );
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -993,7 +993,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_protected', $response, 403 );

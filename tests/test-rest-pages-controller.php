@@ -37,7 +37,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_item_invalid_post_type() {
 		$post_id = $this->factory->post->create();
-		$request = new WP_REST_Request( 'GET', '/wp/pages/' . $post_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $post_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 404, $response->get_status() );
 	}
@@ -50,7 +50,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		wp_set_current_user( $this->editor_id );
 		$this->setup_test_template();
 
-		$request = new WP_REST_Request( 'POST', '/wp/pages' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
 		$params = $this->set_post_data( array(
 			'template'       => 'page-my-test-template.php',
 		) );
@@ -69,7 +69,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'POST', '/wp/pages' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
 		$params = $this->set_post_data( array(
 			'parent' => $page_id,
 		) );
@@ -92,7 +92,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_create_page_with_invalid_parent() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'POST', '/wp/pages' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
 		$params = $this->set_post_data( array(
 			'parent' => -1,
 		) );
@@ -119,7 +119,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'post_type' => 'page',
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/pages' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_query_params( array(
 			'page'           => 2,
 			'posts_per_page' => 4,
@@ -149,7 +149,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/pages/%d', $page_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $page_id ) );
 
 		$request->set_body_params( array(
 			'menu_order' => 1,
@@ -169,7 +169,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/pages/%d', $page_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $page_id ) );
 
 		$request->set_body_params(array(
 			'menu_order' => 0
@@ -181,7 +181,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/pages/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages/schema' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];

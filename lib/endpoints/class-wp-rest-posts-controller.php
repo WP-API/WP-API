@@ -31,7 +31,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		register_rest_route( 'wp', '/' . $base, array(
+		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -44,7 +44,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'args'            => $this->get_endpoint_args_for_item_schema( true ),
 			),
 		) );
-		register_rest_route( 'wp', '/' . $base . '/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -73,7 +73,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				),
 			),
 		) );
-		register_rest_route( 'wp', '/' . $base . '/schema', array(
+		register_rest_route( 'wp/v2', '/' . $base . '/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -212,7 +212,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		) );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 
 		return $response;
 	}
@@ -1060,7 +1060,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = '/wp/' . $this->get_post_type_base( $this->post_type );
+		$base = '/wp/v2/' . $this->get_post_type_base( $this->post_type );
 
 		// Entity meta
 		$links = array(
@@ -1074,13 +1074,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/users/' . $post->post_author ),
+				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
-			$replies_url = rest_url( '/wp/comments' );
+			$replies_url = rest_url( '/wp/v2/comments' );
 			$replies_url = add_query_arg( 'post_id', $post->ID, $replies_url );
 			$links['replies'] = array(
 				'href'         => $replies_url,
@@ -1102,7 +1102,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
-			$attachments_url = rest_url( 'wp/media' );
+			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
 			$links['attachments'] = array(
 				'href'       => $attachments_url,
@@ -1120,9 +1120,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				}
 
 				if ( 'post_tag' === $tax ) {
-					$terms_url = rest_url( 'wp/terms/tag' );
+					$terms_url = rest_url( '/wp/v2/terms/tag' );
 				} else {
-					$terms_url = rest_url( 'wp/terms/' . $tax );
+					$terms_url = rest_url( '/wp/v2/terms/' . $tax );
 				}
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
