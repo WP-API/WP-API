@@ -13,7 +13,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		global $wp_rest_server;
 		$this->server = $wp_rest_server = new WP_Test_Spy_REST_Server();
 
-		do_action( 'wp_rest_init', $this->server );
+		do_action( 'rest_api_init', $this->server );
 	}
 
 	public function test_envelope() {

@@ -178,7 +178,7 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 }
-add_action( 'wp_rest_init', 'create_initial_rest_routes', 0 );
+add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
 /**
  * Register rewrite rules for the API.

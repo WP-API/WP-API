@@ -8,7 +8,7 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 		parent::setUp();
 		global $wp_rest_server;
 		$this->server = $wp_rest_server = new WP_REST_Server;
-		do_action( 'wp_rest_init' );
+		do_action( 'rest_api_init' );
 	}
 
 	public function tearDown() {
