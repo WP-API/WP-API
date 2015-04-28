@@ -180,8 +180,9 @@ abstract class WP_JSON_Controller {
 	 * @param WP_JSON_Request $request
 	 * @return array modified object with additional fields
 	 */
-	protected function add_additional_fields_to_object( $object_type, $object, $request ) {
-		$additional_fields = $this->get_additional_fields( $object_type );
+	protected function add_additional_fields_to_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
 
@@ -189,14 +190,15 @@ abstract class WP_JSON_Controller {
 				continue;
 			}
 
-			$object[$field_name] = call_user_func( $field_options['get_callback'], $field_name, $request );
+			$object[$field_name] = call_user_func( $field_options['get_callback'], $object, $field_name, $request );
 		}
 
 		return $object;
 	}
 
-	protected function update_additional_fields_for_object( $object_type, $request ) {
-		$additional_fields = $this->get_additional_fields( $object_type );
+	protected function update_additional_fields_for_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
 
@@ -209,7 +211,7 @@ abstract class WP_JSON_Controller {
 				continue;
 			}
 
-			$result = call_user_func( $field_options['update_callback'], $request[$field_name], $field_name, $request );
+			$result = call_user_func( $field_options['update_callback'], $request[$field_name], $object, $field_name, $request );
 		}
 	}
 
@@ -225,7 +227,12 @@ abstract class WP_JSON_Controller {
 			return $schema;
 		}
 
-		$additional_fields = $this->get_additional_fields( $schema['title'] );
+		/**
+		 * Can't use $this->get_object_type otherwise we can an inf loop
+		 */
+		$object_type = $schema['title'];
+
+		$additional_fields = $this->get_additional_fields( $object_type );
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
 			if ( ! $field_options['schema'] ) {
@@ -244,7 +251,16 @@ abstract class WP_JSON_Controller {
 	 * @param  string $object_type
 	 * @return array
 	 */
-	protected function get_additional_fields( $object_type ) {
+	protected function get_additional_fields( $object_type = null ) {
+
+		if ( ! $object_type ) {
+			$object_type = $this->get_object_type();	
+		}
+
+		if ( ! $object_type ) {
+			return array();
+		}
+
 		global $wp_json_additional_fields;
 
 		if ( ! $wp_json_additional_fields || ! isset( $wp_json_additional_fields[$object_type] ) ) {
@@ -252,6 +268,21 @@ abstract class WP_JSON_Controller {
 		}
 
 		return $wp_json_additional_fields[$object_type];
+	}
+
+	/**
+	 * Get the object type this controller is responsible for managing.
+	 * 
+	 * @return string
+	 */
+	protected function get_object_type() {
+		$schema = $this->get_item_schema();
+
+		if ( ! $schema || ! isset( $schema['title'] ) ) {
+			return null;
+		}
+
+		return $schema['title'];
 	}
 
 	/**
