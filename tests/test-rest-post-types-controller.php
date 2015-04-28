@@ -4,12 +4,12 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( '/wp/types', $routes );
-		$this->assertArrayHasKey( '/wp/types/(?P<type>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/types', $routes );
+		$this->assertArrayHasKey( '/wp/v2/types/(?P<type>[\w-]+)', $routes );
 	}
 
 	public function test_get_items() {
-		$request = new WP_REST_Request( 'GET', '/wp/types' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
@@ -23,13 +23,13 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item() {
-		$request = new WP_REST_Request( 'GET', '/wp/types/post' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
 		$response = $this->server->dispatch( $request );
 		$this->check_post_type_object_response( $response );
 	}
 
 	public function test_get_item_invalid_type() {
-		$request = new WP_REST_Request( 'GET', '/wp/types/invalid' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types/invalid' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_type_invalid', $response, 404 );
 	}
@@ -54,7 +54,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/types/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types/schema' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];

@@ -35,7 +35,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Register the meta-related routes.
 	 */
 	public function register_routes() {
-		register_rest_route( 'wp', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta', array(
+		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -58,7 +58,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				),
 			),
 		) );
-		register_rest_route( 'wp', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -85,7 +85,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'args'                => array(),
 			),
 		) );
-		register_rest_route( 'wp', $this->parent_base . '/meta/schema', array(
+		register_rest_route( 'wp/v2', $this->parent_base . '/meta/schema', array(
 			'methods'  => WP_REST_Server::READABLE,
 			'callback' => array( $this, 'get_item_schema' ),
 		) );

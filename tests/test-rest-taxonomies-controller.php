@@ -5,12 +5,12 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/taxonomies', $routes );
-		$this->assertArrayHasKey( '/wp/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/taxonomies', $routes );
+		$this->assertArrayHasKey( '/wp/v2/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
 	}
 
 	public function test_get_items() {
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
@@ -25,20 +25,20 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_taxonomies_with_types() {
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
 		$request->set_param( 'post_type', 'post' );
 		$response = $this->server->dispatch( $request );
 		$this->check_taxonomies_for_type_response( 'post', $response );
 	}
 
 	public function test_get_item() {
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies/category' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
 		$response = $this->server->dispatch( $request );
 		$this->check_taxonomy_object_response( $response );
 	}
 
 	public function test_get_invalid_taxonomy() {
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies/invalid' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/invalid' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
 	}
@@ -46,7 +46,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_non_public_taxonomy() {
 		register_taxonomy( 'api-private', 'post', array( 'public' => false ) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies/api-private' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/api-private' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
@@ -71,7 +71,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/taxonomies/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/schema' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];

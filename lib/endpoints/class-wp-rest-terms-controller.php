@@ -10,7 +10,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)', array(
+		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -60,7 +60,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				),
 			),
 		));
-		register_rest_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -90,7 +90,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			),
 		) );
-		register_rest_route( 'wp', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -427,7 +427,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base = '/wp/terms/' . $this->get_taxonomy_base( $term->taxonomy );
+		$base = '/wp/v2/terms/' . $this->get_taxonomy_base( $term->taxonomy );
 		$links = array(
 			'self'       => array(
 				'href'       => rest_url( trailingslashit( $base ) . $term->term_taxonomy_id ),

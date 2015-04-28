@@ -10,7 +10,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp', '/users', array(
+		register_rest_route( 'wp/v2', '/users', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -48,7 +48,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				) ),
 			),
 		) );
-		register_rest_route( 'wp', '/users/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/users/(?P<id>[\d]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -77,7 +77,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp', '/users/me', array(
+		register_rest_route( 'wp/v2', '/users/me', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
@@ -85,7 +85,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			)
 		));
 
-		register_rest_route( 'wp', '/users/schema', array(
+		register_rest_route( 'wp/v2', '/users/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -164,7 +164,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $response );
-		$response->header( 'Location', rest_url( sprintf( '/wp/users/%d', $current_user_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '/wp/v2/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -216,7 +216,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		));
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/users/' . $user_id ) );
+		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
 		return $response;
 	}
@@ -265,7 +265,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		));
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/users/' . $user_id ) );
+		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
 		return $response;
 	}
@@ -447,10 +447,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected function prepare_links( $user ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( sprintf( '/wp/users/%d', $user->ID ) ),
+				'href' => rest_url( sprintf( '/wp/v2/users/%d', $user->ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( '/wp/users' ),
+				'href' => rest_url( '/wp/v2/users' ),
 			),
 		);
 

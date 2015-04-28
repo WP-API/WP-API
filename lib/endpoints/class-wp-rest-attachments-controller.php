@@ -76,7 +76,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		) );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
 
 		return $response;
 
@@ -107,7 +107,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		));
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/' . $this->get_post_type_base( $this->post_type ) . '/' . $data['id'] ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $data['id'] ) );
 		return $response;
 	}
 

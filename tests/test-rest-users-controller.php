@@ -27,17 +27,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/users', $routes );
-		$this->assertCount( 2, $routes['/wp/users'] );
-		$this->assertArrayHasKey( '/wp/users/(?P<id>[\d]+)', $routes );
-		$this->assertCount( 3, $routes['/wp/users/(?P<id>[\d]+)'] );
-		$this->assertArrayHasKey( '/wp/users/me', $routes );
+		$this->assertArrayHasKey( '/wp/v2/users', $routes );
+		$this->assertCount( 2, $routes['/wp/v2/users'] );
+		$this->assertArrayHasKey( '/wp/v2/users/(?P<id>[\d]+)', $routes );
+		$this->assertCount( 3, $routes['/wp/v2/users/(?P<id>[\d]+)'] );
+		$this->assertArrayHasKey( '/wp/v2/users/me', $routes );
 	}
 
 	public function test_get_items() {
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'GET', '/wp/users' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_users_response( $response );
@@ -46,7 +46,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_without_permission() {
 		wp_set_current_user( $this->editor );
 
-		$request = new WP_REST_Request( 'GET', '/wp/users' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
@@ -55,7 +55,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $user_id ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'embed' );
@@ -72,7 +72,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_user_invalid_id() {
 		wp_set_current_user( $this->user );
-		$request = new WP_REST_Request( 'GET', '/wp/users/100' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/100' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
@@ -81,7 +81,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_item_without_permission() {
 		wp_set_current_user( $this->editor );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/users/%d', $this->user ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->user ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
@@ -95,7 +95,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'post_author' => $this->author_id
 		));
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/users/%d', $this->author_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'embed' );
 	}
@@ -104,7 +104,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$user_id = $this->factory->user->create();
 		$this->allow_user_to_manage_multisite();
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->set_param( 'context', 'edit' );
 
 		$response = $this->server->dispatch( $request );
@@ -119,7 +119,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'post_author' => $this->author_id
 		));
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/users/%d', $this->author_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
@@ -128,7 +128,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_current_user() {
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'GET', '/wp/users/me' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me' );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -136,12 +136,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertEquals( rest_url( '/wp/users/' . $this->user ), $headers['Location'] );
+		$this->assertEquals( rest_url( '/wp/v2/users/' . $this->user ), $headers['Location'] );
 	}
 
 	public function test_get_current_user_without_permission() {
 		wp_set_current_user( 0 );
-		$request = new WP_REST_Request( 'GET', '/wp/users/me' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_not_logged_in', $response, 401 );
@@ -163,7 +163,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'url'         => 'http://example.com',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 
@@ -181,7 +181,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'testjson@example.com',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( $params ) );
 
@@ -198,7 +198,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'chunkylover53@aol.com',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -217,7 +217,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'smartgirl63_\@yahoo.com',
 		);
 
-		$request = new WP_REST_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -242,7 +242,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$_POST['username'] = $userdata->user_login;
 		$_POST['first_name'] = 'New Name';
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $_POST );
 
@@ -266,7 +266,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/users/' . $user2 );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'email', 'testjson@example.com' );
 		$response = $this->server->dispatch( $request );
 		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
@@ -279,7 +279,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/users/' . $user2 );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'username', 'test_json_user' );
 		$response = $this->server->dispatch( $request );
 		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
@@ -292,7 +292,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'PUT', '/wp/users/' . $user2 );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'slug', 'test_json_user' );
 		$response = $this->server->dispatch( $request );
 		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
@@ -320,7 +320,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$userdata = get_userdata( $user_id );
 		$pw_before = $userdata->user_pass;
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( $params ) );
 
@@ -349,7 +349,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'chunkylover53@aol.com',
 		);
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/users/%d', $this->user ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->user ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -368,7 +368,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'smartgirl63_\@yahoo.com',
 		);
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/users/%d', $this->editor ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -382,7 +382,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -396,7 +396,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->editor );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_cannot_delete', $response, 403 );
@@ -406,7 +406,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/users/100' );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/100' );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
@@ -428,7 +428,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Delete our test user, and reassign to the new author
 		wp_set_current_user( $this->user );
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->set_param( 'reassign', $reassign_id );
 		$response = $this->server->dispatch( $request );
 
@@ -447,7 +447,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/users/%d', $user_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->set_param( 'reassign', 100 );
 		$response = $this->server->dispatch( $request );
 
@@ -455,7 +455,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/users/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['properties'];

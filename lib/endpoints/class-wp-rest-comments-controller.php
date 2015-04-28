@@ -10,7 +10,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp', '/comments', array(
+		register_rest_route( 'wp/v2', '/comments', array(
 			array(
 				'methods'   => WP_REST_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
@@ -116,7 +116,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp', '/comments/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/comments/(?P<id>[\d]+)', array(
 			array(
 				'methods'  => WP_REST_Server::READABLE,
 				'callback' => array( $this, 'get_item' ),
@@ -151,7 +151,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp', '/comments/schema', array(
+		register_rest_route( 'wp/v2', '/comments/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -247,7 +247,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/comments/' . $comment_id ) );
+		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
 
 		return $response;
 	}
@@ -296,7 +296,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/comments/' . $comment->comment_ID ) );
+		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment->comment_ID ) );
 
 		return $response;
 	}
@@ -496,16 +496,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_links( $comment ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( '/wp/comments/' . $comment->comment_ID ),
+				'href' => rest_url( '/wp/v2/comments/' . $comment->comment_ID ),
 			),
 			'collection' => array(
-				'href' => rest_url( '/wp/comments' ),
+				'href' => rest_url( '/wp/v2/comments' ),
 			),
 		);
 
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/users/' . $comment->user_id ),
+				'href'       => rest_url( '/wp/v2/users/' . $comment->user_id ),
 				'embeddable' => true,
 			);
 		}
@@ -517,7 +517,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$base = $posts_controller->get_post_type_base( $post->post_type );
 
 				$links[ $post->post_type ] = array(
-					'href'       => rest_url( '/wp/' . $base . '/' . $comment->comment_post_ID ),
+					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
 					'embeddable' => true,
 				);
 			}
@@ -525,7 +525,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href'       => rest_url( sprintf( '/wp/comments/%d', (int) $comment->comment_parent ) ),
+				'href'       => rest_url( sprintf( '/wp/v2/comments/%d', (int) $comment->comment_parent ) ),
 				'embeddable' => true,
 			);
 		}
