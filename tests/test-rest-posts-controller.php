@@ -102,15 +102,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
 
-		$attachments_url = rest_url( 'wp/media' );
+		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
 
-		$tags_url = rest_url( 'wp/terms/tag' );
+		$tags_url = rest_url( '/wp/v2/terms/tag' );
 		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
 		$this->assertEquals( $tags_url, $links['post_tag'][0]['href'] );
 
-		$category_url = rest_url( 'wp/terms/category' );
+		$category_url = rest_url( '/wp/v2/terms/category' );
 		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
 		$this->assertEquals( $category_url, $links['category'][0]['href'] );
 	}

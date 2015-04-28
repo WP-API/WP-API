@@ -1102,7 +1102,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
-			$attachments_url = rest_url( 'wp/media' );
+			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
 			$links['attachments'] = array(
 				'href'       => $attachments_url,
@@ -1120,9 +1120,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				}
 
 				if ( 'post_tag' === $tax ) {
-					$terms_url = rest_url( 'wp/terms/tag' );
+					$terms_url = rest_url( '/wp/v2/terms/tag' );
 				} else {
-					$terms_url = rest_url( 'wp/terms/' . $tax );
+					$terms_url = rest_url( '/wp/v2/terms/' . $tax );
 				}
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );

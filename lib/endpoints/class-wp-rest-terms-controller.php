@@ -441,7 +441,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$parent_term = get_term_by( 'id', (int) $term->parent, $term->taxonomy );
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( sprintf( 'wp/terms/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
+					'href'       => rest_url( sprintf( 'wp/v2/terms/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
 					'embeddable' => true,
 				);
 			}
