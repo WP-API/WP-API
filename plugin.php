@@ -287,8 +287,6 @@ function rest_api_loaded() {
 	 */
 	do_action( 'rest_api_init', $wp_rest_server );
 
-	error_log( var_export( $wp_rest_server, true ) );
-
 	// Fire off the request.
 	$wp_rest_server->serve_request( $GLOBALS['wp']->query_vars['rest_route'] );
 
