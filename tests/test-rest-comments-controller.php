@@ -175,7 +175,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
@@ -201,7 +201,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
@@ -222,7 +222,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$response = rest_ensure_response( $response );
@@ -252,7 +252,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$response = rest_ensure_response( $response );
@@ -271,7 +271,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$request = new WP_REST_Request( 'POST', '/wp/comments' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$response = rest_ensure_response( $response );
@@ -290,7 +290,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
@@ -320,7 +320,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/comments/%d', $comment_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
@@ -340,7 +340,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'PUT', '/wp/comments/' . 100 );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
@@ -354,7 +354,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/comments/%d', $this->hold_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );

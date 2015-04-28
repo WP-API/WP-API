@@ -6,15 +6,15 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 
 	public function setUp() {
 		parent::setUp();
-		global $WP_REST_server;
-		$this->server = $WP_REST_server = new WP_REST_Server;
-		do_action( 'WP_REST_init' );
+		global $wp_rest_server;
+		$this->server = $wp_rest_server = new WP_REST_Server;
+		do_action( 'wp_rest_init' );
 	}
 
 	public function tearDown() {
 		parent::tearDown();
-		global $WP_REST_server;
-		$WP_REST_server = null;
+		global $wp_rest_server;
+		$wp_rest_server = null;
 	}
 
 	abstract public function test_register_routes();

@@ -178,7 +178,7 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 
 }
-add_action( 'WP_REST_init', 'create_initial_rest_routes', 0 );
+add_action( 'wp_rest_init', 'create_initial_rest_routes', 0 );
 
 /**
  * Register rewrite rules for the API.
@@ -241,13 +241,13 @@ function rest_api_default_filters( $server ) {
 	add_filter( 'rest_pre_dispatch',  'rest_handle_options_request', 10, 3 );
 
 }
-add_action( 'WP_REST_init', 'rest_api_default_filters', 10, 1 );
+add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 
 /**
  * Load the REST API.
  *
  * @todo Extract code that should be unit tested into isolated methods such as
- *       the WP_REST_server_class filter and serving requests. This would also
+ *       the wp_rest_server_class filter and serving requests. This would also
  *       help for code re-use by `wp-json` endpoint. Note that we can't unit
  *       test any method that calls die().
  */
@@ -270,11 +270,11 @@ function rest_api_loaded() {
 	 */
 	define( 'REST_REQUEST', true );
 
-	global $WP_REST_server;
+	global $wp_rest_server;
 
 	// Allow for a plugin to insert a different class to handle requests.
-	$WP_REST_server_class = apply_filters( 'WP_REST_server_class', 'WP_REST_Server' );
-	$WP_REST_server = new $WP_REST_server_class;
+	$wp_rest_server_class = apply_filters( 'wp_rest_server_class', 'WP_REST_Server' );
+	$wp_rest_server = new $wp_rest_server_class;
 
 	/**
 	 * Fires when preparing to serve an API request.
@@ -283,14 +283,14 @@ function rest_api_loaded() {
 	 * action rather than another action to ensure they're only loaded when
 	 * needed.
 	 *
-	 * @param WP_REST_Server $WP_REST_server Server object.
+	 * @param WP_REST_Server $wp_rest_server Server object.
 	 */
-	do_action( 'WP_REST_init', $WP_REST_server );
+	do_action( 'rest_api_init', $wp_rest_server );
 
-	error_log( var_export( $WP_REST_server, true ) );
+	error_log( var_export( $wp_rest_server, true ) );
 
 	// Fire off the request.
-	$WP_REST_server->serve_request( $GLOBALS['wp']->query_vars['rest_route'] );
+	$wp_rest_server->serve_request( $GLOBALS['wp']->query_vars['rest_route'] );
 
 	// We're done.
 	die();

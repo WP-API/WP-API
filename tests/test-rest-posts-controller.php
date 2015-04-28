@@ -195,7 +195,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'POST', '/wp/posts' );
 		$request->add_header( 'content-type', 'application/json' );
 		$params = $this->set_post_data();
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->check_create_post_response( $response );
@@ -622,7 +622,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$params = $this->set_post_data();
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->check_update_post_response( $response );
@@ -643,7 +643,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/posts/%d', $this->post_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$params = $this->set_raw_post_data();
-		$request->set_body( rest_encode( $params ) );
+		$request->set_body( json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->check_update_post_response( $response );

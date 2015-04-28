@@ -12,7 +12,7 @@
 class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	public function setUp() {
 		// Override the normal server with our spying server
-		$GLOBALS['WP_REST_server'] = new WP_Test_Spy_REST_Server();
+		$GLOBALS['wp_rest_server'] = new WP_Test_Spy_REST_Server();
 	}
 
 	/**
@@ -42,7 +42,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		// Check the route was registered correctly
-		$endpoints = $GLOBALS['WP_REST_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
 		$this->assertArrayHasKey( '/test-ns/test', $endpoints );
 
 		// Check the route was wrapped in an array
@@ -72,7 +72,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		// Check the route was registered correctly
-		$endpoints = $GLOBALS['WP_REST_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
 		$this->assertArrayHasKey( '/test-ns/test', $endpoints );
 
 		// Check the route was wrapped in an array
@@ -102,7 +102,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		// Check both routes exist
-		$endpoints = $GLOBALS['WP_REST_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertCount( 2, $endpoint );
 	}
@@ -123,7 +123,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		), true );
 
 		// Check we only have one route
-		$endpoints = $GLOBALS['WP_REST_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertCount( 1, $endpoint );
 
@@ -146,7 +146,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 			'callback' => '__return_null',
 		) );
 
-		$routes = $GLOBALS['WP_REST_server']->get_routes();
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
 
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
@@ -160,7 +160,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 			'callback' => '__return_null',
 		) );
 
-		$routes = $GLOBALS['WP_REST_server']->get_routes();
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
 
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true ) );
 	}
@@ -174,7 +174,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 			'callback' => '__return_null',
 		) );
 
-		$routes = $GLOBALS['WP_REST_server']->get_routes();
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
 
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
 	}
@@ -188,7 +188,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 			'callback' => '__return_null',
 		) );
 
-		$routes = $GLOBALS['WP_REST_server']->get_routes();
+		$routes = $GLOBALS['wp_rest_server']->get_routes();
 
 		$this->assertEquals( $routes['/test-ns/test'][0]['methods'], array( 'GET' => true, 'POST' => true ) );
 	}
@@ -200,7 +200,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		$request = new WP_REST_Request( 'OPTIONS', '/test-ns/test' );
-		$response = rest_handle_options_request( null, $GLOBALS['WP_REST_server'], $request );
+		$response = rest_handle_options_request( null, $GLOBALS['wp_rest_server'], $request );
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'Accept', $headers );
@@ -218,7 +218,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test' );
-		$response = rest_handle_options_request( null, $GLOBALS['WP_REST_server'], $request );
+		$response = rest_handle_options_request( null, $GLOBALS['wp_rest_server'], $request );
 
 		$this->assertNull( $response );
 	}

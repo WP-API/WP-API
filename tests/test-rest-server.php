@@ -10,10 +10,10 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	public function setUp() {
 		parent::setUp();
 
-		global $WP_REST_server;
-		$this->server = $WP_REST_server = new WP_Test_Spy_REST_Server();
+		global $wp_rest_server;
+		$this->server = $wp_rest_server = new WP_Test_Spy_REST_Server();
 
-		do_action( 'WP_REST_init', $this->server );
+		do_action( 'wp_rest_init', $this->server );
 	}
 
 	public function test_envelope() {
