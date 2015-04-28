@@ -410,14 +410,15 @@ class WP_JSON_Terms_Controller extends WP_JSON_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
 		$data = json_ensure_response( $data );
 
 		$links = $this->prepare_links( $item );
 		foreach ( $links as $rel => $attributes ) {
 			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
-
-		$data = parent::add_additional_fields_to_object( 'term', $data, $request );
 
 		return apply_filters( 'json_prepare_term', $data, $item, $request );
 	}
