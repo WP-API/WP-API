@@ -28,7 +28,7 @@ function json_v1_compatible_routes( $routes ) {
 		}
 
 		foreach ( $route as &$handler ) {
-			$methods = isset( $handler[1] ) ? $handler[1] : WP_JSON_Server::METHOD_GET;
+			$methods = isset( $handler[1] ) ? $handler[1] : WP_REST_Server::METHOD_GET;
 
 			$handler = array(
 				'callback'  => $handler[0],
