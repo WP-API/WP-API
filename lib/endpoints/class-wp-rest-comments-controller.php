@@ -342,12 +342,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$post = get_post( (int) $request['post'] );
 
 			if ( $post && ! $this->check_read_post_permission( $post ) ) {
-				return false;
+				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ) );
 			}
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view comments with edit context' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -369,17 +369,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $this->check_read_permission( $comment ) ) {
-			return false;
+			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read this comment.' ), array( 'status' => 403 ) );
 		}
 
 		$post = get_post( $comment->comment_post_ID );
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return false;
+			return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => 403 )  );
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view this comment with edit context' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this comment with edit context.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -403,11 +403,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( $post ) {
 
 			if ( ! $this->check_read_post_permission( $post ) ) {
-				return false;
+				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => 403 ) );
 			}
 
 			if ( ! comments_open( $post->ID ) ) {
-				return false;
+				return new WP_Error( 'rest_comment_closed', __( 'Sorry, comments are closed on this post.' ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -427,7 +427,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = get_comment( $id );
 
 		if ( $comment && ! $this->check_edit_permission( $comment ) ) {
-			return false;
+			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you can not edit this comment.' ), array( 'status' => 403 ) );
 		}
 
 		return true;

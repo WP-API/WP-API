@@ -27,7 +27,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		foreach ( $this->get_allowed_query_vars() as $var ) {
 			if ( ! isset( $posts_args[$var] ) ) {
-				$posts_args[$var] = array();	
+				$posts_args[$var] = array();
 			}
 		}
 
@@ -338,7 +338,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( (int) $request['id'] );
 
 		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
-			return false;
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( $post ) {
@@ -359,15 +359,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $this->post_type );
 
 		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return current_user_can( $post_type->cap->create_posts );
@@ -389,15 +389,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_forbidden', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -414,7 +414,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $request['id'] );
 
 		if ( $post && ! $this->check_delete_permission( $post ) ) {
-			return false;
+			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete posts.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -428,7 +428,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array() ) {
-		
+
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
@@ -446,7 +446,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get all the WP Query vars that are allowed for the API request.
-	 * 
+	 *
 	 * @return array
 	 */
 	protected function get_allowed_query_vars() {
@@ -483,7 +483,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array $valid_vars List of allowed query vars.
 		 */
 		$valid_vars = apply_filters( 'rest_query_vars', $valid_vars );
-		
+
 		return $valid_vars;
 	}
 
@@ -705,13 +705,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				break;
 			case 'private':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create private posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			case 'publish':
 			case 'future':
 				if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
-					return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
+					return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to publish posts in this post type' ), array( 'status' => 403 ) );
 				}
 				break;
 			default:

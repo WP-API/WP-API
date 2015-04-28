@@ -55,10 +55,11 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 		wp_set_current_user( $this->contributor_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	public function test_get_items_missing_parent() {
@@ -87,11 +88,12 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 		wp_set_current_user( $this->contributor_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	public function test_get_item_missing_parent() {
@@ -120,7 +122,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( $this->contributor_id );
 		$request = new WP_REST_Request( 'DELETE', '/wp/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
 	}
 
 	public function test_prepare_item() {
