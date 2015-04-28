@@ -89,7 +89,6 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
 	$defaults = array(
 		'get_callback'    => null,
 		'update_callback' => null,
-		'delete_callback' => null,
 		'schema'          => null,
 	);
 
