@@ -1,0 +1,23 @@
+{
+    "name": "wp-api/wp-api",
+    "type": "wordpress-plugin",
+    "description": "Access your WordPress site's data through an easy-to-use HTTP REST API.",
+    "homepage": "http://wp-api.org/",
+    "license": "GPL2+",
+    "authors": [
+        {
+            "name": "WP-API Team",
+            "homepage": "http://wp-api.org/"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/WP-API/WP-API/issues",
+        "forum": "https://wordpress.org/support/plugin/json-rest-api"
+    },
+    "require": {
+        "composer/installers": "~1.0"
+    },
+    "extra": {
+        "installer-name": "json-rest-api"
+    }
+}
