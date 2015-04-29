@@ -114,7 +114,13 @@ class WP_REST_Response extends WP_HTTP_Response {
 
 		$this->header( 'X-WP-Total', $query->found_posts );
 		$this->header( 'X-WP-TotalPages', $max_page );
-
+		
+		/**
+		 * Runs after REST response navigation headers are set
+		 * 
+		 * @param WP_REST_Response|object $this current WP_REST_Response object
+		 * @param WP_Query|object $query WP_Query object from current request.
+		 */
 		do_action( 'rest_query_navigation_headers', $this, $query );
 	}
 
