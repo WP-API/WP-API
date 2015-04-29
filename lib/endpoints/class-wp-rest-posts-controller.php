@@ -59,7 +59,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'accept_rest'     => true,
 				'args'            => $this->get_endpoint_args_for_item_schema( false ),
 			),
 			array(
