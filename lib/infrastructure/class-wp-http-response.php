@@ -104,7 +104,9 @@ class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	 *
 	 * @return mixed Any JSON-serializable value
 	 */
+	// @codingStandardsIgnoreStart
 	public function jsonSerialize() {
+	// @codingStandardsIgnoreEnd
 		return $this->get_data();
 	}
 }
