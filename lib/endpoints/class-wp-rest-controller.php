@@ -17,35 +17,35 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error or WP_REST_Response.
 	 */
 	public function get_items( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Get one item from the collection
 	 */
 	public function get_item( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Create one item from the collection
 	 */
 	public function create_item( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Update one item from the collection
 	 */
 	public function update_item( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
 	 * Delete one item from the collection
 	 */
 	public function delete_item( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -55,7 +55,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function get_items_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -65,7 +65,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function get_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -75,7 +75,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function create_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -85,7 +85,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function update_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -95,7 +95,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed WP_Error|bool.
 	 */
 	public function delete_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -106,7 +106,7 @@ abstract class WP_REST_Controller {
 	 * @return mixed
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		return new WP_Error( 'invalid-method', __( "Method not implemented. Must be over-ridden in subclass." ), array( 'status' => 405 ) );
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
 	/**
@@ -193,10 +193,10 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$post_type_fields_args[$field_id] = array();
+			$post_type_fields_args[ $field_id ] = array();
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
-				$post_type_fields_args[$field_id]['required'] = true;			
+				$post_type_fields_args[ $field_id ]['required'] = true;
 			}
 		}
 
