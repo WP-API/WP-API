@@ -219,7 +219,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data(array(
-			'status' => 'pending'
+			'status' => 'pending',
 		));
 
 		$request->set_body_params( $params );
@@ -249,7 +249,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data( array(
 			'sticky' => true,
-			'status' => 'pending'
+			'status' => 'pending',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -262,7 +262,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data(array(
-			'author' => $this->editor_id
+			'author' => $this->editor_id,
 		));
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -355,7 +355,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
-
 
 		$this->assertErrorResponse( 'rest_cannot_publish', $response, 403 );
 	}
@@ -505,7 +504,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data( array(
 			'password' => '123',
-			'sticky'   => true
+			'sticky'   => true,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -695,7 +694,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
 			'sticky' => true,
-			'status' => 'pending'
+			'status' => 'pending',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -778,7 +777,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_body_params( array(
-			'excerpt' => 'An Excerpt'
+			'excerpt' => 'An Excerpt',
 		) );
 
 		$response = $this->server->dispatch( $request );
@@ -791,7 +790,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_body_params( array(
-			'excerpt' => ''
+			'excerpt' => '',
 		) );
 
 		$response = $this->server->dispatch( $request );
@@ -804,7 +803,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_body_params( array(
-			'content' => 'Some Content'
+			'content' => 'Some Content',
 		) );
 
 		$response = $this->server->dispatch( $request );
@@ -817,7 +816,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_body_params( array(
-			'content' => ''
+			'content' => '',
 		) );
 
 		$response = $this->server->dispatch( $request );
@@ -831,7 +830,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
 			'password' => '123',
-			'sticky'   => true
+			'sticky'   => true,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -846,7 +845,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
-			'password' => '123'
+			'password' => '123',
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -861,7 +860,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
-			'sticky' => true
+			'sticky' => true,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
