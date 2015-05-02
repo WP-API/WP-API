@@ -229,7 +229,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param boolean $override If true, replace the request's headers. Otherwise, merge with existing.
 	 */
 	public function set_headers( $headers, $override = true ) {
-		if ( $override === true ) {
+		if ( true === $override ) {
 			$this->headers = array();
 		}
 
@@ -524,7 +524,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		// Check that we actually got JSON
 		$content_type = $this->get_content_type();
-		if ( empty( $content_type ) || $content_type['value'] !== 'application/json' ) {
+		if ( empty( $content_type ) || 'application/json' !== $content_type['value'] ) {
 			return;
 		}
 
@@ -534,7 +534,7 @@ class WP_REST_Request implements ArrayAccess {
 		//
 		// Note that due to WP's JSON compatibility functions, json_last_error
 		// might not be defined: https://core.trac.wordpress.org/ticket/27799
-		if ( $params === null && ( ! function_exists( 'json_last_error' ) || json_last_error() !== JSON_ERROR_NONE ) ) {
+		if ( null === $params && ( ! function_exists( 'json_last_error' ) || JSON_ERROR_NONE !== json_last_error() ) ) {
 			return;
 		}
 
@@ -556,7 +556,7 @@ class WP_REST_Request implements ArrayAccess {
 		// Check that we got URL-encoded. Treat a missing content-type as
 		// URL-encoded for maximum compatibility
 		$content_type = $this->get_content_type();
-		if ( ! empty( $content_type ) && $content_type['value'] !== 'application/x-www-form-urlencoded' ) {
+		if ( ! empty( $content_type ) && 'application/x-www-form-urlencoded' !== $content_type['value'] ) {
 			return;
 		}
 
@@ -618,7 +618,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * This is primarily based off the sanitize_callback param on each regsitered
 	 * argument.
-	 * 
+	 *
 	 * @return null
 	 */
 	public function sanitize_params() {
@@ -633,13 +633,13 @@ class WP_REST_Request implements ArrayAccess {
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
-			if ( empty( $this->params[$type] ) ) {
+			if ( empty( $this->params[ $type ] ) ) {
 				continue;
 			}
-			foreach ( $this->params[$type] as $key => $value ) {
+			foreach ( $this->params[ $type ] as $key => $value ) {
 				// check if this param has a sanitize_callback added
-				if ( isset( $attributes['args'][$key] ) && ! empty( $attributes['args'][$key]['sanitize_callback'] ) ) {
-					$this->params[$type][$key] = call_user_func( $attributes['args'][$key]['sanitize_callback'], $value, $this );
+				if ( isset( $attributes['args'][ $key ] ) && ! empty( $attributes['args'][ $key ]['sanitize_callback'] ) ) {
+					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this );
 				}
 			}
 		}
@@ -679,10 +679,10 @@ class WP_REST_Request implements ArrayAccess {
 		foreach ( $attributes['args'] as $key => $arg ) {
 
 			$param = $this->get_param( $key );
-			if ( $param !== null && ! empty( $arg['validate_callback']) ) {
+			if ( null !== $param && ! empty( $arg['validate_callback']) ) {
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this );
 
-				if ( $valid_check === false ) {
+				if ( false === $valid_check ) {
 					$invalid_params[] = $key;
 				}
 
