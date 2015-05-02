@@ -17,23 +17,23 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => array(
 					'context'          => array(
-						'default' => 'view'
+						'default' => 'view',
 					),
 					'order'            => array(
 						'default'           => 'asc',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'orderby'          => array(
 						'default'           => 'user_login',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'per_page'         => array(
 						'default'           => 10,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'page'             => array(
 						'default'           => 1,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 				),
 			),
@@ -44,7 +44,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
 					'password'    => array(
 						'required' => true,
-					)
+					),
 				) ),
 			),
 		) );
@@ -330,7 +330,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( $id === get_current_user_id() ) {
+		if ( get_current_user_id() === $id ) {
 			return true;
 		}
 

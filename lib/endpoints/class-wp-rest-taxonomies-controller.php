@@ -12,7 +12,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'callback'        => array( $this, 'get_items' ),
 			'args'            => array(
 				'post_type'   => array(
-					'sanitize_callback' => 'sanitize_key'
+					'sanitize_callback' => 'sanitize_key',
 				),
 			),
 		) );

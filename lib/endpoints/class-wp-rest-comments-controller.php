@@ -18,62 +18,62 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'args'      => array(
 					'post'         => array(
 						'default'           => null,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'user'         => array(
 						'default'           => 0,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'per_page'     => array(
 						'default'           => 10,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'page'         => array(
 						'default'           => 1,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'status'       => array(
 						'default'           => 'approve',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'type'         => array(
 						'default'           => 'comment',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'parent'       => array(
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'search'       => array(
 						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => ''
+						'default'           => '',
 					),
 					'order'        => array(
 						'default'           => 'DESC',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'orderby'      => array(
 						'default'      => 'date_gmt',
 					),
 					'author_email' => array(
-						'sanitize_callback' => 'sanitize_email'
+						'sanitize_callback' => 'sanitize_email',
 					),
 					'karma'        => array(
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'post_author'  => array(
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'post_name'    => array(
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'post_parent'  => array(
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'post_status'  => array(
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'post_type'    => array(
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 				),
 			),
@@ -84,31 +84,31 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'args'     => array(
 					'post'         => array(
 						'required'     => true,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'type'         => array(
 						'default'           => 'comment',
-						'sanitize_callback' => 'sanitize_key'
+						'sanitize_callback' => 'sanitize_key',
 					),
 					'author'         => array(
 						'default'           => 0,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'parent'       => array(
 						'default'           => 0,
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'content'      => array(
-						'sanitize_callback' => 'wp_filter_post_kses'
+						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 					'author'       => array(
-						'sanitize_callback' => 'absint'
+						'sanitize_callback' => 'absint',
 					),
 					'author_email' => array(
-						'sanitize_callback' => 'sanitize_email'
+						'sanitize_callback' => 'sanitize_email',
 					),
 					'author_url'   => array(
-						'sanitize_callback' => 'esc_url_raw'
+						'sanitize_callback' => 'esc_url_raw',
 					),
 					'date'         => array(),
 					'date_gmt'     => array(),
@@ -375,7 +375,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$post = get_post( $comment->comment_post_ID );
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => 403 )  );
+			return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {

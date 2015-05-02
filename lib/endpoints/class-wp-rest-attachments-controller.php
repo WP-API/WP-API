@@ -49,7 +49,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$caption = '';
 
 		// use image exif/iptc data for title and caption defaults if possible
-		if ( $image_meta = @wp_read_image_metadata( $file ) ) {
+		// @codingStandardsIgnoreStart
+		$image_meta = @wp_read_image_metadata( $file );
+		// @codingStandardsIgnoreEnd
+		if ( ! empty( $image_meta ) ) {
 			if ( empty( $request['title'] ) && trim( $image_meta['title'] ) && ! is_numeric( sanitize_title( $image_meta['title'] ) ) ) {
 				$title = $image_meta['title'];
 			}
@@ -311,7 +314,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$sideloaded = wp_handle_sideload( $file_data, $overrides );
 
 		if ( isset( $sideloaded['error'] ) ) {
+			// @codingStandardsIgnoreStart
 			@unlink( $tmpfname );
+			// @codingStandardsIgnoreEnd
 			return new WP_Error( 'rest_upload_sideload_error', $sideloaded['error'], array( 'status' => 500 ) );
 		}
 

@@ -108,7 +108,7 @@ function rest_cookie_check_errors( $result ) {
 	 * error, but we're still logged in, another authentication
 	 * must have been used.)
 	 */
-	if ( $wp_rest_auth_cookie !== true && is_user_logged_in() ) {
+	if ( true !== $wp_rest_auth_cookie && is_user_logged_in() ) {
 		return $result;
 	}
 
@@ -120,7 +120,7 @@ function rest_cookie_check_errors( $result ) {
 		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
 	}
 
-	if ( $nonce === null ) {
+	if ( null === $nonce ) {
 		// No nonce at all, so act as if it's an unauthenticated request.
 		wp_set_current_user( 0 );
 		return true;
@@ -149,7 +149,7 @@ function rest_cookie_collect_status() {
 
 	$status_type = current_action();
 
-	if ( $status_type !== 'auth_cookie_valid' ) {
+	if ( 'auth_cookie_valid' !== $status_type ) {
 		$wp_rest_auth_cookie = substr( $status_type, 12 );
 		return;
 	}
@@ -245,7 +245,7 @@ function rest_mysql_to_rfc3339( $date_string ) {
 function rest_get_timezone() {
 	static $zone = null;
 
-	if ( $zone !== null ) {
+	if ( null !== $zone ) {
 		return $zone;
 	}
 

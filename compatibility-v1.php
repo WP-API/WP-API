@@ -50,7 +50,7 @@ function json_v1_compatible_routes( $routes ) {
  */
 function json_v1_compatible_dispatch( $result, $request ) {
 	// Allow other plugins to hijack too
-	if ( $result !== null ) {
+	if ( null !== $result ) {
 		return $result;
 	}
 
