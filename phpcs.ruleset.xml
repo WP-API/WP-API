@@ -3,7 +3,10 @@
 	<description>Sniffs for the coding standards of the WP-API plugin</description>
 
 	<rule ref="WordPress-VIP">
+		<exclude name="WordPress.VIP.FileSystemWritesDisallow" />
+		<exclude name="WordPress.VIP.RestrictedFunctions" />
 		<exclude name="WordPress.VIP.SuperGlobalInputUsage" />
 		<exclude name="WordPress.VIP.ValidatedSanitizedInput" />
+		<exclude name="WordPress.CSRF.NonceVerification" />
 	</rule>
 </ruleset>
