@@ -66,7 +66,7 @@ class WP_REST_Server {
 			// Meta endpoints
 			'/' => array(
 				'callback' => array( $this, 'get_index' ),
-				'methods' => 'GET'
+				'methods' => 'GET',
 			),
 		);
 	}
@@ -378,7 +378,7 @@ class WP_REST_Server {
 		$api_root = rest_url();
 		foreach ( $data['_links'] as $rel => $links ) {
 			// Ignore links to self, for obvious reasons
-			if ( $rel === 'self' ) {
+			if ( 'self' === $rel ) {
 				continue;
 			}
 
@@ -478,8 +478,7 @@ class WP_REST_Server {
 	public function register_route( $route, $route_args, $override = false ) {
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
-		}
-		else {
+		} else {
 			$this->endpoints[ $route ] = array_merge( $this->endpoints[ $route ], $route_args );
 		}
 	}
@@ -645,7 +644,7 @@ class WP_REST_Server {
 					$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request );
 
 					// Allow plugins to halt the request via this filter
-					if ( $dispatch_result !== null ) {
+					if ( null !== $dispatch_result ) {
 						$response = $dispatch_result;
 					} else {
 						$response = call_user_func( $callback, $request );
@@ -681,7 +680,7 @@ class WP_REST_Server {
 		}
 
 		$last_error_code = json_last_error();
-		if ( ( defined( 'JSON_ERROR_NONE' ) && $last_error_code === JSON_ERROR_NONE ) || empty( $last_error_code ) ) {
+		if ( ( defined( 'JSON_ERROR_NONE' ) && JSON_ERROR_NONE === $last_error_code ) || empty( $last_error_code ) ) {
 			return false;
 		}
 
