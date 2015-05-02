@@ -207,7 +207,7 @@ function rest_api_register_rewrites() {
 function rest_api_maybe_flush_rewrites() {
 	$version = get_option( 'rest_api_plugin_version', null );
 
-	if ( empty( $version ) ||  $version !== REST_API_VERSION ) {
+	if ( empty( $version ) || REST_API_VERSION !== $version ) {
 		flush_rewrite_rules();
 		update_option( 'rest_api_plugin_version', REST_API_VERSION );
 	}
@@ -229,16 +229,16 @@ add_action( 'init', 'rest_api_maybe_flush_rewrites', 999 );
  */
 function rest_api_default_filters( $server ) {
 	// Deprecated reporting.
-	add_action( 'deprecated_function_run',           'rest_handle_deprecated_function', 10, 3 );
-	add_filter( 'deprecated_function_trigger_error', '__return_false'                         );
-	add_action( 'deprecated_argument_run',           'rest_handle_deprecated_argument', 10, 3 );
-	add_filter( 'deprecated_argument_trigger_error', '__return_false'                         );
+	add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
+	add_filter( 'deprecated_function_trigger_error', '__return_false' );
+	add_action( 'deprecated_argument_run', 'rest_handle_deprecated_argument', 10, 3 );
+	add_filter( 'deprecated_argument_trigger_error', '__return_false' );
 
 	// Default serving
 	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );
-	add_filter( 'rest_post_dispatch',  'rest_send_allow_header', 10, 3 );
+	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 
-	add_filter( 'rest_pre_dispatch',  'rest_handle_options_request', 10, 3 );
+	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
 
 }
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
@@ -252,8 +252,9 @@ add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
  *       test any method that calls die().
  */
 function rest_api_loaded() {
-	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) )
+	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
 		return;
+	}
 
 	/**
 	 * Whether this is a XML-RPC Request.
@@ -371,8 +372,9 @@ function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	if ( get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
 
-		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false )
+		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false ) {
 			$url .= '/' . ltrim( $path, '/' );
+		}
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
@@ -460,8 +462,7 @@ function rest_ensure_response( $response ) {
 function rest_handle_deprecated_function( $function, $replacement, $version ) {
 	if ( ! empty( $replacement ) ) {
 		$string = sprintf( __( '%1$s (since %2$s; use %3$s instead)' ), $function, $version, $replacement );
-	}
-	else {
+	} else {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
 
@@ -478,8 +479,7 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
 function rest_handle_deprecated_argument( $function, $message, $version ) {
 	if ( ! empty( $message ) ) {
 		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $message );
-	}
-	else {
+	} else {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
 
