@@ -6,3 +6,4 @@ fi
 
 composer install
 grunt phpcs
+grunt phplint
