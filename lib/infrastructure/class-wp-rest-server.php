@@ -568,36 +568,6 @@ class WP_REST_Server {
 					$response = new WP_Error( 'rest_invalid_handler', __( 'The handler for the route is invalid' ), array( 'status' => 500 ) );
 				}
 
-				/*
-				if ( ! empty( $handler['accept_json'] ) ) {
-					$raw_data = $this->get_raw_data();
-					$data = json_decode( $raw_data, true );
-
-					// test for json_decode() error
-					$json_error_message = $this->get_json_last_error();
-					if ( $json_error_message ) {
-
-						$data = array();
-						parse_str( $raw_data, $data );
-
-						if ( empty( $data ) ) {
-
-							return new WP_Error( 'json_decode_error', $json_error_message, array( 'status' => 500 ) );
-						}
-					}
-
-					if ( $data !== null ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				} elseif ( ! empty( $handler['accept_raw'] ) ) {
-					$data = $this->get_raw_data();
-
-					if ( ! empty( $data ) ) {
-						$args = array_merge( $args, array( 'data' => $data ) );
-					}
-				}
-				*/
-
 				if ( ! is_wp_error( $response ) ) {
 
 					$request->set_url_params( $args );
