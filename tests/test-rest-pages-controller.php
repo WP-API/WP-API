@@ -164,7 +164,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$page_id = $this->factory->post->create( array(
 			'post_type'  => 'page',
-			'menu_order' => 1
+			'menu_order' => 1,
 		) );
 
 		wp_set_current_user( $this->editor_id );
@@ -172,7 +172,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $page_id ) );
 
 		$request->set_body_params(array(
-			'menu_order' => 0
+			'menu_order' => 0,
 		));
 		$response = $this->server->dispatch( $request );
 

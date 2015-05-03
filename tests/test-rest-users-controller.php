@@ -92,7 +92,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'role' => 'author',
 		) );
 		$this->post_id = $this->factory->post->create( array(
-			'post_author' => $this->author_id
+			'post_author' => $this->author_id,
 		));
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
@@ -116,7 +116,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'role' => 'author',
 		) );
 		$this->post_id = $this->factory->post->create( array(
-			'post_author' => $this->author_id
+			'post_author' => $this->author_id,
 		));
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );

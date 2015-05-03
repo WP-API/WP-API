@@ -152,7 +152,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		register_rest_route( 'test-ns', '/test', array(
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
-			'should_exist' => false
+			'should_exist' => false,
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );
@@ -175,13 +175,13 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		register_rest_route( 'test-ns', '/test', array(
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
-			'should_exist' => false
+			'should_exist' => false,
 		) );
 
 		register_rest_route( 'test-ns', '/test', array(
 			'methods'      => 'POST',
 			'callback'     => '__return_null',
-			'should_exist' => false
+			'should_exist' => false,
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );
@@ -206,13 +206,13 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			'methods'      => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'permission_callback' => array( $this, 'permission_denied' )
+			'permission_callback' => array( $this, 'permission_denied' ),
 		) );
 
 		register_rest_route( 'test-ns', '/test', array(
 			'methods'      => 'POST',
 			'callback'     => '__return_null',
-			'should_exist' => false
+			'should_exist' => false,
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );
@@ -270,7 +270,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			array(
 				'code'    => 'wp-api-test-error',
 				'message' => 'Message text',
-			)
+			),
 		);
 		$expected = json_encode( $data );
 		$response = $this->server->json_error( 'wp-api-test-error', 'Message text' );
@@ -291,7 +291,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			array(
 				'code'    => 'wp-api-test-error',
 				'message' => 'Message text',
-			)
+			),
 		);
 		$expected = json_encode( $data );
 

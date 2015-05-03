@@ -63,16 +63,13 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			if ( $row['id'] === $meta_id_basic ) {
 				$this->assertEquals( 'testkey', $row['key'] );
 				$this->assertEquals( 'testvalue', $row['value'] );
-			}
-			elseif ( $row['id'] === $meta_id_other1 ) {
+			} elseif ( $row['id'] === $meta_id_other1 ) {
 				$this->assertEquals( 'testotherkey', $row['key'] );
 				$this->assertEquals( 'testvalue1', $row['value'] );
-			}
-			elseif ( $row['id'] === $meta_id_other2 ) {
+			} elseif ( $row['id'] === $meta_id_other2 ) {
 				$this->assertEquals( 'testotherkey', $row['key'] );
 				$this->assertEquals( 'testvalue2', $row['value'] );
-			}
-			else {
+			} else {
 				$this->fail();
 			}
 		}
@@ -413,7 +410,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_create_item_failed_get() {
 		$this->markTestSkipped();
 
-		$this->endpoint = $this->getMock( 'WP_REST_Meta_Posts', array('get_meta'), array( $this->fake_server ) );
+		$this->endpoint = $this->getMock( 'WP_REST_Meta_Posts', array( 'get_meta' ), array( $this->fake_server ) );
 
 		$test_error = new WP_Error( 'rest_test_error', 'Test error' );
 		$this->endpoint->expects( $this->any() )->method( 'get_meta' )->will( $this->returnValue( $test_error ) );

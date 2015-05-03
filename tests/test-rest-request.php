@@ -209,7 +209,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 			'list' => array(
 				'of',
 				'cool',
-				'stuff'
+				'stuff',
 			),
 		);
 
@@ -276,7 +276,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 			'has_url_params'     => true,
 			'has_query_params'   => true,
 			'has_body_params'    => true,
-			'has_default_params' => true
+			'has_default_params' => true,
 		);
 		$this->assertEquals( $expected, $this->request->get_params() );
 	}
@@ -285,18 +285,18 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_url_params(array(
 			'someinteger' => '123',
-			'somestring'  => 'hello'
+			'somestring'  => 'hello',
 		));
 
 		$this->request->set_attributes(array(
 			'args' => array(
 				'someinteger' => array(
-					'sanitize_callback' => 'absint'
+					'sanitize_callback' => 'absint',
 				),
 				'somestring'  => array(
-					'sanitize_callback' => 'absint'
-				)
-			)
+					'sanitize_callback' => 'absint',
+				),
+			),
 		));
 
 		$this->request->sanitize_params();
@@ -310,9 +310,9 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 		$this->request->set_attributes(array(
 			'args' => array(
 				'someinteger' => array(
-					'required' => true
-				)
-			)
+					'required' => true,
+				),
+			),
 		));
 
 		$valid = $this->request->has_valid_params();
@@ -324,15 +324,15 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 	public function test_has_valid_params_validate_callback() {
 
 		$this->request->set_url_params(array(
-			'someinteger' => '123'
+			'someinteger' => '123',
 		));
 
 		$this->request->set_attributes(array(
 			'args' => array(
 				'someinteger' => array(
-					'validate_callback' => '__return_false'
-				)
-			)
+					'validate_callback' => '__return_false',
+				),
+			),
 		));
 
 		$valid = $this->request->has_valid_params();
