@@ -164,7 +164,7 @@ function create_initial_rest_routes() {
 	/*
 	 * Terms
 	 */
-	foreach( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
+	foreach ( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
 		$class = ! empty( $taxonomy->rest_controller_class ) ? $taxonomy->rest_controller_class : 'WP_REST_Terms_Controller';
 
 		if ( ! class_exists( $class ) ) {
