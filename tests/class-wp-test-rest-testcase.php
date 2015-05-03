@@ -10,7 +10,7 @@ abstract class WP_Test_REST_TestCase extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $response );
 		$this->assertEquals( $code, $response->get_error_code() );
 
-		if ( $status !== null ) {
+		if ( null !== $status ) {
 			$data = $response->get_error_data();
 			$this->assertArrayHasKey( 'status', $data );
 			$this->assertEquals( $status, $data['status'] );

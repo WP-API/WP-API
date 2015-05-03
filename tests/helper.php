@@ -30,8 +30,9 @@ class WP_REST_Server_TestHelper {
 		}
 
 		$this->reports = get_transient( 'rest_testhelper_coverage' );
-		if ( empty( $this->reports ) )
+		if ( empty( $this->reports ) ) {
 			$this->reports = array();
+		}
 
 		$this->coverage = new PHP_CodeCoverage();
 		$current_test = preg_replace( '#[^\w-:]+#i', '', $_REQUEST['current_test'] );

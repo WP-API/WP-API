@@ -21,13 +21,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 			'page'            => array(
 				'default'           => 0,
-				'sanitize_callback' => 'absint'
+				'sanitize_callback' => 'absint',
 			),
 		);
 
 		foreach ( $this->get_allowed_query_vars() as $var ) {
-			if ( ! isset( $posts_args[$var] ) ) {
-				$posts_args[$var] = array();
+			if ( ! isset( $posts_args[ $var ] ) ) {
+				$posts_args[ $var ] = array();
 			}
 		}
 
@@ -305,7 +305,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$result = wp_delete_post( $id, true );
 		} else {
 			// Otherwise, only trash if we haven't already
-			if ( EMPTY_TRASH_DAYS && $post->post_status == 'trash' ) {
+			if ( EMPTY_TRASH_DAYS && 'trash' === $post->post_status ) {
 				return new WP_Error( 'rest_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
 			}
 
@@ -361,12 +361,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
-		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to create posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_assign_sticky', __( 'You do not have permission to make posts sticky.' ), array( 'status' => 403 ) );
 		}
 
 		return current_user_can( $post_type->cap->create_posts );
@@ -391,12 +391,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
 		}
 
-		if ( ! empty( $request['author'] ) && $request['author'] !== get_current_user_id() && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
+		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to update posts as this user.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
-			return new WP_Error( 'rest_cannot_assign_sticky', __( "You do not have permission to make posts sticky." ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_assign_sticky', __( 'You do not have permission to make posts sticky.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -561,8 +561,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				$prepared_post->post_title = wp_filter_post_kses( $request['title'] );
-			}
-			elseif ( ! empty( $request['title']['raw'] ) ) {
+			} elseif ( ! empty( $request['title']['raw'] ) ) {
 				$prepared_post->post_title = wp_filter_post_kses( $request['title']['raw'] );
 			}
 		}
@@ -571,8 +570,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
 			if ( is_string( $request['content'] ) ) {
 				$prepared_post->post_content = wp_filter_post_kses( $request['content'] );
-			}
-			elseif ( isset( $request['content']['raw'] ) ) {
+			} elseif ( isset( $request['content']['raw'] ) ) {
 				$prepared_post->post_content = wp_filter_post_kses( $request['content']['raw'] );
 			}
 		}
@@ -581,8 +579,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
 			if ( is_string( $request['excerpt'] ) ) {
 				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt'] );
-			}
-			elseif ( isset( $request['excerpt']['raw'] ) ) {
+			} elseif ( isset( $request['excerpt']['raw'] ) ) {
 				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt']['raw'] );
 			}
 		}
@@ -741,7 +738,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Only check edit others' posts if we are another user
-		if ( $post_author !== get_current_user_id() ) {
+		if ( get_current_user_id() !== $post_author ) {
 
 			$author = get_userdata( $post_author );
 
@@ -980,7 +977,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
 			if ( ! empty( $post->post_password ) ) {
-				$_COOKIE['wp-postpass_' . COOKIEHASH] = '';
+				$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = '';
 			}
 		}
 

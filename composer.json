@@ -17,7 +17,14 @@
     "require": {
         "composer/installers": "~1.0"
     },
+    "require-dev": {
+        "wp-coding-standards/wpcs": "dev-develop"
+    },
     "extra": {
         "installer-name": "json-rest-api"
+    },
+    "scripts": {
+        "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs",
+        "post-update-cmd" : "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs"
     }
 }

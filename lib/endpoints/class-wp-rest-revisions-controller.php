@@ -43,8 +43,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::DELETABLE,
 				'callback'        => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-			))
-		);
+			),
+		));
 
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/revisions/schema', array(
 			'methods'         => WP_REST_Server::READABLE,

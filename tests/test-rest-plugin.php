@@ -68,7 +68,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 			array(
 				'methods'  => array( 'POST' ),
 				'callback' => '__return_null',
-			)
+			),
 		) );
 
 		// Check the route was registered correctly

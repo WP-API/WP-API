@@ -11,14 +11,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
-		}
-		else {
+		} else {
 			$this->assertEquals( rest_mysql_to_rfc3339( $post->post_date ), $data['date'] );
 		}
+
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified'] );
-		}
-		else {
+		} else {
 			$this->assertEquals( rest_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
 		}
 
@@ -35,13 +34,11 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( $post->post_parent ) {
 				if ( is_int( $data['parent'] ) ) {
 					$this->assertEquals( $post->post_parent, $data['parent'] );
-				}
-				else {
+				} else {
 					$this->assertEquals( $post->post_parent, $data['parent']['id'] );
 					$this->check_get_post_response( $data['parent'], get_post( $data['parent']['id'] ), 'view-parent' );
 				}
-			}
-			else {
+			} else {
 				$this->assertEmpty( $data['parent'] );
 			}
 		} else {
@@ -49,7 +46,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 
 		// page attributes
-		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ){
+		if ( $post_type_obj->hierarchical && post_type_supports( $post->post_type, 'page-attributes' ) ) {
 			$this->assertEquals( $post->menu_order, $data['menu_order'] );
 		} else {
 			$this->assertFalse( isset( $data['menu_order'] ) );
@@ -139,15 +136,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 				$this->assertNull( $data['date_gmt'] );
-			}
-			else {
+			} else {
 				$this->assertEquals( rest_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 				$this->assertNull( $data['modified_gmt'] );
-			}
-			else {
+			} else {
 				$this->assertEquals( rest_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
 			}
 		}
