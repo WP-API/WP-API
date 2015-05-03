@@ -5,12 +5,19 @@
  */
 class WP_REST_Terms_Controller extends WP_REST_Controller {
 
+	protected $taxonomy;
+
+	public function __construct( $taxonomy ) {
+		$this->taxonomy = $taxonomy;
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)', array(
+		$base = $this->get_taxonomy_base( $this->taxonomy );
+		register_rest_route( 'wp/v2', '/terms/' . $base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -60,7 +67,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				),
 			),
 		));
-		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/terms/' . $base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -90,7 +97,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			),
 		) );
-		register_rest_route( 'wp/v2', '/terms/(?P<taxonomy>[\w-]+)/schema', array(
+		register_rest_route( 'wp/v2', '/terms/' . $base . '/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -111,19 +118,17 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args['order']   = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
-
 		if ( isset( $request['post'] ) ) {
 			$post_id = $request['post'];
 
-			$permission_check = $this->check_post_taxonomy_permission( $taxonomy, $post_id );
+			$permission_check = $this->check_post_taxonomy_permission( $this->taxonomy, $post_id );
 			if ( is_wp_error( $permission_check ) ) {
 				return $permission_check;
 			}
 
-			$query_result = wp_get_object_terms( $post_id, $taxonomy, $prepared_args );
+			$query_result = wp_get_object_terms( $post_id, $this->taxonomy, $prepared_args );
 		} else {
-			$query_result = get_terms( $taxonomy, $prepared_args );
+			$query_result = get_terms( $this->taxonomy, $prepared_args );
 		}
 		if ( is_wp_error( $query_result ) ) {
 			return new WP_Error( 'rest_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
@@ -145,9 +150,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -167,7 +171,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function create_item( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 		$name = $request['name'];
 
 		$args = array();
@@ -179,14 +182,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$args['slug'] = $request['slug'];
 		}
 
-		$term = wp_insert_term( $name, $taxonomy, $args );
+		$term = wp_insert_term( $name, $this->taxonomy, $args );
 		if ( is_wp_error( $term ) ) {
 			return $term;
 		}
 
 		$response = $this->get_item( array(
 			'id' => $term['term_taxonomy_id'],
-			'taxonomy' => $taxonomy,
 		 ) );
 
 		return rest_ensure_response( $response );
@@ -199,7 +201,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function update_item( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		$prepared_args = array();
 		if ( isset( $request['name'] ) ) {
@@ -212,7 +213,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$prepared_args['slug'] = $request['slug'];
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -227,7 +228,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = $this->get_item( array(
 			'id' => $term->term_taxonomy_id,
-			'taxonomy' => $taxonomy,
 		 ) );
 
 		return rest_ensure_response( $response );
@@ -241,10 +241,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function delete_item( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
 		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
 
 		wp_delete_term( $term->term_id, $term->taxonomy );
 	}
@@ -256,14 +255,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function get_items_permissions_check( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$valid = $this->check_valid_taxonomy( $taxonomy );
+		$valid = $this->check_valid_taxonomy( $this->taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
 
-		$tax_obj = get_taxonomy( $taxonomy );
+		$tax_obj = get_taxonomy( $this->taxonomy );
 		if ( $tax_obj && false === $tax_obj->public ) {
 			return false;
 		}
@@ -278,14 +276,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$valid = $this->check_valid_taxonomy( $taxonomy );
+		$valid = $this->check_valid_taxonomy( $this->taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
 
-		$tax_obj = get_taxonomy( $taxonomy );
+		$tax_obj = get_taxonomy( $this->taxonomy );
 		if ( $tax_obj && false === $tax_obj->public ) {
 			return false;
 		}
@@ -301,14 +298,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$valid = $this->check_valid_taxonomy( $taxonomy );
+		$valid = $this->check_valid_taxonomy( $this->taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
 
-		$taxonomy_obj = get_taxonomy( $taxonomy );
+		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
 			return false;
 		}
@@ -323,14 +319,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function update_item_permissions_check( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$valid = $this->check_valid_taxonomy( $taxonomy );
+		$valid = $this->check_valid_taxonomy( $this->taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
 
-		$taxonomy_obj = get_taxonomy( $taxonomy );
+		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
 			return false;
 		}
@@ -345,19 +340,18 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function delete_item_permissions_check( $request ) {
-		$taxonomy = $this->handle_taxonomy_param( $request['taxonomy'] );
 
-		$valid = $this->check_valid_taxonomy( $taxonomy );
+		$valid = $this->check_valid_taxonomy( $this->taxonomy );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $taxonomy );
+		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 
-		$taxonomy_obj = get_taxonomy( $taxonomy );
+		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy_obj && ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
 			return false;
 		}
@@ -524,20 +518,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error( 'rest_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
-	}
-
-	/**
-	 * Normalizes the post_tag taxonomy and sanitizes the request variable.
-	 *
-	 * @param string
-	 * @return string
-	 */
-	protected function handle_taxonomy_param( $taxonomy ) {
-		if ( 'tag' === $taxonomy ) {
-			$taxonomy = 'post_tag';
-		}
-
-		return sanitize_key( $taxonomy );
 	}
 
 	/**
