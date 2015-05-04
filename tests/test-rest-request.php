@@ -340,7 +340,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( 'rest_missing_callback_param', $valid->get_error_code() );
 
 		$data = $valid->get_error_data( 'rest_missing_callback_param' );
-		
+
 		$this->assertTrue( in_array( 'someinteger', $data['params'] ) );
 		$this->assertTrue( in_array( 'someotherinteger', $data['params'] ) );
 	}
@@ -369,7 +369,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_url_params(array(
 			'someinteger' => '123',
-			'someotherinteger' => '123'
+			'someotherinteger' => '123',
 		));
 
 		$this->request->set_attributes(array(
