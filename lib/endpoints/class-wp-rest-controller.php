@@ -306,10 +306,6 @@ abstract class WP_REST_Controller {
 			}
 		}
 
-		if ( $property['type'] === 'string' ) {
-			return sanitize_text_field( $value );
-		}
-
 		return $value;
 	}
 }
