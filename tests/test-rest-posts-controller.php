@@ -936,6 +936,67 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'type', $properties );
 	}
 
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' )
+		);
+
+		register_api_field( 'post', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' )
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		wp_set_current_user( 1 );
+
+		$post_id = $this->factory->post->create();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+		));
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 123, get_post_meta( $post_id, 'my_custom_int', true ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+			'title' => 'hello',
+		));
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 123, $response->data['my_custom_int'] );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object ) {
+		return get_post_meta( $object['id'], 'my_custom_int', true );
+	}
+
+	public function additional_field_update_callback( $value, $post ) {
+		update_post_meta( $post->ID, 'my_custom_int', $value );
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'youseeeme' );
 		if ( isset( $this->attachment_id ) ) {
