@@ -235,12 +235,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'email'    => 'something',
 		);
 
-		$request = new WP_JSON_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'json_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {

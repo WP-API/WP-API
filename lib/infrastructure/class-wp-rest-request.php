@@ -639,7 +639,7 @@ class WP_REST_Request implements ArrayAccess {
 			foreach ( $this->params[ $type ] as $key => $value ) {
 				// check if this param has a sanitize_callback added
 				if ( isset( $attributes['args'][ $key ] ) && ! empty( $attributes['args'][ $key ]['sanitize_callback'] ) ) {
-					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this );
+					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this, $key );
 				}
 			}
 		}

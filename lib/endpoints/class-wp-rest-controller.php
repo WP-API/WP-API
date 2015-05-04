@@ -210,7 +210,7 @@ abstract class WP_REST_Controller {
 	 * Validate an parameter value that's based on a property from the item schema.
 	 * 
 	 * @param  mixed $value
-	 * @param  WP_JSON_Request $request
+	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
 	 * @return WP_Error|bool
 	 */
@@ -235,29 +235,29 @@ abstract class WP_REST_Controller {
 
 		if ( ! empty( $property['enum'] ) ) {
 			if ( ! in_array( $value, $property['enum'] ) ) {
-				return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not one of %s' ), $parameter, implode( ', ', $property['enum'] ) ) );
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $parameter, implode( ', ', $property['enum'] ) ) );
 			}
 		}
 
 		if ( $property['type'] === 'integer' && ! is_numeric( $value ) ) {
-			return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
 		}
 
 		if ( $property['type'] === 'string' && ! is_string( $value ) ) {
-			return new WP_Error( 'json_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
 		}
 
 		if ( isset( $property['format'] ) ) {
 			switch ( $property['format'] ) {
 				case 'date-time' :
-					if ( ! json_parse_date( $value ) ) {
-						return new WP_Error( 'json_invalid_param', __( 'The date you provided is invalid.' ) );
+					if ( ! rest_parse_date( $value ) ) {
+						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
 					}
 					break;
 
 				case 'email' :
 					if ( ! is_email( $value ) ) {
-						return new WP_Error( 'json_invalid_param', __( 'The email address you provided is invalid.' ) );
+						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
 					}
 					break;
 			}
@@ -270,7 +270,7 @@ abstract class WP_REST_Controller {
 	 * Sanitize an parameter value that's based on a property from the item schema.
 	 * 
 	 * @param  mixed $value
-	 * @param  WP_JSON_Request $request
+	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
 	 * @return WP_Error|bool
 	 */
