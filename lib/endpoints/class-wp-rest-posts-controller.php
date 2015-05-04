@@ -198,6 +198,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
+		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
+
 		/**
 		 * @TODO: Enable rest_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -266,6 +268,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
 			$this->handle_template( $request['template'], $post->ID );
 		}
+
+		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
 
 		/**
 		 * @TODO: Enable rest_insert_post() action after
@@ -1038,6 +1042,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
@@ -1150,7 +1156,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$base = $this->get_post_type_base( $this->post_type );
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => $base,
+			'title'      => $this->post_type,
 			'type'       => 'object',
 			/*
 			 * Base properties for every Post
@@ -1421,7 +1427,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }
