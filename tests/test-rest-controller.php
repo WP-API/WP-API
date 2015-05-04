@@ -2,12 +2,12 @@
 
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
-	
+
 	function test_validate_schema_type_integer() {
 
 		$controller = new WP_REST_Test_Controller();
 
-		$this->assertTrue( 
+		$this->assertTrue(
 			$controller->validate_schema_property( '123', null, 'someinteger' )
 		);
 
@@ -21,7 +21,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller = new WP_REST_Test_Controller();
 
-		$this->assertTrue( 
+		$this->assertTrue(
 			$controller->validate_schema_property( '123', null, 'somestring' )
 		);
 
@@ -35,7 +35,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller = new WP_REST_Test_Controller();
 
-		$this->assertTrue( 
+		$this->assertTrue(
 			$controller->validate_schema_property( 'a', null, 'someenum' )
 		);
 
@@ -49,7 +49,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller = new WP_REST_Test_Controller();
 
-		$this->assertTrue( 
+		$this->assertTrue(
 			$controller->validate_schema_property( 'joe@foo.bar', null, 'someemail' )
 		);
 
@@ -63,7 +63,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$controller = new WP_REST_Test_Controller();
 
-		$this->assertTrue( 
+		$this->assertTrue(
 			$controller->validate_schema_property( '2010-01-01T12:00:00', null, 'somedate' )
 		);
 

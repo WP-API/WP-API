@@ -187,7 +187,7 @@ abstract class WP_REST_Controller {
 		$post_type_fields_args = array();
 
 		foreach ( $post_type_fields as $field_id => $params ) {
-			
+
 			// Anything marked as readonly should not be a arg
 			if ( ! empty( $params['readonly'] ) ) {
 				continue;
@@ -208,7 +208,7 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Validate an parameter value that's based on a property from the item schema.
-	 * 
+	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
@@ -217,7 +217,7 @@ abstract class WP_REST_Controller {
 	public function validate_schema_property( $value, $request, $parameter ) {
 
 		/**
-		 * We don't currently validate against empty values, as lots of checks 
+		 * We don't currently validate against empty values, as lots of checks
 		 * can unintentially fail, as the callback will often handle an empty
 		 * value it's self.
 		 */
@@ -227,11 +227,11 @@ abstract class WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 
-		if ( ! isset( $schema['properties'][$parameter] ) ) {
+		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
 			return true;
 		}
-		
-		$property = $schema['properties'][$parameter];
+
+		$property = $schema['properties'][ $parameter ];
 
 		if ( ! empty( $property['enum'] ) ) {
 			if ( ! in_array( $value, $property['enum'] ) ) {
@@ -239,11 +239,11 @@ abstract class WP_REST_Controller {
 			}
 		}
 
-		if ( $property['type'] === 'integer' && ! is_numeric( $value ) ) {
+		if ( 'integer' === $property['type'] && ! is_numeric( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
 		}
 
-		if ( $property['type'] === 'string' && ! is_string( $value ) ) {
+		if ( 'string' === $property['type']&& ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
 		}
 
@@ -268,7 +268,7 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Sanitize an parameter value that's based on a property from the item schema.
-	 * 
+	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
@@ -278,23 +278,23 @@ abstract class WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 
-		if ( ! isset( $schema['properties'][$parameter] ) ) {
+		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
 			return true;
 		}
-		
-		$property = $schema['properties'][$parameter];
 
-		if ( $property['type'] === 'integer' ) {
+		$property = $schema['properties'][ $parameter ];
+
+		if ( 'integer' === $property['type'] ) {
 			return intval( $value );
 		}
-		
+
 		if ( isset( $property['format'] ) ) {
 			switch ( $property['format'] ) {
 				case 'date-time' :
 					return sanitize_text_field( $value );
 
 				case 'email' :
-					// as sanitize_email is very lossy, we just want to 
+					// as sanitize_email is very lossy, we just want to
 					// make sure the string is safe
 					if ( sanitize_email( $value ) ) {
 						return sanitize_email( $value );
