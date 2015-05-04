@@ -9,17 +9,17 @@
  * @TODO fix this doc block (Make it better maybe?)
  */
 
-add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
-add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
-add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
-add_action( 'wp_head', 'json_output_link_wp_head', 10, 0 );
-add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
-add_action( 'auth_cookie_malformed',    'json_cookie_collect_status' );
-add_action( 'auth_cookie_expired',      'json_cookie_collect_status' );
-add_action( 'auth_cookie_bad_username', 'json_cookie_collect_status' );
-add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
-add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
-add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
+add_action( 'wp_enqueue_scripts', 'rest_register_scripts', -100 );
+add_action( 'admin_enqueue_scripts', 'rest_register_scripts', -100 );
+add_action( 'xmlrpc_rsd_apis', 'rest_output_rsd' );
+add_action( 'wp_head', 'rest_output_link_wp_head', 10, 0 );
+add_action( 'template_redirect', 'rest_output_link_header', 11, 0 );
+add_action( 'auth_cookie_malformed',    'rest_cookie_collect_status' );
+add_action( 'auth_cookie_expired',      'rest_cookie_collect_status' );
+add_action( 'auth_cookie_bad_username', 'rest_cookie_collect_status' );
+add_action( 'auth_cookie_bad_hash',     'rest_cookie_collect_status' );
+add_action( 'auth_cookie_valid',        'rest_cookie_collect_status' );
+add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 
 
 
@@ -28,18 +28,18 @@ add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
  *
  * @see wp_register_scripts()
  */
-function json_register_scripts() {
+function rest_register_scripts() {
 	wp_register_script( 'wp-api', plugins_url( 'wp-api.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
 
-	$settings = array( 'root' => esc_url_raw( get_json_url() ), 'nonce' => wp_create_nonce( 'wp_json' ) );
+	$settings = array( 'root' => esc_url_raw( get_rest_url() ), 'nonce' => wp_create_nonce( 'wp_rest' ) );
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
 
 /**
  * Add the API URL to the WP RSD endpoint.
  */
-function json_output_rsd() {
-	$api_root = get_json_url();
+function rest_output_rsd() {
+	$api_root = get_rest_url();
 
 	if ( empty( $api_root ) ) {
 		return;
@@ -52,10 +52,10 @@ function json_output_rsd() {
 /**
  * Output API link tag into page header.
  *
- * @see get_json_url()
+ * @see get_rest_url()
  */
-function json_output_link_wp_head() {
-	$api_root = get_json_url();
+function rest_output_link_wp_head() {
+	$api_root = get_rest_url();
 
 	if ( empty( $api_root ) ) {
 		return;
@@ -67,12 +67,12 @@ function json_output_link_wp_head() {
 /**
  * Send a Link header for the API.
  */
-function json_output_link_header() {
+function rest_output_link_header() {
 	if ( headers_sent() ) {
 		return;
 	}
 
-	$api_root = get_json_url();
+	$api_root = get_rest_url();
 
 	if ( empty($api_root) ) {
 		return;
@@ -88,7 +88,7 @@ function json_output_link_header() {
  * for logged in users. However, the API has to check nonces
  * for each request to ensure users are not vulnerable to CSRF.
  *
- * @global mixed $wp_json_auth_cookie
+ * @global mixed $wp_rest_auth_cookie
  *
  * @param WP_Error|mixed $result Error from another authentication handler,
  *                               null if we should handle it, or another
@@ -96,40 +96,40 @@ function json_output_link_header() {
  * @return WP_Error|mixed|bool WP_Error if the cookie is invalid, the $result,
  *                             otherwise true.
  */
-function json_cookie_check_errors( $result ) {
+function rest_cookie_check_errors( $result ) {
 	if ( ! empty( $result ) ) {
 		return $result;
 	}
 
-	global $wp_json_auth_cookie;
+	global $wp_rest_auth_cookie;
 
 	/*
 	 * Is cookie authentication being used? (If we get an auth
 	 * error, but we're still logged in, another authentication
 	 * must have been used.)
 	 */
-	if ( $wp_json_auth_cookie !== true && is_user_logged_in() ) {
+	if ( true !== $wp_rest_auth_cookie && is_user_logged_in() ) {
 		return $result;
 	}
 
 	// Is there a nonce?
 	$nonce = null;
-	if ( isset( $_REQUEST['_wp_json_nonce'] ) ) {
-		$nonce = $_REQUEST['_wp_json_nonce'];
+	if ( isset( $_REQUEST['_wp_rest_nonce'] ) ) {
+		$nonce = $_REQUEST['_wp_rest_nonce'];
 	} elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
 		$nonce = $_SERVER['HTTP_X_WP_NONCE'];
 	}
 
-	if ( $nonce === null ) {
+	if ( null === $nonce ) {
 		// No nonce at all, so act as if it's an unauthenticated request.
 		wp_set_current_user( 0 );
 		return true;
 	}
 
 	// Check the nonce.
-	$result = wp_verify_nonce( $nonce, 'wp_json' );
+	$result = wp_verify_nonce( $nonce, 'wp_rest' );
 	if ( ! $result ) {
-		return new WP_Error( 'json_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
+		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
 	}
 
 	return true;
@@ -139,22 +139,22 @@ function json_cookie_check_errors( $result ) {
  * Collect cookie authentication status.
  *
  * Collects errors from {@see wp_validate_auth_cookie} for
- * use by {@see json_cookie_check_errors}.
+ * use by {@see rest_cookie_check_errors}.
  *
  * @see current_action()
- * @global mixed $wp_json_auth_cookie
+ * @global mixed $wp_rest_auth_cookie
  */
-function json_cookie_collect_status() {
-	global $wp_json_auth_cookie;
+function rest_cookie_collect_status() {
+	global $wp_rest_auth_cookie;
 
 	$status_type = current_action();
 
-	if ( $status_type !== 'auth_cookie_valid' ) {
-		$wp_json_auth_cookie = substr( $status_type, 12 );
+	if ( 'auth_cookie_valid' !== $status_type ) {
+		$wp_rest_auth_cookie = substr( $status_type, 12 );
 		return;
 	}
 
-	$wp_json_auth_cookie = true;
+	$wp_rest_auth_cookie = true;
 }
 
 /**
@@ -166,7 +166,7 @@ function json_cookie_collect_status() {
  * @param string $email Email address.
  * @return string URL for the user's avatar, empty string otherwise.
  */
-function json_get_avatar_url( $email ) {
+function rest_get_avatar_url( $email ) {
 	$avatar_html = get_avatar( $email );
 
 	// Strip the avatar url from the get_avatar img tag.
@@ -186,7 +186,7 @@ function json_get_avatar_url( $email ) {
  * @param bool   $force_utc Force UTC timezone instead of using the timestamp's TZ.
  * @return DateTime DateTime instance.
  */
-function json_parse_date( $date, $force_utc = false ) {
+function rest_parse_date( $date, $force_utc = false ) {
 	if ( $force_utc ) {
 		$date = preg_replace( '/[+-]\d+:?\d+$/', '+00:00', $date );
 	}
@@ -208,8 +208,8 @@ function json_parse_date( $date, $force_utc = false ) {
  * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
  *                    null on failure.
  */
-function json_get_date_with_gmt( $date, $force_utc = false ) {
-	$date = json_parse_date( $date, $force_utc );
+function rest_get_date_with_gmt( $date, $force_utc = false ) {
+	$date = rest_parse_date( $date, $force_utc );
 
 	if ( empty( $date ) ) {
 		return null;
@@ -229,7 +229,7 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
  *
  * @param string $date
  */
-function json_mysql_to_rfc3339( $date_string ) {
+function rest_mysql_to_rfc3339( $date_string ) {
 	$formatted = mysql2date( 'c', $date_string, false );
 
 	// Strip timezone information
@@ -242,10 +242,10 @@ function json_mysql_to_rfc3339( $date_string ) {
  *
  * @return DateTimeZone DateTimeZone instance.
  */
-function json_get_timezone() {
+function rest_get_timezone() {
 	static $zone = null;
 
-	if ( $zone !== null ) {
+	if ( null !== $zone ) {
 		return $zone;
 	}
 

@@ -28,7 +28,7 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 require $test_root . '/includes/bootstrap.php';
 
 // Helper classes
-require_once dirname( __FILE__ ) . '/class-wp-test-json-testcase.php';
-require_once dirname( __FILE__ ) . '/class-wp-test-json-controller-testcase.php';
-require_once dirname( __FILE__ ) . '/class-wp-test-json-post-type-controller-testcase.php';
-require_once dirname( __FILE__ ) . '/class-wp-test-spy-json-server.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-rest-testcase.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-rest-controller-testcase.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-rest-post-type-controller-testcase.php';
+require_once dirname( __FILE__ ) . '/class-wp-test-spy-rest-server.php';
