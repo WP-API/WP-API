@@ -20,9 +20,12 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( '/wp/v2/terms/(?P<taxonomy>[\w-]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/terms/(?P<taxonomy>[\w-]+)/(?P<id>[\d]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/terms/(?P<taxonomy>[\w-]+)/schema', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/category', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/category/(?P<id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/category/schema', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/tag', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/tag/(?P<id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/terms/tag/schema', $routes );
 	}
 
 	public function test_get_items() {
@@ -77,7 +80,9 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_custom_tax_post_args() {
-		register_taxonomy( 'batman', 'post' );
+		register_taxonomy( 'batman', 'post', array( 'show_in_rest' => true ) );
+		$controller = new WP_REST_Terms_Controller( 'batman' );
+		$controller->register_routes();
 		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
 		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
 		$post_id = $this->factory->post->create();
@@ -132,13 +137,13 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/robin' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_get_terms_invalid_taxonomy() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_get_items_invalid_post() {
@@ -167,7 +172,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_term_invalid_taxonomy() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy/1' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_get_term_invalid_term() {
@@ -182,7 +187,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/robin/' . $term1 );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_create_item() {
@@ -204,7 +209,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_create_item_incorrect_permissions() {
@@ -247,7 +252,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy/9999999' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_update_item_invalid_term() {
@@ -279,7 +284,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/terms/invalid-taxonomy/9999999' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_delete_item_invalid_term() {
