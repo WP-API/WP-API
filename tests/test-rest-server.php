@@ -467,20 +467,21 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			'update_callback' => array( $this, 'additional_field_update_callback' )
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/users/schema' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
 
 		$response = $this->server->dispatch( $request );
+
 		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
 		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
 
 		wp_set_current_user(1);
 
-		$request = new WP_REST_Request( 'GET', '/wp/users/1' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/1' );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertArrayHasKey( 'my_custom_int', $response->data );
 
-		$request = new WP_REST_Request( 'POST', '/wp/users/1' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/1' );
 		$request->set_body_params(array(
 			'my_custom_int' => 123
 		));
@@ -488,7 +489,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 123, get_user_meta( 1, 'my_custom_int', true ) );
 
-		$request = new WP_REST_Request( 'POST', '/wp/users' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
 			'email' => 'joe@foobar.com',
