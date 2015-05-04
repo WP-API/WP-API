@@ -475,6 +475,10 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
+		if ( is_multisite() ) {
+			$current_user = wp_get_current_user( 1 );
+			update_site_option( 'site_admins', array( $current_user->user_login ) );
+		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/1' );
 
