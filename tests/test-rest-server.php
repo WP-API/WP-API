@@ -500,6 +500,9 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 123, $response->data['my_custom_int'] );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
 	}
 
 	public function additional_field_get_callback( $object ) {
