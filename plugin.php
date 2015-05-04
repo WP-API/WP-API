@@ -94,12 +94,12 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
 
 	$args = wp_parse_args( $args, $defaults );
 
-	global $wp_json_additional_fields;
+	global $wp_rest_additional_fields;
 
 	$object_types = (array) $object_type;
 
 	foreach ( $object_types as $object_type ) {
-		$wp_json_additional_fields[$object_type][$attribute] = $args;	
+		$wp_rest_additional_fields[$object_type][$attribute] = $args;	
 	}
 }
 
