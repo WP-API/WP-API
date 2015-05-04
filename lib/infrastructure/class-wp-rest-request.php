@@ -669,7 +669,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		if ( ! empty( $required ) ) {
-			return new WP_Error( 'rest_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400, 'params' => $required ) );
 		}
 
 		// check the validation callbacks for each registered arg.
@@ -684,7 +684,7 @@ class WP_REST_Request implements ArrayAccess {
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
 				if ( false === $valid_check ) {
-					$invalid_params[] = $key;
+					$invalid_params[ $key ] = __( 'Invalid param.' );
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
@@ -694,7 +694,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		if ( $invalid_params ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $invalid_params ) ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', $invalid_params ) ), array( 'status' => 400, 'params' => $invalid_params ) );
 		}
 
 		return true;

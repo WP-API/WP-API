@@ -183,27 +183,27 @@ abstract class WP_REST_Controller {
 	public function get_endpoint_args_for_item_schema( $add_required_flag = true ) {
 
 		$schema                = $this->get_item_schema();
-		$post_type_fields      = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
-		$post_type_fields_args = array();
+		$schema_properties     = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
+		$endpoint_args = array();
 
-		foreach ( $post_type_fields as $field_id => $params ) {
+		foreach ( $schema_properties as $field_id => $params ) {
 
 			// Anything marked as readonly should not be a arg
 			if ( ! empty( $params['readonly'] ) ) {
 				continue;
 			}
 
-			$post_type_fields_args[ $field_id ] = array(
+			$endpoint_args[ $field_id ] = array(
 				'validate_callback' => array( $this, 'validate_schema_property' ),
 				'sanitize_callback' => array( $this, 'sanitize_schema_property' )
 			);
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
-				$post_type_fields_args[ $field_id ]['required'] = true;
+				$endpoint_args[ $field_id ]['required'] = true;
 			}
 		}
 
-		return $post_type_fields_args;
+		return $endpoint_args;
 	}
 
 	/**

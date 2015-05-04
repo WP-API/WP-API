@@ -321,6 +321,30 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( 'rest_missing_callback_param', $valid->get_error_code() );
 	}
 
+	public function test_has_valid_params_required_flag_multiple() {
+
+		$this->request->set_attributes(array(
+			'args' => array(
+				'someinteger' => array(
+					'required' => true,
+				),
+				'someotherinteger' => array(
+					'required' => true,
+				),
+			),
+		));
+
+		$valid = $this->request->has_valid_params();
+
+		$this->assertWPError( $valid );
+		$this->assertEquals( 'rest_missing_callback_param', $valid->get_error_code() );
+
+		$data = $valid->get_error_data( 'rest_missing_callback_param' );
+
+		$this->assertTrue( in_array( 'someinteger', $data['params'] ) );
+		$this->assertTrue( in_array( 'someotherinteger', $data['params'] ) );
+	}
+
 	public function test_has_valid_params_validate_callback() {
 
 		$this->request->set_url_params(array(
@@ -339,5 +363,34 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 
 		$this->assertWPError( $valid );
 		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+	}
+
+	public function test_has_multiple_invalid_params_validate_callback() {
+
+		$this->request->set_url_params(array(
+			'someinteger' => '123',
+			'someotherinteger' => '123',
+		));
+
+		$this->request->set_attributes(array(
+			'args' => array(
+				'someinteger' => array(
+					'validate_callback' => '__return_false',
+				),
+				'someotherinteger' => array(
+					'validate_callback' => '__return_false',
+				),
+			),
+		));
+
+		$valid = $this->request->has_valid_params();
+
+		$this->assertWPError( $valid );
+		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+
+		$data = $valid->get_error_data( 'rest_invalid_param' );
+
+		$this->assertArrayHasKey( 'someinteger', $data['params'] );
+		$this->assertArrayHasKey( 'someotherinteger', $data['params'] );
 	}
 }
