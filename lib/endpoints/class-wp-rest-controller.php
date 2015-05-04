@@ -263,11 +263,11 @@ abstract class WP_REST_Controller {
 
 		global $wp_rest_additional_fields;
 
-		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[$object_type] ) ) {
+		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
 			return array();
 		}
 
-		return $wp_rest_additional_fields[$object_type];
+		return $wp_rest_additional_fields[ $object_type ];
 	}
 
 	/**
