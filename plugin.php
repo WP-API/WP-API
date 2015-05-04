@@ -107,9 +107,11 @@ function _add_extra_api_taxonomy_arguments() {
 
 	$wp_taxonomies['category']->show_in_rest = true;
 	$wp_taxonomies['category']->rest_base = 'category';
+	$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
 
 	$wp_taxonomies['post_tag']->show_in_rest = true;
 	$wp_taxonomies['post_tag']->rest_base = 'tag';
+	$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 }
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
@@ -162,8 +164,19 @@ function create_initial_rest_routes() {
 	/*
 	 * Terms
 	 */
-	$controller = new WP_REST_Terms_Controller;
-	$controller->register_routes();
+	foreach ( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
+		$class = ! empty( $taxonomy->rest_controller_class ) ? $taxonomy->rest_controller_class : 'WP_REST_Terms_Controller';
+
+		if ( ! class_exists( $class ) ) {
+			continue;
+		}
+		$controller = new $class( $taxonomy->name );
+		if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
+			continue;
+		}
+
+		$controller->register_routes();
+	}
 
 	/*
 	 * Users
