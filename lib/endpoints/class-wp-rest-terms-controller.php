@@ -505,7 +505,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 			);
-		return parent::add_additional_fields_schema( $schema );
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 	/**
