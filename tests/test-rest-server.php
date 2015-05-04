@@ -474,7 +474,11 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
 		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
 
-		wp_set_current_user(1);
+		wp_set_current_user( 1 );
+		if ( is_multisite() ) {
+			$current_user = wp_get_current_user( 1 );
+			update_site_option( 'site_admins', array( $current_user->user_login ) );
+		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/1' );
 
@@ -483,7 +487,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users/1' );
 		$request->set_body_params(array(
-			'my_custom_int' => 123
+			'my_custom_int' => 123,
 		));
 
 		$response = $this->server->dispatch( $request );
@@ -494,7 +498,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			'my_custom_int' => 123,
 			'email' => 'joe@foobar.com',
 			'username' => 12346789,
-			'password' => 'hello'
+			'password' => 'hello',
 		));
 
 		$response = $this->server->dispatch( $request );
