@@ -174,7 +174,7 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Add the values from additional fields to a data object
-	 * 
+	 *
 	 * @param string $object_type
 	 * @param array  $object
 	 * @param WP_JSON_Request $request
@@ -190,7 +190,7 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$object[$field_name] = call_user_func( $field_options['get_callback'], $object, $field_name, $request );
+			$object[ $field_name ] = call_user_func( $field_options['get_callback'], $object, $field_name, $request );
 		}
 
 		return $object;
@@ -207,11 +207,11 @@ abstract class WP_REST_Controller {
 			}
 
 			// Don't run the update callbacks if the data wasn't passed in the request
-			if ( ! isset( $request[$field_name] ) ) {
+			if ( ! isset( $request[ $field_name ] ) ) {
 				continue;
 			}
 
-			$result = call_user_func( $field_options['update_callback'], $request[$field_name], $object, $field_name, $request );
+			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request );
 		}
 	}
 
@@ -219,7 +219,7 @@ abstract class WP_REST_Controller {
 	 * Add the schema from additional fields to an schema array
 	 *
 	 * The type of object is inferred from the passed schema.
-	 * 
+	 *
 	 * @param array $schema Schema array
 	 */
 	protected function add_additional_fields_schema( $schema ) {
@@ -239,7 +239,7 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			$schema['properties'][$field_name] = $field_options['schema'];
+			$schema['properties'][ $field_name ] = $field_options['schema'];
 		}
 
 		return $schema;
@@ -247,14 +247,14 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Get all the registered additional fields for a given object-type
-	 * 
+	 *
 	 * @param  string $object_type
 	 * @return array
 	 */
 	protected function get_additional_fields( $object_type = null ) {
 
 		if ( ! $object_type ) {
-			$object_type = $this->get_object_type();	
+			$object_type = $this->get_object_type();
 		}
 
 		if ( ! $object_type ) {
@@ -272,7 +272,7 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Get the object type this controller is responsible for managing.
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function get_object_type() {

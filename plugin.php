@@ -78,10 +78,10 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 
 /**
  * Register a new field on an existing WordPress object type
- * 
+ *
  * @param  string|array $object_type "post"|"term"|"comment" etc
  * @param  string $attribute   The attribute name
- * @param  array  $args        
+ * @param  array  $args
  * @return bool|wp_error
  */
 function register_api_field( $object_type, $attribute, $args = array() ) {
@@ -99,7 +99,7 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
 	$object_types = (array) $object_type;
 
 	foreach ( $object_types as $object_type ) {
-		$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;	
+		$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
 	}
 }
 
