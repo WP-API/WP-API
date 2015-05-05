@@ -505,7 +505,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'enum'               => array(
 				'id',
 				'name',
-				'slug'
+				'slug',
 				),
 		);
 		$query_params['parent'] = array(
