@@ -17,36 +17,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		$base = $this->get_taxonomy_base( $this->taxonomy );
+		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/terms/' . $base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => array(
-					'search'   => array(
-						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => '',
-					),
-					'per_page' => array(
-						'sanitize_callback' => 'absint',
-						'default'           => 10,
-					),
-					'page'     => array(
-						'sanitize_callback' => 'absint',
-						'default'           => 1,
-					),
-					'order'    => array(
-						'sanitize_callback' => 'sanitize_key',
-						'default'           => 'ASC',
-					),
-					'orderby'  => array(
-						'sanitize_callback' => 'sanitize_key',
-						'default'           => 'name',
-					),
-					'post'     => array(
-						'sanitize_callback' => 'absint',
-					),
-				),
+				'args'                => $query_params,
 			),
 			array(
 				'methods'     => WP_REST_Server::CREATABLE,
@@ -506,6 +483,42 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				),
 			);
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'name',
+			'enum'               => array(
+				'id',
+				'name',
+				'slug'
+				),
+		);
+		$query_params['parent'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific parent term.',
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
+		);
+		$query_params['post'] = array(
+			'description'        => 'Limit result set to terms assigned to a specific post.',
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
+		);
+		return $query_params;
 	}
 
 	/**
