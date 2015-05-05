@@ -478,6 +478,71 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'username', $properties );
 	}
 
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' )
+		);
+
+		register_api_field( 'user', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' )
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		wp_set_current_user( 1 );
+		if ( is_multisite() ) {
+			$current_user = wp_get_current_user( 1 );
+			update_site_option( 'site_admins', array( $current_user->user_login ) );
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/1' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/1' );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+		));
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 123, get_user_meta( 1, 'my_custom_int', true ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+			'email' => 'joe@foobar.com',
+			'username' => 'abc123',
+			'password' => 'hello',
+		));
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 123, $response->data['my_custom_int'] );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object ) {
+		return get_user_meta( $object['id'], 'my_custom_int', true );
+	}
+
+	public function additional_field_update_callback( $value, $user ) {
+		update_user_meta( $user->ID, 'my_custom_int', $value );
+	}
+
 	public function tearDown() {
 		parent::tearDown();
 	}

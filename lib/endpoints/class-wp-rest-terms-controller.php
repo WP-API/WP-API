@@ -404,6 +404,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
 		$data = rest_ensure_response( $data );
 
 		$links = $this->prepare_links( $item );
@@ -503,7 +505,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 			);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 	/**

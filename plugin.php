@@ -77,6 +77,33 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 }
 
 /**
+ * Register a new field on an existing WordPress object type
+ *
+ * @param  string|array $object_type "post"|"term"|"comment" etc
+ * @param  string $attribute   The attribute name
+ * @param  array  $args
+ * @return bool|wp_error
+ */
+function register_api_field( $object_type, $attribute, $args = array() ) {
+
+	$defaults = array(
+		'get_callback'    => null,
+		'update_callback' => null,
+		'schema'          => null,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	global $wp_rest_additional_fields;
+
+	$object_types = (array) $object_type;
+
+	foreach ( $object_types as $object_type ) {
+		$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
+	}
+}
+
+/**
  * Add the extra Post Type registration arguments we need
  * These attributes will eventually be committed to core.
  */

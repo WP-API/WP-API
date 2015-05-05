@@ -169,7 +169,120 @@ abstract class WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		return array();
+		return $this->add_additional_fields_schema( array() );
+	}
+
+	/**
+	 * Add the values from additional fields to a data object
+	 *
+	 * @param string $object_type
+	 * @param array  $object
+	 * @param WP_JSON_Request $request
+	 * @return array modified object with additional fields
+	 */
+	protected function add_additional_fields_to_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+
+			if ( ! $field_options['get_callback'] ) {
+				continue;
+			}
+
+			$object[ $field_name ] = call_user_func( $field_options['get_callback'], $object, $field_name, $request );
+		}
+
+		return $object;
+	}
+
+	protected function update_additional_fields_for_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+
+			if ( ! $field_options['update_callback'] ) {
+				continue;
+			}
+
+			// Don't run the update callbacks if the data wasn't passed in the request
+			if ( ! isset( $request[ $field_name ] ) ) {
+				continue;
+			}
+
+			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request );
+		}
+	}
+
+	/**
+	 * Add the schema from additional fields to an schema array
+	 *
+	 * The type of object is inferred from the passed schema.
+	 *
+	 * @param array $schema Schema array
+	 */
+	protected function add_additional_fields_schema( $schema ) {
+		if ( ! $schema || ! isset( $schema['title'] ) ) {
+			return $schema;
+		}
+
+		/**
+		 * Can't use $this->get_object_type otherwise we can an inf loop
+		 */
+		$object_type = $schema['title'];
+
+		$additional_fields = $this->get_additional_fields( $object_type );
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+			if ( ! $field_options['schema'] ) {
+				continue;
+			}
+
+			$schema['properties'][ $field_name ] = $field_options['schema'];
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * Get all the registered additional fields for a given object-type
+	 *
+	 * @param  string $object_type
+	 * @return array
+	 */
+	protected function get_additional_fields( $object_type = null ) {
+
+		if ( ! $object_type ) {
+			$object_type = $this->get_object_type();
+		}
+
+		if ( ! $object_type ) {
+			return array();
+		}
+
+		global $wp_rest_additional_fields;
+
+		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
+			return array();
+		}
+
+		return $wp_rest_additional_fields[ $object_type ];
+	}
+
+	/**
+	 * Get the object type this controller is responsible for managing.
+	 *
+	 * @return string
+	 */
+	protected function get_object_type() {
+		$schema = $this->get_item_schema();
+
+		if ( ! $schema || ! isset( $schema['title'] ) ) {
+			return null;
+		}
+
+		return $schema['title'];
 	}
 
 	/**

@@ -208,6 +208,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 			$user->ID = $user_id;
 		}
+
+		$this->update_additional_fields_for_object( $user, $request );
+
 		do_action( 'rest_insert_user', $user, $request, false );
 
 		$response = $this->get_item( array(
@@ -256,6 +259,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $user_id ) ) {
 			return $user_id;
 		}
+
+		$this->update_additional_fields_for_object( $user, $request );
 
 		do_action( 'rest_insert_user', $user, $request, false );
 
@@ -426,6 +431,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 		$data = $this->filter_response_by_context( $data, $context );
+
+		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
@@ -615,7 +622,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 			)
 		);
-
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 }
