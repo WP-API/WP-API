@@ -151,6 +151,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
 		if ( $request['page'] > 1 ) {
 			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
 			$prev_link = add_query_arg( 'page', $prev_page, $base );
 			$response->link_header( 'prev', $prev_link );
 		}
