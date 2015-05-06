@@ -51,6 +51,71 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
+	/**
+	 * @group test
+	 */
+	public function test_get_items_pagination_headers() {
+		wp_set_current_user( $this->user );
+		// Start of the index, including the three existing users
+		for ( $i = 0; $i < 47; $i++ ) {
+			$this->factory->user->create( array(
+				'name'   => "User {$i}",
+				) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 50, $headers['X-WP-Total'] );
+		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$next_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/users' ) );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		// 3rd page
+		$this->factory->user->create( array(
+				'name'   => 'User 51',
+				) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'page', 3 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/users' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg( array(
+			'page'    => 4,
+			), rest_url( '/wp/v2/users' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		// Last page
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'page', 6 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 5,
+			), rest_url( '/wp/v2/users' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		// Out of bounds
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'page', 8 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 6,
+			), rest_url( '/wp/v2/users' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
 	public function test_get_item() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
