@@ -163,7 +163,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
 	}
 
-	public function get_terms_pagination_headers() {
+	public function test_get_terms_pagination_headers() {
 		// Start of the index
 		for ( $i = 0; $i < 50; $i++ ) {
 			$this->factory->tag->create( array(
