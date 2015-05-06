@@ -7,6 +7,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 	protected $taxonomy;
 
+	/**
+	 * @param string $taxonomy
+	 */
 	public function __construct( $taxonomy ) {
 		$this->taxonomy = $taxonomy;
 	}
@@ -236,7 +239,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Delete a single term from a taxonomy
 	 *
-	 * @param array $args
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */

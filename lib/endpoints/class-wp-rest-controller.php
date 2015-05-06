@@ -173,11 +173,10 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Add the values from additional fields to a data object
+	 * Add the values from additional fields to a data object.
 	 *
-	 * @param string $object_type
 	 * @param array  $object
-	 * @param WP_JSON_Request $request
+	 * @param WP_REST_Request $request
 	 * @return array modified object with additional fields
 	 */
 	protected function add_additional_fields_to_object( $object, $request ) {
@@ -196,6 +195,12 @@ abstract class WP_REST_Controller {
 		return $object;
 	}
 
+	/**
+	 * Update the values of additional fields added to a data object.
+	 *
+	 * @param array  $object
+	 * @param WP_REST_Request $request
+	 */
 	protected function update_additional_fields_for_object( $object, $request ) {
 
 		$additional_fields = $this->get_additional_fields();
