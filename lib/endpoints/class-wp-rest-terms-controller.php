@@ -141,10 +141,25 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $response );
+		unset( $prepared_args['number'] );
+		unset( $prepared_args['offset'] );
 		$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
 		$response->header( 'X-WP-Total', (int) $total_terms );
 		$max_pages = ceil( $total_terms / $request['per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
+
 		return $response;
 	}
 

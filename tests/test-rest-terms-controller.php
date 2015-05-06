@@ -175,15 +175,28 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$headers = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$next_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// 3rd page
 		$this->factory->tag->create( array(
 				'name'   => 'Tag 51',
 				) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag?page=3' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$request->set_param( 'page', 3 );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg( array(
+			'page'    => 4,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_item() {
