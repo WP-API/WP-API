@@ -142,9 +142,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $response );
 		$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
-		$response->header( 'X-WP-Total', $total_terms );
+		$response->header( 'X-WP-Total', (int) $total_terms );
 		$max_pages = ceil( $total_terms / $request['per_page'] );
-		$response->header( 'X-WP-TotalPages', $total_terms );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 		return $response;
 	}
 
