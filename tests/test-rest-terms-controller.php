@@ -408,6 +408,15 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
 	}
 
+	public function test_get_item_schema_non_hierarchical() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertFalse( isset( $properties['parent'] ) );
+	}
+
 	public function tearDown() {
 		_unregister_taxonomy( 'batman' );
 		_unregister_taxonomy( 'robin' );
@@ -439,6 +448,12 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $term->description, $data['description'] );
 		$this->assertEquals( get_term_link( $term ),  $data['link'] );
 		$this->assertEquals( $term->count, $data['count'] );
+		$taxonomy = get_taxonomy( $term->taxonomy );
+		if ( $taxonomy->hierarchical ) {
+			$this->assertEquals( $term->parent, $data['parent'] );
+		} else {
+			$this->assertFalse( isset( $term->parent ) );
+		}
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {

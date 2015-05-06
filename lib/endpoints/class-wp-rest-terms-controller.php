@@ -424,8 +424,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'name'         => $item->name,
 			'slug'         => $item->slug,
 			'taxonomy'     => $item->taxonomy,
-			'parent'       => (int) $parent_id,
 		);
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['parent'] ) ) {
+			$data['parent'] = (int) $parent_id;
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
@@ -511,11 +514,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
-				'parent'           => array(
-					'description'  => 'The ID for the parent of the object.',
-					'type'         => 'integer',
-					'context'      => array( 'view' ),
-					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
@@ -530,6 +528,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 			);
+		$taxonomy = get_taxonomy( $this->taxonomy );
+		if ( $taxonomy->hierarchical ) {
+			$schema['properties']['parent'] = array(
+					'description'  => 'The ID for the parent of the object.',
+					'type'         => 'integer',
+					'context'      => array( 'view' ),
+					);
+		}
 		return $this->add_additional_fields_schema( $schema );
 	}
 
