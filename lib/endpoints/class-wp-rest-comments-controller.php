@@ -182,6 +182,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $comments );
+		unset( $prepared_args['number'] );
+		unset( $prepared_args['offset'] );
+		$query = new WP_Comment_Query;
+		$prepared_args['count'] = true;
+		$total_comments = $query->query( $prepared_args );
+		$response->header( 'X-WP-Total', (int) $total_comments );
+		$max_pages = ceil( $total_comments / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/comments' ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
 
 		return $response;
 	}
