@@ -2,7 +2,7 @@
 
 tools:
   external_code_coverage:
-    timeout: 900
+    timeout: 1500
 
   php_sim:
     enabled: true
