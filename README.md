@@ -105,13 +105,22 @@ For testing, you'll need a little bit more:
    git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
    ```
 
-2. Run the provisioner:
+2. Update the `wpdevel` submodule in Chassis to latest on master from [WordPress Git Mirror](https://make.wordpress.org/core/2014/01/15/git-mirrors-for-wordpress/):
+
+   ```bash
+   # From your base directory, api-tester if following the steps from before
+   cd extensions/tester/wpdevel
+   git checkout master
+   git pull
+   ```
+
+3. Run the provisioner:
 
    ```
    vagrant provision
    ```
 
-3. Log in to the virtual machine and run the testing suite:
+4. Log in to the virtual machine and run the testing suite:
 
    ```bash
    vagrant ssh
