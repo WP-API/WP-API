@@ -516,9 +516,9 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
  * @param string $replacement Replacement function name.
  * @param string $version     Version.
  */
-function rest_handle_deprecated_argument( $function, $message, $version ) {
-	if ( ! empty( $message ) ) {
-		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $message );
+function rest_handle_deprecated_argument( $function, $replacement, $version ) {
+	if ( ! empty( $replacement ) ) {
+		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $replacement );
 	} else {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
@@ -550,9 +550,10 @@ function rest_send_cors_headers( $value ) {
  * This is handled outside of the server code, as it doesn't obey normal route
  * mapping.
  *
- * @param mixed $response Current response, either response or `null` to indicate pass-through
- * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server)
- * @return WP_REST_Response Modified response, either response or `null` to indicate pass-through
+ * @param mixed $response Current response, either response or `null` to indicate pass-through.
+ * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server).
+ * @param WP_REST_Request $request The request that was used to make current response.
+ * @return WP_REST_Response $response Modified response, either response or `null` to indicate pass-through.
  */
 function rest_handle_options_request( $response, $handler, $request ) {
 	if ( ! empty( $response ) || $request->get_method() !== 'OPTIONS' ) {

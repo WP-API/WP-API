@@ -7,6 +7,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 	protected $taxonomy;
 
+	/**
+	 * @param string $taxonomy
+	 */
 	public function __construct( $taxonomy ) {
 		$this->taxonomy = $taxonomy;
 	}
@@ -140,7 +143,30 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$response[] = $this->prepare_response_for_collection( $data );
 		}
 
-		return rest_ensure_response( $response );
+		$response = rest_ensure_response( $response );
+		unset( $prepared_args['number'] );
+		unset( $prepared_args['offset'] );
+		$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
+		$response->header( 'X-WP-Total', (int) $total_terms );
+		$max_pages = ceil( $total_terms / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
+
+		return $response;
 	}
 
 	/**
@@ -236,7 +262,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Delete a single term from a taxonomy
 	 *
-	 * @param array $args
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return array|WP_Error
 	 */
