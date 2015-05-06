@@ -163,6 +163,29 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
 	}
 
+	public function get_terms_pagination_headers() {
+		// Start of the index
+		for ( $i = 0; $i < 50; $i++ ) {
+			$this->factory->tag->create( array(
+				'name'   => "Tag {$i}",
+				) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 50, $headers['X-WP-Total'] );
+		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		// 3rd page
+		$this->factory->tag->create( array(
+				'name'   => 'Tag 51',
+				) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag?page=3' );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/1' );
 		$response = $this->server->dispatch( $request );
