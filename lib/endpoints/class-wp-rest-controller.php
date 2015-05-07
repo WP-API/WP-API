@@ -195,7 +195,34 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Add the values from additional fields to a data object.
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		return array(
+			'page'                   => array(
+				'description'        => 'Current page of the collection.',
+				'type'               => 'integer',
+				'default'            => 1,
+				'sanitize_callback'  => 'absint',
+			),
+			'per_page'               => array(
+				'description'        => 'Maximum number of items to be returned in result set.',
+				'type'               => 'integer',
+				'default'            => 10,
+				'sanitize_callback'  => 'absint',
+			),
+			'search'                 => array(
+				'description'        => 'Limit results to those matching a string.',
+				'type'               => 'string',
+				'sanitize_callback'  => 'sanitize_text_field',
+			),
+		);
+	}
+
+	/**
+	 * Add the values from additional fields to a data object
 	 *
 	 * @param array  $object
 	 * @param WP_REST_Request $request
