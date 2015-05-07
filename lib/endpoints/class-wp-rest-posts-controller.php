@@ -16,11 +16,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$base = $this->get_post_type_base( $this->post_type );
 
 		$posts_args = array(
-			'context'          => array(
-				'default'      => 'view',
+			'context'               => array(
+				'default'           => 'view',
 			),
-			'page'            => array(
-				'default'           => 0,
+			'page'                  => array(
+				'default'           => 1,
+				'sanitize_callback' => 'absint',
+			),
+			'per_page'              => array(
+				'default'           => 10,
 				'sanitize_callback' => 'absint',
 			),
 		);
@@ -104,9 +108,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
-		if ( 0 === $posts_query->found_posts ) {
-			return rest_ensure_response( array() );
-		}
 
 		$posts = array();
 		foreach ( $query_result as $post ) {
@@ -119,7 +120,28 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $posts );
-		$response->query_navigation_headers( $posts_query );
+		$count_query = new WP_Query();
+		unset( $query_args['paged'] );
+		$query_result = $count_query->query( $query_args );
+		$total_posts = $count_query->found_posts;
+		$response->header( 'X-WP-Total', (int) $total_posts );
+		$max_pages = ceil( $total_posts / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
 
 		return $response;
 	}
