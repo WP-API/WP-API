@@ -95,7 +95,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get all users
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 
@@ -119,6 +119,28 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $users );
+		unset( $prepared_args['number'] );
+		unset( $prepared_args['offset'] );
+		$count_query = new WP_User_Query( $prepared_args );
+		$total_users = $count_query->get_total();
+		$response->header( 'X-WP-Total', (int) $total_users );
+		$max_pages = ceil( $total_users / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/users' ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
 
 		return $response;
 	}
@@ -127,7 +149,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -147,7 +169,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get the current user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_current_item( $request ) {
 		$current_user_id = get_current_user_id();
@@ -174,7 +196,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Create a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 
@@ -228,7 +250,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Update a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -279,7 +301,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Delete a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -324,7 +346,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return mixed bool or WP_Error
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 

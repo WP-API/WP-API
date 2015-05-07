@@ -6,7 +6,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Create a single attachment
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 
@@ -89,7 +89,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Update a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_REST_Response|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$response = parent::update_item( $request );

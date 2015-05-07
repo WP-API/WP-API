@@ -163,6 +163,67 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
 	}
 
+	public function test_get_terms_pagination_headers() {
+		// Start of the index
+		for ( $i = 0; $i < 50; $i++ ) {
+			$this->factory->tag->create( array(
+				'name'   => "Tag {$i}",
+				) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 50, $headers['X-WP-Total'] );
+		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$next_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		// 3rd page
+		$this->factory->tag->create( array(
+				'name'   => 'Tag 51',
+				) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$request->set_param( 'page', 3 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 2,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg( array(
+			'page'    => 4,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+		// Last page
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$request->set_param( 'page', 6 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 5,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+		// Out of bounds
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$request->set_param( 'page', 8 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 6,
+			), rest_url( '/wp/v2/terms/tag' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/1' );
 		$response = $this->server->dispatch( $request );
@@ -347,6 +408,15 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
 	}
 
+	public function test_get_item_schema_non_hierarchical() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag/schema' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertFalse( isset( $properties['parent'] ) );
+	}
+
 	public function tearDown() {
 		_unregister_taxonomy( 'batman' );
 		_unregister_taxonomy( 'robin' );
@@ -378,6 +448,12 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $term->description, $data['description'] );
 		$this->assertEquals( get_term_link( $term ),  $data['link'] );
 		$this->assertEquals( $term->count, $data['count'] );
+		$taxonomy = get_taxonomy( $term->taxonomy );
+		if ( $taxonomy->hierarchical ) {
+			$this->assertEquals( $term->parent, $data['parent'] );
+		} else {
+			$this->assertFalse( isset( $term->parent ) );
+		}
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {

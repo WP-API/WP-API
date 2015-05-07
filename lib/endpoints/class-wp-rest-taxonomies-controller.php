@@ -31,7 +31,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * Get all public taxonomies
 	 *
 	 * @param WP_REST_Request $request
-	 * @return array|WP_Error
+	 * @return array
 	 */
 	public function get_items( $request ) {
 		if ( ! empty( $request['post_type'] ) ) {

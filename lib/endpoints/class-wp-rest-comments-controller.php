@@ -161,7 +161,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Get a list of comments.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response|mixed
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		$prepared_args = $this->prepare_items_query( $request );
@@ -182,6 +182,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $comments );
+		unset( $prepared_args['number'] );
+		unset( $prepared_args['offset'] );
+		$query = new WP_Comment_Query;
+		$prepared_args['count'] = true;
+		$total_comments = $query->query( $prepared_args );
+		$response->header( 'X-WP-Total', (int) $total_comments );
+		$max_pages = ceil( $total_comments / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/comments' ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
 
 		return $response;
 	}
@@ -190,7 +213,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Get a comment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response|mixed
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -215,7 +238,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Create a comment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response|mixed
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -256,7 +279,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Edit a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response|mixed
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -305,7 +328,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Delete a comment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|array|mixed
+	 * @return WP_Error|array
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -333,7 +356,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read comments
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -389,7 +412,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -418,7 +441,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -437,7 +460,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 		return $this->update_item_permissions_check( $request );
