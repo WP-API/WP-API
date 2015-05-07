@@ -1074,7 +1074,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
+		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
+			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
 				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
