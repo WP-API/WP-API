@@ -206,19 +206,19 @@ abstract class WP_REST_Controller {
 				'type'               => 'integer',
 				'default'            => 1,
 				'sanitize_callback'  => 'absint',
-				),
+			),
 			'per_page'               => array(
 				'description'        => 'Maximum number of items to be returned in result set.',
 				'type'               => 'integer',
 				'default'            => 10,
 				'sanitize_callback'  => 'absint',
-				),
+			),
 			'search'                 => array(
 				'description'        => 'Limit results to those matching a string.',
 				'type'               => 'string',
 				'sanitize_callback'  => 'sanitize_text_field',
-				),
-			);
+			),
+		);
 	}
 
 	/**

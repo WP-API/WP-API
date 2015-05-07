@@ -537,7 +537,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'id',
 				'name',
 				'slug',
-				),
+			),
 		);
 		$query_params['parent'] = array(
 			'description'        => 'Limit result set to terms assigned to a specific parent term.',
