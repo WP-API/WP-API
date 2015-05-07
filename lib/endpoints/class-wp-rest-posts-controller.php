@@ -92,6 +92,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args = (array) $request->get_params();
 		$args['post_type'] = $this->post_type;
 		$args['paged'] = $args['page'];
+		$args['posts_per_page'] = $args['per_page'];
 		unset( $args['page'] );
 
 		/**
