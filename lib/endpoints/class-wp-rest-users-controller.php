@@ -95,7 +95,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get all users
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 
@@ -149,7 +149,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -169,7 +169,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Get the current user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_current_item( $request ) {
 		$current_user_id = get_current_user_id();
@@ -196,7 +196,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Create a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 
@@ -250,7 +250,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Update a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -301,7 +301,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Delete a single user
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -346,7 +346,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return mixed bool or WP_Error
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 

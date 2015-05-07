@@ -110,7 +110,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Get terms associated with a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array( 'hide_empty' => false );
@@ -173,7 +173,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Get a single term from a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_REST_Request|WP_Error
 	 */
 	public function get_item( $request ) {
 
@@ -194,7 +194,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Create a single term for a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_REST_Request|WP_Error
 	 */
 	public function create_item( $request ) {
 		$name = $request['name'];
@@ -224,7 +224,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Update a single term from a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return WP_REST_Request|WP_Error
 	 */
 	public function update_item( $request ) {
 
@@ -263,7 +263,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Delete a single term from a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return null
 	 */
 	public function delete_item( $request ) {
 
@@ -341,7 +341,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a term
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -362,7 +362,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a term
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 

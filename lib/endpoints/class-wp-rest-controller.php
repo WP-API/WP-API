@@ -14,7 +14,7 @@ abstract class WP_REST_Controller {
 	 * Get a collection of items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -22,6 +22,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Get one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -29,6 +32,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Create one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function create_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -36,6 +42,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Update one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function update_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -43,6 +52,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Delete one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function delete_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -52,7 +64,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to get items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_items_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -62,7 +74,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to get a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -72,7 +84,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to create items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function create_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -82,7 +94,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to update a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function update_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -92,7 +104,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to delete a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function delete_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -243,7 +255,7 @@ abstract class WP_REST_Controller {
 		}
 
 		/**
-		 * Can't use $this->get_object_type otherwise we can an inf loop
+		 * Can't use $this->get_object_type otherwise we cause an inf loop
 		 */
 		$object_type = $schema['title'];
 

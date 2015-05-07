@@ -82,7 +82,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a collection of posts
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		$args = (array) $request->get_params();
@@ -128,7 +128,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -150,7 +150,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Create a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -222,7 +222,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Update a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -334,7 +334,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -355,7 +355,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -380,7 +380,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -410,7 +410,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 
