@@ -28,12 +28,9 @@ before_script:
 
 script:
   - ./bin/phpcs.sh
-  - phpunit --coverage-clover=coverage.clover
+  - phpunit --coverage-clover clover.xml
 
 after_script:
-  - wget https://scrutinizer-ci.com/ocular.phar
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
-
   # Push coverage off to Coveralls
   - phpenv local 5.5
   - php vendor/bin/coveralls -v
