@@ -146,7 +146,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Retrieve custom fields for object.
 	 *
 	 * @param WP_REST_Request $request
-	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
+	 * @return WP_REST_Request|WP_Error List of meta object data on success, WP_Error otherwise
 	 */
 	public function get_items( $request ) {
 		$parent_id = (int) $request['parent_id'];
@@ -179,7 +179,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Retrieve custom field object.
 	 *
 	 * @param WP_REST_Request $request
-	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 * @return WP_REST_Request|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function get_item( $request ) {
 		$parent_id = (int) $request['parent_id'];
