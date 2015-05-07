@@ -27,6 +27,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->subscriber_id = $this->factory->user->create( array(
 			'role' => 'subscriber',
 		));
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		));
 
 		$this->post_id = $this->factory->post->create();
 
@@ -92,6 +95,44 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
+	}
+
+	public function test_get_items_for_post_type() {
+		wp_set_current_user( $this->admin_id );
+		$second_post_id = $this->factory->post->create();
+		$first_page_id = $this->factory->post->create( array( 'post_type' => 'page' ) );
+		$this->factory->comment->create_post_comments( $second_post_id, 2 );
+		$this->factory->comment->create_post_comments( $first_page_id, 1 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_query_params( array(
+			'post_type' => 'page',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comments = $response->get_data();
+		$this->assertCount( 1, $comments );
+	}
+
+	public function test_get_items_for_post_author() {
+		wp_set_current_user( $this->admin_id );
+		$second_post_id = $this->factory->post->create();
+		$third_post_id = $this->factory->post->create( array( 'post_author' => $this->author_id ) );
+		$this->factory->comment->create_post_comments( $second_post_id, 2 );
+		$this->factory->comment->create_post_comments( $third_post_id, 3 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_query_params( array(
+			'post_author' => $this->author_id,
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comments = $response->get_data();
+		$this->assertCount( 3, $comments );
 	}
 
 	public function test_get_comments_pagination_headers() {
