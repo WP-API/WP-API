@@ -99,6 +99,16 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
+	 * Prepare the item for create or update operation
+	 *
+	 * @param WP_REST_Request $request Request object
+	 * @return WP_Error|object $prepared_item
+	 */
+	protected function prepare_item_for_database( $request ) {
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
+	}
+
+	/**
 	 * Prepare the item for the REST response
 	 *
 	 * @param mixed $item WordPress representation of the item.
