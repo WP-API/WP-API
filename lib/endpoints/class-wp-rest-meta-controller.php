@@ -97,7 +97,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		return array(
+		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'meta',
 			'type'       => 'object',
@@ -122,6 +122,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+		return $schema;
 	}
 
 	/**

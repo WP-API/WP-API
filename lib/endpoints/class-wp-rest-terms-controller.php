@@ -213,6 +213,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
+		$this->update_additional_fields_for_object( $term, $request );
+
 		$response = $this->get_item( array(
 			'id' => $term['term_taxonomy_id'],
 		 ) );
@@ -251,6 +253,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				return $update;
 			}
 		}
+
+		$this->update_additional_fields_for_object( get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy ), $request );
 
 		$response = $this->get_item( array(
 			'id' => $term->term_taxonomy_id,
