@@ -539,11 +539,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
-		$query_params['parent'] = array(
-			'description'        => 'Limit result set to terms assigned to a specific parent term.',
-			'type'               => 'integer',
-			'sanitize_callback'  => 'absint',
-		);
+		if ( $taxonomy->hierarchical ) {
+			$query_params['parent'] = array(
+				'description'        => 'Limit result set to terms assigned to a specific parent term.',
+				'type'               => 'integer',
+				'sanitize_callback'  => 'absint',
+			);
+		}
 		$query_params['post'] = array(
 			'description'        => 'Limit result set to terms assigned to a specific post.',
 			'type'               => 'integer',
