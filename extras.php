@@ -13,7 +13,7 @@ add_action( 'wp_enqueue_scripts', 'rest_register_scripts', -100 );
 add_action( 'admin_enqueue_scripts', 'rest_register_scripts', -100 );
 add_action( 'xmlrpc_rsd_apis', 'rest_output_rsd' );
 add_action( 'wp_head', 'rest_output_link_wp_head', 10, 0 );
-add_action( 'wp_head', 'rest_add_meta_tags' , 10, 0 );
+add_action( 'wp_head', 'rest_add_meta_tag' , 10, 0 );
 add_action( 'template_redirect', 'rest_output_link_header', 11, 0 );
 add_action( 'auth_cookie_malformed',    'rest_cookie_collect_status' );
 add_action( 'auth_cookie_expired',      'rest_cookie_collect_status' );
