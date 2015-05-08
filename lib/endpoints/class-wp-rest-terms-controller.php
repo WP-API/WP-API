@@ -184,6 +184,20 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$args['slug'] = $request['slug'];
 		}
 
+		if ( isset( $request['parent'] ) ) {
+			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
+				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( "Can not set term parent, taxonomy is not hierarchical." ), array( 'status' => 400 ) );
+			}
+
+			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+
+			if ( ! $parent ) {
+				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 404 ) );
+			}
+
+			$args['parent'] = $parent->term_id;
+		}
+
 		$term = wp_insert_term( $name, $this->taxonomy, $args );
 		if ( is_wp_error( $term ) ) {
 			return $term;
@@ -213,6 +227,20 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 		if ( isset( $request['slug'] ) ) {
 			$prepared_args['slug'] = $request['slug'];
+		}
+
+		if ( isset( $request['parent'] ) ) {
+			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
+				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( "Can not set term parent, taxonomy is not hierarchical." ), array( 'status' => 400 ) );
+			}
+
+			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+
+			if ( ! $parent ) {
+				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 400 ) );
+			}
+
+			$prepared_args['parent'] = $parent->term_id;
 		}
 
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
