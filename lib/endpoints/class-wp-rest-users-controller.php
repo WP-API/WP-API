@@ -10,32 +10,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
+		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/users', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'            => array(
-					'context'          => array(
-						'default' => 'view',
-					),
-					'order'            => array(
-						'default'           => 'asc',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'orderby'          => array(
-						'default'           => 'user_login',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'per_page'         => array(
-						'default'           => 10,
-						'sanitize_callback' => 'absint',
-					),
-					'page'             => array(
-						'default'           => 1,
-						'sanitize_callback' => 'absint',
-					),
-				),
+				'args'            => $query_params,
 			),
 			array(
 				'methods'         => WP_REST_Server::CREATABLE,
@@ -101,9 +82,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$prepared_args = array();
 		$prepared_args['order'] = $request['order'];
-		$prepared_args['orderby'] = $request['orderby'];
 		$prepared_args['number'] = $request['per_page'];
 		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+		$orderby_possibles = array(
+			'id'              => 'ID',
+			'name'            => 'display_name',
+			'registered_date' => 'registered',
+			);
+		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -645,5 +631,36 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			)
 		);
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['context'] = array(
+			'default'            => 'view',
+			'description'        => 'Change the response format based on request context.',
+			'enum'               => array( 'view', 'edit' ),
+			'sanitize_callback'  => 'sanitize_key',
+			'type'               => 'string',
+		);
+		$query_params['order'] = array(
+			'default'            => 'asc',
+			'description'        => 'Order sort attribute ascending or descending.',
+			'enum'               => array( 'asc', 'desc' ),
+			'sanitize_callback'  => 'sanitize_key',
+			'type'               => 'string',
+		);
+		$query_params['orderby'] = array(
+			'default'            => 'name',
+			'description'        => 'Sort collection by object attribute.',
+			'enum'               => array( 'id', 'name', 'registered_date' ),
+			'sanitize_callback'  => 'sanitize_key',
+			'type'               => 'string',
+		);
+		return $query_params;
 	}
 }
