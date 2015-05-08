@@ -59,7 +59,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'       => array(
 					'name'        => array(
-						'required'          => true,
 						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'description' => array(
