@@ -46,9 +46,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'sanitize_key',
 						'default'           => 'name',
 					),
-					'post'     => array(
-						'sanitize_callback' => 'absint',
-					),
 				),
 			),
 			array(
@@ -121,18 +118,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args['order']   = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 
-		if ( isset( $request['post'] ) ) {
-			$post_id = $request['post'];
-
-			$permission_check = $this->check_post_taxonomy_permission( $this->taxonomy, $post_id );
-			if ( is_wp_error( $permission_check ) ) {
-				return $permission_check;
-			}
-
-			$query_result = wp_get_object_terms( $post_id, $this->taxonomy, $prepared_args );
-		} else {
-			$query_result = get_terms( $this->taxonomy, $prepared_args );
-		}
+		$query_result = get_terms( $this->taxonomy, $prepared_args );
 		if ( is_wp_error( $query_result ) ) {
 			return new WP_Error( 'rest_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
 		}
@@ -551,31 +537,5 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error( 'rest_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
-	}
-
-	/**
-	 * Check that the taxonomy is valid for a given post type.
-	 *
-	 * @param string  $taxonomy
-	 * @param integer $post_id
-	 * @return bool|WP_Error
-	 */
-	protected function check_post_taxonomy_permission( $taxonomy, $post_id ) {
-		$post = get_post( $post_id );
-		if ( empty( $post->ID ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
-		}
-
-		$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
-		if ( ! $posts_controller->check_read_permission( $post ) ) {
-			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
-		}
-
-		$valid_taxonomies = get_object_taxonomies( $post->post_type );
-		if ( ! in_array( $taxonomy, $valid_taxonomies ) ) {
-			return new WP_Error( 'rest_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
-		}
-
-		return true;
 	}
 }
