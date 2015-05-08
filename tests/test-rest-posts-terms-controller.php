@@ -7,13 +7,15 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 
 		$this->post_id = $this->factory->post->create();
 		$this->admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$this->public_taxonomy_pages = 'pages_taxonomy';
+		register_taxonomy( $this->public_taxonomy_pages, 'page' );
 	}
 
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/(?P<taxonomy>[^/]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/(?P<taxonomy>[^/]+)/(?P<term_id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/post_tag', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/post_tag/(?P<term_id>[\d]+)', $routes );
 	}
 
 	public function test_get_items() {
@@ -36,10 +38,10 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 
 	public function test_get_items_invalid_taxonomy() {
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/invalid_tax', $this->post_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/%s', $this->public_taxonomy_pages, $this->post_id ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_get_item() {
@@ -63,15 +65,35 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
+	public function test_get_item_post_wrong_post_type() {
+
+		$page = $this->factory->post->create( array( 'post_type' => 'page' ) );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag', $page ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
 	public function test_get_item_invalid_taxonomy() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, 123 ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_get_item_invalid_taxonomy_term() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', $this->post_id, 9999 ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
+	}
+
+	public function test_get_item_taxonomy_term_wrong_taxonomy() {
+
+		$term = wp_insert_term( 'some-term', $this->public_taxonomy_pages );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', $this->post_id, $term['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
@@ -132,7 +154,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_create_item_invalid_taxonomy_term() {
@@ -174,7 +196,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_delete_item_invalid_taxonomy_term() {
@@ -185,7 +207,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_delete_item_invalid_post() {
@@ -193,7 +215,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', 9999, $tag['term_taxonomy_id'] ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', 9999, $tag['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
