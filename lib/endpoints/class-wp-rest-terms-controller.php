@@ -97,6 +97,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args['order']   = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 
+		$taxonomy_obj = get_taxonomy( $this->taxonomy );
+		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
+			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+			if ( $parent ) {
+				$prepared_args['parent'] = $parent->term_id;
+			}
+		}
+
 		if ( isset( $request['post'] ) ) {
 			$post_id = $request['post'];
 
@@ -566,11 +574,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
-		$query_params['parent'] = array(
-			'description'        => 'Limit result set to terms assigned to a specific parent term.',
-			'type'               => 'integer',
-			'sanitize_callback'  => 'absint',
-		);
+		$taxonomy = get_taxonomy( $this->taxonomy );
+		if ( $taxonomy->hierarchical ) {
+			$query_params['parent'] = array(
+				'description'        => 'Limit result set to terms assigned to a specific parent term.',
+				'type'               => 'integer',
+				'sanitize_callback'  => 'absint',
+			);
+		}
 		$query_params['post'] = array(
 			'description'        => 'Limit result set to terms assigned to a specific post.',
 			'type'               => 'integer',

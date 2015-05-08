@@ -130,6 +130,17 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 0, count( $data ) );
 	}
 
+	public function test_get_terms_parent_arg() {
+		$category1 = $this->factory->category->create( array( 'name' => 'Parent' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'Child', 'parent' => $category1 ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category' );
+		$request->set_param( 'parent', $category1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Child', $data[0]['name'] );
+	}
+
 	public function test_get_terms_private_taxonomy() {
 		register_taxonomy( 'robin', 'post', array( 'public' => false ) );
 		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
