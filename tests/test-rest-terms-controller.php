@@ -98,16 +98,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'Cape', $data[0]['name'] );
 	}
 
-	public function test_get_terms_post_args_no_permission() {
-		$draft_id = $this->factory->post->create( array(
-			'post_status' => 'draft',
-		) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', $draft_id );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
-	}
-
 	public function test_get_items_search_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
@@ -155,23 +145,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
-	}
-
-	public function test_get_items_invalid_post() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', 9999 );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
-	}
-
-	public function test_get_items_invalid_taxonomy_for_post_type() {
-		$page_id = $this->factory->post->create( array(
-			'post_type' => 'page',
-		) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', $page_id );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_terms_pagination_headers() {
