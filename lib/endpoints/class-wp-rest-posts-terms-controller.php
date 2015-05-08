@@ -55,8 +55,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$post = get_post( $request['id'] );
 
-		if ( empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		$post_check = $this->posts_controller->get_item( $request );
+		if ( is_wp_error( $post_check ) ) {
+			return $post_check;
 		}
 
 		$valid_taxonomies = get_object_taxonomies( $post->post_type );
@@ -87,8 +88,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		if ( empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		$post_check = $this->posts_controller->get_item( $request );
+		if ( is_wp_error( $post_check ) ) {
+			return $post_check;
 		}
 
 		$valid_taxonomies = get_object_taxonomies( $post->post_type );
@@ -123,8 +125,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		if ( empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		$post_check = $this->posts_controller->get_item( $request );
+		if ( is_wp_error( $post_check ) ) {
+			return $post_check;
 		}
 
 		$valid_taxonomies = get_object_taxonomies( $post->post_type );
@@ -160,8 +163,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		if ( empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		$post_check = $this->posts_controller->get_item( $request );
+		if ( is_wp_error( $post_check ) ) {
+			return $post_check;
 		}
 
 		$valid_taxonomies = get_object_taxonomies( $post->post_type );
