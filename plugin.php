@@ -170,8 +170,13 @@ function create_initial_rest_routes() {
 			$revisions_controller->register_routes();
 		}
 
-		if ( get_object_taxonomies( $post_type->name ) ) {
-			$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name );
+		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
+
+			if ( ! $taxonomy->public ) {
+				continue;
+			}
+
+			$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
 			$posts_terms_controller->register_routes();
 		}
 	}
