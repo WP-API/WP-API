@@ -98,9 +98,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args['order']   = $request['order'];
 		$prepared_args['orderby'] = $request['orderby'];
 
-<<<<<<< HEAD
-		$query_result = get_terms( $this->taxonomy, $prepared_args );
-=======
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
 			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
@@ -109,23 +106,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['post'] ) ) {
-			$post_id = $request['post'];
-
-			$permission_check = $this->check_post_taxonomy_permission( $this->taxonomy, $post_id );
-			if ( is_wp_error( $permission_check ) ) {
-				return $permission_check;
-			}
-
-			$query_result = wp_get_object_terms( $post_id, $this->taxonomy, $prepared_args );
-		} else {
-			$query_result = get_terms( $this->taxonomy, $prepared_args );
-		}
->>>>>>> develop
-		if ( is_wp_error( $query_result ) ) {
-			return new WP_Error( 'rest_taxonomy_invalid', __( "Taxonomy doesn't exist" ), array( 'status' => 404 ) );
-		}
-
+		$query_result = get_terms( $this->taxonomy, $prepared_args );
 		$response = array();
 		foreach ( $query_result as $term ) {
 			$data = $this->prepare_item_for_response( $term, $request );
@@ -559,11 +540,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'sanitize_callback'  => 'absint',
 			);
 		}
-		$query_params['post'] = array(
-			'description'        => 'Limit result set to terms assigned to a specific post.',
-			'type'               => 'integer',
-			'sanitize_callback'  => 'absint',
-		);
 		return $query_params;
 	}
 
