@@ -90,6 +90,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'registered_date' => 'registered',
 			);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
+		$prepared_args['search'] = $request['search'];
 
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
