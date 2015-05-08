@@ -158,7 +158,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'order', 'desc' );
 		$request->set_param( 'per_page', 1 );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( $high_id, $response->get_data()[0]['id'] );
+		$data = $response->get_data();
+		$this->assertEquals( $high_id, $data[0]['id'] );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'orderby', 'name' );
 		$request->set_param( 'order', 'asc' );
