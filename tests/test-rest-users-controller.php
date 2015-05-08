@@ -164,7 +164,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'per_page', 1 );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( $low_id, $response->get_data()[0]['id'] );
+		$data = $response->get_data();
+		$this->assertEquals( $low_id, $data[0]['id'] );
 	}
 
 	public function test_get_items_search() {
