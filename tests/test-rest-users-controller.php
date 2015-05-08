@@ -116,6 +116,72 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
 
+	public function test_get_items_per_page() {
+		wp_set_current_user( $this->user );
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->factory->user->create( array( 'display_name' => "User {$i}" ) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 10, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'per_page', 5 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 5, count( $response->get_data() ) );
+	}
+
+	public function test_get_items_page() {
+		wp_set_current_user( $this->user );
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->factory->user->create( array( 'display_name' => "User {$i}" ) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'per_page', 5 );
+		$request->set_param( 'page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 5, count( $response->get_data() ) );
+		$prev_link = add_query_arg( array(
+			'per_page'  => 5,
+			'page'      => 1,
+			), rest_url( '/wp/v2/users' ) );
+		$headers = $response->get_headers();
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+	}
+
+	public function test_get_items_orderby() {
+		wp_set_current_user( $this->user );
+		$low_id = $this->factory->user->create( array( 'display_name' => 'AAAAA' ) );
+		$mid_id = $this->factory->user->create( array( 'display_name' => 'NNNNN' ) );
+		$high_id = $this->factory->user->create( array( 'display_name' => 'ZZZZ' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $high_id, $data[0]['id'] );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_search() {
+		wp_set_current_user( $this->user );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', 'yololololo' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 0, count( $response->get_data() ) );
+		$yolo_id = $this->factory->user->create( array( 'display_name' => 'yololololo' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', $yolo_id ); // searching doesn't support display name
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 1, count( $response->get_data() ) );
+	}
+
 	public function test_get_item() {
 		$user_id = $this->factory->user->create();
 		wp_set_current_user( $this->user );
