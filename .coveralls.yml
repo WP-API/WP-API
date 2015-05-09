@@ -1,2 +1,3 @@
 src_dir: lib
 coverage_clover: clover.xml
+json_path: tests/coveralls.json
