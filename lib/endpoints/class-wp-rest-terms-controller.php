@@ -404,9 +404,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$data = array(
 			'id'           => (int) $item->term_taxonomy_id,
 			'count'        => (int) $item->count,
-			'description'  => $item->description,
+			'description'  => html_entity_decode($item->description),
 			'link'         => get_term_link( $item ),
-			'name'         => $item->name,
+			'name'         => html_entity_decode($item->name),
 			'slug'         => $item->slug,
 			'taxonomy'     => $item->taxonomy,
 		);

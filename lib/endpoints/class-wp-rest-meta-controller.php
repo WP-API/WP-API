@@ -210,8 +210,8 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $data, $request, $is_raw = false ) {
 		$id_column = $this->get_id_column();
 		$id        = $data->$id_column;
-		$key       = $data->meta_key;
-		$value     = $data->meta_value;
+		$key       = html_entity_decode($data->meta_key);
+		$value     = html_entity_decode($data->meta_value);
 
 		// Don't expose protected fields.
 		if ( is_protected_meta( $key ) ) {

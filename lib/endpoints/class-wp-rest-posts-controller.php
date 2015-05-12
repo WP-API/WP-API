@@ -530,7 +530,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return '';
 		}
 
-		return $excerpt;
+		return html_entity_decode($excerpt);
 	}
 
 	/**
@@ -986,8 +986,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
-				'raw'      => $post->post_title,
-				'rendered' => get_the_title( $post->ID ),
+				'raw'      => html_entity_decode($post->post_title),
+				'rendered' => html_entity_decode(get_the_title( $post->ID )),
 			);
 		}
 
@@ -998,8 +998,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			$data['content'] = array(
-				'raw'      => $post->post_content,
-				'rendered' => apply_filters( 'the_content', $post->post_content ),
+				'raw'      => html_entity_decode($post->post_content),
+				'rendered' => html_entity_decode(apply_filters( 'the_content', $post->post_content )),
 			);
 
 			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
@@ -1010,8 +1010,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+				'raw'      => html_entity_decode($post->post_excerpt),
+				'rendered' => html_entity_decode($this->prepare_excerpt_response( $post->post_excerpt )),
 			);
 		}
 
