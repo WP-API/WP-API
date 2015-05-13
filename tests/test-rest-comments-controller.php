@@ -135,6 +135,24 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 3, $comments );
 	}
 
+	public function test_get_items_for_post_slug() {
+		wp_set_current_user( $this->admin_id );
+		$second_post_id = $this->factory->post->create();
+		$third_post_id = $this->factory->post->create( array( 'post_name' => 'such-a-unique-post-slug' ) );
+		$this->factory->comment->create_post_comments( $second_post_id, 2 );
+		$this->factory->comment->create_post_comments( $third_post_id, 3 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_query_params( array(
+			'post_slug' => 'such-a-unique-post-slug',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comments = $response->get_data();
+		$this->assertCount( 3, $comments );
+	}
+
 	public function test_get_comments_pagination_headers() {
 		wp_set_current_user( $this->admin_id );
 		// Start of the index
