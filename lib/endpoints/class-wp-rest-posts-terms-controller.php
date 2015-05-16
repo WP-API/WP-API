@@ -46,7 +46,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get a collection of posts
+	 * Get all the terms that are attached to a post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|WP_REST_Response
@@ -79,7 +79,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get a single post
+	 * Get a term that is attached to a post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|WP_REST_Response
@@ -116,7 +116,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Create a single post
+	 * Add a term to a post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|WP_REST_Response
@@ -154,7 +154,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Delete a single post.
+	 * Remove a term from a post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|null
