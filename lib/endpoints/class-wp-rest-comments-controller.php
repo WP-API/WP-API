@@ -606,7 +606,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
 			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => sanitize_key( $request['type'] ),
+			'comment_type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
