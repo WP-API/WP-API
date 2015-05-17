@@ -18,13 +18,20 @@ matrix:
 
 # Clones WordPress and configures our testing environment.
 before_script:
+  # Setup Coveralls
+  - phpenv local 5.5
+  - composer install --dev --no-interaction
+  - phpenv local --unset
+
   - npm install
   - bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 $WP_VERSION
 
 script:
   - ./bin/phpcs.sh
-  - phpunit --coverage-clover=coverage.clover
+  - phpunit --coverage-clover clover.xml
 
 after_script:
-  - wget https://scrutinizer-ci.com/ocular.phar
-  - php ocular.phar code-coverage:upload --format=php-clover coverage.clover
+  # Push coverage off to Coveralls
+  - phpenv local 5.5
+  - php vendor/bin/coveralls -v
+  - phpenv local --unset
