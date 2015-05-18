@@ -309,6 +309,13 @@ class WP_JSON_Users {
 
 		// Role
 		if ( ! empty( $data['role'] ) ) {
+			if ( $update ) {
+				$check_permission = $this->check_role_update( $user->ID, $data['role'] );
+				if ( is_wp_error( $check_permission ) ) {
+					return $check_permission;
+				}
+			}
+
 			$user->role = $data['role'];
 		}
 
@@ -333,6 +340,37 @@ class WP_JSON_Users {
 	}
 
 	/**
+	 * Determine if the current user is allowed to make the desired role change.
+	 *
+	 * @param integer $user_id
+	 * @param string $role
+	 * @return boolen|WP_Error
+	 */
+	protected function check_role_update( $user_id, $role ) {
+		global $wp_roles;
+
+		if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
+			return new WP_Error( 'json_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		$potential_role = $wp_roles->role_objects[ $role ];
+
+		// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
+		// Multisite super admins can freely edit their blog roles -- they possess all caps.
+		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
+			// The new role must be editable by the logged-in user.
+			$editable_roles = get_editable_roles();
+			if ( empty( $editable_roles[ $role ] ) ) {
+				return new WP_Error( 'json_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
+			}
+
+			return true;
+		}
+
+		return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
+	}
+
+	/**
 	 * Edit a user.
 	 *
 	 * The $data parameter only needs to contain fields that should be changed.
@@ -353,6 +391,9 @@ class WP_JSON_Users {
 		// Permissions check
 		if ( ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'json_user_cannot_edit', __( 'Sorry, you are not allowed to edit this user.' ), array( 'status' => 403 ) );
+		}
+		if ( ! empty( $data['role'] ) && ! current_user_can( 'edit_users' ) ) {
+			return new WP_Error( 'json_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of users.' ), array( 'status' => 403 ) );
 		}
 
 		$user = get_userdata( $id );
