@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_JSON_User extends WP_UnitTestCase {
+class WP_Test_JSON_User extends WP_Test_JSON_TestCase {
 	public function setUp() {
 		parent::setUp();
 
@@ -204,5 +204,46 @@ class WP_Test_JSON_User extends WP_UnitTestCase {
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
 		$this->assertEquals( $pw_before, $user->user_pass );
+	}
+
+
+	public function test_update_user_role() {
+		$admin_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+
+		wp_set_current_user( $admin_id );
+		$admin = wp_get_current_user( $admin_id );
+		$this->allow_user_to_create_users( $admin );
+
+		$response = $this->endpoint->edit_user( $user_id, array(
+			'role' => 'editor',
+		) );
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+		if ( ! $response instanceof WP_JSON_ResponseInterface ) {
+			$response = new WP_JSON_Response( $response );
+		}
+
+		// Check that we succeeded
+		$this->assertEquals( 200, $response->get_status() );
+
+		$user = get_userdata( $user_id );
+
+		$this->assertArrayHasKey( 'editor', $user->caps );
+	}
+
+	public function test_update_user_role_privilage_escalation() {
+
+		$response = $this->endpoint->edit_user( $this->user, array(
+			'role' => 'administrator'
+		) );
+
+		$response = json_ensure_response( $response );
+
+		$this->assertErrorResponse( 'json_cannot_edit_roles', $response, 403 );
+
+		$user = get_userdata( $this->user );
+
+		$this->assertArrayHasKey( 'subscriber', $user->caps );
 	}
 }
