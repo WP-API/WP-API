@@ -641,13 +641,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
 			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
+			'comment_type'         => isset( $request['type'] ) ? $request['type'] : '',
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author_name'] ) ? sanitize_text_field( $request['author_name'] ) : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
+			'comment_author'       => isset( $request['author_name'] ) ? $request['author_name'] : '',
+			'comment_author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
+			'comment_author_url'   => isset( $request['author_url'] ) ? $request['author_url'] : '',
 			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
 			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
 			// Setting remaining values before wp_insert_comment so we can
@@ -687,15 +687,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['author_name'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author_name'] );
+			$prepared_comment['comment_author'] = $request['author_name'];
 		}
 
 		if ( isset( $request['author_email'] ) ) {
-			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
+			$prepared_comment['comment_author_email'] = $request['author_email'];
 		}
 
 		if ( isset( $request['author_url'] ) ) {
-			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+			$prepared_comment['comment_author_url'] = $request['author_url'];
 		}
 
 		if ( isset( $request['type'] ) ) {
