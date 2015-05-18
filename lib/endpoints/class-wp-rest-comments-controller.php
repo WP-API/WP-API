@@ -73,12 +73,36 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'     => array(
-					'post'         => array(),
-					'status'       => array(),
-					'content'      => array(),
-					'author'       => array(),
-					'author_email' => array(),
-					'author_url'   => array(),
+					'post'         => array(
+						'sanitize_callback' => 'absint',
+					),
+					'type'         => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'author'         => array(
+						'sanitize_callback' => 'absint',
+					),
+					'parent'       => array(
+						'sanitize_callback' => 'absint',
+					),
+					'content'      => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
+					'author'       => array(
+						'sanitize_callback' => 'absint',
+					),
+					'author_email' => array(
+						'sanitize_callback' => 'sanitize_email',
+					),
+					'author_url'   => array(
+						'sanitize_callback' => 'esc_url_raw',
+					),
+					'karma'        => array(
+						'sanitize_callback' => 'absint',
+					),
+					'status'       => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 					'date'         => array(),
 				),
 			),
