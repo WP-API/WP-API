@@ -247,6 +247,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! empty( $request['role'] ) ) {
+			$check_permission = $this->check_role_update( $id, $request['role'] );
+			if ( is_wp_error( $check_permission ) ) {
+				return $check_permission;
+			}
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 
 		// Ensure we're operating on the same user we already checked
@@ -374,6 +381,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit users.' ), array( 'status' => 403 ) );
+		}
+
+		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
+			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of users.' ), array( 'status' => 403 ) );
 		}
 
 		return true;
@@ -507,6 +518,37 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
+	}
+
+	/**
+	 * Determine if the current user is allowed to make the desired role change.
+	 *
+	 * @param integer $user_id
+	 * @param string $role
+	 * @return boolen|WP_Error
+	 */
+	protected function check_role_update( $user_id, $role ) {
+		global $wp_roles;
+
+		if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
+			return new WP_Error( 'rest_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		$potential_role = $wp_roles->role_objects[ $role ];
+
+		// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
+		// Multisite super admins can freely edit their blog roles -- they possess all caps.
+		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
+			// The new role must be editable by the logged-in user.
+			$editable_roles = get_editable_roles();
+			if ( empty( $editable_roles[ $role ] ) ) {
+				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
+			}
+
+			return true;
+		}
+
+		return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
 	}
 
 	/**

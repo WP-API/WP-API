@@ -340,6 +340,95 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $pw_before, $user->user_pass );
 	}
 
+	public function test_update_user_role() {
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'role', 'editor' );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'editor', $new_data['roles'][0] );
+		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+
+		$user = get_userdata( $user_id );
+		$this->assertArrayHasKey( 'editor', $user->caps );
+		$this->assertArrayNotHasKey( 'administrator', $user->caps );
+	}
+
+	public function test_update_user_role_invalid_privilege_escalation() {
+		wp_set_current_user( $this->editor );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
+		$request->set_param( 'role', 'administrator' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_edit_roles', $response, 403 );
+
+		$user = get_userdata( $this->editor );
+		$this->assertArrayHasKey( 'editor', $user->caps );
+		$this->assertArrayNotHasKey( 'administrator', $user->caps );
+	}
+
+	public function test_update_user_role_invalid_privilege_deescalation() {
+		if ( is_multisite() ) {
+			return $this->markTestSkipped( 'Test only intended for single site.' );
+		}
+
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'role', 'editor' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 403 );
+
+		$user = get_userdata( $user_id );
+		$this->assertArrayHasKey( 'administrator', $user->caps );
+		$this->assertArrayNotHasKey( 'editor', $user->caps );
+	}
+
+	public function test_update_user_role_privilege_deescalation_multisite() {
+		if ( ! is_multisite() ) {
+			return $this->markTestSkipped( 'Test only intended for multisite.' );
+		}
+
+		$user_id = $this->factory->user->create( array( 'role' => 'administrator' ) );
+
+		wp_set_current_user( $user_id );
+		$user = wp_get_current_user();
+		update_site_option( 'site_admins', array( $user->user_login ) );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'role', 'editor' );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'editor', $new_data['roles'][0] );
+		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+	}
+
+
+	public function test_update_user_role_invalid_role() {
+		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
+		$request->set_param( 'role', 'BeSharp' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+
+		$user = get_userdata( $this->editor );
+		$this->assertArrayHasKey( 'editor', $user->caps );
+		$this->assertArrayNotHasKey( 'BeSharp', $user->caps );
+	}
+
 	public function test_update_user_without_permission() {
 		wp_set_current_user( $this->editor );
 
