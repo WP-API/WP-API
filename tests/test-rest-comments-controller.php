@@ -436,14 +436,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item() {
+		$post_id = $this->factory->post->create();
+
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content' => "Disco Stu doesn't advertise.",
+			'content'      => "Disco Stu doesn't advertise.",
+			'author'       => $this->subscriber_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
-			'date'    => '2014-11-07T10:14:25',
+			'date'         => '2014-11-07T10:14:25',
+			'karma'        => 100,
+			'post'         => $post_id,
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -456,9 +461,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
 		$this->assertEquals( $params['content'], $comment['content']['raw'] );
+		$this->assertEquals( $params['author'], $comment['author'] );
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
+		$this->assertEquals( $params['post'], $comment['post'] );
+		$this->assertEquals( $params['karma'], $comment['karma'] );
 
 		$this->assertEquals( rest_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
