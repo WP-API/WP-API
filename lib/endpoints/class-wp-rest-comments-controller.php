@@ -385,6 +385,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
+		// Limit who can set comment `author` or `karma` to anything other than the default.
+		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => 403 ) );
+		}
 		if ( isset( $request['karma'] ) && $request['karma'] > 0 && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error( 'rest_comment_invalid_karma', __( 'Sorry, you cannot set karma for comments.' ), array( 'status' => 403 ) );
 		}
