@@ -81,7 +81,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$obj = get_post_status_object( 'publish' );
 		$endpoint = new WP_REST_Post_Statuses_Controller;
 		$data = $endpoint->prepare_item_for_response( $obj, new WP_REST_Request );
-		$this->check_post_status_obj( $obj, $data );
+		$this->check_post_status_obj( $obj, $data->get_data() );
 	}
 
 	public function test_get_item_schema() {
