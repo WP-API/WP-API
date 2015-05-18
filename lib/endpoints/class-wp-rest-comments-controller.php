@@ -51,6 +51,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'author_url'   => array(
 						'sanitize_callback' => 'esc_url_raw',
 					),
+					'karma'        => array(
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					),
 					'date'         => array(),
 					'date_gmt'     => array(),
 				),
@@ -380,6 +384,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
+
+		if ( isset( $request['karma'] ) && $request['karma'] > 0 && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_karma', __( 'Sorry, you cannot set karma for comments.' ), array( 'status' => 403 ) );
+		}
 
 		// If the post id isn't specified, presume we can create
 		if ( ! isset( $request['post'] ) ) {
