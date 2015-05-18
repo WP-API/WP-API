@@ -651,6 +651,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single comment for database update.
 	 *
+	 * `wp_update_comment()` doesn't allow us to set `comment_date_gmt`.
+	 *
 	 * @param  WP_REST_Request $request Request object.
 	 * @return array           $prepared_comment
 	 */
@@ -659,6 +661,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
+		}
+
+		if ( isset( $request['post'] ) ) {
+			$prepared_comment['comment_post_ID'] = (int) $request['post'];
+		}
+
+		if ( isset( $request['parent'] ) ) {
+			$prepared_comment['comment_parent'] = (int) $request['parent'];
+		}
+
+		if ( isset( $request['author'] ) ) {
+			$prepared_comment['user_id'] = (int) $request['author'];
 		}
 
 		if ( isset( $request['author_name'] ) ) {
@@ -671,6 +685,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['author_url'] ) ) {
 			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+		}
+
+		if ( isset( $request['type'] ) ) {
+			$prepared_comment['comment_type'] = $request['type'];
+		}
+
+		if ( isset( $request['karma'] ) ) {
+			$prepared_comment['comment_karma'] = (int) $request['karma'] ;
 		}
 
 		if ( ! empty( $request['date'] ) ) {
