@@ -563,6 +563,10 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	$response = new WP_REST_Response();
 
 	$accept = array();
+	$body = array(
+		'request_args'    => array(),
+		'schema'          => null,
+		);
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
@@ -573,12 +577,25 @@ function rest_handle_options_request( $response, $handler, $request ) {
 
 		foreach ( $endpoints as $endpoint ) {
 			$accept = array_merge( $accept, $endpoint['methods'] );
+
+			$methods = array_keys( $endpoint['methods'] );
+			$method = array_shift( $methods );
+
+			if ( empty( $body['request_args'][ $method ] ) ) {
+				$body['request_args'][ $method ] = $endpoint['args'];
+			}
+
+			if ( empty( $body['schema'] ) && ! empty( $endpoint['schema'] ) ) {
+				$body['schema'] = $endpoint['schema'];
+			}
+
 		}
 		break;
 	}
 	$accept = array_keys( $accept );
 
 	$response->header( 'Accept', implode( ', ', $accept ) );
+	$response->set_data( (object) $body );
 
 	return $response;
 }

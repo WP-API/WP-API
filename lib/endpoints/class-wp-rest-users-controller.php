@@ -17,6 +17,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $query_params,
+				'schema'          => $this->get_item_schema(),
 			),
 			array(
 				'methods'         => WP_REST_Server::CREATABLE,
@@ -27,6 +28,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 						'required' => true,
 					),
 				) ),
+				'schema'          => $this->get_item_schema(),
 			),
 		) );
 		register_rest_route( 'wp/v2', '/users/(?P<id>[\d]+)', array(
@@ -39,6 +41,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 						'default'      => 'embed',
 					),
 				),
+				'schema'          => $this->get_item_schema(),
 			),
 			array(
 				'methods'         => WP_REST_Server::EDITABLE,
@@ -47,6 +50,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
 					'password'    => array()
 				) ),
+				'schema'          => $this->get_item_schema(),
 			),
 			array(
 				'methods' => WP_REST_Server::DELETABLE,
@@ -55,6 +59,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'args' => array(
 					'reassign' => array(),
 				),
+				'schema'          => $this->get_item_schema(),
 			),
 		) );
 
@@ -63,13 +68,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
 				'context'          => array(),
-			)
+			),
+			'schema'          => $this->get_item_schema(),
 		));
 
-		register_rest_route( 'wp/v2', '/users/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
 	}
 
 	/**
