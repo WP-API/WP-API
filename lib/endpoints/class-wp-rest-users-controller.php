@@ -594,7 +594,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'email'       => array(
 					'description' => 'The email address for the object.',
@@ -662,7 +662,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'URL of the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'username'    => array(

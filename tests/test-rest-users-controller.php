@@ -770,6 +770,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
+		$this->assertEquals( $user->user_url, $data['url'] );
+		$this->assertEquals( $user->description, $data['description'] );
 		$this->assertEquals( rest_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
@@ -778,8 +780,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
 			$this->assertEquals( $user->user_nicename, $data['slug'] );
-			$this->assertEquals( $user->user_url, $data['url'] );
-			$this->assertEquals( $user->description, $data['description'] );
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {
@@ -790,8 +790,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'last_name', $data );
 			$this->assertArrayNotHasKey( 'nickname', $data );
 			$this->assertArrayNotHasKey( 'slug', $data );
-			$this->assertArrayNotHasKey( 'url', $data );
-			$this->assertArrayNotHasKey( 'description', $data );
 		}
 
 		if ( 'view' == $context ) {
