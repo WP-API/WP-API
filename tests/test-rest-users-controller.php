@@ -783,7 +783,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {
-			$this->assertArrayNotHasKey( 'data', $data );
+			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered', $data );
 			$this->assertArrayNotHasKey( 'first_name', $data );
