@@ -159,7 +159,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_items_invalid_post() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', 9999 );
+		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
@@ -248,7 +248,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_term_invalid_term() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/2' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
 	}
