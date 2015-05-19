@@ -327,6 +327,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
+		$mock_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID ) );
+		$mock_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $mock_request );
+
 		// If we're forcing, then delete permanently
 		if ( $force ) {
 			$result = wp_delete_post( $id, true );
@@ -341,16 +345,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$result = wp_trash_post( $id );
 		}
 
-		if ( ! $result ) {
+		if ( $result ) {
+			return $response;
+		} else {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
 	}
 
 	/**
