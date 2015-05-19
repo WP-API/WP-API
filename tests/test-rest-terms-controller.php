@@ -299,6 +299,39 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_missing_callback_param', $response, 400 );
 	}
 
+	public function test_create_item_with_parent() {
+		wp_set_current_user( $this->administrator );
+		$parent = wp_insert_term( 'test-category', 'category' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/category' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'parent', $parent['term_taxonomy_id'] );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $parent['term_taxonomy_id'], $data['parent'] );
+	}
+
+	public function test_create_item_invalid_parent() {
+		wp_set_current_user( $this->administrator );
+		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/category/' . $term->term_taxonomy_id );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'parent', 9999 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
+	}
+
+	public function test_create_item_parent_non_hierarchical_taxonomy() {
+		wp_set_current_user( $this->administrator );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/tag' );
+		$request->set_param( 'name', 'My Awesome Term' );
+		$request->set_param( 'parent', 9999 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( $this->administrator );
 		$orig_args = array(
@@ -342,6 +375,40 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+	}
+
+	public function test_update_item_parent() {
+		wp_set_current_user( $this->administrator );
+		$parent = get_term_by( 'id', $this->factory->category->create(), 'category' );
+		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/category/' . $term->term_taxonomy_id );
+		$request->set_param( 'parent', $parent->term_taxonomy_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( $parent->term_taxonomy_id, $data['parent'] );
+	}
+
+	public function test_update_item_invalid_parent() {
+		wp_set_current_user( $this->administrator );
+		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/category/' . $term->term_taxonomy_id );
+		$request->set_param( 'parent', 9999 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
+	}
+
+	public function test_update_item_parent_non_hierarchical_taxonomy() {
+		wp_set_current_user( $this->administrator );
+		$term = get_term_by( 'id', $this->factory->tag->create(), 'post_tag' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/tag/' . $term->term_taxonomy_id );
+		$request->set_param( 'parent', 9999 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
 	}
 
 	public function test_delete_item() {
