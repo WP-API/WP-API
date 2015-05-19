@@ -530,6 +530,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_comment_invalid_id() {
