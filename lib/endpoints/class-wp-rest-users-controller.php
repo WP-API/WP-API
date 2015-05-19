@@ -594,7 +594,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'email'       => array(
 					'description' => 'The email address for the object.',
@@ -612,7 +612,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
@@ -623,7 +623,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
@@ -640,7 +640,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'registered_date' => array(
 					'description' => 'Registration date for the user.',
@@ -656,13 +656,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'url'         => array(
 					'description' => 'URL of the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'username'    => array(
