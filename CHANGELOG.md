@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0 Beta 1.1
+
+- Fix user access security vulnerability.
+
+  Authenticated users were able to escalate their privileges bypassing the
+  expected capabilities check.
+
+  Reported by @kacperszurek on 2015-05-16.
+
+
 ## 2.0 Beta 1
 
 - Avoid passing server to the controller each time
