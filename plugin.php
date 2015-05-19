@@ -334,7 +334,7 @@ function rest_api_loaded() {
 	// We're done.
 	die();
 }
-add_action( 'template_redirect', 'rest_api_loaded', -100 );
+add_action( 'parse_request', 'rest_api_loaded' );
 
 /**
  * Register routes and flush the rewrite rules on activation.
