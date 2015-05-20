@@ -254,9 +254,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// Get the actual term_id
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
-		$mock_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/terms/' . $this->get_taxonomy_base( $term->taxonomy ) . '/' . (int) $request['id'] ) );
-		$mock_request->set_param( 'context', 'view' );
-		$response = $this->prepare_item_for_response( $term, $mock_request );
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/terms/' . $this->get_taxonomy_base( $term->taxonomy ) . '/' . (int) $request['id'] ) );
+		$get_request->set_param( 'context', 'view' );
+		$response = $this->prepare_item_for_response( $term, $get_request );
 
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
 		if ( ! $retval ) {
