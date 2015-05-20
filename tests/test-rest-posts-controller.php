@@ -966,6 +966,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
+	public function test_delete_post_invalid_post_type() {
+		$page_id = $this->factory->post->create( array( 'post_type' => 'page' ) );
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . $page_id );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
 	public function test_delete_post_without_permission() {
 		wp_set_current_user( $this->author_id );
 

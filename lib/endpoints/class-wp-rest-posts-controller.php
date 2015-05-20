@@ -319,7 +319,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post = get_post( $id );
 
-		if ( empty( $id ) || empty( $post->ID ) ) {
+		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
