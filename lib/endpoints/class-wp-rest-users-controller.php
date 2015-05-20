@@ -312,9 +312,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$mock_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/users/' . $id ) );
-		$mock_request->set_param( 'context', 'edit' );
-		$orig_user = $this->prepare_item_for_response( $user, $mock_request );
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/users/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $get_request );
 
 		$result = wp_delete_user( $id, $reassign );
 
