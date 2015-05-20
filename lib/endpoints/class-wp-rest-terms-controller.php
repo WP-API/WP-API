@@ -259,11 +259,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $term, $mock_request );
 
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
-		if ( $retval ) {
-			return $response;
-		} else {
+		if ( ! $retval ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.' ), array( 'status' => 500 ) );
 		}
+		
+		return $response;
 	}
 
 	/**
