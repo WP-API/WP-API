@@ -280,9 +280,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		$mock_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
-		$mock_request->set_param( 'context', 'edit' );
-		$response = $this->prepare_item_for_response( $comment, $mock_request );
+		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
 
 		$result = wp_delete_comment( $comment->comment_ID, $force );
 		if ( ! $result ) {
