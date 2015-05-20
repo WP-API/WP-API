@@ -345,12 +345,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$result = wp_trash_post( $id );
 		}
 
-		if ( $result ) {
-			return $response;
-		} else {
+		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
+		return $response;
 	}
 
 	/**
