@@ -285,11 +285,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $comment, $mock_request );
 
 		$result = wp_delete_comment( $comment->comment_ID, $force );
-		if ( $result ) {
-			return $response;
-		} else {
+		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
+		
+		return $response;
 	}
 
 
