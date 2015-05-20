@@ -320,9 +320,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		} else {
-			return $orig_user;
 		}
+		
+		return $orig_user;
 	}
 
 	/**
