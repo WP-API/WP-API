@@ -1025,9 +1025,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $post->post_parent;
-			if ( 0 == $data['parent'] ) {
-				$data['parent'] = null;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['menu_order'] ) ) {
