@@ -204,13 +204,20 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function get_items_permissions_check( $request ) {
-		$post_check = $this->posts_controller->get_item_permissions_check( $request );
+
+		$post_request = new WP_REST_Request();
+		$post_request->set_param( 'id', $request['post_id'] );
+
+		$post_check = $this->posts_controller->get_item_permissions_check( $post_request );
 
 		if ( ! $post_check || is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
 
-		$terms_check = $this->terms_controller->get_item_permissions_check( $request );
+		$term_request = new WP_REST_Request();
+		$term_request->set_param( 'id', $request['term_id'] );
+
+		$terms_check = $this->terms_controller->get_item_permissions_check( $term_request );
 
 		if ( ! $terms_check || is_wp_error( $terms_check ) ) {
 			return $terms_check;
@@ -227,7 +234,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
-		$post_check = $this->posts_controller->update_item_permissions_check( $request );
+		$post_request = new WP_REST_Request();
+		$post_request->set_param( 'id', $request['post_id'] );
+		$post_check = $this->posts_controller->update_item_permissions_check( $post_request );
 
 		if ( ! $post_check || is_wp_error( $post_check ) ) {
 			return $post_check;
