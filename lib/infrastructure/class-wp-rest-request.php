@@ -89,7 +89,7 @@ class WP_REST_Request implements ArrayAccess {
 			// See parse_json_params
 			'JSON'  => null,
 
-			'defaults' => array()
+			'defaults' => array(),
 		);
 
 		$this->set_method( $method );

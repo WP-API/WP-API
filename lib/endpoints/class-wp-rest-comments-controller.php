@@ -288,7 +288,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
-		
+
 		return $response;
 	}
 
@@ -310,7 +310,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_comments' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => 403 ) );
 		}
 
@@ -868,7 +868,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function handle_status_change( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
-		if ( $new_status == $old_status ) {
+		if ( $new_status === $old_status ) {
 			return false;
 		}
 
@@ -923,15 +923,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-		if ( 1 == $comment->comment_approved ) {
+
+		if ( 1 === (int) $comment->comment_approved ) {
 			return true;
 		}
 
-		if ( 0 == get_current_user_id() ) {
+		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
 
-		if ( ! empty( $comment->user_id ) && get_current_user_id() == $comment->user_id ) {
+		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
 			return true;
 		}
 

@@ -1259,7 +1259,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-			)
+			),
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
