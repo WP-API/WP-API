@@ -112,26 +112,18 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_no_post_id() {
-		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		// Override the id parameter to ensure meta is checking it
-		$request['parent_id'] = 0;
-
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', 0, 0 ) );
 		$response = $this->server->dispatch( $request );
+
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	public function test_get_item_invalid_post_id() {
-		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		// Override the id parameter to ensure meta is checking it
-		$request['parent_id'] = -1;
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', 9999, 0 ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -142,10 +134,10 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Override the mid parameter to ensure meta is checking it
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', 0, $meta_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 0 ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+		$this->assertErrorResponse( 'rest_meta_invalid_id', $response, 404 );
 	}
 
 	public function test_get_item_invalid_meta_id() {
@@ -153,9 +145,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		// Use the real URL to ensure routing succeeds
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		// Override the mid parameter to ensure meta is checking it
-		$request['id'] = -1;
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 9999 ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_invalid_id', $response, 404 );
@@ -216,21 +206,15 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_items_no_post_id() {
-		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
-		$request['parent_id'] = 0;
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', 0 ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response );
 	}
 
 	public function test_get_items_invalid_post_id() {
-		$post_id = $this->factory->post->create();
-		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
-		$request['parent_id'] = -1;
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', 9999 ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response );
 	}
@@ -271,32 +255,26 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_create_item_no_post_id() {
-		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', 0 ) );
 		$request->set_body_params( $data );
-
-		$request['parent_id'] = 0;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	public function test_create_item_invalid_post_id() {
-		$post_id = $this->factory->post->create();
 		$data = array(
 			'key' => 'testkey',
 			'value' => 'testvalue',
 		);
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', 9999 ) );
 		$request->set_body_params( $data );
-
-		$request['parent_id'] = -1;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -638,8 +616,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['id'] = -1;
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 9999 ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
@@ -865,37 +842,26 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_delete_item_no_post_id() {
-		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['parent_id'] = 0;
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', 0, 1 ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
-
-		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
 	public function test_delete_item_invalid_post_id() {
-		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['parent_id'] = -1;
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', 9999, 1 ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
-
-		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
 
 	public function test_delete_item_no_meta_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
-		$request['id'] = 0;
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 0 ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_invalid_id', $response, 404 );
@@ -907,7 +873,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, 9999 ) );
 		$request['id'] = -1;
 
 		$response = $this->server->dispatch( $request );

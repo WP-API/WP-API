@@ -278,19 +278,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function test_create_post_invalid_id() {
-		wp_set_current_user( $this->editor_id );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
-		$params = $this->set_post_data( array(
-			'id' => '3',
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_post_exists', $response, 400 );
-	}
-
 	public function test_create_post_as_contributor() {
 		wp_set_current_user( $this->contributor_id );
 
@@ -1027,6 +1014,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_additional_field_registration() {
 
+		// we have to use our own server, as it has to be initted after registering additional fields
+		global $wp_rest_server;
+		$this->server = $wp_rest_server = new WP_REST_Server;
+
 		$schema = array(
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
@@ -1039,6 +1030,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
+
+		do_action( 'rest_api_init' );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
 

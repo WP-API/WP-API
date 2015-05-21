@@ -611,6 +611,46 @@ class WP_REST_Request implements ArrayAccess {
 	 */
 	public function set_attributes( $attributes ) {
 		$this->attributes = $attributes;
+
+		$arg_names = ! empty( $attributes['args'] ) ? array_keys( $attributes['args'] ) : array();
+
+		if ( ! isset( $attributes['args'] ) ) {
+			return;
+		}
+
+		if ( ! empty( $this->params['POST'] ) ) {
+			$this->params['POST'] = $this->array_filter_by_keys( $this->params['POST'], $arg_names );
+		}
+
+		if ( ! empty( $this->params['GET'] ) ) {
+			$this->params['GET'] = $this->array_filter_by_keys( $this->params['GET'], $arg_names );
+		}
+
+		if ( ! empty( $this->params['JSON'] ) ) {
+			$this->params['JSON'] = $this->array_filter_by_keys( $this->params['JSON'], $arg_names );
+		}
+	}
+
+	/**
+	 * Filter an array based off it's keys being present in the $keys array
+	 *
+	 * @param  array $array The array to be filtered
+	 * @param  array $keys  Array of keys to use to filter the $array
+	 * @return array
+	 */
+	protected function array_filter_by_keys( $array, $keys ) {
+
+		if ( ! $array ) {
+			return $array;
+		}
+
+		foreach ( $array as $key => $value ) {
+			if ( ! in_array( $key, $keys ) ) {
+				unset( $array[$key] );
+			}
+		}
+
+		return $array;
 	}
 
 	/**

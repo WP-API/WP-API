@@ -855,6 +855,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
+		$query_params['context']   = array(
+			'default'           => 'view',
+			'description'       => 'Set the context for the requet. "view" or "edit".',
+			'sanitize_callback' => 'sanitize_text_field',
+			'type'              => 'string',
+		);
 		return $query_params;
 	}
 
