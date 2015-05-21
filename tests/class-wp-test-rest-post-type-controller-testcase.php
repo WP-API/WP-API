@@ -129,7 +129,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		$this->assertEquals( $post->guid, $data['guid']['rendered'] );
 
-		if ( 'edit' == $context ) {
+		if ( 'edit' === $context ) {
 			$this->assertEquals( $post->guid, $data['guid']['raw'] );
 			$this->assertEquals( $post->post_status, $data['status'] );
 			$this->assertEquals( $post->post_password, $data['password'] );

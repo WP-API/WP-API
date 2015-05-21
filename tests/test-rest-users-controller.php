@@ -792,7 +792,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'slug', $data );
 		}
 
-		if ( 'view' == $context ) {
+		if ( 'view' === $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
@@ -800,7 +800,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
 
-		if ( 'edit' == $context ) {
+		if ( 'edit' === $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
 			$this->assertEquals( $user->user_login, $data['username'] );
