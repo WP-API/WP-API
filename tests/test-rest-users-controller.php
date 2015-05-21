@@ -337,25 +337,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_cannot_create_user', $response, 403 );
 	}
 
-	public function test_create_user_invalid_id() {
-		$this->allow_user_to_manage_multisite();
-		wp_set_current_user( $this->user );
-
-		$params = array(
-			'id'       => '156',
-			'username' => 'lisasimpson',
-			'password' => 'DavidHasselhoff',
-			'email'    => 'smartgirl63_\@yahoo.com',
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
-		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_user_exists', $response, 400 );
-	}
-
 	public function test_update_item() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'test@example.com',

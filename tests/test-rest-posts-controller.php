@@ -278,19 +278,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->check_create_post_response( $response );
 	}
 
-	public function test_create_post_invalid_id() {
-		wp_set_current_user( $this->editor_id );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
-		$params = $this->set_post_data( array(
-			'id' => '3',
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_post_exists', $response, 400 );
-	}
-
 	public function test_create_post_as_contributor() {
 		wp_set_current_user( $this->contributor_id );
 

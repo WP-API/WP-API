@@ -187,10 +187,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function create_item( $request ) {
 
-		if ( ! empty( $request['id'] ) ) {
-			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
-		}
-
 		$user = $this->prepare_item_for_database( $request );
 
 		if ( is_multisite() ) {
