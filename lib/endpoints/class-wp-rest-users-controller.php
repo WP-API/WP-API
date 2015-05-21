@@ -312,13 +312,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/users/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $get_request );
+
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		} else {
-			return array( 'message' => __( 'Deleted user' ) );
 		}
+		
+		return $orig_user;
 	}
 
 	/**
