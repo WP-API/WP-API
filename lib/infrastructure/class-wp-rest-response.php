@@ -75,7 +75,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
 
 		foreach ( $other as $key => $value ) {
-			if ( 'title' == $key ) {
+			if ( 'title' === $key ) {
 				$value = '"' . $value . '"';
 			}
 			$header .= '; ' . $key . '=' . $value;
