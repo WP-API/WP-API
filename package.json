@@ -9,7 +9,6 @@
   "author": "WP-API Team <team@wp-api.org>",
   "devDependencies": {
     "grunt": "^0.4.5",
-    "grunt-phpcs": "^0.4.0",
-    "phplint": "^1.2.0"
+    "grunt-phpcs": "^0.4.0"
   }
 }
