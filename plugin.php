@@ -599,7 +599,6 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			if ( empty( $body['schema'] ) && ! empty( $endpoint['schema'] ) ) {
 				$body['schema'] = $endpoint['schema'];
 			}
-
 		}
 		break;
 	}
