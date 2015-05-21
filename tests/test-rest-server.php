@@ -111,7 +111,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			'method'       => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'permission_callback' => array( $this, 'permission_denied' )
+			'permission_callback' => array( $this, 'permission_denied' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );

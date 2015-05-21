@@ -216,13 +216,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 	protected function set_raw_post_data( $args = array() ) {
 		return wp_parse_args( $args, $this->set_post_data( array(
 			'title'   => array(
-				'raw' => rand_str()
+				'raw' => rand_str(),
 			),
 			'content' => array(
-				'raw' => rand_str()
+				'raw' => rand_str(),
 			),
 			'excerpt' => array(
-				'raw' => rand_str()
+				'raw' => rand_str(),
 			),
 		) ) );
 	}

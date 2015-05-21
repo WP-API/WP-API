@@ -201,7 +201,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $data['parent'] ) ) {
 			$data['_links'] = array(
-				'parent'    => rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) )
+				'parent'    => rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ),
 				);
 		}
 
@@ -291,7 +291,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
-			)
+			),
 		);
 
 		$parent_schema = $this->parent_controller->get_item_schema();

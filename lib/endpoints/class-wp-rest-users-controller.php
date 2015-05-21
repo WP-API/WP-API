@@ -45,7 +45,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
-					'password'    => array()
+					'password'    => array(),
 				) ),
 			),
 			array(
@@ -63,7 +63,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
 				'context'          => array(),
-			)
+			),
 		));
 
 		register_rest_route( 'wp/v2', '/users/schema', array(
@@ -671,7 +671,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 					'required'    => true,
 				),
-			)
+			),
 		);
 		return $this->add_additional_fields_schema( $schema );
 	}
