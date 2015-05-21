@@ -597,17 +597,20 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_delete_item() {
-		$user_id = $this->factory->user->create();
+		$user_id = $this->factory->user->create( array( 'display_name' => 'Deleted User' ) );
 
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
 
+		$userdata = get_userdata( $user_id ); // cache for later
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'Deleted User', $data['name'] );
 	}
 
 	public function test_delete_user_without_permission() {
@@ -714,13 +717,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' )
+			'context'     => array( 'view', 'edit' ),
 		);
 
 		register_api_field( 'user', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
-			'update_callback' => array( $this, 'additional_field_update_callback' )
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
@@ -780,31 +783,37 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	protected function check_user_data( $user, $data, $context ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
-		$this->assertEquals( $user->first_name, $data['first_name'] );
-		$this->assertEquals( $user->last_name, $data['last_name'] );
-		$this->assertEquals( $user->nickname, $data['nickname'] );
-		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
-		$this->assertEquals( rest_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( $user->description, $data['description'] );
+		$this->assertEquals( rest_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
-		if ( 'view' == $context ) {
+		if ( 'view' === $context || 'edit' === $context ) {
+			$this->assertEquals( $user->first_name, $data['first_name'] );
+			$this->assertEquals( $user->last_name, $data['last_name'] );
+			$this->assertEquals( $user->nickname, $data['nickname'] );
+			$this->assertEquals( $user->user_nicename, $data['slug'] );
+		}
+
+		if ( 'view' !== $context && 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'roles', $data );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'registered', $data );
+			$this->assertArrayNotHasKey( 'first_name', $data );
+			$this->assertArrayNotHasKey( 'last_name', $data );
+			$this->assertArrayNotHasKey( 'nickname', $data );
+			$this->assertArrayNotHasKey( 'slug', $data );
+		}
+
+		if ( 'view' === $context ) {
 			$this->assertEquals( $user->roles, $data['roles'] );
 			$this->assertEquals( $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
-
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 		}
 
-		if ( 'view' !== $context && 'edit' !== $context ) {
-			$this->assertArrayNotHasKey( 'data', $data );
-			$this->assertArrayNotHasKey( 'capabilities', $data );
-			$this->assertArrayNotHasKey( 'registered', $data );
-		}
-
-		if ( 'edit' == $context ) {
+		if ( 'edit' === $context ) {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
 			$this->assertEquals( $user->user_login, $data['username'] );

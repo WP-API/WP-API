@@ -98,16 +98,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'Cape', $data[0]['name'] );
 	}
 
-	public function test_get_terms_post_args_no_permission() {
-		$draft_id = $this->factory->post->create( array(
-			'post_status' => 'draft',
-		) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', $draft_id );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
-	}
-
 	public function test_get_items_search_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
@@ -155,23 +145,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
-	}
-
-	public function test_get_items_invalid_post() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
-	}
-
-	public function test_get_items_invalid_taxonomy_for_post_type() {
-		$page_id = $this->factory->post->create( array(
-			'post_type' => 'page',
-		) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
-		$request->set_param( 'post', $page_id );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_taxonomy_invalid', $response, 404 );
 	}
 
 	public function test_get_terms_pagination_headers() {
@@ -413,10 +386,12 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_delete_item() {
 		wp_set_current_user( $this->administrator );
-		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
+		$term = get_term_by( 'id', $this->factory->category->create( array( 'name' => 'Deleted Category' ) ), 'category' );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/terms/category/' . $term->term_taxonomy_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'Deleted Category', $data['name'] );
 	}
 
 	public function test_delete_item_invalid_taxonomy() {

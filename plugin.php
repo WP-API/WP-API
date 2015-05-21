@@ -43,6 +43,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controlle
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -167,6 +168,16 @@ function create_initial_rest_routes() {
 		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 			$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 			$revisions_controller->register_routes();
+		}
+
+		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
+
+			if ( empty( $taxonomy->show_in_rest ) ) {
+				continue;
+			}
+
+			$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
+			$posts_terms_controller->register_routes();
 		}
 	}
 
@@ -334,7 +345,7 @@ function rest_api_loaded() {
 	// We're done.
 	die();
 }
-add_action( 'template_redirect', 'rest_api_loaded', -100 );
+add_action( 'parse_request', 'rest_api_loaded' );
 
 /**
  * Register routes and flush the rewrite rules on activation.
