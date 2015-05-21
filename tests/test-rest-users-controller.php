@@ -563,13 +563,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$params = array(
-			'id'       => '156',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
 			'email'    => 'smartgirl63_\@yahoo.com',
 		);
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', 156 ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
@@ -664,7 +663,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_url', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -684,6 +683,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_additional_field_registration() {
 
+		// we have to use our own server, as it has to be initted after registering additional fields
+		global $wp_rest_server;
+		$this->server = $wp_rest_server = new WP_REST_Server;
+
 		$schema = array(
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
@@ -696,6 +699,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
+
+		do_action( 'rest_api_init' );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
 
