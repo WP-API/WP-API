@@ -83,9 +83,6 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-
-		if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
-			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		$is_request_valid = $this->validate_request();
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
@@ -114,8 +111,6 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
-			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		$is_request_valid = $this->validate_request();
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
