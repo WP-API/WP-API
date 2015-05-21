@@ -172,7 +172,7 @@ function create_initial_rest_routes() {
 
 		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
 
-			if ( ! $taxonomy->public ) {
+			if ( empty( $taxonomy->show_in_rest ) ) {
 				continue;
 			}
 
