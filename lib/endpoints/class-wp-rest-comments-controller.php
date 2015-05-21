@@ -923,7 +923,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-		if ( 1 === $comment->comment_approved ) {
+
+		if ( 1 === (int) $comment->comment_approved ) {
 			return true;
 		}
 
@@ -931,7 +932,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		if ( ! empty( $comment->user_id ) && get_current_user_id() === $comment->user_id ) {
+		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
 			return true;
 		}
 
