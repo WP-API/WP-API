@@ -43,6 +43,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 			),
 		) );
+
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<id>[\d]+)/terms/%s', $base, $this->taxonomy ) . '/schema', array(
+			'methods'         => WP_REST_Server::READABLE,
+			'callback'        => array( $this, 'get_item_schema' ),
+		) );
 	}
 
 	/**
@@ -154,6 +159,15 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		}
 
 		return $previous_item;
+	}
+
+	/**
+	 * Get the Term schema, conforming to JSON Schema.
+	 *
+	 * @return array
+	 */
+	public function get_item_schema() {
+		return $this->terms_controller->get_item_schema();
 	}
 
 	/**

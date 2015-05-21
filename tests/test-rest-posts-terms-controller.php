@@ -226,10 +226,47 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	}
 
 	public function test_prepare_item() {
-		/** Post types can't be updated **/
+		$tag = wp_insert_term( 'test-tag', 'post_tag' );
+		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
+		$term = get_term( $tag['term_id'], 'post_tag' );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->check_taxonomy_term( $term, $data );
 	}
 
 	public function test_get_item_schema() {
-		/** Post types can't be deleted **/
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag/schema', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$properties = $data['properties'];
+		$this->assertEquals( 7, count( $properties ) );
+		$this->assertArrayHasKey( 'id', $properties );
+		$this->assertArrayHasKey( 'count', $properties );
+		$this->assertArrayHasKey( 'description', $properties );
+		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'name', $properties );
+		$this->assertArrayHasKey( 'slug', $properties );
+		$this->assertArrayHasKey( 'taxonomy', $properties );
+		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+	}
+
+	protected function check_taxonomy_term( $term, $data ) {
+		$this->assertEquals( $term->term_id, $data['id'] );
+		$this->assertEquals( $term->name, $data['name'] );
+		$this->assertEquals( $term->slug, $data['slug'] );
+		$this->assertEquals( $term->description, $data['description'] );
+		$this->assertEquals( get_term_link( $term ),  $data['link'] );
+		$this->assertEquals( $term->count, $data['count'] );
+
+		$taxonomy = get_taxonomy( $term->taxonomy );
+		if ( $taxonomy->hierarchical ) {
+			$this->assertEquals( $term->parent, $data['parent'] );
+		} else {
+			$this->assertFalse( isset( $data['parent'] ) );
+		}
 	}
 }
