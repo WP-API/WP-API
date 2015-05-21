@@ -280,16 +280,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
+
 		$result = wp_delete_comment( $comment->comment_ID, $force );
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted comment' ) );
-		}
-
-		return array( 'message' => __( 'Deleted comment' ) );
+		return $response;
 	}
 
 
@@ -310,7 +310,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_comments' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => 403 ) );
 		}
 
@@ -529,7 +529,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
 				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
 				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
-				'post_name'    => isset( $request['post_name'] ) ? $request['post_name'] : '',
+				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
 				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
 				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
 				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
@@ -606,7 +606,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
 			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => sanitize_key( $request['type'] ),
+			'comment_type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
@@ -813,7 +813,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
-		$query_params['post_name'] = array(
+		$query_params['post_slug'] = array(
 			'default'           => null,
 			'description'       => 'Limit result set to comments associated with posts of a specific post slug.',
 			'sanitize_callback' => 'sanitize_title',
@@ -868,7 +868,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function handle_status_change( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
-		if ( $new_status == $old_status ) {
+		if ( $new_status === $old_status ) {
 			return false;
 		}
 
@@ -923,15 +923,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-		if ( 1 == $comment->comment_approved ) {
+
+		if ( 1 === (int) $comment->comment_approved ) {
 			return true;
 		}
 
-		if ( 0 == get_current_user_id() ) {
+		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
 
-		if ( ! empty( $comment->user_id ) && get_current_user_id() == $comment->user_id ) {
+		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
 			return true;
 		}
 
