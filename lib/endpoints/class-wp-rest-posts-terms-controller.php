@@ -55,14 +55,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$post = get_post( $request['id'] );
 
-		$post_check = $this->posts_controller->get_item( $request );
-		if ( is_wp_error( $post_check ) ) {
-			return $post_check;
-		}
-
-		$valid_taxonomies = get_object_taxonomies( $post->post_type );
-		if ( ! in_array( $this->taxonomy, $valid_taxonomies ) ) {
-			return new WP_Error( 'rest_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
+		$is_request_valid = $this->validate_request();
+		if ( is_wp_error( $is_request_valid ) ) {
+			return $is_request_valid;
 		}
 
 		$terms = wp_get_object_terms( $post->ID, $this->taxonomy );
@@ -88,18 +83,12 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		$post_check = $this->posts_controller->get_item( $request );
-		if ( is_wp_error( $post_check ) ) {
-			return $post_check;
-		}
-
-		$valid_taxonomies = get_object_taxonomies( $post->post_type );
-		if ( ! in_array( $this->taxonomy, $valid_taxonomies ) ) {
-			return new WP_Error( 'rest_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
-		}
 
 		if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+		$is_request_valid = $this->validate_request();
+		if ( is_wp_error( $is_request_valid ) ) {
+			return $is_request_valid;
 		}
 
 		$terms = wp_get_object_terms( $post->ID, $this->taxonomy );
@@ -125,18 +114,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		$post_check = $this->posts_controller->get_item( $request );
-		if ( is_wp_error( $post_check ) ) {
-			return $post_check;
-		}
-
-		$valid_taxonomies = get_object_taxonomies( $post->post_type );
-		if ( ! in_array( $this->taxonomy, $valid_taxonomies ) ) {
-			return new WP_Error( 'rest_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
-		}
-
 		if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+		$is_request_valid = $this->validate_request();
+		if ( is_wp_error( $is_request_valid ) ) {
+			return $is_request_valid;
 		}
 
 		$tt_ids = wp_set_object_terms( $post->ID, $term_id, $this->taxonomy, true );
@@ -163,25 +145,35 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
+		$is_request_valid = $this->validate_request();
+		if ( is_wp_error( $is_request_valid ) ) {
+			return $is_request_valid;
+		}
+
+	/**
+	 * Validate the API request for relationship requests.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return WP_Error|true
+	 */
+	protected function validate_request( $request ) {
+
+		$post     = get_post( $request['id'] );
+
 		$post_check = $this->posts_controller->get_item( $request );
 		if ( is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
 
-		$valid_taxonomies = get_object_taxonomies( $post->post_type );
-		if ( ! in_array( $this->taxonomy, $valid_taxonomies ) ) {
-			return new WP_Error( 'rest_post_taxonomy_invalid', __( 'Invalid taxonomy for post ID.' ), array( 'status' => 404 ) );
+		if ( ! empty( $request['term_id'] ) ) {
+			$term_id  = absint( $request['term_id'] );
+
+			if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
+				return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+			}
 		}
 
-		$terms = wp_get_object_terms( $post->ID, $this->taxonomy );
-		$terms = wp_list_filter( $terms, array( 'term_taxonomy_id' => $term_id ), 'NOT' );
-		$tt_ids = wp_set_object_terms( $post->ID, $terms, $this->taxonomy );
-
-		if ( is_wp_error( $tt_ids ) ) {
-			return $tt_ids;
-		}
-
-		return null;
+		return true;
 	}
 
 	/**
