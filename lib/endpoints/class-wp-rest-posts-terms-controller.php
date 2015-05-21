@@ -60,7 +60,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$post = get_post( $request['id'] );
 
-		$is_request_valid = $this->validate_request();
+		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
 		}
@@ -88,7 +88,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		$is_request_valid = $this->validate_request();
+		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
 		}
@@ -116,7 +116,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		$is_request_valid = $this->validate_request();
+		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
 		}
@@ -145,7 +145,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post     = get_post( $request['id'] );
 		$term_id  = absint( $request['term_id'] );
 
-		$is_request_valid = $this->validate_request();
+		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {
 			return $is_request_valid;
 		}
