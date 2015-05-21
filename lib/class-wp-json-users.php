@@ -97,22 +97,7 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$response = $this->get_user( $current_user_id, $context );
-
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		if ( ! ( $response instanceof WP_JSON_ResponseInterface ) ) {
-			$response = new WP_JSON_Response( $response );
-		}
-
-		$data = $response->get_data();
-
-		$response->header( 'Location', $data['meta']['links']['self'] );
-		$response->set_status( 302 );
-
-		return $response;
+		return $this->get_user( $current_user_id, $context );
 	}
 
 	/**
