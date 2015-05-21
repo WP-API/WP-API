@@ -150,6 +150,17 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			return $is_request_valid;
 		}
 
+		$previous_item = $this->get_item( $request );
+
+		$remove = wp_remove_object_terms( $post->ID, $term_id, $this->taxonomy );
+
+		if ( is_wp_error( $remove ) ) {
+			return $remove;
+		}
+
+		return $previous_item;
+	}
+
 	/**
 	 * Validate the API request for relationship requests.
 	 *
