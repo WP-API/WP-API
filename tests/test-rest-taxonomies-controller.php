@@ -93,7 +93,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	 * Utility function for use in get_public_taxonomies
 	 */
 	private function is_public( $taxonomy ) {
-		return $taxonomy->public !== false;
+		return ! empty( $taxonomy->show_in_rest );
 	}
 	/**
 	 * Utility function to filter down to only public taxonomies
