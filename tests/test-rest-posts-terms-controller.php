@@ -14,8 +14,8 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 
-		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/post_tag', $routes );
-		$this->assertArrayHasKey( '/wp/v2/posts/(?P<id>[\d]+)/terms/post_tag/(?P<term_id>[\d]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<post_id>[\d]+)/terms/post_tag', $routes );
+		$this->assertArrayHasKey( '/wp/v2/posts/(?P<post_id>[\d]+)/terms/post_tag/(?P<term_id>[\d]+)', $routes );
 	}
 
 	public function test_get_items() {

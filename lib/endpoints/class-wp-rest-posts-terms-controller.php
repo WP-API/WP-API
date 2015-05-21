@@ -18,7 +18,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$base = $this->posts_controller->get_post_type_base( $this->post_type );
 
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<id>[\d]+)/terms/%s', $base, $this->taxonomy ), array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $this->taxonomy ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -26,7 +26,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $this->taxonomy ), array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $this->taxonomy ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -44,7 +44,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<id>[\d]+)/terms/%s', $base, $this->taxonomy ) . '/schema', array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $this->taxonomy ) . '/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_item_schema' ),
 		) );
@@ -58,7 +58,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$post = get_post( $request['id'] );
+		$post = get_post( absint( $request['post_id'] ) );
 
 		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {
@@ -85,7 +85,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
-		$post     = get_post( $request['id'] );
+		$post     = get_post( absint( $request['post_id'] ) );
 		$term_id  = absint( $request['term_id'] );
 
 		$is_request_valid = $this->validate_request( $request );
@@ -113,7 +113,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-		$post     = get_post( $request['id'] );
+		$post     = get_post( $request['post_id'] );
 		$term_id  = absint( $request['term_id'] );
 
 		$is_request_valid = $this->validate_request( $request );
@@ -142,7 +142,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|null
 	 */
 	public function delete_item( $request ) {
-		$post     = get_post( $request['id'] );
+		$post     = get_post( absint( $request['post_id'] ) );
 		$term_id  = absint( $request['term_id'] );
 
 		$is_request_valid = $this->validate_request( $request );
@@ -178,9 +178,10 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	protected function validate_request( $request ) {
 
-		$post     = get_post( $request['id'] );
+		$post_request = new WP_REST_Request();
+		$post_request->set_param( 'id', $request['post_id'] );
 
-		$post_check = $this->posts_controller->get_item( $request );
+		$post_check = $this->posts_controller->get_item( $post_request );
 		if ( is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
