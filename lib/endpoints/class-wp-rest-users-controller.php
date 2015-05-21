@@ -657,6 +657,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
 				),
+				'role'            => array(
+					'description' => 'The role assigned to the user.',
+					'type'        => 'array',
+					'context'     => array( 'view', 'edit' ),
+				),
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
