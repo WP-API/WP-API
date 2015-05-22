@@ -319,13 +319,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post = get_post( $id );
 
-		if ( empty( $id ) || empty( $post->ID ) ) {
+		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
+
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $get_request );
 
 		// If we're forcing, then delete permanently
 		if ( $force ) {
@@ -345,12 +349,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
+		return $response;
 	}
 
 	/**
@@ -1025,9 +1024,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $post->post_parent;
-			if ( 0 == $data['parent'] ) {
-				$data['parent'] = null;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['menu_order'] ) ) {
@@ -1263,7 +1259,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-			)
+			),
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );

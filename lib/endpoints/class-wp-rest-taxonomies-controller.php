@@ -74,7 +74,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
 		$tax_obj = get_taxonomy( $request['taxonomy'] );
 
-		if ( $tax_obj && false === $tax_obj->public ) {
+		if ( $tax_obj && empty( $tax_obj->show_in_rest ) ) {
 			return false;
 		}
 
@@ -89,7 +89,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array Taxonomy data
 	 */
 	public function prepare_item_for_response( $taxonomy, $request ) {
-		if ( false === $taxonomy->public ) {
+		if ( empty( $taxonomy->show_in_rest ) ) {
 			return new WP_Error( 'rest_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
 		}
 

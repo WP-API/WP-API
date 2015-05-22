@@ -205,7 +205,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_invalid_id() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/100' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -473,7 +473,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$file = DIR_TESTDATA . '/images/canola.jpg';
 		$this->attachment_id = $this->factory->attachment->create_object( $file, 0, array(
 			'post_mime_type' => 'image/jpeg',
-			'menu_order' => rand( 1, 100 )
+			'menu_order' => rand( 1, 100 ),
 		) );
 
 		wp_set_current_user( $this->editor_id );
@@ -782,7 +782,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_update_post_invalid_id() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', 100 ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
@@ -946,7 +946,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_delete_item() {
-		$post_id = $this->factory->post->create();
+		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
 		wp_set_current_user( $this->editor_id );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d', $post_id ) );
@@ -955,12 +955,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'Deleted post', $data['title']['raw'] );
 	}
 
 	public function test_delete_post_invalid_id() {
 		wp_set_current_user( $this->editor_id );
 
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/100' );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	public function test_delete_post_invalid_post_type() {
+		$page_id = $this->factory->post->create( array( 'post_type' => 'page' ) );
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/posts/' . $page_id );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -1019,13 +1031,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' )
+			'context'     => array( 'view', 'edit' ),
 		);
 
 		register_api_field( 'post', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
-			'update_callback' => array( $this, 'additional_field_update_callback' )
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );

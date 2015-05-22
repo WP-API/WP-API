@@ -45,7 +45,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
-					'password'    => array()
+					'password'    => array(),
 				) ),
 			),
 			array(
@@ -63,7 +63,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
 				'context'          => array(),
-			)
+			),
 		));
 
 		register_rest_route( 'wp/v2', '/users/schema', array(
@@ -317,13 +317,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/users/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $get_request );
+
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		} else {
-			return array( 'message' => __( 'Deleted user' ) );
 		}
+		
+		return $orig_user;
 	}
 
 	/**
@@ -617,7 +621,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
@@ -628,7 +632,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
@@ -645,7 +649,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'registered_date' => array(
 					'description' => 'Registration date for the user.',
@@ -661,7 +665,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'url'         => array(
 					'description' => 'URL of the object.',
@@ -676,7 +680,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 					'required'    => true,
 				),
-			)
+			),
 		);
 		return $this->add_additional_fields_schema( $schema );
 	}
