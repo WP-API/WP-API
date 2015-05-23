@@ -1,11 +1,11 @@
 <?php
-
 /**
  * Unit tests covering WP_REST_Users_Controller functionality.
  *
  * @package WordPress
  * @subpackage JSON API
  */
+
 class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * This function is run before each method
@@ -354,6 +354,25 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_exists', $response, 400 );
+	}
+
+	public function test_create_user_invalid_role() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'username' => 'maggiesimpson',
+			'password' => 'i_shot_mrburns',
+			'email'    => 'packingheat@example',
+			'role'     => 'baby',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 	}
 
 	public function test_update_item() {
