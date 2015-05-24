@@ -322,7 +322,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 
 	public function test_link_embedding() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -356,7 +356,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_self() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -375,7 +375,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_params() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -399,7 +399,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_error() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
