@@ -3,11 +3,101 @@
 
 abstract class WP_REST_Controller {
 
+	protected $route_base = '';
+	protected $id_regex    = '[\d]+';
+	protected $namespace   = '';
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		_doing_it_wrong( 'WP_REST_Controller::register_routes', __( 'The register_routes() method must be overriden' ), 'WPAPI-2.0' );
+
+		$multiple_args = array();
+		if ( method_exists( $this, 'get_items' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+			);
+
+			if ( method_exists( $this, 'get_items_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'get_items_permissions_check' );
+			}
+
+			if ( method_exists( $this, 'get_collection_params' ) ) {
+				$args['args'] = $this->get_collection_params();
+			}
+
+			$multiple_args[] = $args;
+
+		}
+
+		if ( method_exists( $this, 'create_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+			);
+
+			if ( method_exists( $this, 'create_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'create_item_permissions_check' );
+			}
+
+			$args['args'] = $this->get_endpoint_args_for_item_schema( $this->get_item_schema(), true );
+
+			$multiple_args[] = $args;
+		}
+
+		if ( $multiple_args ) {
+			register_rest_route( $this->namespace, $this->route_base, $multiple_args );
+		}
+
+		$single_args = array();
+
+		if ( method_exists( $this, 'get_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+			);
+
+			if ( method_exists( $this, 'get_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'get_item_permissions_check' );
+			}
+
+			$single_args[] = $args;
+		}
+
+		if ( method_exists( $this, 'update_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::UPDATABLE,
+				'callback'        => array( $this, 'update_item' ),
+			);
+
+			if ( method_exists( $this, 'update_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'update_item_permissions_check' );
+			}
+
+			$args['args'] = $this->get_endpoint_args_for_item_schema( $this->get_item_schema(), false );
+
+			$single_args[] = $args;
+		}
+
+		if ( method_exists( $this, 'delete_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::DELETABLE,
+				'callback'        => array( $this, 'delete_item' ),
+			);
+
+			if ( method_exists( $this, 'delete_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'delete_item_permissions_check' );
+			}
+
+			$single_args[] = $args;
+		}
+
+		register_rest_route( $this->namespace, $this->route_base . '(?P<id>' . $this->id_regex . ')' );
 	}
 
 	/**
