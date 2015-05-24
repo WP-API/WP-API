@@ -443,10 +443,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $comment );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $comment ) );
 
 		return apply_filters( 'rest_prepare_comment', $data, $comment, $request );
 	}

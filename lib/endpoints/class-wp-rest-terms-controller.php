@@ -441,10 +441,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $item );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $item ) );
 
 		return apply_filters( 'rest_prepare_term', $data, $item, $request );
 	}
