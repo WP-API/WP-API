@@ -485,6 +485,18 @@ class WP_REST_Server {
 	public function register_route( $namespace, $route, $route_args, $override = false ) {
 		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
 			$this->namespaces[ $namespace ] = array();
+
+			$this->register_route( $namespace, '/' . $namespace, array(
+				array(
+					'methods' => self::READABLE,
+					'callback' => array( $this, 'get_namespace_index' ),
+					'args' => array(
+						'namespace' => array(
+							'default' => $namespace,
+						),
+					),
+				),
+			) );
 		}
 		$this->namespaces[ $namespace ][] = $route;
 
@@ -686,11 +698,40 @@ class WP_REST_Server {
 			'url'            => get_option( 'siteurl' ),
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
-			'routes'         => array(),
+			'routes'         => $this->get_route_data( $this->get_routes() ),
 		);
 
+		$response = new WP_REST_Response( $available );
+		$response->add_link( 'help', 'http://v2.wp-api.org/' );
+
+		return apply_filters( 'rest_index', $response );
+	}
+
+	/**
+	 * Get the index for a namespace.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return array|WP_REST_Response
+	 */
+	public function get_namespace_index( $request ) {
+		$namespace = $request['namespace'];
+
+		$routes = $this->namespaces[ $namespace ];
+		$endpoints = array_intersect_key( $this->get_routes(), array_flip( $routes ) );
+
+		return $this->get_route_data( $endpoints );
+	}
+
+	/**
+	 * Get the publicly-visible data for routes.
+	 *
+	 * @param array $routes Routes to get data for
+	 * @return array Route data to expose in indexes.
+	 */
+	protected function get_route_data( $routes ) {
+		$available = array();
 		// Find the available routes
-		foreach ( $this->get_routes() as $route => $callbacks ) {
+		foreach ( $routes as $route => $callbacks ) {
 			$data = array(
 				'methods' => array(),
 			);
@@ -718,13 +759,10 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$available['routes'][ $route ] = apply_filters( 'rest_endpoints_description', $data );
+			$available[ $route ] = apply_filters( 'rest_endpoints_description', $data );
 		}
 
-		$response = new WP_REST_Response( $available );
-		$response->add_link( 'help', 'http://v2.wp-api.org/' );
-
-		return apply_filters( 'rest_index', $response );
+		return $available;
 	}
 
 	/**
