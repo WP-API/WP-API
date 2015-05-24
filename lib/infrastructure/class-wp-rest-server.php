@@ -734,7 +734,11 @@ class WP_REST_Server {
 		$routes = $this->namespaces[ $namespace ];
 		$endpoints = array_intersect_key( $this->get_routes(), $routes );
 
-		$response = rest_ensure_response( $this->get_route_data( $endpoints ) );
+		$data = array(
+			'namespace' => $namespace,
+			'routes' => $this->get_route_data( $endpoints ),
+		);
+		$response = rest_ensure_response( $data );
 
 		/**
 		 * Filter the namespace index data.
