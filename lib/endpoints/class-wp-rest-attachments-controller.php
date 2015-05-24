@@ -195,7 +195,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['alt_text'] = array(
 			'description'     => 'Alternative text to display when attachment is not displayed.',
 			'type'            => 'string',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
@@ -211,7 +211,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => 'Type of attachment.',
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
@@ -229,7 +229,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => 'URL to the original attachment file.',
 			'type'            => 'string',
 			'format'          => 'uri',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		return $schema;

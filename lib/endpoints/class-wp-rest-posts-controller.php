@@ -1186,7 +1186,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => 'The date the object was published.',
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'        => array(
 					'description' => 'The date the object was published, as GMT.',
@@ -1215,14 +1215,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'id'              => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'modified'        => array(
@@ -1245,7 +1245,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug'            => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'status'          => array(
 					'description' => 'A named status for the object.',
@@ -1256,7 +1256,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'            => array(
 					'description' => 'Type of Post for the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 			),
@@ -1323,7 +1323,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['title'] = array(
 						'description' => 'The title for the object.',
 						'type'        => 'object',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Title for the object, as it exists in the database.',
@@ -1333,7 +1333,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'rendered' => array(
 								'description' => 'Title for the object, transformed for display.',
 								'type'        => 'string',
-								'context'     => array( 'view', 'edit' ),
+								'context'     => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					);
@@ -1363,7 +1363,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['author'] = array(
 						'description' => 'The ID for the author of the object.',
 						'type'        => 'integer',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 
@@ -1371,7 +1371,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => 'The excerpt for the object.',
 						'type'        => 'object',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Excerpt for the object, as it exists in the database.',
@@ -1381,7 +1381,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'rendered' => array(
 								'description' => 'Excerpt for the object, transformed for display.',
 								'type'        => 'string',
-								'context'     => array( 'view', 'edit' ),
+								'context'     => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					);
