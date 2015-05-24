@@ -178,7 +178,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = parent::prepare_links( $post );
+		$links = $this->prepare_links( $post );
 		foreach ( $links as $rel => $attributes ) {
 			$data->add_link( $rel, $attributes['href'], $attributes );
 		}
