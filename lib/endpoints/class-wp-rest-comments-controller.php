@@ -480,9 +480,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
 				$base = $posts_controller->get_post_type_base( $post->post_type );
 
-				$links[ $post->post_type ] = array(
+				$links['up'] = array(
 					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
 					'embeddable' => true,
+					'post_type'  => $post->post_type,
 				);
 			}
 		}
