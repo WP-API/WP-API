@@ -59,6 +59,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 					'description' => 'The key for the custom field.',
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
+					'required'    => true,
 				),
 				'value' => array(
 					'description' => 'The value of the custom field.',

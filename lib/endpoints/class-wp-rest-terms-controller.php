@@ -476,6 +476,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
 					'context'      => array( 'view' ),
+					'required'     => true,
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
