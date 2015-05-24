@@ -52,6 +52,13 @@ class WP_REST_Server {
 	);
 
 	/**
+	 * Namespaces registered to the server
+	 *
+	 * @var array
+	 */
+	protected $namespaces = array();
+
+	/**
 	 * Endpoints registered to the server
 	 *
 	 * @var array
@@ -475,7 +482,12 @@ class WP_REST_Server {
 	 * @param array $route_args
 	 * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
 	 */
-	public function register_route( $route, $route_args, $override = false ) {
+	public function register_route( $namespace, $route, $route_args, $override = false ) {
+		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+			$this->namespaces[ $namespace ] = array();
+		}
+		$this->namespaces[ $namespace ][] = $route;
+
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
 		} else {
@@ -673,6 +685,7 @@ class WP_REST_Server {
 			'description'    => get_option( 'blogdescription' ),
 			'URL'            => get_option( 'siteurl' ),
 			'routes'         => array(),
+			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
 			'_links' => array(
 				'help'    => array(
