@@ -727,6 +727,10 @@ class WP_REST_Server {
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
 
+		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+			return new WP_Error( 'rest_invalid_namespace', __( 'The specified namespace could not be found.' ), array( 'status' => 404 ) );
+		}
+
 		$routes = $this->namespaces[ $namespace ];
 		$endpoints = array_intersect_key( $this->get_routes(), $routes );
 
