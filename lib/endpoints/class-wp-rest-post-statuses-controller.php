@@ -36,7 +36,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$obj = get_post_status_object( $request['status'] );
+		$obj = get_post_status_object( $request['id'] );
 		if ( empty( $obj ) ) {
 			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
 		}

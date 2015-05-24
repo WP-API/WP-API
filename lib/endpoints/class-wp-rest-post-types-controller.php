@@ -31,7 +31,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$obj = get_post_type_object( $request['type'] );
+		$obj = get_post_type_object( $request['id'] );
 		if ( empty( $obj ) ) {
 			return new WP_Error( 'rest_type_invalid', __( 'Invalid type.' ), array( 'status' => 404 ) );
 		}

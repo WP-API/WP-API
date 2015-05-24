@@ -6,7 +6,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$routes = $this->server->get_routes();
 
 		$this->assertArrayHasKey( '/wp/v2/taxonomies', $routes );
-		$this->assertArrayHasKey( '/wp/v2/taxonomies/(?P<taxonomy>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/taxonomies/(?P<id>[\w-]+)', $routes );
 	}
 
 	public function test_get_items() {

@@ -36,7 +36,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$tax_obj = get_taxonomy( $request['taxonomy'] );
+		$tax_obj = get_taxonomy( $request['id'] );
 		if ( empty( $tax_obj ) ) {
 			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
 		}
@@ -51,7 +51,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_permissions_check( $request ) {
 
-		$tax_obj = get_taxonomy( $request['taxonomy'] );
+		$tax_obj = get_taxonomy( $request['id'] );
 
 		if ( $tax_obj && false === $tax_obj->public ) {
 			return false;
