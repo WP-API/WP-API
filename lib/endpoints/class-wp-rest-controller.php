@@ -12,6 +12,8 @@ abstract class WP_REST_Controller {
 	public function register_routes() {
 
 		$multiple_args = array();
+		$schema = $this->get_item_schema();
+
 		if ( method_exists( $this, 'get_items' ) ) {
 
 			$args = array(
@@ -42,13 +44,23 @@ abstract class WP_REST_Controller {
 				$args['permission_callback'] = array( $this, 'create_item_permissions_check' );
 			}
 
-			$args['args'] = $this->get_endpoint_args_for_item_schema( $this->get_item_schema(), true );
+			$args['args'] = $this->get_endpoint_args_for_item_schema( true );
 
 			$multiple_args[] = $args;
 		}
 
 		if ( $multiple_args ) {
 			register_rest_route( $this->namespace, $this->route_base, $multiple_args );
+		}
+
+		if ( $schema ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item_schema' ),
+			);
+
+			register_rest_route( $this->namespace, $this->route_base . '/schema', $args );
 		}
 
 		$single_args = array();
@@ -70,7 +82,7 @@ abstract class WP_REST_Controller {
 		if ( method_exists( $this, 'update_item' ) ) {
 
 			$args = array(
-				'methods'         => WP_REST_Server::UPDATABLE,
+				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 			);
 
@@ -78,7 +90,7 @@ abstract class WP_REST_Controller {
 				$args['permission_callback'] = array( $this, 'update_item_permissions_check' );
 			}
 
-			$args['args'] = $this->get_endpoint_args_for_item_schema( $this->get_item_schema(), false );
+			$args['args'] = $this->get_endpoint_args_for_item_schema( false );
 
 			$single_args[] = $args;
 		}
@@ -97,7 +109,7 @@ abstract class WP_REST_Controller {
 			$single_args[] = $args;
 		}
 
-		register_rest_route( $this->namespace, $this->route_base . '(?P<id>' . $this->id_regex . ')' );
+		register_rest_route( $this->namespace, $this->route_base . '/(?P<id>' . $this->id_regex . ')', $single_args );
 	}
 
 	/**
