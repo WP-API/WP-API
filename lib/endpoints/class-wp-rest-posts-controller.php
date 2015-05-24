@@ -1131,7 +1131,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
-			$links['http://wp-api.org/2.0/term'] = array();
+			$links['http://wp-api.org/v2/term'] = array();
 
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
@@ -1148,7 +1148,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
-				$links['http://wp-api.org/2.0/term'][] = array(
+				$links['http://wp-api.org/v2/term'][] = array(
 					'href'       => $terms_url,
 					'taxonomy'   => $tax,
 					'embeddable' => true,
@@ -1157,7 +1157,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['http://wp-api.org/2.0/meta'] = array(
+			$links['http://wp-api.org/v2/meta'] = array(
 				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
 				'embeddable' => true,
 			);
