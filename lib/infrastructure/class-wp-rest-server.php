@@ -706,6 +706,15 @@ class WP_REST_Server {
 		$response = new WP_REST_Response( $available );
 		$response->add_link( 'help', 'http://v2.wp-api.org/' );
 
+		/**
+		 * Filter the API root index data.
+		 *
+		 * This contains the data describing the API. This includes information
+		 * about supported authentication schemes, supported namespaces, routes
+		 * available on the API, and a small amount of data about the site.
+		 *
+		 * @param WP_REST_Response $response Response data.
+		 */
 		return apply_filters( 'rest_index', $response );
 	}
 
@@ -721,7 +730,18 @@ class WP_REST_Server {
 		$routes = $this->namespaces[ $namespace ];
 		$endpoints = array_intersect_key( $this->get_routes(), $routes );
 
-		return $this->get_route_data( $endpoints );
+		$response = rest_ensure_response( $this->get_route_data( $endpoints ) );
+
+		/**
+		 * Filter the namespace index data.
+		 *
+		 * This typically is just the route data for the namespace, but you can
+		 * add any data you'd like here.
+		 *
+		 * @param WP_REST_Response $response Response data.
+		 * @param WP_REST_Request $request Request data. The namespace is passed as the 'namespace' parameter.
+		 */
+		return apply_filters( 'rest_namespace_index', $response, $request );
 	}
 
 	/**
@@ -764,7 +784,17 @@ class WP_REST_Server {
 			$available[ $route ] = apply_filters( 'rest_endpoints_description', $data );
 		}
 
-		return $available;
+		/**
+		 * Filter the publicly-visible data for routes.
+		 *
+		 * This data is exposed on indexes and can be used by clients or
+		 * developers to investigate the site and find out how to use it. It
+		 * acts as a form of self-documentation.
+		 *
+		 * @param array $available Map of route to route data.
+		 * @param array $routes Internal route data as an associative array.
+		 */
+		return apply_filters( 'rest_route_data', $available, $routes );
 	}
 
 	/**
