@@ -683,10 +683,10 @@ class WP_REST_Server {
 		$available = array(
 			'name'           => get_option( 'blogname' ),
 			'description'    => get_option( 'blogdescription' ),
-			'URL'            => get_option( 'siteurl' ),
-			'routes'         => array(),
+			'url'            => get_option( 'siteurl' ),
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
+			'routes'         => array(),
 			'_links' => array(
 				'help'    => array(
 					'href' => 'https://github.com/WP-API/WP-API',
