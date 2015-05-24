@@ -2,30 +2,9 @@
 
 class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
-	/**
-	 * Register the routes for the objects of the controller.
-	 */
-	public function register_routes() {
-
-		register_rest_route( 'wp/v2', '/taxonomies', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'args'            => array(
-				'post_type'   => array(
-					'sanitize_callback' => 'sanitize_key',
-				),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/taxonomies/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
-		register_rest_route( 'wp/v2', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
-			'permission_callback' => array( $this, 'get_item_permissions_check' ),
-		) );
-	}
+	protected $id_regex = '[\w-]+';
+	protected $route_base = '/taxonomies';
+	protected $namespace = 'wp/v2';
 
 	/**
 	 * Get all public taxonomies

@@ -2,26 +2,9 @@
 
 class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
-	/**
-	 * Register the routes for the objects of the controller.
-	 */
-	public function register_routes() {
-
-		register_rest_route( 'wp/v2', '/statuses', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-		) );
-
-		register_rest_route( 'wp/v2', '/statuses/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
-
-		register_rest_route( 'wp/v2', '/statuses/(?P<status>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
-		) );
-	}
+	protected $namespace = 'wp/v2';
+	protected $route_base = '/statuses';
+	protected $id_regex = '[\w-]+';
 
 	/**
 	 * Get all post statuses, depending on user context

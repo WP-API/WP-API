@@ -3,83 +3,11 @@
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	protected $post_type;
+	protected $namespace = 'wp/v2';
 
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
-	}
-
-	/**
-	 * Register the routes for the objects of the controller.
-	 */
-	public function register_routes() {
-
-		$base = $this->get_post_type_base( $this->post_type );
-
-		$posts_args = array(
-			'context'               => array(
-				'default'           => 'view',
-			),
-			'page'                  => array(
-				'default'           => 1,
-				'sanitize_callback' => 'absint',
-			),
-			'per_page'              => array(
-				'default'           => 10,
-				'sanitize_callback' => 'absint',
-			),
-		);
-
-		foreach ( $this->get_allowed_query_vars() as $var ) {
-			if ( ! isset( $posts_args[ $var ] ) ) {
-				$posts_args[ $var ] = array();
-			}
-		}
-
-		register_rest_route( 'wp/v2', '/' . $base, array(
-			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_items' ),
-				'args'            => $posts_args,
-			),
-			array(
-				'methods'         => WP_REST_Server::CREATABLE,
-				'callback'        => array( $this, 'create_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => $this->get_endpoint_args_for_item_schema( true ),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
-			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_item' ),
-				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
-				),
-			),
-			array(
-				'methods'         => WP_REST_Server::EDITABLE,
-				'callback'        => array( $this, 'update_item' ),
-				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => $this->get_endpoint_args_for_item_schema( false ),
-			),
-			array(
-				'methods'  => WP_REST_Server::DELETABLE,
-				'callback' => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-				'args'     => array(
-					'force'    => array(
-						'default'      => false,
-					),
-				),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/' . $base . '/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
+		$this->route_base = '/' . $this->get_post_type_base( $this->post_type );
 	}
 
 	/**
@@ -1448,6 +1376,37 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+
+		$posts_args = array(
+			'context'               => array(
+				'default'           => 'view',
+			),
+			'page'                  => array(
+				'default'           => 1,
+				'sanitize_callback' => 'absint',
+			),
+			'per_page'              => array(
+				'default'           => 10,
+				'sanitize_callback' => 'absint',
+			),
+		);
+
+		foreach ( $this->get_allowed_query_vars() as $var ) {
+			if ( ! isset( $posts_args[ $var ] ) ) {
+				$posts_args[ $var ] = array();
+			}
+		}
+
+		return array_merge( $query_params, $posts_args );
 	}
 
 }

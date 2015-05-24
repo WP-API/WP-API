@@ -6,6 +6,7 @@
 class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 	protected $taxonomy;
+	protected $namespace = 'wp/v2';
 
 	/**
 	 * @param string $taxonomy
@@ -18,68 +19,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-
 		$base = $this->get_taxonomy_base( $this->taxonomy );
-		$query_params = $this->get_collection_params();
-		register_rest_route( 'wp/v2', '/terms/' . $base, array(
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => $query_params,
-			),
-			array(
-				'methods'     => WP_REST_Server::CREATABLE,
-				'callback'    => array( $this, 'create_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'        => array(
-					'name'        => array(
-						'required'          => true,
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-					'description' => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
-					),
-					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title',
-					),
-					'parent'      => array(),
-				),
-			),
-		));
-		register_rest_route( 'wp/v2', '/terms/' . $base . '/(?P<id>[\d]+)', array(
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_item' ),
-				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-			),
-			array(
-				'methods'    => WP_REST_Server::EDITABLE,
-				'callback'   => array( $this, 'update_item' ),
-				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'       => array(
-					'name'        => array(
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-					'description' => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
-					),
-					'slug'        => array(
-						'sanitize_callback' => 'sanitize_title',
-					),
-					'parent'         => array(),
-				),
-			),
-			array(
-				'methods'    => WP_REST_Server::DELETABLE,
-				'callback'   => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/terms/' . $base . '/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
+		$this->route_base = '/terms/' . $base;
+
+		parent::register_routes();
 	}
 
 	/**
