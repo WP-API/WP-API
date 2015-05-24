@@ -740,6 +740,9 @@ class WP_REST_Server {
 		);
 		$response = rest_ensure_response( $data );
 
+		// Link to the root index
+		$response->add_link( 'up', rest_url( '/' ) );
+
 		/**
 		 * Filter the namespace index data.
 		 *
