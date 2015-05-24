@@ -1123,7 +1123,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
-			$links['attachments'] = array(
+			$links['http://wp-api.org/v2/attachment'] = array(
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
@@ -1131,6 +1131,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
+			$links['http://wp-api.org/2.0/term'] = array();
+
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
@@ -1146,8 +1148,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
-				$links[ $tax ] = array(
-					'href' => $terms_url,
+				$links['http://wp-api.org/2.0/term'][] = array(
+					'href'       => $terms_url,
+					'taxonomy'   => $tax,
 					'embeddable' => true,
 				);
 			}
