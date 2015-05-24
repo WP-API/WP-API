@@ -687,11 +687,6 @@ class WP_REST_Server {
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
 			'routes'         => array(),
-			'_links' => array(
-				'help'    => array(
-					'href' => 'https://github.com/WP-API/WP-API',
-				),
-			),
 		);
 
 		// Find the available routes
@@ -725,7 +720,11 @@ class WP_REST_Server {
 
 			$available['routes'][ $route ] = apply_filters( 'rest_endpoints_description', $data );
 		}
-		return apply_filters( 'rest_index', $available );
+
+		$response = new WP_REST_Response( $available );
+		$response->add_link( 'help', 'http://v2.wp-api.org/' );
+
+		return apply_filters( 'rest_index', $response );
 	}
 
 	/**
