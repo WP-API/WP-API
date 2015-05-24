@@ -498,7 +498,9 @@ class WP_REST_Server {
 				),
 			) );
 		}
-		$this->namespaces[ $namespace ][] = $route;
+
+		// Associative to avoid double-registration
+		$this->namespaces[ $namespace ][ $route ] = true;
 
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
@@ -717,7 +719,7 @@ class WP_REST_Server {
 		$namespace = $request['namespace'];
 
 		$routes = $this->namespaces[ $namespace ];
-		$endpoints = array_intersect_key( $this->get_routes(), array_flip( $routes ) );
+		$endpoints = array_intersect_key( $this->get_routes(), $routes );
 
 		return $this->get_route_data( $endpoints );
 	}
