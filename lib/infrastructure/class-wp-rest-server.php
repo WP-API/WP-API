@@ -592,7 +592,7 @@ class WP_REST_Server {
 		$path   = $request->get_route();
 
 		foreach ( $this->get_routes() as $route => $handlers ) {
-			foreach ( $handlers as $key => $handler ) {
+			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
 				$response = null;
