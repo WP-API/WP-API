@@ -615,11 +615,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 	$allowed_methods = array();
 
 	// get the allowed methods across the routes
-	foreach ( $routes[ $matched_route ] as $key => $_handler ) {
-		if ( ! is_numeric( $key ) ) {
-			continue;
-		}
-
+	foreach ( $routes[ $matched_route ] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
 			if ( ! empty( $_handler['permission_callback'] ) ) {

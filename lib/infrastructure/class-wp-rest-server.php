@@ -66,6 +66,13 @@ class WP_REST_Server {
 	protected $endpoints = array();
 
 	/**
+	 * Options defined for the routes
+	 *
+	 * @var array
+	 */
+	protected $route_options = array();
+
+	/**
 	 * Instantiate the server
 	 */
 	public function __construct() {
@@ -544,10 +551,15 @@ class WP_REST_Server {
 				// Single endpoint, add one deeper
 				$handlers = array( $handlers );
 			}
+			if ( ! isset( $this->route_options[ $route ] ) ) {
+				$this->route_options[ $route ] = array();
+			}
 
 			foreach ( $handlers as $key => &$handler ) {
 				if ( ! is_numeric( $key ) ) {
-					// Route option, skip parsing
+					// Route option, move it to the options
+					$this->route_options[ $route ][ $key ] = $handler;
+					unset( $handler );
 					continue;
 				}
 				$handler = wp_parse_args( $handler, $defaults );
@@ -581,10 +593,6 @@ class WP_REST_Server {
 
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $key => $handler ) {
-				if ( ! is_numeric( $key ) ) {
-					continue;
-				}
-
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
 				$response = null;
@@ -778,8 +786,11 @@ class WP_REST_Server {
 				'namespace' => '',
 				'methods' => array(),
 			);
-			if ( isset( $callbacks['namespace'] ) ) {
-				$data['namespace'] = $callbacks['namespace'];
+			if ( isset( $this->route_options[ $route ] ) ) {
+				$options = $this->route_options[ $route ];
+				if ( isset( $options['namespace'] ) ) {
+					$data['namespace'] = $options['namespace'];
+				}
 			}
 
 			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
