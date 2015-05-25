@@ -48,6 +48,13 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		// Check the route was wrapped in an array
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertArrayNotHasKey( 'callback', $endpoint );
+		$this->assertArrayHasKey( 'namespace', $endpoint );
+		$this->assertEquals( 'test-ns', $endpoint['namespace'] );
+
+		// Grab the filtered data
+		$filtered_endpoints = $GLOBALS['wp_rest_server']->get_routes();
+		$this->assertArrayHasKey( '/test-ns/test', $filtered_endpoints );
+		$endpoint = $filtered_endpoints['/test-ns/test'];
 		$this->assertCount( 1, $endpoint );
 		$this->assertArrayHasKey( 'callback', $endpoint[0] );
 		$this->assertArrayHasKey( 'methods',  $endpoint[0] );
@@ -78,6 +85,11 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		// Check the route was wrapped in an array
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertArrayNotHasKey( 'callback', $endpoint );
+		$this->assertArrayHasKey( 'namespace', $endpoint );
+		$this->assertEquals( 'test-ns', $endpoint['namespace'] );
+
+		$filtered_endpoints = $GLOBALS['wp_rest_server']->get_routes();
+		$endpoint = $filtered_endpoints['/test-ns/test'];
 		$this->assertCount( 2, $endpoint );
 
 		// Check for both methods
@@ -102,7 +114,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		) );
 
 		// Check both routes exist
-		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertCount( 2, $endpoint );
 	}
@@ -123,7 +135,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		), true );
 
 		// Check we only have one route
-		$endpoints = $GLOBALS['wp_rest_server']->get_raw_endpoint_data();
+		$endpoints = $GLOBALS['wp_rest_server']->get_routes();
 		$endpoint = $endpoints['/test-ns/test'];
 		$this->assertCount( 1, $endpoint );
 
