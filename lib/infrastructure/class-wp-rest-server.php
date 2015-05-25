@@ -501,6 +501,7 @@ class WP_REST_Server {
 
 		// Associative to avoid double-registration
 		$this->namespaces[ $namespace ][ $route ] = true;
+		$route_args['namespace'] = $namespace;
 
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
@@ -545,6 +546,10 @@ class WP_REST_Server {
 			}
 
 			foreach ( $handlers as $key => &$handler ) {
+				if ( ! is_numeric( $key ) ) {
+					// Route option, skip parsing
+					continue;
+				}
 				$handler = wp_parse_args( $handler, $defaults );
 
 				// Allow comma-separated HTTP methods
@@ -575,7 +580,11 @@ class WP_REST_Server {
 		$path   = $request->get_route();
 
 		foreach ( $this->get_routes() as $route => $handlers ) {
-			foreach ( $handlers as $handler ) {
+			foreach ( $handlers as $key => $handler ) {
+				if ( ! is_numeric( $key ) ) {
+					continue;
+				}
+
 				$callback  = $handler['callback'];
 				$supported = $handler['methods'];
 				$response = null;
@@ -766,8 +775,12 @@ class WP_REST_Server {
 		// Find the available routes
 		foreach ( $routes as $route => $callbacks ) {
 			$data = array(
+				'namespace' => '',
 				'methods' => array(),
 			);
+			if ( isset( $callbacks['namespace'] ) ) {
+				$data['namespace'] = $callbacks['namespace'];
+			}
 
 			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
