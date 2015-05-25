@@ -55,7 +55,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		$filtered_endpoints = $GLOBALS['wp_rest_server']->get_routes();
 		$this->assertArrayHasKey( '/test-ns/test', $filtered_endpoints );
 		$endpoint = $filtered_endpoints['/test-ns/test'];
-		$this->assertCount( 2, $endpoint );
+		$this->assertCount( 1, $endpoint );
 		$this->assertArrayHasKey( 'callback', $endpoint[0] );
 		$this->assertArrayHasKey( 'methods',  $endpoint[0] );
 		$this->assertArrayHasKey( 'args',     $endpoint[0] );
