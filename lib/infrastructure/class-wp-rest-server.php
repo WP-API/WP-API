@@ -559,7 +559,7 @@ class WP_REST_Server {
 				if ( ! is_numeric( $key ) ) {
 					// Route option, move it to the options
 					$this->route_options[ $route ][ $key ] = $handler;
-					unset( $handler );
+					unset( $handlers[ $key ] );
 					continue;
 				}
 				$handler = wp_parse_args( $handler, $defaults );
