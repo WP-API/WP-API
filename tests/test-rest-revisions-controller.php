@@ -166,6 +166,47 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' )
+		);
+
+		register_api_field( 'posts-revision', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' )
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/revisions/schema' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		wp_set_current_user( 1 );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object ) {
+		return get_post_meta( $object['id'], 'my_custom_int', true );
+	}
+
+	public function additional_field_update_callback( $value, $post ) {
+		update_post_meta( $post->ID, 'my_custom_int', $value );
+	}
+
 	protected function check_get_revision_response( $response, $revision ) {
 		$this->assertEquals( $revision->post_author, $response['author'] );
 		$this->assertEquals( $revision->post_content, $response['content'] );

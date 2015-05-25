@@ -105,6 +105,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
 		return apply_filters( 'rest_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
@@ -156,7 +158,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 					),
 				),
 			);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }
