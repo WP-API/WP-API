@@ -523,4 +523,36 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( '/test/another/route', $data['routes'] );
 	}
 
+	public function test_get_namespaces() {
+		$server = new WP_REST_Server();
+		$server->register_route( 'test/example', '/test/example/some-route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_true',
+			),
+		) );
+		$server->register_route( 'test/another', '/test/another/route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_false',
+			),
+		) );
+
+		$namespaces = $server->get_namespaces();
+		$this->assertArrayHasKey( 'test/example', $namespaces );
+		$this->assertArrayHasKey( 'test/another', $namespaces );
+
+		$example_routes = array(
+			'/test/example' => true,
+			'/test/example/some-route' => true,
+		);
+		$this->assertEquals( $example_routes, $namespaces['test/example'] );
+
+		$other_routes = array(
+			'/test/another' => true,
+			'/test/another/route' => true,
+		);
+		$this->assertEquals( $other_routes, $namespaces['test/another'] );
+	}
+
 }

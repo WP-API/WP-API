@@ -582,6 +582,15 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Get namespaces registered on the server.
+	 *
+	 * @return array Map of namespace to list of routes registered for the namespace.
+	 */
+	public function get_namespaces() {
+		return $this->namespaces;
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_REST_Request $request Request to attempt dispatching
