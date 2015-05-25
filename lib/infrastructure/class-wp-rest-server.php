@@ -584,10 +584,10 @@ class WP_REST_Server {
 	/**
 	 * Get namespaces registered on the server.
 	 *
-	 * @return array Map of namespace to list of routes registered for the namespace.
+	 * @return array List of registered namespaces.
 	 */
 	public function get_namespaces() {
-		return $this->namespaces;
+		return array_keys( $this->namespaces );
 	}
 
 	/**

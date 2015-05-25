@@ -539,20 +539,8 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		) );
 
 		$namespaces = $server->get_namespaces();
-		$this->assertArrayHasKey( 'test/example', $namespaces );
-		$this->assertArrayHasKey( 'test/another', $namespaces );
-
-		$example_routes = array(
-			'/test/example' => true,
-			'/test/example/some-route' => true,
-		);
-		$this->assertEquals( $example_routes, $namespaces['test/example'] );
-
-		$other_routes = array(
-			'/test/another' => true,
-			'/test/another/route' => true,
-		);
-		$this->assertEquals( $other_routes, $namespaces['test/another'] );
+		$this->assertContains( 'test/example', $namespaces );
+		$this->assertContains( 'test/another', $namespaces );
 	}
 
 }
