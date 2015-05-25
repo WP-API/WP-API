@@ -41,7 +41,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $status ) ) {
 				continue;
 			}
-			$data[ $obj->name ] = $status;
+			$data[ $obj->name ] = $this->prepare_response_for_collection( $status );
 		}
 		return $data;
 	}
@@ -65,7 +65,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 *
 	 * @param stdClass $status Post status data
 	 * @param WP_REST_Request $request
-	 * @return array Post status data
+	 * @return WP_REST_Response Post status data
 	 */
 	public function prepare_item_for_response( $status, $request ) {
 		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
@@ -81,8 +81,21 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'show_in_list' => (bool) $status->show_in_admin_all_list,
 			'slug'         => $status->name,
 		);
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
+		$data = rest_ensure_response( $data );
+
+		$posts_controller = new WP_REST_Posts_Controller( 'post' );
+
+		if ( 'publish' === $status->name ) {
+			$data->add_link( 'archives', rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) );
+		} else {
+			$data->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) ) );
+		}
+
 		return $data;
 	}
 
@@ -94,7 +107,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function get_item_schema() {
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
-			'title'                => 'type',
+			'title'                => 'status',
 			'type'                 => 'object',
 			'properties'           => array(
 				'name'             => array(
@@ -134,7 +147,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					),
 				),
 			);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }

@@ -89,7 +89,7 @@ class WP_REST_Request implements ArrayAccess {
 			// See parse_json_params
 			'JSON'  => null,
 
-			'defaults' => array()
+			'defaults' => array(),
 		);
 
 		$this->set_method( $method );
@@ -616,7 +616,7 @@ class WP_REST_Request implements ArrayAccess {
 	/**
 	 * Sanitize (where possible) the params on the request.
 	 *
-	 * This is primarily based off the sanitize_callback param on each regsitered
+	 * This is primarily based off the sanitize_callback param on each registered
 	 * argument.
 	 *
 	 * @return null

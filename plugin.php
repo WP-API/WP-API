@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta1
+ * Version: 2.0-beta1.1
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -14,7 +14,7 @@
  *
  * @var string
  */
-define( 'REST_API_VERSION', '2.0-beta1' );
+define( 'REST_API_VERSION', '2.0-beta1.1' );
 
 /**
  * Include our files for the API.
@@ -43,6 +43,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controlle
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -73,7 +74,34 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	}
 
 	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-	$wp_rest_server->register_route( $full_route, $args, $override );
+	$wp_rest_server->register_route( $namespace, $full_route, $args, $override );
+}
+
+/**
+ * Register a new field on an existing WordPress object type
+ *
+ * @param  string|array $object_type "post"|"term"|"comment" etc
+ * @param  string $attribute   The attribute name
+ * @param  array  $args
+ * @return bool|wp_error
+ */
+function register_api_field( $object_type, $attribute, $args = array() ) {
+
+	$defaults = array(
+		'get_callback'    => null,
+		'update_callback' => null,
+		'schema'          => null,
+	);
+
+	$args = wp_parse_args( $args, $defaults );
+
+	global $wp_rest_additional_fields;
+
+	$object_types = (array) $object_type;
+
+	foreach ( $object_types as $object_type ) {
+		$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
+	}
 }
 
 /**
@@ -140,6 +168,16 @@ function create_initial_rest_routes() {
 		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 			$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 			$revisions_controller->register_routes();
+		}
+
+		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
+
+			if ( empty( $taxonomy->show_in_rest ) ) {
+				continue;
+			}
+
+			$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
+			$posts_terms_controller->register_routes();
 		}
 	}
 
@@ -307,7 +345,7 @@ function rest_api_loaded() {
 	// We're done.
 	die();
 }
-add_action( 'template_redirect', 'rest_api_loaded', -100 );
+add_action( 'parse_request', 'rest_api_loaded' );
 
 /**
  * Register routes and flush the rewrite rules on activation.
@@ -489,9 +527,9 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
  * @param string $replacement Replacement function name.
  * @param string $version     Version.
  */
-function rest_handle_deprecated_argument( $function, $message, $version ) {
-	if ( ! empty( $message ) ) {
-		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $message );
+function rest_handle_deprecated_argument( $function, $replacement, $version ) {
+	if ( ! empty( $replacement ) ) {
+		$string = sprintf( __( '%1$s (since %2$s; %3$s)' ), $function, $version, $replacement );
 	} else {
 		$string = sprintf( __( '%1$s (since %2$s; no alternative available)' ), $function, $version );
 	}
@@ -523,9 +561,10 @@ function rest_send_cors_headers( $value ) {
  * This is handled outside of the server code, as it doesn't obey normal route
  * mapping.
  *
- * @param mixed $response Current response, either response or `null` to indicate pass-through
- * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server)
- * @return WP_REST_Response Modified response, either response or `null` to indicate pass-through
+ * @param mixed $response Current response, either response or `null` to indicate pass-through.
+ * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server).
+ * @param WP_REST_Request $request The request that was used to make current response.
+ * @return WP_REST_Response $response Modified response, either response or `null` to indicate pass-through.
  */
 function rest_handle_options_request( $response, $handler, $request ) {
 	if ( ! empty( $response ) || $request->get_method() !== 'OPTIONS' ) {

@@ -16,11 +16,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$base = $this->get_post_type_base( $this->post_type );
 
 		$posts_args = array(
-			'context'          => array(
-				'default'      => 'view',
+			'context'               => array(
+				'default'           => 'view',
 			),
-			'page'            => array(
-				'default'           => 0,
+			'page'                  => array(
+				'default'           => 1,
+				'sanitize_callback' => 'absint',
+			),
+			'per_page'              => array(
+				'default'           => 10,
 				'sanitize_callback' => 'absint',
 			),
 		);
@@ -82,12 +86,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a collection of posts
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		$args = (array) $request->get_params();
 		$args['post_type'] = $this->post_type;
 		$args['paged'] = $args['page'];
+		$args['posts_per_page'] = $args['per_page'];
 		unset( $args['page'] );
 
 		/**
@@ -104,9 +109,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
-		if ( 0 === $posts_query->found_posts ) {
-			return rest_ensure_response( array() );
-		}
 
 		$posts = array();
 		foreach ( $query_result as $post ) {
@@ -119,7 +121,28 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $posts );
-		$response->query_navigation_headers( $posts_query );
+		$count_query = new WP_Query();
+		unset( $query_args['paged'] );
+		$query_result = $count_query->query( $query_args );
+		$total_posts = $count_query->found_posts;
+		$response->header( 'X-WP-Total', (int) $total_posts );
+		$max_pages = ceil( $total_posts / $request['per_page'] );
+		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+		if ( $request['page'] > 1 ) {
+			$prev_page = $request['page'] - 1;
+			if ( $prev_page > $max_pages ) {
+				$prev_page = $max_pages;
+			}
+			$prev_link = add_query_arg( 'page', $prev_page, $base );
+			$response->link_header( 'prev', $prev_link );
+		}
+		if ( $max_pages > $request['page'] ) {
+			$next_page = $request['page'] + 1;
+			$next_link = add_query_arg( 'page', $next_page, $base );
+			$response->link_header( 'next', $next_link );
+		}
 
 		return $response;
 	}
@@ -128,7 +151,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -150,7 +173,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Create a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -198,6 +221,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
+		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
+
 		/**
 		 * @TODO: Enable rest_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -220,7 +245,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Update a single post
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_HTTP_ResponseInterface
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -267,6 +292,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
+		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
+
 		/**
 		 * @TODO: Enable rest_insert_post() action after
 		 * Media Controller has been migrated to new style.
@@ -292,13 +319,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post = get_post( $id );
 
-		if ( empty( $id ) || empty( $post->ID ) ) {
+		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
+
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $get_request );
 
 		// If we're forcing, then delete permanently
 		if ( $force ) {
@@ -318,19 +349,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
+		return $response;
 	}
 
 	/**
 	 * Check if a given request has access to read a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -351,7 +377,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -376,7 +402,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -406,7 +432,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 
@@ -998,9 +1024,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $post->post_parent;
-			if ( 0 == $data['parent'] ) {
-				$data['parent'] = null;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['menu_order'] ) ) {
@@ -1038,6 +1061,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 
+		$data = $this->add_additional_fields_to_object( $data, $request );
+
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
@@ -1068,7 +1093,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) ) {
+		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
+			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
 				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
@@ -1150,7 +1176,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$base = $this->get_post_type_base( $this->post_type );
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
-			'title'      => $base,
+			'title'      => $this->post_type,
 			'type'       => 'object',
 			/*
 			 * Base properties for every Post
@@ -1233,7 +1259,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-			)
+			),
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
@@ -1421,7 +1447,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }

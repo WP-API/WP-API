@@ -14,7 +14,7 @@ abstract class WP_REST_Controller {
 	 * Get a collection of items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -22,6 +22,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Get one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -29,6 +32,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Create one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function create_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -36,6 +42,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Update one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function update_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -43,6 +52,9 @@ abstract class WP_REST_Controller {
 
 	/**
 	 * Delete one item from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|WP_REST_Request
 	 */
 	public function delete_item( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -52,7 +64,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to get items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_items_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -62,7 +74,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to get a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -72,7 +84,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to create items
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function create_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -82,7 +94,7 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to update a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function update_item_permissions_check( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
@@ -92,9 +104,19 @@ abstract class WP_REST_Controller {
 	 * Check if a given request has access to delete a specific item
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function delete_item_permissions_check( $request ) {
+		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
+	}
+
+	/**
+	 * Prepare the item for create or update operation
+	 *
+	 * @param WP_REST_Request $request Request object
+	 * @return WP_Error|object $prepared_item
+	 */
+	protected function prepare_item_for_database( $request ) {
 		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
 	}
 
@@ -169,7 +191,152 @@ abstract class WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		return array();
+		return $this->add_additional_fields_schema( array() );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		return array(
+			'page'                   => array(
+				'description'        => 'Current page of the collection.',
+				'type'               => 'integer',
+				'default'            => 1,
+				'sanitize_callback'  => 'absint',
+			),
+			'per_page'               => array(
+				'description'        => 'Maximum number of items to be returned in result set.',
+				'type'               => 'integer',
+				'default'            => 10,
+				'sanitize_callback'  => 'absint',
+			),
+			'search'                 => array(
+				'description'        => 'Limit results to those matching a string.',
+				'type'               => 'string',
+				'sanitize_callback'  => 'sanitize_text_field',
+			),
+		);
+	}
+
+	/**
+	 * Add the values from additional fields to a data object
+	 *
+	 * @param array  $object
+	 * @param WP_REST_Request $request
+	 * @return array modified object with additional fields
+	 */
+	protected function add_additional_fields_to_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+
+			if ( ! $field_options['get_callback'] ) {
+				continue;
+			}
+
+			$object[ $field_name ] = call_user_func( $field_options['get_callback'], $object, $field_name, $request );
+		}
+
+		return $object;
+	}
+
+	/**
+	 * Update the values of additional fields added to a data object.
+	 *
+	 * @param array  $object
+	 * @param WP_REST_Request $request
+	 */
+	protected function update_additional_fields_for_object( $object, $request ) {
+
+		$additional_fields = $this->get_additional_fields();
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+
+			if ( ! $field_options['update_callback'] ) {
+				continue;
+			}
+
+			// Don't run the update callbacks if the data wasn't passed in the request
+			if ( ! isset( $request[ $field_name ] ) ) {
+				continue;
+			}
+
+			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request );
+		}
+	}
+
+	/**
+	 * Add the schema from additional fields to an schema array
+	 *
+	 * The type of object is inferred from the passed schema.
+	 *
+	 * @param array $schema Schema array
+	 */
+	protected function add_additional_fields_schema( $schema ) {
+		if ( ! $schema || ! isset( $schema['title'] ) ) {
+			return $schema;
+		}
+
+		/**
+		 * Can't use $this->get_object_type otherwise we cause an inf loop
+		 */
+		$object_type = $schema['title'];
+
+		$additional_fields = $this->get_additional_fields( $object_type );
+
+		foreach ( $additional_fields as $field_name => $field_options ) {
+			if ( ! $field_options['schema'] ) {
+				continue;
+			}
+
+			$schema['properties'][ $field_name ] = $field_options['schema'];
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * Get all the registered additional fields for a given object-type
+	 *
+	 * @param  string $object_type
+	 * @return array
+	 */
+	protected function get_additional_fields( $object_type = null ) {
+
+		if ( ! $object_type ) {
+			$object_type = $this->get_object_type();
+		}
+
+		if ( ! $object_type ) {
+			return array();
+		}
+
+		global $wp_rest_additional_fields;
+
+		if ( ! $wp_rest_additional_fields || ! isset( $wp_rest_additional_fields[ $object_type ] ) ) {
+			return array();
+		}
+
+		return $wp_rest_additional_fields[ $object_type ];
+	}
+
+	/**
+	 * Get the object type this controller is responsible for managing.
+	 *
+	 * @return string
+	 */
+	protected function get_object_type() {
+		$schema = $this->get_item_schema();
+
+		if ( ! $schema || ! isset( $schema['title'] ) ) {
+			return null;
+		}
+
+		return $schema['title'];
 	}
 
 	/**

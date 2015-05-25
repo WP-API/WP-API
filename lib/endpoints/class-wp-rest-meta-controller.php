@@ -97,7 +97,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		return array(
+		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'meta',
 			'type'       => 'object',
@@ -122,6 +122,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+		return $schema;
 	}
 
 	/**
@@ -146,7 +147,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Retrieve custom fields for object.
 	 *
 	 * @param WP_REST_Request $request
-	 * @return (array[]|WP_Error) List of meta object data on success, WP_Error otherwise
+	 * @return WP_REST_Request|WP_Error List of meta object data on success, WP_Error otherwise
 	 */
 	public function get_items( $request ) {
 		$parent_id = (int) $request['parent_id'];
@@ -179,7 +180,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Retrieve custom field object.
 	 *
 	 * @param WP_REST_Request $request
-	 * @return array|WP_Error Meta object data on success, WP_Error otherwise
+	 * @return WP_REST_Request|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function get_item( $request ) {
 		$parent_id = (int) $request['parent_id'];

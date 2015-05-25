@@ -57,7 +57,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Get a collection of revisions
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error or WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 
@@ -79,7 +79,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to get revisions
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -97,6 +97,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get one revision from the collection
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|array
 	 */
 	public function get_item( $request ) {
 
@@ -118,7 +121,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to get a specific revision
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return mixed WP_Error|bool.
+	 * @return WP_Error|bool
 	 */
 	public function get_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
@@ -128,7 +131,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Delete a single revision
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return array|WP_Error
+	 * @return bool|WP_Error
 	 */
 	public function delete_item( $request ) {
 		$result = wp_delete_post( $request['id'], true );
@@ -143,7 +146,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a revision
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 
@@ -162,7 +165,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @param mixed $item WordPress representation of the revision.
 	 * @param WP_REST_Request $request Request object.
-	 * @return mixed
+	 * @return array
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 
@@ -195,10 +198,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		if ( ! empty( $data['parent'] ) ) {
 			$data['_links'] = array(
-				'parent'    => rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) )
+				'parent'    => rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ),
 				);
 		}
 
@@ -288,7 +292,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
-			)
+			),
 		);
 
 		$parent_schema = $this->parent_controller->get_item_schema();
@@ -327,7 +331,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 }
