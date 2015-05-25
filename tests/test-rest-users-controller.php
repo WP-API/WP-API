@@ -373,7 +373,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
-	
+
 	public function test_create_user_invalid_role() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
@@ -381,7 +381,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$params = array(
 			'username' => 'maggiesimpson',
 			'password' => 'i_shot_mrburns',
-			'email'    => 'packingheat@example',
+			'email'    => 'packingheat@example.com',
 			'role'     => 'baby',
 		);
 
