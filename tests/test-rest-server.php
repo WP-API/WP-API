@@ -111,7 +111,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			'method'       => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
-			'permission_callback' => array( $this, 'permission_denied' )
+			'permission_callback' => array( $this, 'permission_denied' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );
@@ -322,7 +322,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 
 	public function test_link_embedding() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -356,7 +356,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_self() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -375,7 +375,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_params() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -399,7 +399,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_link_embedding_error() {
 		// Register our testing route
-		$this->server->register_route( '/test/embeddable', array(
+		$this->server->register_route( 'test', '/test/embeddable', array(
 			'methods' => 'GET',
 			'callback' => array( $this, 'embedded_response_callback' ),
 		) );
@@ -450,6 +450,97 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		);
 
 		return $data;
+	}
+
+	public function test_get_index() {
+		$server = new WP_REST_Server();
+		$server->register_route( 'test/example', '/test/example/some-route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_true',
+			),
+			array(
+				'methods' => WP_REST_Server::DELETABLE,
+				'callback' => '__return_true',
+			),
+		) );
+
+		$index = rest_ensure_response( $server->get_index() );
+		$data = $index->get_data();
+
+		$this->assertArrayHasKey( 'name', $data );
+		$this->assertArrayHasKey( 'description', $data );
+		$this->assertArrayHasKey( 'url', $data );
+		$this->assertArrayHasKey( 'namespaces', $data );
+		$this->assertArrayHasKey( 'authentication', $data );
+		$this->assertArrayHasKey( 'routes', $data );
+
+		// Check namespace data
+		$this->assertContains( 'test/example', $data['namespaces'] );
+
+		// Check the route
+		$this->assertArrayHasKey( '/test/example/some-route', $data['routes'] );
+		$route = $data['routes']['/test/example/some-route'];
+		$this->assertEquals( 'test/example', $route['namespace'] );
+		$this->assertArrayHasKey( 'methods', $route );
+		$this->assertContains( 'GET', $route['methods'] );
+		$this->assertContains( 'DELETE', $route['methods'] );
+		$this->assertArrayHasKey( '_links', $route );
+	}
+
+	public function test_get_namespace_index() {
+		$server = new WP_REST_Server();
+		$server->register_route( 'test/example', '/test/example/some-route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_true',
+			),
+			array(
+				'methods' => WP_REST_Server::DELETABLE,
+				'callback' => '__return_true',
+			),
+		) );
+		$server->register_route( 'test/another', '/test/another/route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_false',
+			),
+		) );
+
+		$request = new WP_REST_Request();
+		$request->set_param( 'namespace', 'test/example' );
+		$index = rest_ensure_response( $server->get_namespace_index( $request ) );
+		$data = $index->get_data();
+
+		// Check top-level
+		$this->assertEquals( 'test/example', $data['namespace'] );
+		$this->assertArrayHasKey( 'routes', $data );
+
+		// Check we have the route we expect...
+		$this->assertArrayHasKey( '/test/example/some-route', $data['routes'] );
+
+		// ...and none we don't
+		$this->assertArrayNotHasKey( '/test/another/route', $data['routes'] );
+	}
+
+	public function test_get_namespaces() {
+		$server = new WP_REST_Server();
+		$server->register_route( 'test/example', '/test/example/some-route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_true',
+			),
+		) );
+		$server->register_route( 'test/another', '/test/another/route', array(
+			array(
+				'methods' => WP_REST_Server::READABLE,
+				'callback' => '__return_false',
+			),
+		) );
+
+		$namespaces = $server->get_namespaces();
+		$this->assertContains( 'test/example', $namespaces );
+		$this->assertContains( 'test/another', $namespaces );
 	}
 
 }

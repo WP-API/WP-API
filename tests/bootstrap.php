@@ -27,6 +27,8 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
 require $test_root . '/includes/bootstrap.php';
 
+define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
+
 // Helper classes
 require_once dirname( __FILE__ ) . '/class-wp-test-rest-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-rest-controller-testcase.php';

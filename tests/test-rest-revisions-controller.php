@@ -64,7 +64,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_items_missing_parent() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/9999999999999/revisions' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}
@@ -98,7 +98,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	public function test_get_item_missing_parent() {
 		wp_set_current_user( $this->editor_id );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/9999999999999/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_parent_id', $response, 404 );
 	}

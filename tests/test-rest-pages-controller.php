@@ -122,7 +122,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_query_params( array(
 			'page'           => 2,
-			'posts_per_page' => 4,
+			'per_page'       => 4,
 		) );
 		$response = $this->server->dispatch( $request );
 

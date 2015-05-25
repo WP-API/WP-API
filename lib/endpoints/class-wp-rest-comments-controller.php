@@ -10,72 +10,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
+		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/comments', array(
 			array(
 				'methods'   => WP_REST_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'      => array(
-					'post'         => array(
-						'default'           => null,
-						'sanitize_callback' => 'absint',
-					),
-					'user'         => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
-					),
-					'per_page'     => array(
-						'default'           => 10,
-						'sanitize_callback' => 'absint',
-					),
-					'page'         => array(
-						'default'           => 1,
-						'sanitize_callback' => 'absint',
-					),
-					'status'       => array(
-						'default'           => 'approve',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'type'         => array(
-						'default'           => 'comment',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'parent'       => array(
-						'sanitize_callback' => 'absint',
-					),
-					'search'       => array(
-						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => '',
-					),
-					'order'        => array(
-						'default'           => 'DESC',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'orderby'      => array(
-						'default'      => 'date_gmt',
-					),
-					'author_email' => array(
-						'sanitize_callback' => 'sanitize_email',
-					),
-					'karma'        => array(
-						'sanitize_callback' => 'absint',
-					),
-					'post_author'  => array(
-						'sanitize_callback' => 'absint',
-					),
-					'post_name'    => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'post_parent'  => array(
-						'sanitize_callback' => 'absint',
-					),
-					'post_status'  => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'post_type'    => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-				),
+				'args'      => $query_params,
 			),
 			array(
 				'methods'  => WP_REST_Server::CREATABLE,
@@ -343,16 +284,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
+
 		$result = wp_delete_comment( $comment->comment_ID, $force );
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted comment' ) );
-		}
-
-		return array( 'message' => __( 'Deleted comment' ) );
+		return $response;
 	}
 
 
@@ -373,7 +314,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_comments' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => 403 ) );
 		}
 
@@ -593,7 +534,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
 				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
 				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
-				'post_name'    => isset( $request['post_name'] ) ? $request['post_name'] : '',
+				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
 				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
 				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
 				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
@@ -670,7 +611,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array(
 			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => sanitize_key( $request['type'] ),
+			'comment_type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
 			'comment_parent'       => (int) $request['parent'],
 			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
 			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
@@ -840,6 +781,89 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['author_email'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to that from a specific author email.',
+			'format'            => 'email',
+			'sanitize_callback' => 'sanitize_email',
+			'type'              => 'string',
+		);
+		$query_params['karma'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to that of a particular comment karma.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		$query_params['parent'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to that of a specific comment parent id.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		$query_params['post']   = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments assigned to a specific post id.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		$query_params['post_author'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments associated with posts of a specific post author id.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		$query_params['post_slug'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments associated with posts of a specific post slug.',
+			'sanitize_callback' => 'sanitize_title',
+			'type'              => 'string',
+		);
+		$query_params['post_parent'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments associated with posts of a specific post parent id.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		$query_params['post_status'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments associated with posts of a specific post status.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+		);
+		$query_params['post_type'] = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments associated with posts of a specific post type.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+		);
+		$query_params['status'] = array(
+			'default'           => 'approve',
+			'description'       => 'Limit result set to comments assigned a specific status.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+		);
+		$query_params['type'] = array(
+			'default'           => 'comment',
+			'description'       => 'Limit result set to comments assigned a specific type.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+		);
+		$query_params['user']   = array(
+			'default'           => null,
+			'description'       => 'Limit result set to comments assigned to a specific user id.',
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+		);
+		return $query_params;
+	}
+
+	/**
 	 * Process a comment_status change when updating a comment.
 	 *
 	 * @param string|int $new_status
@@ -849,7 +873,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function handle_status_change( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
-		if ( $new_status == $old_status ) {
+		if ( $new_status === $old_status ) {
 			return false;
 		}
 
@@ -904,15 +928,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-		if ( 1 == $comment->comment_approved ) {
+
+		if ( 1 === (int) $comment->comment_approved ) {
 			return true;
 		}
 
-		if ( 0 == get_current_user_id() ) {
+		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
 
-		if ( ! empty( $comment->user_id ) && get_current_user_id() == $comment->user_id ) {
+		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
 			return true;
 		}
 

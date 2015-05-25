@@ -254,7 +254,7 @@ function rest_get_timezone() {
 	if ( ! $tzstring ) {
 		// Create a UTC+- zone if no timezone string exists
 		$current_offset = get_option( 'gmt_offset' );
-		if ( 0 == $current_offset ) {
+		if ( 0 === $current_offset ) {
 			$tzstring = 'UTC';
 		} elseif ( $current_offset < 0 ) {
 			$tzstring = 'Etc/GMT' . $current_offset;
