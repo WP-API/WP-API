@@ -34,3 +34,4 @@ require_once dirname( __FILE__ ) . '/class-wp-test-rest-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-rest-controller-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-rest-post-type-controller-testcase.php';
 require_once dirname( __FILE__ ) . '/class-wp-test-spy-rest-server.php';
+require_once dirname( __FILE__ ) . '/class-wp-rest-test-controller.php';

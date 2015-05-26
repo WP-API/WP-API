@@ -73,6 +73,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
+		$this->update_additional_fields_for_object( $attachment, $request );
+
 		$response = $this->get_item( array(
 			'id'      => $id,
 			'context' => 'edit',

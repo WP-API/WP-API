@@ -458,10 +458,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$data = $response->get_data();
-		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'draft', $data['status'] );
-		$this->assertEquals( 'draft', $new_post->post_status );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_post_with_format() {
@@ -478,6 +475,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$new_post = get_post( $data['id'] );
 		$this->assertEquals( 'gallery', $data['format'] );
 		$this->assertEquals( 'gallery', get_post_format( $new_post->ID ) );
+	}
+
+	public function test_create_post_with_invalid_format() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'format' => 'testformat',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_update_post_with_featured_image() {
@@ -667,7 +677,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_date', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_post_with_invalid_date_gmt() {
@@ -680,7 +690,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_date', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {

@@ -201,6 +201,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
+		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
+
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
 		$response = $this->get_item( array(
 			'id'      => $comment_id,
@@ -250,6 +252,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$this->handle_status_change( $request['status'], $comment );
 			}
 		}
+
+		$this->update_additional_fields_for_object( get_comment( $id ), $request );
 
 		$response = $this->get_item( array(
 			'id'      => $id,
@@ -439,6 +443,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
@@ -770,7 +775,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				),
 			),
 		);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 	/**
