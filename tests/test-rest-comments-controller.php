@@ -1,11 +1,11 @@
 <?php
-
 /**
  * Unit tests covering WP_REST_Comments_Controller functionality.
  *
  * @package WordPress
  * @subpackage JSON API
  */
+
 class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase {
 
 	protected $admin_id;
@@ -225,6 +225,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$data = $response->get_data();
 		$this->check_comment_data( $data, 'view' );
+	}
+
+	public function test_get_item_embedded() {
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->check_comment_data( $data, 'embed' );
 	}
 
 	public function test_prepare_item() {
@@ -641,14 +651,25 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = get_comment( $data['id'] );
 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
-		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
 		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertEquals( $comment->user_id, $data['author'] );
 		$this->assertEquals( $comment->comment_author, $data['author_name'] );
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( rest_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
+		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
+
+		if ( 'view' === $context || 'edit' === $context ) {
+			$this->assertEquals( $comment->user_id, $data['author'] );
+			$this->assertEquals( wp_get_comment_status( $comment->comment_ID ), $data['status'] );
+			$this->assertEquals( get_comment_type( $comment->comment_ID ), $data['type'] );
+		}
+
+		if ( 'view' !== $context && 'edit' !== $context ) {
+			$this->assertArrayNotHasKey( 'author', $data );
+			$this->assertArrayNotHasKey( 'status', $data );
+			$this->assertArrayNotHasKey( 'type', $data );
+		}
 
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );

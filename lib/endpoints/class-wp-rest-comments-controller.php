@@ -676,7 +676,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					'readonly'     => true,
 					),
 				'author'           => array(
@@ -699,13 +699,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_name'     => array(
 					'description'  => 'Display name for the object author.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					),
 				'author_user_agent'     => array(
 					'description'  => 'User agent for the object author.',
@@ -716,7 +716,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
-					'context'         => array( 'view', 'edit' ),
+					'context'         => array( 'embed', 'view', 'edit' ),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => 'Content for the object, as it exists in the database.',
@@ -726,7 +726,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
-							'context'         => array( 'view', 'edit' ),
+							'context'         => array( 'embed', 'view', 'edit' ),
 							),
 						),
 					),
@@ -734,7 +734,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed','view', 'edit' ),
 				),
 				'date_gmt'         => array(
 					'description'  => 'The date the object was published as GMT.',
@@ -752,18 +752,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					'readonly'     => true,
 				),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 				),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 				),
 				'status'           => array(
 					'description'  => 'State of the object.',
