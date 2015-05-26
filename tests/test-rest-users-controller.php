@@ -345,7 +345,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'id'       => '156',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
-			'email'    => 'smartgirl63_\@yahoo.com',
+			'email'    => 'smartgirl63_@yahoo.com',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
@@ -356,6 +356,24 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_exists', $response, 400 );
 	}
 
+	public function test_create_user_invalid_email() {
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$params = array(
+			'username' => 'lisasimpson',
+			'password' => 'DavidHasselhoff',
+			'email'    => 'something',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_create_user_invalid_role() {
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
@@ -363,7 +381,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$params = array(
 			'username' => 'maggiesimpson',
 			'password' => 'i_shot_mrburns',
-			'email'    => 'packingheat@example',
+			'email'    => 'packingheat@example.com',
 			'role'     => 'baby',
 		);
 
@@ -604,7 +622,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'id'       => '156',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
-			'email'    => 'smartgirl63_\@yahoo.com',
+			'email'    => 'smartgirl63_@yahoo.com',
 		);
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
@@ -798,10 +816,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
 		if ( 'view' === $context || 'edit' === $context ) {
-			$this->assertEquals( $user->first_name, $data['first_name'] );
-			$this->assertEquals( $user->last_name, $data['last_name'] );
-			$this->assertEquals( $user->nickname, $data['nickname'] );
-			$this->assertEquals( $user->user_nicename, $data['slug'] );
+		$this->assertEquals( $user->first_name, $data['first_name'] );
+		$this->assertEquals( $user->last_name, $data['last_name'] );
+		$this->assertEquals( $user->nickname, $data['nickname'] );
+		$this->assertEquals( $user->user_nicename, $data['slug'] );
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {
