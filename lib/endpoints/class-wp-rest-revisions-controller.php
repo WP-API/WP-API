@@ -207,7 +207,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ) );
 		}
 
-		return $data;
+		return $response;
 	}
 
 	/**
