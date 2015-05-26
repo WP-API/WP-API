@@ -180,10 +180,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = parent::prepare_links( $post );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $post ) );
 
 		return apply_filters( 'rest_prepare_attachment', $data, $post, $request );
 	}
@@ -200,7 +197,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['alt_text'] = array(
 			'description'     => 'Alternative text to display when attachment is not displayed.',
 			'type'            => 'string',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
@@ -216,7 +213,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => 'Type of attachment.',
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
@@ -234,7 +231,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => 'URL to the original attachment file.',
 			'type'            => 'string',
 			'format'          => 'uri',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		return $schema;

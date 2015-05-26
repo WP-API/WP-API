@@ -466,10 +466,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $user );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $user ) );
 
 		return apply_filters( 'rest_prepare_user', $data, $user, $request );
 	}

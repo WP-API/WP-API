@@ -167,15 +167,27 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
-		$this->assertEquals( $attachments_url, $links['attachments'][0]['href'] );
+		$this->assertEquals( $attachments_url, $links['http://v2.wp-api.org/attachment'][0]['href'] );
+
+		$term_links = $links['http://v2.wp-api.org/term'];
+		$tag_link = $cat_link = null;
+		foreach ( $term_links as $link ) {
+			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {
+				$tag_link = $link;
+			} elseif ( 'category' === $link['attributes']['taxonomy'] ) {
+				$cat_link = $link;
+			}
+		}
+		$this->assertNotEmpty( $tag_link );
+		$this->assertNotEmpty( $cat_link );
 
 		$tags_url = rest_url( '/wp/v2/terms/tag' );
 		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
-		$this->assertEquals( $tags_url, $links['post_tag'][0]['href'] );
+		$this->assertEquals( $tags_url, $tag_link['href'] );
 
 		$category_url = rest_url( '/wp/v2/terms/category' );
 		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
-		$this->assertEquals( $category_url, $links['category'][0]['href'] );
+		$this->assertEquals( $category_url, $cat_link['href'] );
 	}
 
 	public function test_get_item_links_no_author() {
