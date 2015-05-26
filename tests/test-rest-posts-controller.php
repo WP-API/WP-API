@@ -167,9 +167,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
-		$this->assertEquals( $attachments_url, $links['http://wp-api.org/v2/attachment'][0]['href'] );
+		$this->assertEquals( $attachments_url, $links['http://v2.wp-api.org/attachment'][0]['href'] );
 
-		$term_links = $links['http://wp-api.org/v2/term'];
+		$term_links = $links['http://v2.wp-api.org/term'];
 		$tag_link = $cat_link = null;
 		foreach ( $term_links as $link ) {
 			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {

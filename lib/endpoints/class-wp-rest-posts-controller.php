@@ -1123,7 +1123,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
-			$links['http://wp-api.org/v2/attachment'] = array(
+			$links['http://v2.wp-api.org/attachment'] = array(
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
@@ -1131,7 +1131,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
-			$links['http://wp-api.org/v2/term'] = array();
+			$links['http://v2.wp-api.org/term'] = array();
 
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
@@ -1148,7 +1148,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
-				$links['http://wp-api.org/v2/term'][] = array(
+				$links['http://v2.wp-api.org/term'][] = array(
 					'href'       => $terms_url,
 					'taxonomy'   => $tax,
 					'embeddable' => true,
@@ -1157,7 +1157,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['http://wp-api.org/v2/meta'] = array(
+			$links['http://v2.wp-api.org/meta'] = array(
 				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
 				'embeddable' => true,
 			);
