@@ -31,5 +31,5 @@ script:
   - phpunit --coverage-clover clover.xml
 
 after_script:
-  # Push coverage off to Coveralls
+  # Push coverage off to Codecov
   - bash <(curl -s https://codecov.io/bash)
