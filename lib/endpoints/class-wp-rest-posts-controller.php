@@ -100,6 +100,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['s'] = $request['search'];
 		}
 
+		if ( ! empty( $request['status'] ) ) {
+			$args['post_status'] = $request['status'];
+		}
+
 		/**
 		 * Alter the query arguments for a request.
 		 *
@@ -1478,8 +1482,33 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
-
+		$query_params['status'] = array(
+			'default'           => 'publish',
+			'description'       => 'Limit result set to posts assigned a specific status.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
+			);
 		return $query_params;
+	}
+
+	/**
+	 * Validate whether the user can query private statuses
+	 *
+	 * @param  mixed $value
+	 * @param  WP_REST_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+		if ( 'publish' === $value ) {
+			return true;
+		}
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( current_user_can( $post_type_obj->cap->edit_posts ) ) {
+			return true;
+		}
+		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => 403 ) );
 	}
 
 }

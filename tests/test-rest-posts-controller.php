@@ -75,6 +75,26 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'Search Result', $data[0]['title']['rendered'] );
 	}
 
+	public function test_get_items_status_query() {
+		wp_set_current_user( 0 );
+		$this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'publish' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 1, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'draft' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'draft' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 1, count( $response->get_data() ) );
+	}
+
 	public function test_get_items_status_without_permissions() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',
