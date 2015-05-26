@@ -761,7 +761,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'status'           => array(
 					'description'  => 'State of the object.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit', 'embed' ),
+					'context'      => array( 'view', 'edit' ),
 				),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
