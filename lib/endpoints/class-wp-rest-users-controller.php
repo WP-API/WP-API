@@ -5,71 +5,22 @@
  */
 class WP_REST_Users_Controller extends WP_REST_Controller {
 
+	protected $route_base = '/users';
+	protected $namespace = 'wp/v2';
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		$query_params = $this->get_collection_params();
-		register_rest_route( 'wp/v2', '/users', array(
-			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'            => $query_params,
-			),
-			array(
-				'methods'         => WP_REST_Server::CREATABLE,
-				'callback'        => array( $this, 'create_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
-					'password'    => array(
-						'required' => true,
-					),
-				) ),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/users/(?P<id>[\d]+)', array(
-			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_item' ),
-				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'embed',
-					),
-				),
-			),
-			array(
-				'methods'         => WP_REST_Server::EDITABLE,
-				'callback'        => array( $this, 'update_item' ),
-				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
-					'password'    => array(),
-				) ),
-			),
-			array(
-				'methods' => WP_REST_Server::DELETABLE,
-				'callback' => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-				'args' => array(
-					'reassign' => array(),
-				),
-			),
-		) );
+		parent::register_routes();
 
-		register_rest_route( 'wp/v2', '/users/me', array(
+		register_rest_route( $this->namespace, $this->route_base . '/me', array(
 			'methods'         => WP_REST_Server::READABLE,
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
 				'context'          => array(),
 			),
 		));
-
-		register_rest_route( 'wp/v2', '/users/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
 	}
 
 	/**

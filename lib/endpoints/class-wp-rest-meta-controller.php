@@ -3,6 +3,9 @@
  * Metadata base class.
  */
 abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
+
+	protected $namespace = 'wp/v2';
+
 	/**
 	 * Associated object type.
 	 *
@@ -29,66 +32,8 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			_doing_it_wrong( 'WP_REST_Meta_Controller::__construct', __( 'The parent base must be overridden' ), 'WPAPI-2.0' );
 			return;
 		}
-	}
 
-	/**
-	 * Register the meta-related routes.
-	 */
-	public function register_routes() {
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta', array(
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => array(
-					'context'             => array(
-						'default'             => 'view',
-					),
-				),
-			),
-			array(
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => array( $this, 'create_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'                => array(
-					'key'                 => array(
-						'required'            => true,
-					),
-					'value'               => array(),
-				),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => array( $this, 'get_item' ),
-				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-				'args'                => array(
-					'context'             => array(
-						'default'             => 'view',
-					),
-				),
-			),
-			array(
-				'methods'             => WP_REST_Server::EDITABLE,
-				'callback'            => array( $this, 'update_item' ),
-				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'                => array(
-					'key'                 => array(),
-					'value'               => array(),
-				),
-			),
-			array(
-				'methods'             => WP_REST_Server::DELETABLE,
-				'callback'            => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-				'args'                => array(),
-			),
-		) );
-		register_rest_route( 'wp/v2', $this->parent_base . '/meta/schema', array(
-			'methods'  => WP_REST_Server::READABLE,
-			'callback' => array( $this, 'get_item_schema' ),
-		) );
+		$this->route_base = '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta';
 	}
 
 	/**
@@ -114,6 +59,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 					'description' => 'The key for the custom field.',
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
+					'required'    => true,
 				),
 				'value' => array(
 					'description' => 'The value of the custom field.',

@@ -2,31 +2,9 @@
 
 class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 
-	/**
-	 * Register the routes for the objects of the controller.
-	 */
-	public function register_routes() {
-
-		register_rest_route( 'wp/v2', '/types', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'args'            => array(
-				'post_type'          => array(
-					'sanitize_callback' => 'sanitize_key',
-				),
-			),
-		) );
-
-		register_rest_route( 'wp/v2', '/types/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
-
-		register_rest_route( 'wp/v2', '/types/(?P<type>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
-		) );
-	}
+	protected $namespace = 'wp/v2';
+	protected $route_base = '/types';
+	protected $id_regex = '[\w-]+';
 
 	/**
 	 * Get all public post types
@@ -53,7 +31,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$obj = get_post_type_object( $request['type'] );
+		$obj = get_post_type_object( $request['id'] );
 		if ( empty( $obj ) ) {
 			return new WP_Error( 'rest_type_invalid', __( 'Invalid type.' ), array( 'status' => 404 ) );
 		}

@@ -2,30 +2,9 @@
 
 class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
-	/**
-	 * Register the routes for the objects of the controller.
-	 */
-	public function register_routes() {
-
-		register_rest_route( 'wp/v2', '/taxonomies', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'args'            => array(
-				'post_type'   => array(
-					'sanitize_callback' => 'sanitize_key',
-				),
-			),
-		) );
-		register_rest_route( 'wp/v2', '/taxonomies/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
-		register_rest_route( 'wp/v2', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
-			'permission_callback' => array( $this, 'get_item_permissions_check' ),
-		) );
-	}
+	protected $id_regex = '[\w-]+';
+	protected $route_base = '/taxonomies';
+	protected $namespace = 'wp/v2';
 
 	/**
 	 * Get all public taxonomies
@@ -57,7 +36,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {
-		$tax_obj = get_taxonomy( $request['taxonomy'] );
+		$tax_obj = get_taxonomy( $request['id'] );
 		if ( empty( $tax_obj ) ) {
 			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
 		}
@@ -72,7 +51,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_permissions_check( $request ) {
 
-		$tax_obj = get_taxonomy( $request['taxonomy'] );
+		$tax_obj = get_taxonomy( $request['id'] );
 
 		if ( $tax_obj && empty( $tax_obj->show_in_rest ) ) {
 			return false;

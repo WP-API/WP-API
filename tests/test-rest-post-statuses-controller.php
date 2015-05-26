@@ -5,7 +5,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/statuses', $routes );
-		$this->assertArrayHasKey( '/wp/v2/statuses/(?P<status>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/statuses/(?P<id>[\w-]+)', $routes );
 	}
 
 	public function test_get_items() {

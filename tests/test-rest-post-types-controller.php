@@ -5,7 +5,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_register_routes() {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/types', $routes );
-		$this->assertArrayHasKey( '/wp/v2/types/(?P<type>[\w-]+)', $routes );
+		$this->assertArrayHasKey( '/wp/v2/types/(?P<id>[\w-]+)', $routes );
 	}
 
 	public function test_get_items() {

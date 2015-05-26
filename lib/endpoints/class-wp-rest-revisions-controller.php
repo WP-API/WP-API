@@ -5,52 +5,13 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	private $parent_post_type;
 	private $parent_controller;
 	private $parent_base;
+	protected $namespace = 'wp/v2';
 
 	public function __construct( $parent_post_type ) {
 		$this->parent_post_type = $parent_post_type;
 		$this->parent_controller = new WP_REST_Posts_Controller( $parent_post_type );
 		$this->parent_base = $this->parent_controller->get_post_type_base( $this->parent_post_type );
-	}
-
-	/**
-	 * Register routes for revisions based on post types supporting revisions
-	 */
-	public function register_routes() {
-
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/revisions', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'permission_callback' => array( $this, 'get_items_permissions_check' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view',
-				),
-			),
-		) );
-
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', array(
-			array(
-				'methods'         => WP_REST_Server::READABLE,
-				'callback'        => array( $this, 'get_item' ),
-				'permission_callback' => array( $this, 'get_item_permissions_check' ),
-				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
-				),
-			),
-			array(
-				'methods'         => WP_REST_Server::DELETABLE,
-				'callback'        => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-			),
-		));
-
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/revisions/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
-
+		$this->route_base = '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/revisions';
 	}
 
 	/**

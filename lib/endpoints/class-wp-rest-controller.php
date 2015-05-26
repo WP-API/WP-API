@@ -3,111 +3,113 @@
 
 abstract class WP_REST_Controller {
 
+	protected $route_base = '';
+	protected $id_regex    = '[\d]+';
+	protected $namespace   = '';
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
-		_doing_it_wrong( 'WP_REST_Controller::register_routes', __( 'The register_routes() method must be overriden' ), 'WPAPI-2.0' );
-	}
 
-	/**
-	 * Get a collection of items
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Response
-	 */
-	public function get_items( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+		$multiple_args = array();
+		$schema = $this->get_item_schema();
 
-	/**
-	 * Get one item from the collection
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Response
-	 */
-	public function get_item( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+		if ( method_exists( $this, 'get_items' ) ) {
 
-	/**
-	 * Create one item from the collection
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Request
-	 */
-	public function create_item( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+			);
 
-	/**
-	 * Update one item from the collection
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Request
-	 */
-	public function update_item( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+			if ( method_exists( $this, 'get_items_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'get_items_permissions_check' );
+			}
 
-	/**
-	 * Delete one item from the collection
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|WP_REST_Request
-	 */
-	public function delete_item( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+			if ( method_exists( $this, 'get_collection_params' ) ) {
+				$args['args'] = $this->get_collection_params();
+			}
 
-	/**
-	 * Check if a given request has access to get items
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
-	 */
-	public function get_items_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+			$multiple_args[] = $args;
 
-	/**
-	 * Check if a given request has access to get a specific item
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
-	 */
-	public function get_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+		}
 
-	/**
-	 * Check if a given request has access to create items
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
-	 */
-	public function create_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+		if ( method_exists( $this, 'create_item' ) ) {
 
-	/**
-	 * Check if a given request has access to update a specific item
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
-	 */
-	public function update_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
-	}
+			$args = array(
+				'methods'         => WP_REST_Server::CREATABLE,
+				'callback'        => array( $this, 'create_item' ),
+			);
 
-	/**
-	 * Check if a given request has access to delete a specific item
-	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
-	 */
-	public function delete_item_permissions_check( $request ) {
-		return new WP_Error( 'invalid-method', __( 'Method not implemented. Must be over-ridden in subclass.' ), array( 'status' => 405 ) );
+			if ( method_exists( $this, 'create_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'create_item_permissions_check' );
+			}
+
+			$args['args'] = $this->get_endpoint_args_for_item_schema( true );
+
+			$multiple_args[] = $args;
+		}
+
+		if ( $multiple_args ) {
+			register_rest_route( $this->namespace, $this->route_base, $multiple_args );
+		}
+
+		if ( $schema ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item_schema' ),
+			);
+
+			register_rest_route( $this->namespace, $this->route_base . '/schema', $args );
+		}
+
+		$single_args = array();
+
+		if ( method_exists( $this, 'get_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+			);
+
+			if ( method_exists( $this, 'get_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'get_item_permissions_check' );
+			}
+
+			$single_args[] = $args;
+		}
+
+		if ( method_exists( $this, 'update_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::EDITABLE,
+				'callback'        => array( $this, 'update_item' ),
+			);
+
+			if ( method_exists( $this, 'update_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'update_item_permissions_check' );
+			}
+
+			$args['args'] = $this->get_endpoint_args_for_item_schema( false );
+
+			$single_args[] = $args;
+		}
+
+		if ( method_exists( $this, 'delete_item' ) ) {
+
+			$args = array(
+				'methods'         => WP_REST_Server::DELETABLE,
+				'callback'        => array( $this, 'delete_item' ),
+			);
+
+			if ( method_exists( $this, 'delete_item_permissions_check' ) ) {
+				$args['permission_callback'] = array( $this, 'delete_item_permissions_check' );
+			}
+
+			$single_args[] = $args;
+		}
+
+		register_rest_route( $this->namespace, $this->route_base . '/(?P<id>' . $this->id_regex . ')', $single_args );
 	}
 
 	/**
