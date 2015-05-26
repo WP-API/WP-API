@@ -35,11 +35,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$collection_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
-				'args'            => $posts_args,
+				'args'            => $collection_params,
 			),
 			array(
 				'methods'         => WP_REST_Server::CREATABLE,
@@ -94,6 +95,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['paged'] = $args['page'];
 		$args['posts_per_page'] = $args['per_page'];
 		unset( $args['page'] );
+
+		if ( ! empty( $request['search'] ) ) {
+			$args['s'] = $request['search'];
+		}
 
 		/**
 		 * Alter the query arguments for a request.
@@ -1448,6 +1453,33 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = parent::get_collection_params();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'name',
+			'enum'               => array(
+				'id',
+				'title',
+				'slug',
+			),
+		);
+
+		return $query_params;
 	}
 
 }

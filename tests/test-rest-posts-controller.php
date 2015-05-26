@@ -59,6 +59,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_get_items_search_query() {
+		for ( $i = 0;  $i < 5;  $i++ ) {
+			$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		}
+		$this->factory->post->create( array( 'post_title' => 'Search Result', 'post_status' => 'publish' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 7, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'Search Result' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Search Result', $data[0]['title']['rendered'] );
+	}
+
 	public function test_get_items_status_without_permissions() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',
