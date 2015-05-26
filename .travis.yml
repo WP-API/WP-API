@@ -32,6 +32,4 @@ script:
 
 after_script:
   # Push coverage off to Coveralls
-  - phpenv local 5.5
-  - php vendor/bin/coveralls -v
-  - phpenv local --unset
+  - bash <(curl -s https://codecov.io/bash)
