@@ -44,10 +44,14 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertCount( 2, $data );
+
 		// Reverse chron
-		$this->assertEquals( $this->revision_id2, $data[0]['id'] );
+		$rev_data = $data[0]->get_data();
+		$this->assertEquals( $this->revision_id2, $rev_data['id'] );
 		$this->check_get_revision_response( $data[0], $this->revision_2 );
-		$this->assertEquals( $this->revision_id1, $data[1]['id'] );
+
+		$rev_data = $data[1]->get_data();
+		$this->assertEquals( $this->revision_id1, $rev_data['id'] );
 		$this->check_get_revision_response( $data[1], $this->revision_1 );
 	}
 
@@ -80,9 +84,8 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( $this->editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
-		$this->check_get_revision_response( $data, $this->revision_1 );
+		$this->check_get_revision_response( $response, $this->revision_1 );
 	}
 
 	public function test_get_item_no_permission() {
@@ -129,9 +132,8 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		wp_set_current_user( $this->editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
 		$this->assertEquals( 200, $response->get_status() );
-		$this->check_get_revision_response( $data, $this->revision_1 );
+		$this->check_get_revision_response( $response, $this->revision_1 );
 	}
 
 	public function test_get_item_schema() {
@@ -167,6 +169,14 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	protected function check_get_revision_response( $response, $revision ) {
+		if ( $response instanceof WP_REST_Response ) {
+			$links = $response->get_links();
+			$response = $response->get_data();
+		} else {
+			$this->assertArrayHasKey( '_links', $response );
+			$links = $response['_links'];
+		}
+
 		$this->assertEquals( $revision->post_author, $response['author'] );
 		$this->assertEquals( $revision->post_content, $response['content'] );
 		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_date ), $response['date'] );
@@ -178,10 +188,11 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
 		$this->assertEquals( $revision->post_name, $response['slug'] );
 		$this->assertEquals( $revision->post_title, $response['title'] );
+
 		$parent = get_post( $revision->post_parent );
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
 		$parent_base = $parent_controller->get_post_type_base( $parent->post_type );
-		$this->assertEquals( rest_url( 'wp/' . $parent_base . '/' . $revision->post_parent ), $response['_links']['parent'] );
+		$this->assertEquals( rest_url( 'wp/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
 	}
 
 }
