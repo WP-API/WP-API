@@ -59,6 +59,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_get_item_author_query() {
+		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 2, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'author', $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $this->editor_id, $data[0]['author'] );
+	}
+
 	public function test_get_items_search_query() {
 		for ( $i = 0;  $i < 5;  $i++ ) {
 			$this->factory->post->create( array( 'post_status' => 'publish' ) );

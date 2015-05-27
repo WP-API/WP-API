@@ -96,6 +96,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['posts_per_page'] = $args['per_page'];
 		unset( $args['page'] );
 
+		if ( ! empty( $request['author'] ) ) {
+			$args['post_author'] = $request['author'];
+		}
+
 		if ( ! empty( $request['search'] ) ) {
 			$args['s'] = $request['search'];
 		}
@@ -1466,6 +1470,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
+
+		if ( post_type_supports( $this->post_type, 'author' ) ) {
+			$query_params['author'] = array(
+				'description'         => 'Limit result set to posts assigned to a specific author.',
+				'type'                => 'integer',
+			);
+		}
+
 		$query_params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
 			'type'               => 'string',
