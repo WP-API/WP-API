@@ -1488,7 +1488,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
-			);
+		);
 		return $query_params;
 	}
 
