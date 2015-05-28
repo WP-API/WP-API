@@ -641,6 +641,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$userdata = get_userdata( $user_id ); // cache for later
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -657,6 +658,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->editor );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_cannot_delete', $response, 403 );
@@ -667,6 +669,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/100' );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
@@ -689,6 +692,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		// Delete our test user, and reassign to the new author
 		wp_set_current_user( $this->user );
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$request->set_param( 'reassign', $reassign_id );
 		$response = $this->server->dispatch( $request );
 
@@ -708,6 +712,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$request->set_param( 'reassign', 100 );
 		$response = $this->server->dispatch( $request );
 

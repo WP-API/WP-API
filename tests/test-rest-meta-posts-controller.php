@@ -850,6 +850,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
@@ -869,6 +870,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 		$request['parent_id'] = 0;
 
 		$response = $this->server->dispatch( $request );
@@ -882,6 +884,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 		$request['parent_id'] = -1;
 
 		$response = $this->server->dispatch( $request );
@@ -895,6 +898,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 		$request['id'] = 0;
 
 		$response = $this->server->dispatch( $request );
@@ -908,6 +912,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 		$request['id'] = -1;
 
 		$response = $this->server->dispatch( $request );
@@ -923,6 +928,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		wp_set_current_user( 0 );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
@@ -938,12 +944,14 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id_two = add_post_meta( $post_id_two, 'testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id_two, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id_two, 'testkey' ) );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id_two ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_post_mismatch', $response, 400 );
@@ -956,6 +964,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -968,6 +977,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -980,6 +990,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, 'testkey', $value );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
@@ -991,6 +1002,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$meta_id = add_post_meta( $post_id, '_testkey', 'testvalue' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_meta_protected', $response, 403 );
