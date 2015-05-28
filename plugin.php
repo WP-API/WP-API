@@ -577,7 +577,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	$body = array(
 		'request_args'    => array(),
 		'schema'          => null,
-		);
+	);
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
