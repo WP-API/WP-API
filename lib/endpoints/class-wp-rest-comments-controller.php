@@ -284,11 +284,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
+		/**
+		 * Filter whether the comment type supports trashing.
+		 *
+		 * @param boolean $supports_trash Does the comment type support trashing?
+		 * @param stdClass $comment Comment we're attempting to trash.
+		 */
+		$supports_trash = apply_filters( 'rest_comment_type_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
+
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $comment, $get_request );
 
-		$result = wp_delete_comment( $comment->comment_ID, $force );
+		if ( $force ) {
+			$result = wp_delete_comment( $comment->comment_ID, true );
+		} else {
+			// If we don't support trashing for this type, error out
+			if ( ! $supports_trash ) {
+				return new WP_Error( 'rest_trash_not_supported', __( 'The comment does not support trashing.' ), array( 'status' => 501 ) );
+			}
+
+			$result = wp_trash_comment( $comment->comment_ID );
+		}
+
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}

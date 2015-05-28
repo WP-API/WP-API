@@ -395,6 +395,12 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$parent_id = (int) $request['parent_id'];
 		$mid = (int) $request['id'];
+		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+		// We don't support trashing for this type, error out
+		if ( ! $force ) {
+			return new WP_Error( 'rest_trash_not_supported', __( 'Meta does not support trashing.' ), array( 'status' => 501 ) );
+		}
 
 		$parent_column = $this->get_parent_column();
 		$current = get_metadata_by_mid( $this->parent_type, $mid );
