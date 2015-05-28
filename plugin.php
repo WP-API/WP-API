@@ -597,9 +597,26 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			$methods = array_keys( $endpoint['methods'] );
 			$method = array_shift( $methods );
 
-			if ( empty( $body['args'][ $method ] ) ) {
-				$body['args'][ $method ] = $endpoint['args'];
+			$args = array();
+			if ( ! empty( $endpoint['args'] ) ) {
+				foreach ( $endpoint['args'] as $key => $arg_opts ) {
+					$args[ $key ] = (object) array();
+
+					if ( isset( $arg_opts['description'] ) ) {
+						$args[ $key ]->description = $arg_opts['description'];
+					}
+
+					if ( isset( $arg_opts['type'] ) ) {
+						$args[ $key ]->type = $arg_opts['type'];
+					}
+
+					if ( isset( $arg_opts['default'] ) ) {
+						$args[ $key ]->default = $arg_opts['default'];
+					}
+				}
 			}
+
+			$body['args'][ $method ] = $args;
 		}
 		break;
 	}
