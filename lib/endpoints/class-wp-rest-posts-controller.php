@@ -323,6 +323,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
+		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
+		if ( $post->post_type === 'attachment' ) {
+			$supports_trash = $supports_trash && MEDIA_TRASH;
+		}
+
+		/**
+		 * Filter whether the post type supports trashing.
+		 *
+		 * @param boolean $supports_trash Does the post type support trashing?
+		 * @param WP_Post $post Post we're attempting to trash.
+		 */
+		$supports_trash = apply_filters( 'rest_post_type_trashable', $supports_trash, $post );
+
 		if ( ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
@@ -335,8 +348,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( $force ) {
 			$result = wp_delete_post( $id, true );
 		} else {
+			// If we don't support trashing for this type, error out
+			if ( ! $supports_trash ) {
+				return new WP_Error( 'rest_trash_not_supported', __( 'The post does not support trashing.' ), array( 'status' => 501 ) );
+			}
+
 			// Otherwise, only trash if we haven't already
-			if ( EMPTY_TRASH_DAYS && 'trash' === $post->post_status ) {
+			if ( 'trash' === $post->post_status ) {
 				return new WP_Error( 'rest_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
 			}
 

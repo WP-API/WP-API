@@ -197,6 +197,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/media/' . $attachment_id );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
