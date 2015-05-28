@@ -575,8 +575,8 @@ function rest_handle_options_request( $response, $handler, $request ) {
 
 	$accept = array();
 	$body = array(
-		'args'    => array(),
-		'schema'          => null,
+		'args'   => array(),
+		'schema' => null,
 	);
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
