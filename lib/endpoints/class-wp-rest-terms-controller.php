@@ -196,6 +196,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
+		$this->update_additional_fields_for_object( $term, $request );
+
 		$response = $this->get_item( array(
 			'id' => $term['term_taxonomy_id'],
 		 ) );
@@ -248,6 +250,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				return $update;
 			}
 		}
+
+		$this->update_additional_fields_for_object( get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy ), $request );
 
 		$response = $this->get_item( array(
 			'id' => $term->term_taxonomy_id,
@@ -441,10 +445,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $item );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $item ) );
 
 		return apply_filters( 'rest_prepare_term', $data, $item, $request );
 	}
@@ -493,7 +494,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 					),
 				'count'            => array(
@@ -511,24 +512,24 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'embed' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object unique to its type.',
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'embed' ),
 					),
 				'taxonomy'         => array(
 					'description'  => 'Type attribution for the object.',
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 					),
 				),

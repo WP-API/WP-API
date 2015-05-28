@@ -74,7 +74,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	}
 
 	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
-	$wp_rest_server->register_route( $full_route, $args, $override );
+	$wp_rest_server->register_route( $namespace, $full_route, $args, $override );
 }
 
 /**

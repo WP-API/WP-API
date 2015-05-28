@@ -99,6 +99,41 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertArrayHasKey( 'slug', $properties );
 	}
 
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' )
+		);
+
+		register_api_field( 'status', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' )
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/schema' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/publish' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object ) {
+		return 123;
+	}
+
 	protected function check_post_status_obj( $status_obj, $data ) {
 		$this->assertEquals( $status_obj->label, $data['name'] );
 		$this->assertEquals( $status_obj->private, $data['private'] );

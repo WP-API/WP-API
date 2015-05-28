@@ -201,6 +201,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
+		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
+
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
 		$response = $this->get_item( array(
 			'id'      => $comment_id,
@@ -250,6 +252,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$this->handle_status_change( $request['status'], $comment );
 			}
 		}
+
+		$this->update_additional_fields_for_object( get_comment( $id ), $request );
 
 		$response = $this->get_item( array(
 			'id'      => $id,
@@ -439,14 +443,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $comment );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $comment ) );
 
 		return apply_filters( 'rest_prepare_comment', $data, $comment, $request );
 	}
@@ -480,9 +482,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
 				$base = $posts_controller->get_post_type_base( $post->post_type );
 
-				$links[ $post->post_type ] = array(
+				$links['up'] = array(
 					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
 					'embeddable' => true,
+					'post_type'  => $post->post_type,
 				);
 			}
 		}
@@ -671,13 +674,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 					),
 				'author'           => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
@@ -694,13 +697,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_name'     => array(
 					'description'  => 'Display name for the object author.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_user_agent'     => array(
 					'description'  => 'User agent for the object author.',
@@ -711,7 +714,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
-					'context'         => array( 'view', 'edit' ),
+					'context'         => array( 'view', 'edit', 'embed' ),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => 'Content for the object, as it exists in the database.',
@@ -721,7 +724,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
-							'context'         => array( 'view', 'edit' ),
+							'context'         => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					),
@@ -729,7 +732,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'         => array(
 					'description'  => 'The date the object was published as GMT.',
@@ -747,13 +750,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
@@ -768,11 +771,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 	/**

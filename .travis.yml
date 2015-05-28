@@ -31,7 +31,5 @@ script:
   - phpunit --coverage-clover clover.xml
 
 after_script:
-  # Push coverage off to Coveralls
-  - phpenv local 5.5
-  - php vendor/bin/coveralls -v
-  - phpenv local --unset
+  # Push coverage off to Codecov
+  - bash <(curl -s https://codecov.io/bash)

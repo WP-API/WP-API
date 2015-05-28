@@ -3,7 +3,7 @@
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=develop)](https://travis-ci.org/WP-API/WP-API)
-[![Code Coverage](https://scrutinizer-ci.com/g/WP-API/WP-API/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/WP-API/WP-API/?branch=develop)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/WP-API/WP-API/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/WP-API/WP-API/?branch=develop)
 
 ## WARNING
 
