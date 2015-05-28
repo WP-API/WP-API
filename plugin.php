@@ -586,6 +586,11 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
+		$opts = $handler->get_route_options( $route );
+		if ( isset( $opts['schema'] ) ) {
+			$body['schema'] = $opts['schema'];
+		}
+
 		foreach ( $endpoints as $endpoint ) {
 			$accept = array_merge( $accept, $endpoint['methods'] );
 
@@ -594,10 +599,6 @@ function rest_handle_options_request( $response, $handler, $request ) {
 
 			if ( empty( $body['request_args'][ $method ] ) ) {
 				$body['request_args'][ $method ] = $endpoint['args'];
-			}
-
-			if ( empty( $body['schema'] ) && ! empty( $endpoint['schema'] ) ) {
-				$body['schema'] = $endpoint['schema'];
 			}
 		}
 		break;

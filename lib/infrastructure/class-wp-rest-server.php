@@ -591,6 +591,23 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Get options specified at the route-level.
+	 *
+	 * This is typically things like the schema, which relates to the resource
+	 * rather than any endpoint callback in particular.
+	 *
+	 * @param string $route Route to fetch options for.
+	 * @return array|null Options map if set, otherwise null.
+	 */
+	public function get_route_options( $route ) {
+		if ( isset( $this->route_options[ $route ] ) ) {
+			return $this->route_options[ $route ];
+		}
+
+		return null;
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_REST_Request $request Request to attempt dispatching
