@@ -575,7 +575,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 
 	$accept = array();
 	$body = array(
-		'request_args'    => array(),
+		'args'    => array(),
 		'schema'          => null,
 	);
 
@@ -597,8 +597,8 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			$methods = array_keys( $endpoint['methods'] );
 			$method = array_shift( $methods );
 
-			if ( empty( $body['request_args'][ $method ] ) ) {
-				$body['request_args'][ $method ] = $endpoint['args'];
+			if ( empty( $body['args'][ $method ] ) ) {
+				$body['args'][ $method ] = $endpoint['args'];
 			}
 		}
 		break;
