@@ -973,6 +973,22 @@ class WP_JSON_Posts {
 				unstick_post( $post_ID );
 			}
 		}
+		
+		//featured image
+		if ( isset( $data['post_thumbnail'] ) ) {
+			$featured_image = (int) $data['post_thumbnail'];
+			if ( $featured_image ) {
+				$result = set_post_thumbnail( $post_ID, $data['post_thumbnail'] );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+			} else {
+				$result = delete_post_thumbnail( $post_ID );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+			}
+		}
 
 		do_action( 'json_insert_post', $post, $data, $update );
 
