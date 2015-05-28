@@ -865,6 +865,19 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEmpty( $meta );
 	}
 
+	public function test_delete_item_no_trash() {
+		$post_id = $this->factory->post->create();
+		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
+
+		// Ensure the meta still exists
+		$meta = get_metadata_by_mid( 'post', $meta_id );
+		$this->assertNotEmpty( $meta );
+	}
+
 	public function test_delete_item_no_post_id() {
 		$post_id = $this->factory->post->create();
 		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );

@@ -204,6 +204,23 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_delete_item_no_trash() {
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+
+		// Attempt trashing
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
+
+		// Ensure the post still exists
+		$post = get_post( $attachment_id );
+		$this->assertNotEmpty( $post );
+	}
+
 	public function test_delete_item_invalid_delete_permissions() {
 		wp_set_current_user( $this->author_id );
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
