@@ -6,4 +6,8 @@ fi
 
 composer install
 grunt phpcs
+EXIT_CODE=$?
+if [ $EXIT_CODE > 0 ]; then
+	exit $EXIT_CODE
+fi
 grunt phplint
