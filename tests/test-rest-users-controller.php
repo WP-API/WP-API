@@ -837,10 +837,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
 		if ( 'view' === $context || 'edit' === $context ) {
-		$this->assertEquals( $user->first_name, $data['first_name'] );
-		$this->assertEquals( $user->last_name, $data['last_name'] );
-		$this->assertEquals( $user->nickname, $data['nickname'] );
-		$this->assertEquals( $user->user_nicename, $data['slug'] );
+			$this->assertEquals( $user->first_name, $data['first_name'] );
+			$this->assertEquals( $user->last_name, $data['last_name'] );
+			$this->assertEquals( $user->nickname, $data['nickname'] );
+			$this->assertEquals( $user->user_nicename, $data['slug'] );
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {
