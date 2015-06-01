@@ -132,13 +132,21 @@
 		 * @returns {*}
 		 */
 		parse: function( response ) {
+			var offset = parseInt( WP_API_Settings.offset, 10 );
+
 			// Parse dates into native Date objects
 			_.each( parseable_dates, function ( key ) {
 				if ( ! ( key in response ) ) {
 					return;
 				}
 
-				var timestamp = wp.api.utils.parseISO8601( response[key] );
+				var timestamp, date;
+				if ( -1 === jQuery.inArray( key, [ 'date', 'modified' ] )  ) {
+					timestamp = wp.api.utils.parseISO8601( response[ key ] );
+				} else {
+					date = new Date( response[key] );
+					timestamp = ( date.getTime() + ( -1 * ( offset * 60 ) ) * 60000 );
+				}
 				response[key] = new Date( timestamp );
 			});
 

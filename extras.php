@@ -31,7 +31,11 @@ add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 function rest_register_scripts() {
 	wp_register_script( 'wp-api', plugins_url( 'wp-api.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
 
-	$settings = array( 'root' => esc_url_raw( get_rest_url() ), 'nonce' => wp_create_nonce( 'wp_rest' ) );
+	$settings = array(
+		'root' => esc_url_raw( get_rest_url() ),
+		'nonce' => wp_create_nonce( 'wp_rest' ),
+		'offset' => get_option( 'gmt_offset' )
+	);
 	wp_localize_script( 'wp-api', 'WP_API_Settings', $settings );
 }
 
