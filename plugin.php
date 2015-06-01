@@ -22,8 +22,6 @@ define( 'REST_API_VERSION', '2.0-beta2' );
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
-include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-datetime.php' );
-
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-server.php' );
 
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
