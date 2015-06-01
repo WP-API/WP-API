@@ -1,0 +1,15 @@
+{
+  "name": "wp-api",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/WP-API/WP-API.git"
+  },
+  "main": "Gruntfile.js",
+  "author": "WP-API Team <team@wp-api.org>",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-phpcs": "^0.4.0",
+    "phplint": "^1.2.0"
+  }
+}
