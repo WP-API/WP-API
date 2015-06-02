@@ -151,9 +151,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = parent::prepare_item_for_response( $post, $request );
 		$data = $response->get_data();
 
-		$data['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$data['caption']       = $post->post_excerpt;
-		$data['description']   = $post->post_content;
+		$data['alt_text']      = html_entity_decode(get_post_meta( $post->ID, '_wp_attachment_image_alt', true ));
+		$data['caption']       = html_entity_decode($post->post_excerpt);
+		$data['description']   = html_entity_decode($post->post_content);
 		$data['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$data['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$data['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;

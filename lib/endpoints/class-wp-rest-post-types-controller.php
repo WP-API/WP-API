@@ -73,10 +73,10 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		}
 
 		$data = array(
-			'description'  => $post_type->description,
+			'description'  => html_entity_decode($post_type->description),
 			'hierarchical' => $post_type->hierarchical,
 			'labels'       => $post_type->labels,
-			'name'         => $post_type->label,
+			'name'         => html_entity_decode($post_type->label),
 			'slug'         => $post_type->name,
 		);
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';

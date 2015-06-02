@@ -94,9 +94,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		}
 
 		$data = array(
-			'name'         => $taxonomy->label,
-			'slug'         => $taxonomy->name,
-			'description'  => $taxonomy->description,
+			'name'         => html_entity_decode($taxonomy->label),
+			'slug'         => html_entity_decode($taxonomy->name),
+			'description'  => html_entity_decode($taxonomy->description),
 			'labels'       => $taxonomy->labels,
 			'types'        => $taxonomy->object_type,
 			'show_cloud'   => $taxonomy->show_tagcloud,
