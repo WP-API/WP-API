@@ -583,13 +583,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' )
+			'context'     => array( 'view', 'edit' ),
 		);
 
 		register_api_field( 'comment', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
-			'update_callback' => array( $this, 'additional_field_update_callback' )
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/schema' );
@@ -607,7 +607,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . $this->approved_id );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'content' => 'abc'
+			'content' => 'abc',
 		));
 
 		wp_set_current_user( 1 );
@@ -618,7 +618,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
 			'title' => 'hello',
-			'post' => $this->post_id
+			'post' => $this->post_id,
 		));
 
 		$response = $this->server->dispatch( $request );

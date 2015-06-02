@@ -105,13 +105,13 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' )
+			'context'     => array( 'view', 'edit' ),
 		);
 
 		register_api_field( 'status', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
-			'update_callback' => array( $this, 'additional_field_update_callback' )
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/schema' );
