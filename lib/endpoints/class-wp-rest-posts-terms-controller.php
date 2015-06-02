@@ -144,6 +144,12 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$post     = get_post( absint( $request['post_id'] ) );
 		$term_id  = absint( $request['term_id'] );
+		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+		// We don't support trashing for this type, error out
+		if ( ! $force ) {
+			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
+		}
 
 		$is_request_valid = $this->validate_request( $request );
 		if ( is_wp_error( $is_request_valid ) ) {

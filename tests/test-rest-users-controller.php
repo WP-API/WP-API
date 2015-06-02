@@ -641,6 +641,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$userdata = get_userdata( $user_id ); // cache for later
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertNotInstanceOf( 'WP_Error', $response );
@@ -650,6 +651,22 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'Deleted User', $data['name'] );
 	}
 
+	public function test_delete_item_no_trash() {
+		$user_id = $this->factory->user->create( array( 'display_name' => 'Deleted User' ) );
+
+		$this->allow_user_to_manage_multisite();
+		wp_set_current_user( $this->user );
+
+		$userdata = get_userdata( $user_id ); // cache for later
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
+
+		// Ensure the user still exists
+		$user = get_user_by( 'id', $user_id );
+		$this->assertNotEmpty( $user );
+	}
+
 	public function test_delete_user_without_permission() {
 		$user_id = $this->factory->user->create();
 
@@ -657,6 +674,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->editor );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_cannot_delete', $response, 403 );
@@ -667,6 +685,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/users/100' );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
@@ -689,6 +708,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		// Delete our test user, and reassign to the new author
 		wp_set_current_user( $this->user );
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$request->set_param( 'reassign', $reassign_id );
 		$response = $this->server->dispatch( $request );
 
@@ -708,6 +728,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->user );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request['force'] = true;
 		$request->set_param( 'reassign', 100 );
 		$response = $this->server->dispatch( $request );
 
@@ -816,10 +837,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 
 		if ( 'view' === $context || 'edit' === $context ) {
-		$this->assertEquals( $user->first_name, $data['first_name'] );
-		$this->assertEquals( $user->last_name, $data['last_name'] );
-		$this->assertEquals( $user->nickname, $data['nickname'] );
-		$this->assertEquals( $user->user_nicename, $data['slug'] );
+			$this->assertEquals( $user->first_name, $data['first_name'] );
+			$this->assertEquals( $user->last_name, $data['last_name'] );
+			$this->assertEquals( $user->nickname, $data['nickname'] );
+			$this->assertEquals( $user->user_nicename, $data['slug'] );
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {

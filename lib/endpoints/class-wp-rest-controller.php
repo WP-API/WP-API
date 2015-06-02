@@ -362,7 +362,7 @@ abstract class WP_REST_Controller {
 
 			$endpoint_args[ $field_id ] = array(
 				'validate_callback' => array( $this, 'validate_schema_property' ),
-				'sanitize_callback' => array( $this, 'sanitize_schema_property' )
+				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
 			);
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {

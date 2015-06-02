@@ -305,6 +305,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
 		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
+		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+		// We don't support trashing for this type, error out
+		if ( ! $force ) {
+			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
+		}
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
@@ -326,7 +332,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
-		
+
 		return $orig_user;
 	}
 

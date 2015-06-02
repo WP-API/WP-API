@@ -172,6 +172,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -183,6 +184,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
@@ -194,6 +196,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -205,6 +208,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -216,6 +220,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/post_tag/%d', 9999, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
