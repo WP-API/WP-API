@@ -55,6 +55,10 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
  * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
  */
 function register_rest_route( $namespace, $route, $args = array(), $override = false ) {
+
+	/**
+	 * @var WP_REST_Server $wp_rest_server
+	 */
 	global $wp_rest_server;
 
 	if ( isset( $args['callback'] ) ) {
@@ -320,6 +324,9 @@ function rest_api_loaded() {
 	 */
 	define( 'REST_REQUEST', true );
 
+	/**
+	 * @var WP_REST_Server $wp_rest_server
+	 */
 	global $wp_rest_server;
 
 	// Allow for a plugin to insert a different class to handle requests.
