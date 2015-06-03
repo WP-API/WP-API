@@ -10,9 +10,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	public function setUp() {
 		parent::setUp();
 
-		/**
-		 * @var WP_REST_Server $wp_rest_server
-		 */
+		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$this->server = $wp_rest_server = new WP_Test_Spy_REST_Server();
 
