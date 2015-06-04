@@ -326,7 +326,7 @@
 				var id = this.get( 'ID' );
 				id = id || '';
 
-				return WP_API_Settings.root + '/wp/v2/taxonomies/' + this.taxonomy + '/terms/' + id;
+				return WP_API_Settings.root + '/wp/v2/terms/' + this.taxonomy + '/' + id
 			},
 
 			defaults: {
@@ -568,7 +568,7 @@
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + '/wp/v2/posts/types',
+			urlRoot: WP_API_Settings.root + '/wp/v2/types',
 
 			defaults: {
 				slug: null,
@@ -612,7 +612,7 @@
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + '/wp/v2/posts/statuses',
+			urlRoot: WP_API_Settings.root + '/wp/v2/statuses',
 
 			defaults: {
 				slug: null,
@@ -819,7 +819,7 @@
 	wp.api.collections.PostStatuses = BaseCollection.extend(
 		/** @lends PostStatuses.prototype */
 		{
-			url: WP_API_Settings.root + '/wp/v2/posts/statuses',
+			url: WP_API_Settings.root + '/wp/v2/statuses',
 
 			model: wp.api.models.PostStatus
 
@@ -892,7 +892,7 @@
 		{
 			model: wp.api.models.PostType,
 
-			url: WP_API_Settings.root + '/wp/v2/posts/types'
+			url: WP_API_Settings.root + '/wp/v2/types'
 		}
 	);
 
