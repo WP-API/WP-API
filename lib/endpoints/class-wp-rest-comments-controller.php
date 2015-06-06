@@ -446,7 +446,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_email'      => $comment->comment_author_email,
 			'author_url'        => $comment->comment_author_url,
 			'author_ip'         => $comment->comment_author_IP,
-			'author_avatar_url' => get_avatar_url( $comment->comment_author_email ),
+			'author_avatar_url' => rest_get_avatar_url( $comment->comment_author_email ),
 			'author_user_agent' => $comment->comment_agent,
 			'date'              => rest_mysql_to_rfc3339( $comment->comment_date ),
 			'date_gmt'          => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
