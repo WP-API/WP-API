@@ -170,7 +170,7 @@ function rest_get_avatar_url( $email ) {
 	/**
 	 * Use the WP Core `get_avatar_url()` function introduced in 4.2.
 	 */
-	if ( function_exists( 'get_avatar_url') ) {
+	if ( function_exists( 'get_avatar_url' ) ) {
 		return esc_url_raw( get_avatar_url( $email ) );
 	}
 	$avatar_html = get_avatar( $email );
