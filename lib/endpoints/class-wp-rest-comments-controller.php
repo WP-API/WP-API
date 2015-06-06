@@ -446,6 +446,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_email' => $comment->comment_author_email,
 			'author_url'   => $comment->comment_author_url,
 			'author_ip'    => $comment->comment_author_IP,
+			'author_avatar_url' => get_avatar_url( $comment->comment_author_email ),
 			'author_user_agent' => $comment->comment_agent,
 			'date'         => rest_mysql_to_rfc3339( $comment->comment_date ),
 			'date_gmt'     => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
@@ -699,6 +700,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					),
+				'author_avatar_url' => array(
+					'description'   => 'Avatar URL for the object author.',
+					'type'          => 'string',
+					'format'        => 'uri',
+					'context'       => array( 'view', 'edit', 'embed' ),
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
