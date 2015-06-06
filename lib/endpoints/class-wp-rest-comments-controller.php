@@ -725,7 +725,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_url'       => array(
-					'description'  => 'Url for the object author.',
+					'description'  => 'URL for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
