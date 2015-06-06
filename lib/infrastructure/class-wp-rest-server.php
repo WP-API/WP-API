@@ -52,11 +52,25 @@ class WP_REST_Server {
 	);
 
 	/**
+	 * Namespaces registered to the server
+	 *
+	 * @var array
+	 */
+	protected $namespaces = array();
+
+	/**
 	 * Endpoints registered to the server
 	 *
 	 * @var array
 	 */
 	protected $endpoints = array();
+
+	/**
+	 * Options defined for the routes
+	 *
+	 * @var array
+	 */
+	protected $route_options = array();
 
 	/**
 	 * Instantiate the server
@@ -475,7 +489,27 @@ class WP_REST_Server {
 	 * @param array $route_args
 	 * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
 	 */
-	public function register_route( $route, $route_args, $override = false ) {
+	public function register_route( $namespace, $route, $route_args, $override = false ) {
+		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+			$this->namespaces[ $namespace ] = array();
+
+			$this->register_route( $namespace, '/' . $namespace, array(
+				array(
+					'methods' => self::READABLE,
+					'callback' => array( $this, 'get_namespace_index' ),
+					'args' => array(
+						'namespace' => array(
+							'default' => $namespace,
+						),
+					),
+				),
+			) );
+		}
+
+		// Associative to avoid double-registration
+		$this->namespaces[ $namespace ][ $route ] = true;
+		$route_args['namespace'] = $namespace;
+
 		if ( $override || empty( $this->endpoints[ $route ] ) ) {
 			$this->endpoints[ $route ] = $route_args;
 		} else {
@@ -517,8 +551,17 @@ class WP_REST_Server {
 				// Single endpoint, add one deeper
 				$handlers = array( $handlers );
 			}
+			if ( ! isset( $this->route_options[ $route ] ) ) {
+				$this->route_options[ $route ] = array();
+			}
 
 			foreach ( $handlers as $key => &$handler ) {
+				if ( ! is_numeric( $key ) ) {
+					// Route option, move it to the options
+					$this->route_options[ $route ][ $key ] = $handler;
+					unset( $handlers[ $key ] );
+					continue;
+				}
 				$handler = wp_parse_args( $handler, $defaults );
 
 				// Allow comma-separated HTTP methods
@@ -536,6 +579,15 @@ class WP_REST_Server {
 			}
 		}
 		return $endpoints;
+	}
+
+	/**
+	 * Get namespaces registered on the server.
+	 *
+	 * @return array List of registered namespaces.
+	 */
+	public function get_namespaces() {
+		return array_keys( $this->namespaces );
 	}
 
 	/**
@@ -671,21 +723,84 @@ class WP_REST_Server {
 		$available = array(
 			'name'           => get_option( 'blogname' ),
 			'description'    => get_option( 'blogdescription' ),
-			'URL'            => get_option( 'siteurl' ),
-			'routes'         => array(),
+			'url'            => get_option( 'siteurl' ),
+			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
-			'_links' => array(
-				'help'    => array(
-					'href' => 'https://github.com/WP-API/WP-API',
-				),
-			),
+			'routes'         => $this->get_route_data( $this->get_routes() ),
 		);
 
+		$response = new WP_REST_Response( $available );
+		$response->add_link( 'help', 'http://v2.wp-api.org/' );
+
+		/**
+		 * Filter the API root index data.
+		 *
+		 * This contains the data describing the API. This includes information
+		 * about supported authentication schemes, supported namespaces, routes
+		 * available on the API, and a small amount of data about the site.
+		 *
+		 * @param WP_REST_Response $response Response data.
+		 */
+		return apply_filters( 'rest_index', $response );
+	}
+
+	/**
+	 * Get the index for a namespace.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return array|WP_REST_Response
+	 */
+	public function get_namespace_index( $request ) {
+		$namespace = $request['namespace'];
+
+		if ( ! isset( $this->namespaces[ $namespace ] ) ) {
+			return new WP_Error( 'rest_invalid_namespace', __( 'The specified namespace could not be found.' ), array( 'status' => 404 ) );
+		}
+
+		$routes = $this->namespaces[ $namespace ];
+		$endpoints = array_intersect_key( $this->get_routes(), $routes );
+
+		$data = array(
+			'namespace' => $namespace,
+			'routes' => $this->get_route_data( $endpoints ),
+		);
+		$response = rest_ensure_response( $data );
+
+		// Link to the root index
+		$response->add_link( 'up', rest_url( '/' ) );
+
+		/**
+		 * Filter the namespace index data.
+		 *
+		 * This typically is just the route data for the namespace, but you can
+		 * add any data you'd like here.
+		 *
+		 * @param WP_REST_Response $response Response data.
+		 * @param WP_REST_Request $request Request data. The namespace is passed as the 'namespace' parameter.
+		 */
+		return apply_filters( 'rest_namespace_index', $response, $request );
+	}
+
+	/**
+	 * Get the publicly-visible data for routes.
+	 *
+	 * @param array $routes Routes to get data for
+	 * @return array Route data to expose in indexes.
+	 */
+	protected function get_route_data( $routes ) {
+		$available = array();
 		// Find the available routes
-		foreach ( $this->get_routes() as $route => $callbacks ) {
+		foreach ( $routes as $route => $callbacks ) {
 			$data = array(
+				'namespace' => '',
 				'methods' => array(),
 			);
+			if ( isset( $this->route_options[ $route ] ) ) {
+				$options = $this->route_options[ $route ];
+				if ( isset( $options['namespace'] ) ) {
+					$data['namespace'] = $options['namespace'];
+				}
+			}
 
 			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
@@ -710,9 +825,20 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$available['routes'][ $route ] = apply_filters( 'rest_endpoints_description', $data );
+			$available[ $route ] = apply_filters( 'rest_endpoints_description', $data );
 		}
-		return apply_filters( 'rest_index', $available );
+
+		/**
+		 * Filter the publicly-visible data for routes.
+		 *
+		 * This data is exposed on indexes and can be used by clients or
+		 * developers to investigate the site and find out how to use it. It
+		 * acts as a form of self-documentation.
+		 *
+		 * @param array $available Map of route to route data.
+		 * @param array $routes Internal route data as an associative array.
+		 */
+		return apply_filters( 'rest_route_data', $available, $routes );
 	}
 
 	/**

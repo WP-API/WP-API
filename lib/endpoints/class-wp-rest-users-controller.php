@@ -45,7 +45,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
-					'password'    => array()
+					'password'    => array(),
 				) ),
 			),
 			array(
@@ -63,7 +63,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'callback'        => array( $this, 'get_current_item' ),
 			'args'            => array(
 				'context'          => array(),
-			)
+			),
 		));
 
 		register_rest_route( 'wp/v2', '/users/schema', array(
@@ -186,9 +186,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
+		global $wp_roles;
 
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! empty( $request['role'] ) && ! isset( $wp_roles->role_objects[ $request['role'] ] ) ) {
+			return new WP_Error( 'rest_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
 		}
 
 		$user = $this->prepare_item_for_database( $request );
@@ -259,6 +264,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! empty( $request['role'] ) ) {
+			$check_permission = $this->check_role_update( $id, $request['role'] );
+			if ( is_wp_error( $check_permission ) ) {
+				return $check_permission;
+			}
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 
 		// Ensure we're operating on the same user we already checked
@@ -293,6 +305,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
 		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
+		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+
+		// We don't support trashing for this type, error out
+		if ( ! $force ) {
+			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
+		}
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
@@ -305,13 +323,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/users/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $get_request );
+
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
-		} else {
-			return array( 'message' => __( 'Deleted user' ) );
 		}
+
+		return $orig_user;
 	}
 
 	/**
@@ -390,6 +412,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit users.' ), array( 'status' => 403 ) );
 		}
 
+		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
+			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of users.' ), array( 'status' => 403 ) );
+		}
+
 		return true;
 	}
 
@@ -446,10 +472,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $user );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $user ) );
 
 		return apply_filters( 'rest_prepare_user', $data, $user, $request );
 	}
@@ -526,6 +549,37 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Determine if the current user is allowed to make the desired role change.
+	 *
+	 * @param integer $user_id
+	 * @param string $role
+	 * @return boolen|WP_Error
+	 */
+	protected function check_role_update( $user_id, $role ) {
+		global $wp_roles;
+
+		if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
+			return new WP_Error( 'rest_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
+		}
+
+		$potential_role = $wp_roles->role_objects[ $role ];
+
+		// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
+		// Multisite super admins can freely edit their blog roles -- they possess all caps.
+		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
+			// The new role must be editable by the logged-in user.
+			$editable_roles = get_editable_roles();
+			if ( empty( $editable_roles[ $role ] ) ) {
+				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
+			}
+
+			return true;
+		}
+
+		return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
+	}
+
+	/**
 	 * Get the User's schema, conforming to JSON Schema
 	 *
 	 * @return array
@@ -570,7 +624,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
@@ -581,7 +635,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'last_name'   => array(
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
@@ -598,7 +652,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'registered_date' => array(
 					'description' => 'Registration date for the user.',
@@ -614,7 +668,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'url'         => array(
 					'description' => 'URL of the object.',
@@ -629,7 +683,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 					'required'    => true,
 				),
-			)
+			),
 		);
 		return $this->add_additional_fields_schema( $schema );
 	}

@@ -51,6 +51,29 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
+	 * Add multiple links to the response.
+	 *
+	 * Link data should be an associative array with link relation as the key.
+	 * The value can either be an associative array of link attributes
+	 * (including `href` with the URL for the response), or a list of these
+	 * associative arrays.
+	 *
+	 * @param array $links Map of link relation to list of links.
+	 */
+	public function add_links( $links ) {
+		foreach ( $links as $rel => $set ) {
+			// If it's a single link, wrap with an array for consistent handling
+			if ( isset( $set['href'] ) ) {
+				$set = array( $set );
+			}
+
+			foreach ( $set as $attributes ) {
+				$this->add_link( $rel, $attributes['href'], $attributes );
+			}
+		}
+	}
+
+	/**
 	 * Get links for the response
 	 *
 	 * @return array
@@ -75,7 +98,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
 
 		foreach ( $other as $key => $value ) {
-			if ( 'title' == $key ) {
+			if ( 'title' === $key ) {
 				$value = '"' . $value . '"';
 			}
 			$header .= '; ' . $key . '=' . $value;

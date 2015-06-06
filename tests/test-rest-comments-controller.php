@@ -242,7 +242,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_comment_invalid_id() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . 99999 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
@@ -258,7 +258,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_comment_invalid_post_id() {
 		$comment_id = $this->factory->comment->create( array(
 			'comment_approved' => 1,
-			'comment_post_ID'  => 99999,
+			'comment_post_ID'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
 		));
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
 
@@ -546,7 +546,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'content' => 'Oh, they have the internet on computers now!',
 		);
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . 99999 );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( $params ) );
 
@@ -581,12 +581,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_comment_invalid_id() {
 		wp_set_current_user( $this->admin_id );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', 99999 ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
@@ -624,6 +626,66 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+	}
+
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_api_field( 'comment', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/schema' );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $this->approved_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . $this->approved_id );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+			'content' => 'abc',
+		));
+
+		wp_set_current_user( 1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 123, get_comment_meta( $this->approved_id, 'my_custom_int', true ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_body_params(array(
+			'my_custom_int' => 123,
+			'title' => 'hello',
+			'post' => $this->post_id,
+		));
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 123, $response->data['my_custom_int'] );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object ) {
+		return get_comment_meta( $object['id'], 'my_custom_int', true );
+	}
+
+	public function additional_field_update_callback( $value, $comment ) {
+		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
 	}
 
 	protected function check_comment_data( $data, $context ) {

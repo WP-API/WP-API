@@ -319,20 +319,42 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post = get_post( $id );
 
-		if ( empty( $id ) || empty( $post->ID ) ) {
+		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
+
+		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
+		if ( $post->post_type === 'attachment' ) {
+			$supports_trash = $supports_trash && MEDIA_TRASH;
+		}
+
+		/**
+		 * Filter whether the post type supports trashing.
+		 *
+		 * @param boolean $supports_trash Does the post type support trashing?
+		 * @param WP_Post $post Post we're attempting to trash.
+		 */
+		$supports_trash = apply_filters( 'rest_post_type_trashable', $supports_trash, $post );
 
 		if ( ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $get_request );
+
 		// If we're forcing, then delete permanently
 		if ( $force ) {
 			$result = wp_delete_post( $id, true );
 		} else {
+			// If we don't support trashing for this type, error out
+			if ( ! $supports_trash ) {
+				return new WP_Error( 'rest_trash_not_supported', __( 'The post does not support trashing.' ), array( 'status' => 501 ) );
+			}
+
 			// Otherwise, only trash if we haven't already
-			if ( EMPTY_TRASH_DAYS && 'trash' === $post->post_status ) {
+			if ( 'trash' === $post->post_status ) {
 				return new WP_Error( 'rest_already_deleted', __( 'The post has already been deleted.' ), array( 'status' => 410 ) );
 			}
 
@@ -345,12 +367,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted post' ) );
-		} else {
-			// TODO: return a HTTP 202 here instead
-			return array( 'message' => __( 'Deleted post' ) );
-		}
+		return $response;
 	}
 
 	/**
@@ -1025,9 +1042,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $post->post_parent;
-			if ( 0 == $data['parent'] ) {
-				$data['parent'] = null;
-			}
 		}
 
 		if ( ! empty( $schema['properties']['menu_order'] ) ) {
@@ -1070,10 +1084,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $post );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $post ) );
 
 		return apply_filters( 'rest_prepare_' . $this->post_type, $data, $post, $request );
 	}
@@ -1130,7 +1141,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
-			$links['attachments'] = array(
+			$links['http://v2.wp-api.org/attachment'] = array(
 				'href'       => $attachments_url,
 				'embeddable' => true,
 			);
@@ -1138,6 +1149,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
+			$links['http://v2.wp-api.org/term'] = array();
+
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
@@ -1153,15 +1166,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
 
-				$links[ $tax ] = array(
-					'href' => $terms_url,
+				$links['http://v2.wp-api.org/term'][] = array(
+					'href'       => $terms_url,
+					'taxonomy'   => $tax,
 					'embeddable' => true,
 				);
 			}
 		}
 
 		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['http://wp-api.org/2.0/meta'] = array(
+			$links['http://v2.wp-api.org/meta'] = array(
 				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
 				'embeddable' => true,
 			);
@@ -1190,7 +1204,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => 'The date the object was published.',
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'        => array(
 					'description' => 'The date the object was published, as GMT.',
@@ -1219,14 +1233,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'id'              => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'link'            => array(
 					'description' => 'URL to the object.',
 					'type'        => 'string',
 					'format'      => 'uri',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
 				'modified'        => array(
@@ -1249,7 +1263,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug'            => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'status'          => array(
 					'description' => 'A named status for the object.',
@@ -1260,10 +1274,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'            => array(
 					'description' => 'Type of Post for the object.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
-			)
+			),
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
@@ -1327,7 +1341,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['title'] = array(
 						'description' => 'The title for the object.',
 						'type'        => 'object',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Title for the object, as it exists in the database.',
@@ -1337,7 +1351,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'rendered' => array(
 								'description' => 'Title for the object, transformed for display.',
 								'type'        => 'string',
-								'context'     => array( 'view', 'edit' ),
+								'context'     => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					);
@@ -1367,7 +1381,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['author'] = array(
 						'description' => 'The ID for the author of the object.',
 						'type'        => 'integer',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 
@@ -1375,7 +1389,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => 'The excerpt for the object.',
 						'type'        => 'object',
-						'context'     => array( 'view', 'edit' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 						'properties'  => array(
 							'raw' => array(
 								'description' => 'Excerpt for the object, as it exists in the database.',
@@ -1385,7 +1399,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'rendered' => array(
 								'description' => 'Excerpt for the object, transformed for display.',
 								'type'        => 'string',
-								'context'     => array( 'view', 'edit' ),
+								'context'     => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					);

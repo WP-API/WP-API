@@ -89,7 +89,7 @@ class WP_REST_Request implements ArrayAccess {
 			// See parse_json_params
 			'JSON'  => null,
 
-			'defaults' => array()
+			'defaults' => array(),
 		);
 
 		$this->set_method( $method );
@@ -639,7 +639,7 @@ class WP_REST_Request implements ArrayAccess {
 			foreach ( $this->params[ $type ] as $key => $value ) {
 				// check if this param has a sanitize_callback added
 				if ( isset( $attributes['args'][ $key ] ) && ! empty( $attributes['args'][ $key ]['sanitize_callback'] ) ) {
-					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this );
+					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this, $key );
 				}
 			}
 		}
@@ -679,8 +679,9 @@ class WP_REST_Request implements ArrayAccess {
 		foreach ( $attributes['args'] as $key => $arg ) {
 
 			$param = $this->get_param( $key );
+
 			if ( null !== $param && ! empty( $arg['validate_callback']) ) {
-				$valid_check = call_user_func( $arg['validate_callback'], $param, $this );
+				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
 				if ( false === $valid_check ) {
 					$invalid_params[ $key ] = __( 'Invalid param.' );

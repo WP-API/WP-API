@@ -197,10 +197,28 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/media/' . $attachment_id );
+		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	public function test_delete_item_no_trash() {
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+
+		// Attempt trashing
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
+
+		// Ensure the post still exists
+		$post = get_post( $attachment_id );
+		$this->assertNotEmpty( $post );
 	}
 
 	public function test_delete_item_invalid_delete_permissions() {
@@ -257,6 +275,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'source_url', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+	}
+
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_api_field( 'attachment', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/schema' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
+		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object, $request ) {
+		return 123;
 	}
 
 	public function tearDown() {

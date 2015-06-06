@@ -228,6 +228,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
+		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
+
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
 		$response = $this->get_item( array(
 			'id'      => $comment_id,
@@ -278,6 +280,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$this->update_additional_fields_for_object( get_comment( $id ), $request );
+
 		$response = $this->get_item( array(
 			'id'      => $id,
 			'context' => 'edit',
@@ -307,16 +311,34 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		$result = wp_delete_comment( $comment->comment_ID, $force );
+		/**
+		 * Filter whether the comment type supports trashing.
+		 *
+		 * @param boolean $supports_trash Does the comment type support trashing?
+		 * @param stdClass $comment Comment we're attempting to trash.
+		 */
+		$supports_trash = apply_filters( 'rest_comment_type_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
+
+		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
+
+		if ( $force ) {
+			$result = wp_delete_comment( $comment->comment_ID, true );
+		} else {
+			// If we don't support trashing for this type, error out
+			if ( ! $supports_trash ) {
+				return new WP_Error( 'rest_trash_not_supported', __( 'The comment does not support trashing.' ), array( 'status' => 501 ) );
+			}
+
+			$result = wp_trash_comment( $comment->comment_ID );
+		}
+
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( $force ) {
-			return array( 'message' => __( 'Permanently deleted comment' ) );
-		}
-
-		return array( 'message' => __( 'Deleted comment' ) );
+		return $response;
 	}
 
 
@@ -337,7 +359,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['context'] ) && 'edit' == $request['context'] && ! current_user_can( 'manage_comments' ) ) {
+		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'manage_comments' ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => 403 ) );
 		}
 
@@ -474,14 +496,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
+		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$links = $this->prepare_links( $comment );
-		foreach ( $links as $rel => $attributes ) {
-			$data->add_link( $rel, $attributes['href'], $attributes );
-		}
+		$data->add_links( $this->prepare_links( $comment ) );
 
 		return apply_filters( 'rest_prepare_comment', $data, $comment, $request );
 	}
@@ -515,9 +535,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
 				$base = $posts_controller->get_post_type_base( $post->post_type );
 
-				$links[ $post->post_type ] = array(
+				$links['up'] = array(
 					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
 					'embeddable' => true,
+					'post_type'  => $post->post_type,
 				);
 			}
 		}
@@ -728,13 +749,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'id'               => array(
 					'description'  => 'Unique identifier for the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 					),
 				'author'           => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
@@ -751,13 +772,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_name'     => array(
 					'description'  => 'Display name for the object author.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_url'       => array(
 					'description'  => 'Url for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					),
 				'author_user_agent'     => array(
 					'description'  => 'User agent for the object author.',
@@ -768,7 +789,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
-					'context'         => array( 'view', 'edit' ),
+					'context'         => array( 'view', 'edit', 'embed' ),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => 'Content for the object, as it exists in the database.',
@@ -778,7 +799,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
-							'context'         => array( 'view', 'edit' ),
+							'context'         => array( 'view', 'edit', 'embed' ),
 							),
 						),
 					),
@@ -786,7 +807,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'         => array(
 					'description'  => 'The date the object was published as GMT.',
@@ -804,13 +825,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'URL to the object.',
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'parent'           => array(
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
@@ -825,11 +846,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
-		return $schema;
+		return $this->add_additional_fields_schema( $schema );
 	}
 
 	/**
@@ -925,7 +946,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function handle_status_change( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
-		if ( $new_status == $old_status ) {
+		if ( $new_status === $old_status ) {
 			return false;
 		}
 
@@ -980,15 +1001,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-		if ( 1 == $comment->comment_approved ) {
+
+		if ( 1 === (int) $comment->comment_approved ) {
 			return true;
 		}
 
-		if ( 0 == get_current_user_id() ) {
+		if ( 0 === get_current_user_id() ) {
 			return false;
 		}
 
-		if ( ! empty( $comment->user_id ) && get_current_user_id() == $comment->user_id ) {
+		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
 			return true;
 		}
 
