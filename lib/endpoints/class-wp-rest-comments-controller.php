@@ -438,26 +438,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$data = array(
-			'id'           => (int) $comment->comment_ID,
-			'post'         => (int) $comment->comment_post_ID,
-			'parent'       => (int) $comment->comment_parent,
-			'author'       => (int) $comment->user_id,
-			'author_name'  => $comment->comment_author,
-			'author_email' => $comment->comment_author_email,
-			'author_url'   => $comment->comment_author_url,
-			'author_ip'    => $comment->comment_author_IP,
+			'id'                => (int) $comment->comment_ID,
+			'post'              => (int) $comment->comment_post_ID,
+			'parent'            => (int) $comment->comment_parent,
+			'author'            => (int) $comment->user_id,
+			'author_name'       => $comment->comment_author,
+			'author_email'      => $comment->comment_author_email,
+			'author_url'        => $comment->comment_author_url,
+			'author_ip'         => $comment->comment_author_IP,
 			'author_avatar_url' => get_avatar_url( $comment->comment_author_email ),
 			'author_user_agent' => $comment->comment_agent,
-			'date'         => rest_mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'     => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
-			'content'      => array(
-				'rendered'     => apply_filters( 'comment_text', $comment->comment_content, $comment ),
-				'raw'          => $comment->comment_content,
+			'date'              => rest_mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'          => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'content'           => array(
+				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
+				'raw'      => $comment->comment_content,
 			),
-			'karma'        => (int) $comment->comment_karma,
-			'link'         => get_comment_link( $comment ),
-			'status'       => $this->prepare_status_response( $comment->comment_approved ),
-			'type'         => get_comment_type( $comment->comment_ID ),
+			'karma'             => (int) $comment->comment_karma,
+			'link'              => get_comment_link( $comment ),
+			'status'            => $this->prepare_status_response( $comment->comment_approved ),
+			'type'              => get_comment_type( $comment->comment_ID ),
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
