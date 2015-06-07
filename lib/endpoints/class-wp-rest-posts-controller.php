@@ -340,9 +340,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
 		}
 
-		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID ) );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->prepare_item_for_response( $post, $get_request );
+		$response = rest_do_request( 'GET', '/wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID, array( 'context' => 'edit' ) );
 
 		// If we're forcing, then delete permanently
 		if ( $force ) {

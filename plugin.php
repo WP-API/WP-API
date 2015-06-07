@@ -464,6 +464,23 @@ function rest_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
+ * Make a REST request
+ *
+ * @param string $method
+ * @param string $route
+ * @param array $params Parameters to pass to the request.
+ * @return WP_REST_Response
+ */
+function rest_do_request( $method, $route, $params = array() ) {
+	global $wp_rest_server;
+	$request = new WP_REST_Request( $method, $route );
+	foreach( $params as $key => $value ) {
+		$request->set_param( $key, $value );
+	}
+	return $wp_rest_server->dispatch( $request );
+}
+
+/**
  * Ensure request arguments are a request object.
  *
  * This ensures that the request is consistent.
