@@ -489,7 +489,7 @@ function rest_ensure_request( $request ) {
  * immediately check for this value.
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return mixed WP_Error if present, WP_HTTP_ResponseInterface if instance,
+ * @return WP_Error|WP_HTTP_ResponseInterface|WP_REST_Response Return is WP_Error if present, WP_HTTP_ResponseInterface if instance,
  *               otherwise WP_REST_Response.
  */
 function rest_ensure_response( $response ) {
