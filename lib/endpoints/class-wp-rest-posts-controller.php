@@ -214,7 +214,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
-			$this->handle_format_param( $request['format'], $post );
+			set_post_format( $post, $request['format'] );
 		}
 
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
@@ -273,7 +273,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
-			$this->handle_format_param( $request['format'], $post );
+			set_post_format( $post, $request['format'] );
 		}
 
 		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
@@ -814,23 +814,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return delete_post_thumbnail( $post_id );
 		}
 
-	}
-
-	/**
-	 * Determine if a post format should be set from format param.
-	 *
-	 * @param string $post_format
-	 * @param object $post
-	 */
-	protected function handle_format_param( $post_format, $post ) {
-		$post_format = sanitize_text_field( $post_format );
-
-		$formats = get_post_format_slugs();
-		if ( ! in_array( $post_format, $formats ) ) {
-			return new WP_Error( 'rest_invalid_post_format', __( 'Invalid post format.' ), array( 'status' => 400 ) );
-		}
-
-		return set_post_format( $post, $post_format );
 	}
 
 	/**
