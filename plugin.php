@@ -474,7 +474,7 @@ function rest_url( $path = '', $scheme = 'json' ) {
 function rest_do_request( $method, $route, $params = array() ) {
 	global $wp_rest_server;
 	$request = new WP_REST_Request( $method, $route );
-	foreach( $params as $key => $value ) {
+	foreach ( $params as $key => $value ) {
 		$request->set_param( $key, $value );
 	}
 	return $wp_rest_server->dispatch( $request );
