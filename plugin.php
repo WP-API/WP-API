@@ -464,19 +464,15 @@ function rest_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
- * Make a REST request
+ * Do a REST request.
+ * Used primarily to route internal requests through WP_REST_Server
  *
- * @param string $method
- * @param string $route
- * @param array $params Parameters to pass to the request.
+ * @param WP_REST_Request|string $request
  * @return WP_REST_Response
  */
-function rest_do_request( $method, $route, $params = array() ) {
+function rest_do_request( $request ) {
 	global $wp_rest_server;
-	$request = new WP_REST_Request( $method, $route );
-	foreach ( $params as $key => $value ) {
-		$request->set_param( $key, $value );
-	}
+	$request = rest_ensure_request( $request );
 	return $wp_rest_server->dispatch( $request );
 }
 
