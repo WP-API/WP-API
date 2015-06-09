@@ -28,6 +28,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				) ),
 			),
+			'schema'          => $this->get_item_schema(),
 		) );
 		register_rest_route( 'wp/v2', '/users/(?P<id>[\d]+)', array(
 			array(
@@ -56,6 +57,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'reassign' => array(),
 				),
 			),
+			'schema'          => $this->get_item_schema(),
 		) );
 
 		register_rest_route( 'wp/v2', '/users/me', array(
@@ -64,12 +66,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'args'            => array(
 				'context'          => array(),
 			),
+			'schema'          => $this->get_item_schema(),
 		));
 
-		register_rest_route( 'wp/v2', '/users/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
-		) );
 	}
 
 	/**

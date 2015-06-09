@@ -588,6 +588,10 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	$response = new WP_REST_Response();
 
 	$accept = array();
+	$body = array(
+		'args'   => array(),
+		'schema' => null,
+	);
 
 	foreach ( $handler->get_routes() as $route => $endpoints ) {
 		$match = preg_match( '@^' . $route . '$@i', $request->get_route(), $args );
@@ -596,14 +600,44 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
+		$opts = $handler->get_route_options( $route );
+		if ( isset( $opts['schema'] ) ) {
+			$body['schema'] = $opts['schema'];
+		}
+
 		foreach ( $endpoints as $endpoint ) {
 			$accept = array_merge( $accept, $endpoint['methods'] );
+
+			$methods = array_keys( $endpoint['methods'] );
+			$method = array_shift( $methods );
+
+			$args = array();
+			if ( ! empty( $endpoint['args'] ) ) {
+				foreach ( $endpoint['args'] as $key => $arg_opts ) {
+					$args[ $key ] = (object) array();
+
+					if ( isset( $arg_opts['description'] ) ) {
+						$args[ $key ]->description = $arg_opts['description'];
+					}
+
+					if ( isset( $arg_opts['type'] ) ) {
+						$args[ $key ]->type = $arg_opts['type'];
+					}
+
+					if ( isset( $arg_opts['default'] ) ) {
+						$args[ $key ]->default = $arg_opts['default'];
+					}
+				}
+			}
+
+			$body['args'][ $method ] = $args;
 		}
 		break;
 	}
 	$accept = array_keys( $accept );
 
 	$response->header( 'Accept', implode( ', ', $accept ) );
+	$response->set_data( (object) $body );
 
 	return $response;
 }

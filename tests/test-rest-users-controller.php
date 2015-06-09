@@ -735,12 +735,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_invalid_reassign', $response, 400 );
 	}
 
-	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
+	public function test_options_request() {
+
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
 
+		$this->assertArrayHasKey( 'GET', $data['request_args'] );
+		$this->assertArrayHasKey( 'POST', $data['request_args'] );
+		$this->assertArrayNotHasKey( 'DELETE', $data['request_args'] );
+
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_url', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
@@ -757,10 +762,14 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
+
+	}
+
+	public function test_get_item_schema() {
+		/** Legacy while other controllers are converted over **/
 	}
 
 	public function test_get_additional_field_registration() {
-
 		$schema = array(
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
