@@ -78,7 +78,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$args = $controller->get_endpoint_args_for_item_schema();
 
-		$this->assertEquals( false, $args['someargoptions']['required'] );
+		$this->assertFalse( $args['someargoptions']['required'] );
 		$this->assertEquals( '__return_true', $args['someargoptions']['sanitize_callback'] );
 	}
 }
