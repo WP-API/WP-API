@@ -27,10 +27,26 @@ module.exports = function( grunt ) {
 			files: ['lib/**/*.php', 'tests/*.php', '*.php']
 		},
 
+		phpunit: {
+			'default': {
+				cmd: 'phpunit',
+				args: ['-c', 'phpunit.xml.dist']
+			},
+		},
+
 	} );
 	grunt.loadNpmTasks( 'grunt-phpcs' );
 
+	// Testing tasks.
+	grunt.registerMultiTask('phpunit', 'Runs PHPUnit tests, including the ajax, external-http, and multisite tests.', function() {
+		grunt.util.spawn({
+			cmd: this.data.cmd,
+			args: this.data.args,
+			opts: {stdio: 'inherit'}
+		}, this.async());
+	});
 
+	grunt.registerTask( 'test', [ 'phpcs', 'phplint', 'phpunit' ] );
 	grunt.util.linefeed = '\n';
 
 };
