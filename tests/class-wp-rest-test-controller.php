@@ -45,6 +45,12 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'enum'         => array( 'a', 'b', 'c' ),
 					'context'      => array( 'view' ),
 				),
+				'somedefault'           => array(
+					'type'         => 'string',
+					'enum'         => array( 'a', 'b', 'c' ),
+					'context'      => array( 'view' ),
+					'default'      => 'a',
+				),
 			),
 		);
 
