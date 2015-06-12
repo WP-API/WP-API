@@ -76,9 +76,18 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	function test_get_endpoint_args_for_item_schema_arg_options() {
 
 		$controller = new WP_REST_Test_Controller();
-		$args = $controller->get_endpoint_args_for_item_schema();
+		$args       = $controller->get_endpoint_args_for_item_schema();
 
 		$this->assertFalse( $args['someargoptions']['required'] );
 		$this->assertEquals( '__return_true', $args['someargoptions']['sanitize_callback'] );
+	}
+
+	function test_get_endpoint_args_for_item_schema_default_value() {
+
+		$controller = new WP_REST_Test_Controller();
+
+		$args = $controller->get_endpoint_args_for_item_schema();
+
+		$this->assertEquals( 'a', $args['somedefault']['default'] );
 	}
 }
