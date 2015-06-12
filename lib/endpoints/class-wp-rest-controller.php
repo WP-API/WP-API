@@ -365,6 +365,10 @@ abstract class WP_REST_Controller {
 				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
 			);
 
+			if ( isset( $params['default'] ) ) {
+				$endpoint_args[ $field_id ] = $params['default'];
+			}
+
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}

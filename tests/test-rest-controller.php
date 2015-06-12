@@ -73,4 +73,12 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
+	function get_endpoint_args_for_item_schema_default_value() {
+
+		$controller = new WP_REST_Test_Controller();
+
+		$args = $controller->get_endpoint_args_for_item_schema();
+
+		$this->assertEquals( 'a', $args['somedefault']['default'] );
+	}
 }
