@@ -195,6 +195,24 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
+	 * Get the item's schema for display / public consumption purposes.
+	 *
+	 * @return array
+	 */
+	public function get_public_item_schema() {
+
+		$schema = $this->get_item_schema();
+
+		foreach ( $schema['properties'] as &$property ) {
+			if ( isset( $property['arg_options'] ) ) {
+				unset( $property['arg_options'] );
+			}
+		}
+
+		return $schema;
+	}
+
+	/**
 	 * Get the query params for collections
 	 *
 	 * @return array
