@@ -50,9 +50,9 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'required'     => true,
 					'arg_options'  => array(
 						'required' => false,
-						'sanitize_callback' => '__return_true'
-					)
-				)
+						'sanitize_callback' => '__return_true',
+					),
+				),
 			),
 		);
 
