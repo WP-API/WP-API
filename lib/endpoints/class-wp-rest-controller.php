@@ -368,6 +368,11 @@ abstract class WP_REST_Controller {
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}
+
+			// Merge in any options provided by the schema property
+			if ( isset( $params['arg_options'] ) ) {
+				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
+			}
 		}
 
 		return $endpoint_args;
