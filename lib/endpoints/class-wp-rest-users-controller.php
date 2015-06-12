@@ -68,7 +68,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		register_rest_route( 'wp/v2', '/users/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
+			'callback'        => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
@@ -507,10 +507,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		// required arguments.
 		if ( isset( $request['email'] ) ) {
-			$prepared_user->user_email = sanitize_email( $request['email'] );
+			$prepared_user->user_email = $request['email'];
 		}
 		if ( isset( $request['username'] ) ) {
-			$prepared_user->user_login = sanitize_user( $request['username'] );
+			$prepared_user->user_login = $request['username'];
 		}
 		if ( isset( $request['password'] ) ) {
 			$prepared_user->user_pass = $request['password'];
@@ -521,28 +521,28 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_user->ID = absint( $request['id'] );
 		}
 		if ( isset( $request['name'] ) ) {
-			$prepared_user->display_name = sanitize_text_field( $request['name'] );
+			$prepared_user->display_name = $request['name'];
 		}
 		if ( isset( $request['first_name'] ) ) {
-			$prepared_user->first_name = sanitize_text_field( $request['first_name'] );
+			$prepared_user->first_name = $request['first_name'];
 		}
 		if ( isset( $request['last_name'] ) ) {
-			$prepared_user->last_name = sanitize_text_field( $request['last_name'] );
+			$prepared_user->last_name = $request['last_name'];
 		}
 		if ( isset( $request['nickname'] ) ) {
-			$prepared_user->nickname = sanitize_text_field( $request['nickname'] );
+			$prepared_user->nickname = $request['nickname'];
 		}
 		if ( isset( $request['slug'] ) ) {
-			$prepared_user->user_nicename = sanitize_title( $request['slug'] );
+			$prepared_user->user_nicename = $request['slug'];
 		}
 		if ( isset( $request['description'] ) ) {
-			$prepared_user->description = wp_filter_post_kses( $request['description'] );
+			$prepared_user->description = $request['description'];
 		}
 		if ( isset( $request['role'] ) ) {
 			$prepared_user->role = sanitize_text_field( $request['role'] );
 		}
 		if ( isset( $request['url'] ) ) {
-			$prepared_user->user_url = esc_url_raw( $request['url'] );
+			$prepared_user->user_url = $request['url'];
 		}
 
 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
@@ -607,6 +607,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'Description of the object.',
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
 				),
 				'email'       => array(
 					'description' => 'The email address for the object.',
@@ -625,6 +628,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'First name for the object.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
@@ -636,6 +642,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'Last name for the object.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'link'        => array(
 					'description' => 'Author URL to the object.',
@@ -648,11 +657,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'Display name for the object.',
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'registered_date' => array(
 					'description' => 'Registration date for the user.',
@@ -669,6 +684,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_title',
+					),
 				),
 				'url'         => array(
 					'description' => 'URL of the object.',
@@ -682,6 +700,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'required'    => true,
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_user',
+					),
 				),
 			),
 		);
