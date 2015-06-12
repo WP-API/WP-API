@@ -366,7 +366,7 @@ abstract class WP_REST_Controller {
 			);
 
 			if ( isset( $params['default'] ) ) {
-				$endpoint_args[ $field_id ] = $params['default'];
+				$endpoint_args[ $field_id ]['default'] = $params['default'];
 			}
 
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
