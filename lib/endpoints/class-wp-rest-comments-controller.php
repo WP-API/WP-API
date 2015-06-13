@@ -263,7 +263,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
-		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment->comment_ID ) );
 
 		return $response;

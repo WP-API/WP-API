@@ -415,7 +415,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $_POST );
 
 		$response = $this->server->dispatch( $request );
-		$this->check_add_edit_user_response( $response );
+		$this->check_add_edit_user_response( $response, true );
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
@@ -493,7 +493,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body( json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->check_add_edit_user_response( $response );
+		$this->check_add_edit_user_response( $response, true );
 
 		// Check that the name has been updated correctly
 		$new_data = $response->get_data();
@@ -895,10 +895,14 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_user_data( $userdata, $data, $context );
 	}
 
-	protected function check_add_edit_user_response( $response ) {
+	protected function check_add_edit_user_response( $response, $update = false ) {
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		if ( $update ) {
+			$this->assertEquals( 200, $response->get_status() );
+		} else {
+			$this->assertEquals( 201, $response->get_status() );
+		}
 
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
