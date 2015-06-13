@@ -290,7 +290,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'context' => 'edit',
 		));
 		$response = rest_ensure_response( $response );
-		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
 		return $response;
