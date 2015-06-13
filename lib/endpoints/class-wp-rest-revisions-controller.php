@@ -48,7 +48,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/revisions/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
+			'callback'        => array( $this, 'get_public_item_schema' ),
 		) );
 
 	}

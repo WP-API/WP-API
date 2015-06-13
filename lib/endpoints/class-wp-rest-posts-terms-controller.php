@@ -18,11 +18,13 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$base = $this->posts_controller->get_post_type_base( $this->post_type );
 
+		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $this->taxonomy ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => $query_params,
 			),
 		) );
 
@@ -46,7 +48,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $this->taxonomy ) . '/schema', array(
 			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item_schema' ),
+			'callback'        => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
@@ -65,7 +67,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			return $is_request_valid;
 		}
 
-		$terms = wp_get_object_terms( $post->ID, $this->taxonomy );
+		$args = array(
+			'order'        => $request['order'],
+			'orderby'      => $request['orderby'],
+		);
+		$terms = wp_get_object_terms( $post->ID, $this->taxonomy, $args );
 
 		$response = array();
 		foreach ( $terms as $term ) {
@@ -250,4 +256,32 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		return true;
 	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$query_params = array();
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'name',
+			'enum'               => array(
+				'count',
+				'name',
+				'slug',
+				'term_order',
+			),
+		);
+		return $query_params;
+	}
+
 }

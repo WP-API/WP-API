@@ -44,6 +44,33 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
+	public function test_get_items_orderby() {
+		wp_set_object_terms( $this->post_id, array( 'Banana', 'Carrot', 'Apple' ), 'post_tag' );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
+		$request->set_param( 'orderby', 'term_order' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Banana', $data[0]['name'] );
+		$this->assertEquals( 'Carrot', $data[1]['name'] );
+		$this->assertEquals( 'Apple', $data[2]['name'] );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'asc' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$this->assertEquals( 'Banana', $data[1]['name'] );
+		$this->assertEquals( 'Carrot', $data[2]['name'] );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
+		$request->set_param( 'orderby', 'name' );
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Carrot', $data[0]['name'] );
+		$this->assertEquals( 'Banana', $data[1]['name'] );
+		$this->assertEquals( 'Apple', $data[2]['name'] );
+	}
+
 	public function test_get_item() {
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
 		wp_set_object_terms( $this->post_id, $tag['term_taxonomy_id'], 'post_tag' );

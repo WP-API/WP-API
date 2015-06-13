@@ -272,7 +272,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( empty( $filename ) ) {
-			return new WP_Error( 'rest_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied. Content-Disposition needs to be formatted as "filename=image.png" or similar.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $headers['content_md5'] ) ) {

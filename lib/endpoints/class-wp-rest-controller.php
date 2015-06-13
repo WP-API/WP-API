@@ -195,6 +195,24 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
+	 * Get the item's schema for display / public consumption purposes.
+	 *
+	 * @return array
+	 */
+	public function get_public_item_schema() {
+
+		$schema = $this->get_item_schema();
+
+		foreach ( $schema['properties'] as &$property ) {
+			if ( isset( $property['arg_options'] ) ) {
+				unset( $property['arg_options'] );
+			}
+		}
+
+		return $schema;
+	}
+
+	/**
 	 * Get the query params for collections
 	 *
 	 * @return array
@@ -365,8 +383,17 @@ abstract class WP_REST_Controller {
 				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
 			);
 
+			if ( isset( $params['default'] ) ) {
+				$endpoint_args[ $field_id ]['default'] = $params['default'];
+			}
+
 			if ( $add_required_flag && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
+			}
+
+			// Merge in any options provided by the schema property
+			if ( isset( $params['arg_options'] ) ) {
+				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
 			}
 		}
 

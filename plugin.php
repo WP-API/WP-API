@@ -464,6 +464,19 @@ function rest_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
+ * Do a REST request.
+ * Used primarily to route internal requests through WP_REST_Server
+ *
+ * @param WP_REST_Request|string $request
+ * @return WP_REST_Response
+ */
+function rest_do_request( $request ) {
+	global $wp_rest_server;
+	$request = rest_ensure_request( $request );
+	return $wp_rest_server->dispatch( $request );
+}
+
+/**
  * Ensure request arguments are a request object.
  *
  * This ensures that the request is consistent.
