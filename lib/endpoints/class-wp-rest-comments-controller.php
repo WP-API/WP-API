@@ -82,9 +82,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'         => array(
 						'sanitize_callback' => 'sanitize_key',
 					),
-					'author'         => array(
-						'sanitize_callback' => 'absint',
-					),
 					'parent'       => array(
 						'sanitize_callback' => 'absint',
 					),
