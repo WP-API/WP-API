@@ -30,10 +30,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'         => array(
 						'sanitize_callback' => 'sanitize_key',
 					),
-					'author'         => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
-					),
 					'parent'       => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
@@ -41,7 +37,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'content'      => array(
 						'sanitize_callback' => 'wp_filter_post_kses',
 					),
-					'author'       => array(
+					'author'         => array(
+						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
 					'author_email' => array(
