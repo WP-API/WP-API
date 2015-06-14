@@ -499,7 +499,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
@@ -532,7 +532,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
