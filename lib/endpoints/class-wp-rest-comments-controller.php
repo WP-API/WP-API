@@ -28,6 +28,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'absint',
 					),
 					'type'         => array(
+						'default'           => '',
 						'sanitize_callback' => 'sanitize_key',
 					),
 					'parent'       => array(
@@ -35,6 +36,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'absint',
 					),
 					'content'      => array(
+						'default'           => '',
 						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 					'author'       => array(
@@ -46,17 +48,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'author_email' => array(
+						'default'           => '',
 						'sanitize_callback' => 'sanitize_email',
 					),
 					'author_url'   => array(
+						'default'           => '',
 						'sanitize_callback' => 'esc_url_raw',
 					),
 					'karma'        => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
-					'date'         => array(),
-					'date_gmt'     => array(),
+					'date'         => array(
+						'default'           => current_time( 'mysql' ),
+					),
+					'date_gmt'     => array(
+						'default'           => current_time( 'mysql', true ),
+					),
 				),
 			),
 		) );
@@ -108,6 +116,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'sanitize_key',
 					),
 					'date'         => array(),
+					'date_gmt'     => array(),
 				),
 			),
 			array(
@@ -220,6 +229,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
+		// Setting remaining values before wp_insert_comment so we can
+		// use wp_allow_comment().
+		$prepared_comment['comment_author_IP'] = '127.0.0.1';
+		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
 		$prepared_comment = apply_filters( 'rest_pre_insert_comment', $prepared_comment, $request );
@@ -260,7 +273,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		$prepared_args = $this->prepare_item_for_update( $request );
+		$prepared_args = $this->prepare_item_for_database( $request );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// only the comment status is being changed.
@@ -661,35 +674,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array           $prepared_comment
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_comment = array(
-			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => isset( $request['type'] ) ? $request['type'] : '',
-			'comment_parent'       => (int) $request['parent'],
-			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
-			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author_name'] ) ? $request['author_name'] : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? $request['author_url'] : '',
-			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
-			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
-			// Setting remaining values before wp_insert_comment so we can
-			// use wp_allow_comment().
-			'comment_author_IP'    => '127.0.0.1',
-			'comment_agent'        => '',
-		);
-
-		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
-	}
-
-	/**
-	 * Prepare a single comment for database update.
-	 *
-	 * `wp_update_comment()` doesn't allow us to set `comment_date_gmt`.
-	 *
-	 * @param  WP_REST_Request $request Request object.
-	 * @return array           $prepared_comment
-	 */
-	protected function prepare_item_for_update( $request ) {
 		$prepared_comment = array();
 
 		if ( isset( $request['content'] ) ) {
@@ -729,7 +713,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['date'] ) ) {
-			$prepared_comment['comment_date'] = $request['date'];
+			$date_data = rest_get_date_with_gmt( $request['date'] );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) =
+					$date_data;
+			} else {
+				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
+			}
+		} elseif ( ! empty( $request['date_gmt'] ) ) {
+			$date_data = rest_get_date_with_gmt( $request['date_gmt'], true );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) = $date_data;
+			} else {
+				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
