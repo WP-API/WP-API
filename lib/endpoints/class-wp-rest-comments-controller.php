@@ -37,9 +37,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'content'      => array(
 						'sanitize_callback' => 'wp_filter_post_kses',
 					),
-					'author'         => array(
+					'author'       => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
+					),
+					'author_name'  => array(
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'author_email' => array(
 						'sanitize_callback' => 'sanitize_email',
@@ -87,6 +91,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 					'author'       => array(
 						'sanitize_callback' => 'absint',
+					),
+					'author_name'  => array(
+						'sanitize_callback' => 'sanitize_text_field',
 					),
 					'author_email' => array(
 						'sanitize_callback' => 'sanitize_email',
