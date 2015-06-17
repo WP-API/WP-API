@@ -316,6 +316,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$params = array(
 			'post'    => $post_id,
+			'author'       => $this->admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
@@ -362,6 +363,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
 		$this->assertEquals( $this->subscriber_id, $data['author'] );
 	}
 
@@ -441,7 +444,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
 			'author'       => $this->subscriber_id,
-			'status'        => 'approve',
+			'status'        => 'approved',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -475,7 +478,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'approve', $data['approved'] );
+		$this->assertEquals( 'approved', $data['status'] );
 	}
 
 	public function test_create_item_duplicate() {
