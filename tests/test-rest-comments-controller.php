@@ -310,7 +310,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
-	public function create_comment_without_type() {
+	public function test_create_comment_without_type() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->admin_id );
 
@@ -344,7 +344,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment_id, $collection_data[0]['id'] );
 	}
 
-	public function create_item_assign_different_user() {
+	public function test_create_item_assign_different_user() {
 		wp_set_current_user( $this->admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$params = array(
