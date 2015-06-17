@@ -376,7 +376,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
-			'content' => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'content' => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
 			'author'    => 0,
 		);
 
@@ -399,7 +399,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
-			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
 			'author'       => $this->admin_id,
 		);
 
@@ -420,7 +420,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
-			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
 			'author'       => $this->subscriber_id,
 			'karma'        => 100,
 		);
@@ -442,7 +442,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
-			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
 			'author'       => $this->subscriber_id,
 			'status'        => 'approved',
 		);
