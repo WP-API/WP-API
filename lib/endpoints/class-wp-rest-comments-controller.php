@@ -686,7 +686,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Prepare a single comment to be inserted into the database.
 	 *
 	 * @param  WP_REST_Request $request Request object.
-	 * @return array           $prepared_comment
+	 * @return array|WP_Error  $prepared_comment
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array();
