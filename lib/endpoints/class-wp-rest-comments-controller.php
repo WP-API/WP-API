@@ -273,6 +273,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
+		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
+			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
+		}
+
 		$prepared_args = $this->prepare_item_for_database( $request );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
