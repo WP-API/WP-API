@@ -431,6 +431,53 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_karma', $response, 403 );
 	}
 
+	public function test_create_comment_status_without_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'author'       => $this->subscriber_id,
+			'status'        => 'approve',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = rest_ensure_response( $response );
+		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 403 );
+	}
+
+	public function test_create_comment_with_status() {
+		$post_id = $this->factory->post->create();
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'post'         => $post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Worst Comment Ever!',
+			'status'       => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 'approve', $data['approved'] );
+	}
+
 	public function test_create_item_duplicate() {
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 		$original_id = $this->factory->comment->create(
