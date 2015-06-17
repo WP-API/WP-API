@@ -73,7 +73,12 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		$arg_group = array_merge( $defaults, $arg_group );
 	}
 
-	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+	if ( $namespace ) {
+		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+	} else {
+		$full_route = '/' . trim( $route, '/' );
+	}
+
 	$wp_rest_server->register_route( $namespace, $full_route, $args, $override );
 }
 
