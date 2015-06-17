@@ -689,11 +689,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['parent'] ) ) {
-			$prepared_comment['comment_parent'] = (int) $request['parent'];
+			$prepared_comment['comment_parent'] = $request['parent'];
 		}
 
 		if ( isset( $request['author'] ) ) {
-			$prepared_comment['user_id'] = (int) $request['author'];
+			$prepared_comment['user_id'] = $request['author'];
 		}
 
 		if ( isset( $request['author_name'] ) ) {
@@ -713,7 +713,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['karma'] ) ) {
-			$prepared_comment['comment_karma'] = (int) $request['karma'] ;
+			$prepared_comment['comment_karma'] = $request['karma'] ;
 		}
 
 		if ( ! empty( $request['date'] ) ) {
