@@ -59,6 +59,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
+					'status'       => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 					'date'         => array(
 						'default'           => current_time( 'mysql' ),
 					),
@@ -242,6 +245,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
 
+		if ( isset( $request['status'] ) ) {
+			$comment = get_comment( $comment_id );
+			$this->handle_status_param( $request['status'], $comment );
+		}
+
 		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
 
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
@@ -280,8 +288,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_args = $this->prepare_item_for_database( $request );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
-			// only the comment status is being changed.
-			$change = $this->handle_status_change( $request['status'], $comment );
+			// Only the comment status is being changed.
+			$change = $this->handle_status_param( $request['status'], $comment );
 			if ( ! $change ) {
 				return new WP_Error( 'rest_comment_failed_edit', __( 'Updating comment status failed.' ), array( 'status' => 500 ) );
 			}
@@ -294,7 +302,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			if ( isset( $request['status'] ) ) {
-				$this->handle_status_change( $request['status'], $comment );
+				$this->handle_status_param( $request['status'], $comment );
 			}
 		}
 
@@ -423,15 +431,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
-		// Limit who can set comment `author` or `karma` to anything other than the default.
+		// Limit who can set comment `author`, `karma` or `status` to anything other than the default.
 		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => 403 ) );
 		}
 		if ( isset( $request['karma'] ) && $request['karma'] > 0 && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error( 'rest_comment_invalid_karma', __( 'Sorry, you cannot set karma for comments.' ), array( 'status' => 403 ) );
 		}
+		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_status', __( 'Sorry, you cannot set status for comments.' ), array( 'status' => 403 ) );
+		}
 
-		// If the post id isn't specified, presume we can create
+		// If the post id isn't specified, presume we can create.
 		if ( ! isset( $request['post'] ) ) {
 			return true;
 		}
@@ -947,13 +958,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Process a comment_status change when updating a comment.
+	 * Set the comment_status of a given comment object when creating or updating a comment.
 	 *
 	 * @param string|int $new_status
 	 * @param object     $comment
 	 * @return boolean   $changed
 	 */
-	protected function handle_status_change( $new_status, $comment ) {
+	protected function handle_status_param( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
 		if ( $new_status === $old_status ) {
