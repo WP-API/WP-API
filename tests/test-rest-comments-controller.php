@@ -540,6 +540,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 1, $updated->comment_approved );
 	}
 
+	public function test_update_comment_date_gmt() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'date_gmt' => '2015-05-07T10:14:25',
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comment = $response->get_data();
+		$updated = get_comment( $this->approved_id );
+		$this->assertEquals( $params['date_gmt'], $comment['date_gmt'] );
+		$this->assertEquals( $params['date_gmt'], rest_mysql_to_rfc3339( $updated->comment_date_gmt ) );
+	}
+
 	public function test_update_comment_invalid_id() {
 		wp_set_current_user( 0 );
 
