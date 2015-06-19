@@ -205,8 +205,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_user_avatar_urls() {
 		wp_set_current_user( $this->user );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d',
-			$this->editor ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->editor ) );
 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
