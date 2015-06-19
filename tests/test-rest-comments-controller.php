@@ -241,6 +241,23 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->check_comment_data( $data, 'edit' );
 	}
 
+	public function test_get_comment_author_avatar_urls() {
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 24,  $data['author_avatar_urls'] );
+		$this->assertArrayHasKey( 48,  $data['author_avatar_urls'] );
+		$this->assertArrayHasKey( 96,  $data['author_avatar_urls'] );
+
+		$comment = get_comment( $this->approved_id );
+		/**
+		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar server when building the url string..
+		 */
+		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
+	}
+
 	public function test_get_comment_invalid_id() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
@@ -561,7 +578,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
-		$this->assertArrayHasKey( 'author_avatar_url', $properties );
+		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
 		$this->assertArrayHasKey( 'author_email', $properties );
 		$this->assertArrayHasKey( 'author_ip', $properties );
 		$this->assertArrayHasKey( 'author_name', $properties );
@@ -650,8 +667,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( rest_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
-		// 'get_avatar_url randomly sets the Gravatar server to use as the subdomain in the url response.
-		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_url'], 9 ) );
+		$this->assertContains( 'author_avatar_urls', $data );
 
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
