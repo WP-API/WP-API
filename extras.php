@@ -160,10 +160,10 @@ function rest_cookie_collect_status() {
 /**
  * Retrieve the avatar urls in various sizes based on a given email address.
  *
- * @see get_avatar_url()
+ * {@see get_avatar_url()}
  *
  * @param string $email Email address.
- * @return array $urls  Gravtar url for each size.
+ * @return array $urls  Gravatar url for each size.
  */
 function rest_get_avatar_urls( $email ) {
 	$avatar_sizes = apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
