@@ -18,7 +18,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		) );
 
 		$this->editor = $this->factory->user->create( array(
-			'role' => 'editor',
+			'role'       => 'editor',
+			'user_email' => 'editor@example.com',
 		) );
 
 		$this->endpoint = new WP_REST_Users_Controller();
@@ -199,6 +200,28 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$user = get_user_by( 'id', get_current_user_id() );
 		$data = $this->endpoint->prepare_item_for_response( $user, $request );
 		$this->check_get_user_response( $data, 'edit' );
+	}
+
+	public function test_get_user_avatar_urls() {
+		wp_set_current_user( $this->user );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d',
+			$this->editor ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 24,  $data['avatar_urls'] );
+		$this->assertArrayHasKey( 48,  $data['avatar_urls'] );
+		$this->assertArrayHasKey( 96,  $data['avatar_urls'] );
+
+		$user = get_user_by( 'id', $this->editor );
+		/**
+		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar
+		 * server when building the url string.
+		 */
+		$this->assertEquals( substr( get_avatar_url( $user->user_email ), 9 ), substr( $data['avatar_urls'][96], 9 ) );
 	}
 
 	public function test_get_user_invalid_id() {
@@ -742,7 +765,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$properties = $data['properties'];
 
 		$this->assertEquals( 16, count( $properties ) );
-		$this->assertArrayHasKey( 'avatar_url', $properties );
+		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'email', $properties );
@@ -833,8 +856,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( rest_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
+		$this->assertArrayHasKey( 'avatar_urls', $data );
 
 		if ( 'view' === $context || 'edit' === $context ) {
 			$this->assertEquals( $user->first_name, $data['first_name'] );
