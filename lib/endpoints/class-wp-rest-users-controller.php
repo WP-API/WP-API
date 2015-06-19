@@ -445,7 +445,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$data = array(
-			'avatar_url'         => rest_get_avatar_url( $user->user_email ),
+			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
 			'capabilities'       => $user->allcaps,
 			'description'        => $user->description,
 			'email'              => $user->user_email,
@@ -590,9 +590,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'title'      => 'user',
 			'type'       => 'object',
 			'properties' => array(
-				'avatar_url'  => array(
-					'description' => 'Avatar URL for the object.',
-					'type'        => 'string',
+				'avatar_urls'  => array(
+					'description' => 'Avatar URLs for the object.',
+					'type'        => 'array',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
