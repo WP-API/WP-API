@@ -585,7 +585,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_schema() {
 		$avatar_properties = array();
-		
+
 		$avatar_sizes = rest_get_avatar_sizes();
 		foreach ( $avatar_sizes as $size ) {
 			$avatar_properties[ $size ] = array(
