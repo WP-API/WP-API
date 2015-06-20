@@ -584,6 +584,15 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		$avatar_sizes = rest_get_avatar_sizes();
+		$avatar_properties = array();
+		foreach ( $avatar_sizes as $size ) {
+			$avatar_properties[ $size ] = array(
+				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'type'        => 'uri',
+				'context'     => array( 'embed', 'view', 'edit' ),
+			);
+		}
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
@@ -592,10 +601,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'avatar_urls'  => array(
 					'description' => 'Avatar URLs for the object.',
-					'type'        => 'array',
-					'format'      => 'uri',
+					'type'        => 'object',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
+					'properties'  => $avatar_properties,
 				),
 				'capabilities'    => array(
 					'description' => 'All capabilities assigned to the user.',

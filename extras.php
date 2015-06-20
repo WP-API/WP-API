@@ -166,7 +166,7 @@ function rest_cookie_collect_status() {
  * @return array $urls  Gravatar url for each size.
  */
 function rest_get_avatar_urls( $email ) {
-	$avatar_sizes = apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
+	$avatar_sizes = rest_get_avatar_sizes();
 
 	$urls = array();
 	foreach ( $avatar_sizes as $size ) {
@@ -174,6 +174,15 @@ function rest_get_avatar_urls( $email ) {
 	}
 
 	return $urls;
+}
+
+/**
+ * Return the pixel sizes for avatars.
+ *
+ * @return array
+ */
+function rest_get_avatar_sizes() {
+	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
 }
 
 /**

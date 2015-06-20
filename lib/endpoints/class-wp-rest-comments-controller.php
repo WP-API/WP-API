@@ -683,6 +683,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		$avatar_properties = array();
+
+		$avatar_sizes = rest_get_avatar_sizes();
+		foreach ( $avatar_sizes as $size ) {
+			$avatar_properties[ $size ] = array(
+				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'type'        => 'uri',
+				'context'     => array( 'embed', 'view', 'edit' ),
+			);
+		}
 
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
@@ -702,9 +712,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				'author_avatar_urls' => array(
 					'description'   => 'Avatar URLs for the object author.',
-					'type'          => 'array',
-					'format'        => 'uri',
+					'type'          => 'object',
 					'context'       => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+					'properties'  => $avatar_properties,
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
