@@ -158,31 +158,31 @@ function rest_cookie_collect_status() {
 }
 
 /**
- * Retrieve the avatar url for a user who provided a user ID or email address.
+ * Retrieve the avatar urls in various sizes based on a given email address.
  *
- * {@see get_avatar()} doesn't return just the URL, so we have to
- * extract it here.
+ * {@see get_avatar_url()}
  *
  * @param string $email Email address.
- * @return string URL for the user's avatar, empty string otherwise.
+ * @return array $urls  Gravatar url for each size.
  */
-function rest_get_avatar_url( $email ) {
-	/**
-	 * Use the WP Core `get_avatar_url()` function introduced in 4.2.
-	 */
-	if ( function_exists( 'get_avatar_url' ) ) {
-		return esc_url_raw( get_avatar_url( $email ) );
-	}
-	$avatar_html = get_avatar( $email );
+function rest_get_avatar_urls( $email ) {
+	$avatar_sizes = rest_get_avatar_sizes();
 
-	// Strip the avatar url from the get_avatar img tag.
-	preg_match( '/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches );
-
-	if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
-		return esc_url_raw( $matches[1] );
+	$urls = array();
+	foreach ( $avatar_sizes as $size ) {
+		$urls[ $size ] = get_avatar_url( $email, array( 'size' => $size ) );
 	}
 
-	return '';
+	return $urls;
+}
+
+/**
+ * Return the pixel sizes for avatars.
+ *
+ * @return array
+ */
+function rest_get_avatar_sizes() {
+	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
 }
 
 /**
@@ -271,4 +271,34 @@ function rest_get_timezone() {
 	$zone = new DateTimeZone( $tzstring );
 
 	return $zone;
+}
+
+/**
+ * Retrieve the avatar url for a user who provided a user ID or email address.
+ *
+ * @deprecated WPAPI-2.0
+ * {@see get_avatar()} doesn't return just the URL, so we have to
+ * extract it here.
+ *
+ * @param string $email Email address.
+ * @return string URL for the user's avatar, empty string otherwise.
+ */
+function rest_get_avatar_url( $email ) {
+	_deprecated_function( 'rest_get_avatar_url', 'WPAPI-2.0', 'rest_get_avatar_urls' );
+	/**
+	 * Use the WP Core `get_avatar_url()` function introduced in 4.2.
+	 */
+	if ( function_exists( 'get_avatar_url' ) ) {
+		return esc_url_raw( get_avatar_url( $email ) );
+	}
+	$avatar_html = get_avatar( $email );
+
+	// Strip the avatar url from the get_avatar img tag.
+	preg_match( '/src=["|\'](.+)[\&|"|\']/U', $avatar_html, $matches );
+
+	if ( isset( $matches[1] ) && ! empty( $matches[1] ) ) {
+		return esc_url_raw( $matches[1] );
+	}
+
+	return '';
 }
