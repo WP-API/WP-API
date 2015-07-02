@@ -368,8 +368,8 @@
 				author: null,
 				excerpt: {},
 				featured_image: null,
-				comment_status: 'open',
-				ping_status: 'open',
+				comment_status: 'closed',
+				ping_status: 'closed',
 				menu_order: null,
 				template: '',
 				_links: {}
