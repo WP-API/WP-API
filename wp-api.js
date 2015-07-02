@@ -242,7 +242,8 @@
 				roles: [],
 				slug: '',
 				url: '',
-				username: ''
+				username: '',
+				_links: {}
 			}
 		}
 	);
@@ -400,7 +401,7 @@
 				author: null,
 				date: new Date(),
 				date_gmt: new Date(),
-				guid: '',
+				guid: {},
 				modified: new Date(),
 				modified_gmt: new Date(),
 				parent: 0,
