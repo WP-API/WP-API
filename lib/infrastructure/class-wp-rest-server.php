@@ -304,8 +304,9 @@ class WP_REST_Server {
 			// Embed links inside the request
 			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
-			$result = json_encode( $result );
-
+			//$result = json_encode( $result );
+			//to remove carriage returns. This is fix to issues of json validation
+			$result = preg_replace( '/\s+/', '\n',json_encode( $this->prepare_response( $result ) ));
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
 				$json_error_obj = new WP_Error( 'rest_encode_error', $json_error_message, array( 'status' => 500 ) );
