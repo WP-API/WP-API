@@ -74,7 +74,7 @@ function rest_output_link_header() {
 
 	$api_root = get_rest_url();
 
-	if ( empty($api_root) ) {
+	if ( empty( $api_root ) ) {
 		return;
 	}
 
