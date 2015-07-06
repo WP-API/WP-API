@@ -1,5 +1,70 @@
 # Changelog
 
+## 2.0 Beta 3.0
+
+- Add ability to declare sanitization and default options for schema fields.
+
+  The `arg_options` array can be used to declare the sanitization callback,
+  default value, or requirement of a field.
+
+  (props @joehoyle, [#1345][gh-1345])
+  (props @joehoyle, [#1346][gh-1346])
+
+- Expand supported parameters for creating and updating Comments.
+
+  (props @rachelbaker, [#1245][gh-1245])
+
+- Declare collection parameters for Terms of a Post.
+
+  Define the available collection parameters in `get_collection_params()` and
+  allow Terms of a Post to be queried by term order.
+
+  (props @danielbachhuber, [#1332][gh-1332])
+
+- Improve the Attachment error message for an invalid Content-Disposition
+
+  (props @danielbachhuber, [#1317][gh-1317])
+
+- Return 200 status when updating Attachments, Comments, and Users.
+
+  (props @rachelbaker, [#1348][gh-1348])
+
+- Remove unnecessary `handle_format_param()` method.
+
+  (props @danielbachhuber, [#1331][gh-1331])
+
+- Add `author_avatar_url` field to the Comment response and schema.
+
+  (props @rachelbaker [#1327][gh-1327])
+
+- Introduce `rest_do_request()` for making REST requests internally.
+
+  (props @danielbachhuber, [#1333][gh-1333])
+
+- Remove unused DateTime class.
+
+  (props @rmccue, [#1314][gh-1314])
+
+- Add inline documentation for `$wp_rest_server` global.
+
+  (props @Shelob9, [#1324][gh-1324])
+
+  [View all changes](https://github.com/WP-API/WP-API/compare/2.0-beta2...2.0-beta3)
+  [gh-1245]: https://github.com/WP-API/WP-API/issues/1245
+  [gh-1314]: https://github.com/WP-API/WP-API/issues/1314
+  [gh-1317]: https://github.com/WP-API/WP-API/issues/1317
+  [gh-1318]: https://github.com/WP-API/WP-API/issues/1318
+  [gh-1324]: https://github.com/WP-API/WP-API/issues/1324
+  [gh-1326]: https://github.com/WP-API/WP-API/issues/1326
+  [gh-1327]: https://github.com/WP-API/WP-API/issues/1327
+  [gh-1331]: https://github.com/WP-API/WP-API/issues/1331
+  [gh-1332]: https://github.com/WP-API/WP-API/issues/1332
+  [gh-1333]: https://github.com/WP-API/WP-API/issues/1333
+  [gh-1345]: https://github.com/WP-API/WP-API/issues/1345
+  [gh-1346]: https://github.com/WP-API/WP-API/issues/1346
+  [gh-1347]: https://github.com/WP-API/WP-API/issues/1347
+  [gh-1348]: https://github.com/WP-API/WP-API/issues/1348
+
 ## 2.0 Beta 2.0
 
 - Load the WP REST API before the main query runs.

@@ -49,6 +49,9 @@ There's no fixed timeline for integration into core at this time, but getting cl
 Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
 
+Also, be sure to use the `trunk` branch of WordPress Core as there are potentially
+recent commits to Core that the REST API relies on.
+
 ## Issue Tracking
 
 All tickets for the project are being tracked on [GitHub][]. You can also take a

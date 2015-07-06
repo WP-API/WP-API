@@ -7,7 +7,7 @@
  * @package WordPress
  */
 
-require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once( ABSPATH . 'wp-admin/includes/admin.php' );
 
 /**
  * WordPress REST API server handler
