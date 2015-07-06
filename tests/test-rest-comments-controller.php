@@ -241,6 +241,24 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->check_comment_data( $data, 'edit' );
 	}
 
+	public function test_get_comment_author_avatar_urls() {
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 24,  $data['author_avatar_urls'] );
+		$this->assertArrayHasKey( 48,  $data['author_avatar_urls'] );
+		$this->assertArrayHasKey( 96,  $data['author_avatar_urls'] );
+
+		$comment = get_comment( $this->approved_id );
+		/**
+		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar
+		 * server when building the url string.
+		 */
+		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_urls'][96], 9 ) );
+	}
+
 	public function test_get_comment_invalid_id() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 
@@ -310,12 +328,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
-	public function create_comment_without_type() {
+	public function test_create_comment_without_type() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
 			'post'    => $post_id,
+			'author'       => $this->admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
@@ -344,7 +363,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment_id, $collection_data[0]['id'] );
 	}
 
-	public function create_item_assign_different_user() {
+	public function test_create_item_assign_different_user() {
 		wp_set_current_user( $this->admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$params = array(
@@ -362,6 +381,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
 		$this->assertEquals( $this->subscriber_id, $data['author'] );
 	}
 
@@ -373,7 +394,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Homer Jay Simpson',
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
-			'content' => 'Here’s to alcohol: the cause of, and solution to, all of life’s problems.',
+			'content' => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
 			'author'    => 0,
 		);
 
@@ -386,6 +407,96 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 0, $data['author'] );
+	}
+
+	public function test_create_comment_other_user_without_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'author'       => $this->admin_id,
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = rest_ensure_response( $response );
+		$this->assertErrorResponse( 'rest_comment_invalid_author', $response, 403 );
+	}
+
+	public function test_create_comment_karma_without_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'author'       => $this->subscriber_id,
+			'karma'        => 100,
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = rest_ensure_response( $response );
+		$this->assertErrorResponse( 'rest_comment_invalid_karma', $response, 403 );
+	}
+
+	public function test_create_comment_status_without_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'author'       => $this->subscriber_id,
+			'status'        => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = rest_ensure_response( $response );
+		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 403 );
+	}
+
+	public function test_create_comment_with_status() {
+		$post_id = $this->factory->post->create();
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'post'         => $post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Worst Comment Ever!',
+			'status'       => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 'approved', $data['status'] );
 	}
 
 	public function test_create_item_duplicate() {
@@ -436,14 +547,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item() {
+		$post_id = $this->factory->post->create();
+
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content' => "Disco Stu doesn't advertise.",
+			'content'      => "Disco Stu doesn't advertise.",
+			'author'       => $this->subscriber_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
-			'date'    => '2014-11-07T10:14:25',
+			'date'         => '2014-11-07T10:14:25',
+			'karma'        => 100,
+			'post'         => $post_id,
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -456,9 +572,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
 		$this->assertEquals( $params['content'], $comment['content']['raw'] );
+		$this->assertEquals( $params['author'], $comment['author'] );
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
+		$this->assertEquals( $params['post'], $comment['post'] );
+		$this->assertEquals( $params['karma'], $comment['karma'] );
 
 		$this->assertEquals( rest_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
@@ -487,6 +606,40 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$updated = get_comment( $comment_id );
 		$this->assertEquals( 'approved', $comment['status'] );
 		$this->assertEquals( 1, $updated->comment_approved );
+	}
+
+	public function test_update_comment_date_gmt() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'date_gmt' => '2015-05-07T10:14:25',
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comment = $response->get_data();
+		$updated = get_comment( $this->approved_id );
+		$this->assertEquals( $params['date_gmt'], $comment['date_gmt'] );
+		$this->assertEquals( $params['date_gmt'], rest_mysql_to_rfc3339( $updated->comment_date_gmt ) );
+	}
+
+	public function test_update_comment_invalid_type() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'type' => 'trackback',
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
 	}
 
 	public function test_update_comment_invalid_id() {
@@ -561,7 +714,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
-		$this->assertArrayHasKey( 'author_avatar_url', $properties );
+		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
 		$this->assertArrayHasKey( 'author_email', $properties );
 		$this->assertArrayHasKey( 'author_ip', $properties );
 		$this->assertArrayHasKey( 'author_name', $properties );
@@ -650,8 +803,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( rest_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
-		// 'get_avatar_url randomly sets the Gravatar server to use as the subdomain in the url response.
-		$this->assertEquals( substr( get_avatar_url( $comment->comment_author_email ), 9 ), substr( $data['author_avatar_url'], 9 ) );
+		$this->assertContains( 'author_avatar_urls', $data );
 
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
