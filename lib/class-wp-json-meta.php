@@ -241,7 +241,7 @@ abstract class WP_JSON_Meta {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $current->$parent_column ) !== $id ) {
+		if ( absint( $current->$parent_column ) !== (int) $id ) {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
@@ -388,7 +388,7 @@ abstract class WP_JSON_Meta {
 			return new WP_Error( 'json_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
 		}
 
-		if ( absint( $current->$parent_column ) !== $id ) {
+		if ( absint( $current->$parent_column ) !== (int) $id ) {
 			return new WP_Error( 'json_meta_' . $this->type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
