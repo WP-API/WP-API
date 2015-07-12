@@ -64,9 +64,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
 		$users = $response->get_data();
-		$this->assertEquals( 1, count( $users ) );
 
-		$this->assertEquals( $this->editor, $users[0]['id'] );
+		foreach ( $users as $user ) {
+			$this->assertTrue( count_user_posts( $user['id'] ) > 0 );
+		}
 	}
 
 	/**
