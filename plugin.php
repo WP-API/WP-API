@@ -42,6 +42,7 @@ require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-contro
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
+include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-options-controller.php';
 
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
@@ -226,6 +227,12 @@ function create_initial_rest_routes() {
 	 * Comments
 	 */
 	$controller = new WP_REST_Comments_Controller;
+	$controller->register_routes();
+
+	/**
+	 * Options
+	 */
+	$controller = new WP_REST_Options_Controller();
 	$controller->register_routes();
 
 }
