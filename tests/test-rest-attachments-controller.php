@@ -152,6 +152,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
+	public function test_create_item_unsafe_alt_text() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$request->set_param( 'alt_text', '<script>alert(document.cookie)</script>' );
+		$response = $this->server->dispatch( $request );
+		$attachment = $response->get_data();
+		$this->assertEquals( '', $attachment['alt_text'] );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( $this->editor_id );
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
