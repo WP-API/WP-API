@@ -103,7 +103,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$data = $response->get_data();
 
 		if ( isset( $request['alt_text'] ) ) {
-			update_post_meta( $data['id'], '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
+			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
 		$response = $this->get_item( array(
@@ -125,11 +125,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
 
 		if ( isset( $request['caption'] ) ) {
-			$prepared_attachment->post_excerpt = wp_filter_post_kses( $request['caption'] );
+			$prepared_attachment->post_excerpt = $request['caption'];
 		}
 
 		if ( isset( $request['description'] ) ) {
-			$prepared_attachment->post_content = wp_filter_post_kses( $request['description'] );
+			$prepared_attachment->post_content = $request['description'];
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -197,16 +197,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => 'Alternative text to display when attachment is not displayed.',
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
+			'arg_options'     => array(
+				'sanitize_callback' => 'sanitize_text_field',
+			),
 			);
 		$schema['properties']['caption'] = array(
 			'description'     => 'The caption for the attachment.',
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
+			'arg_options'     => array(
+				'sanitize_callback' => 'wp_filter_post_kses',
+			),
 			);
 		$schema['properties']['description'] = array(
 			'description'     => 'The description for the attachment.',
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
+			'arg_options'     => array(
+				'sanitize_callback' => 'wp_filter_post_kses',
+			),
 			);
 		$schema['properties']['media_type'] = array(
 			'description'     => 'Type of attachment.',
