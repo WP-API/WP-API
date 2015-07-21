@@ -223,6 +223,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
+	public function test_get_post_list_context_without_permission() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'context' => 'edit',
+		) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+	}
+
 	public function test_get_post_context_without_permission() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_query_params( array(
