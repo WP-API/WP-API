@@ -381,7 +381,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( (int) $request['id'] );
 
 		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post' ), array( 'status' => 403 ) );
 		}
 
 		if ( $post ) {
