@@ -591,6 +591,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	}
 
 	$response = new WP_REST_Response();
+	$data = array();
 
 	$accept = array();
 
@@ -601,27 +602,11 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
-		$matched = $route;
-
-		foreach ( $endpoints as $endpoint ) {
-			$accept = array_merge( $accept, $endpoint['methods'] );
-		}
+		$data = $handler->get_data_for_route( $route, $endpoints, 'embed' );
+		$accept = array_merge( $accept, $data['methods'] );
 		break;
 	}
-	$accept = array_keys( $accept );
 	$response->header( 'Accept', implode( ', ', $accept ) );
-
-	// If we didn't match, bail now
-	if ( empty( $matched ) ) {
-		return $response;
-	}
-
-	$options = $handler->get_route_options( $matched );
-
-	$data = array();
-	if ( isset( $options['schema'] ) ) {
-		$data['schema'] = call_user_func( $options['schema'] );
-	}
 
 	$response->set_data( $data );
 	return $response;

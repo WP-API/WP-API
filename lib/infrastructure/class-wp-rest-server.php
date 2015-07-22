@@ -748,7 +748,7 @@ class WP_REST_Server {
 			'url'            => get_option( 'siteurl' ),
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
-			'routes'         => $this->get_route_data( $this->get_routes(), $request['context'] ),
+			'routes'         => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
 		);
 
 		$response = new WP_REST_Response( $available );
@@ -784,7 +784,7 @@ class WP_REST_Server {
 
 		$data = array(
 			'namespace' => $namespace,
-			'routes' => $this->get_route_data( $endpoints, $request['context'] ),
+			'routes' => $this->get_data_for_routes( $endpoints, $request['context'] ),
 		);
 		$response = rest_ensure_response( $data );
 
@@ -810,44 +810,12 @@ class WP_REST_Server {
 	 * @param string $context Context for data. One of 'view', 'help'.
 	 * @return array Route data to expose in indexes.
 	 */
-	protected function get_route_data( $routes, $context = 'view' ) {
+	public function get_data_for_routes( $routes, $context = 'view' ) {
 		$available = array();
 		// Find the available routes
 		foreach ( $routes as $route => $callbacks ) {
-			$data = array(
-				'namespace' => '',
-				'methods' => array(),
-			);
-			if ( isset( $this->route_options[ $route ] ) ) {
-				$options = $this->route_options[ $route ];
-				if ( isset( $options['namespace'] ) ) {
-					$data['namespace'] = $options['namespace'];
-				}
-				if ( isset( $options['schema'] ) && 'help' === $context ) {
-					$data['schema'] = call_user_func( $options['schema'] );
-				}
-			}
-
-			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
-
-			foreach ( $callbacks as $callback ) {
-				// Skip to the next route if any callback is hidden
-				if ( empty( $callback['show_in_index'] ) ) {
-					continue;
-				}
-
-				$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
-
-				// For non-variable routes, generate links
-				if ( strpos( $route, '{' ) === false ) {
-					$data['_links'] = array(
-						'self' => rest_url( $route ),
-					);
-				}
-			}
-
-			if ( empty( $data['methods'] ) ) {
-				// No methods supported, hide the route
+			$data = $this->get_data_for_route( $route, $callbacks, $context );
+			if ( empty( $data ) ) {
 				continue;
 			}
 
@@ -865,6 +833,74 @@ class WP_REST_Server {
 		 * @param array $routes Internal route data as an associative array.
 		 */
 		return apply_filters( 'rest_route_data', $available, $routes );
+	}
+
+	/**
+	 * Get publicly-visible data for the route.
+	 *
+	 * @param string $route Route to get data for.
+	 * @param array $callbacks Callbacks to convert to data.
+	 * @param string $context Context for the data.
+	 * @return array|null Data for the route, or null if no publicly-visible data.
+	 */
+	public function get_data_for_route( $route, $callbacks, $context = 'view' ) {
+		$data = array(
+			'namespace' => '',
+			'methods' => array(),
+			'endpoints' => array(),
+		);
+		if ( isset( $this->route_options[ $route ] ) ) {
+			$options = $this->route_options[ $route ];
+			if ( isset( $options['namespace'] ) ) {
+				$data['namespace'] = $options['namespace'];
+			}
+			if ( isset( $options['schema'] ) && 'help' === $context ) {
+				$data['schema'] = call_user_func( $options['schema'] );
+			}
+		}
+
+		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
+
+		foreach ( $callbacks as $callback ) {
+			// Skip to the next route if any callback is hidden
+			if ( empty( $callback['show_in_index'] ) ) {
+				continue;
+			}
+
+			$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
+			$endpoint_data = array(
+				'methods' => array_keys( $callback['methods'] ),
+			);
+
+			if ( isset( $callback['args'] ) ) {
+				$endpoint_data['args'] = array();
+				foreach ( $callback['args'] as $key => $opts ) {
+					$arg_data = array(
+						'required' => ! empty( $opts['required'] ),
+					);
+					if ( isset( $opts['default'] ) ) {
+						$arg_data['default'] = $opts['default'];
+					}
+					$endpoint_data['args'][ $key ] = $arg_data;
+				}
+			}
+
+			$data['endpoints'][] = $endpoint_data;
+
+			// For non-variable routes, generate links
+			if ( strpos( $route, '{' ) === false ) {
+				$data['_links'] = array(
+					'self' => rest_url( $route ),
+				);
+			}
+		}
+
+		if ( empty( $data['methods'] ) ) {
+			// No methods supported, hide the route
+			return null;
+		}
+
+		return $data;
 	}
 
 	/**
