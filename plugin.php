@@ -601,15 +601,29 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
+		$matched = $route;
+
 		foreach ( $endpoints as $endpoint ) {
 			$accept = array_merge( $accept, $endpoint['methods'] );
 		}
 		break;
 	}
 	$accept = array_keys( $accept );
-
 	$response->header( 'Accept', implode( ', ', $accept ) );
 
+	// If we didn't match, bail now
+	if ( empty( $matched ) ) {
+		return $response;
+	}
+
+	$options = $handler->get_route_options( $matched );
+
+	$data = array();
+	if ( isset( $options['schema'] ) ) {
+		$data['schema'] = call_user_func( $options['schema'] );
+	}
+
+	$response->set_data( $data );
 	return $response;
 }
 
