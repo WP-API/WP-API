@@ -599,6 +599,20 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Get specified options for a route.
+	 *
+	 * @param string $route Route pattern to fetch options for.
+	 * @return array|null Data as an associative array if found, or null if not found.
+	 */
+	public function get_route_options( $route ) {
+		if ( ! isset( $this->route_options[ $route ] ) ) {
+			return null;
+		}
+
+		return $this->route_options[ $route ];
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_REST_Request $request Request to attempt dispatching
