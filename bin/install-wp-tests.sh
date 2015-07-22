@@ -32,7 +32,7 @@ install_wp() {
 	wget -nv -O /tmp/wordpress.zip https://wordpress.org/${ARCHIVE_NAME}.zip
 	unzip /tmp/wordpress.zip -d $TMP_EXTRACT
 	DIRS=($TMP_EXTRACT/*)
-	mv "${DIRS[@]:0:1}/*" $WP_CORE_DIR
+	mv ${DIRS[@]:0:1}/* $WP_CORE_DIR
 	rm -r $TMP_EXTRACT
 
 	wget -nv -O $WP_CORE_DIR/wp-content/db.php https://raw.github.com/markoheijnen/wp-mysqli/master/db.php
