@@ -81,6 +81,11 @@ class WP_REST_Server {
 			'/' => array(
 				'callback' => array( $this, 'get_index' ),
 				'methods' => 'GET',
+				'args' => array(
+					'context' => array(
+						'default' => 'view',
+					),
+				),
 			),
 		);
 	}
@@ -501,6 +506,9 @@ class WP_REST_Server {
 						'namespace' => array(
 							'default' => $namespace,
 						),
+						'context' => array(
+							'default' => 'view',
+						),
 					),
 				),
 			) );
@@ -718,7 +726,7 @@ class WP_REST_Server {
 	 *
 	 * @return array Index entity
 	 */
-	public function get_index() {
+	public function get_index( $request ) {
 		// General site data
 		$available = array(
 			'name'           => get_option( 'blogname' ),
@@ -726,7 +734,7 @@ class WP_REST_Server {
 			'url'            => get_option( 'siteurl' ),
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
-			'routes'         => $this->get_route_data( $this->get_routes() ),
+			'routes'         => $this->get_route_data( $this->get_routes(), $request['context'] ),
 		);
 
 		$response = new WP_REST_Response( $available );
@@ -762,7 +770,7 @@ class WP_REST_Server {
 
 		$data = array(
 			'namespace' => $namespace,
-			'routes' => $this->get_route_data( $endpoints ),
+			'routes' => $this->get_route_data( $endpoints, $request['context'] ),
 		);
 		$response = rest_ensure_response( $data );
 
@@ -785,9 +793,10 @@ class WP_REST_Server {
 	 * Get the publicly-visible data for routes.
 	 *
 	 * @param array $routes Routes to get data for
+	 * @param string $context Context for data. One of 'view', 'help'.
 	 * @return array Route data to expose in indexes.
 	 */
-	protected function get_route_data( $routes ) {
+	protected function get_route_data( $routes, $context = 'view' ) {
 		$available = array();
 		// Find the available routes
 		foreach ( $routes as $route => $callbacks ) {
@@ -799,6 +808,9 @@ class WP_REST_Server {
 				$options = $this->route_options[ $route ];
 				if ( isset( $options['namespace'] ) ) {
 					$data['namespace'] = $options['namespace'];
+				}
+				if ( isset( $options['schema'] ) && 'help' === $context ) {
+					$data['schema'] = call_user_func( $options['schema'] );
 				}
 			}
 
