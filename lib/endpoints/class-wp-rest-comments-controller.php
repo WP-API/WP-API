@@ -130,11 +130,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'force'    => array(),
 				),
 			),
-		) );
 
-		register_rest_route( 'wp/v2', '/comments/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 

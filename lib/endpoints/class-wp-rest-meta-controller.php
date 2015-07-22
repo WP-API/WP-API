@@ -84,10 +84,8 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'                => array(),
 			),
-		) );
-		register_rest_route( 'wp/v2', $this->parent_base . '/meta/schema', array(
-			'methods'  => WP_REST_Server::READABLE,
-			'callback' => array( $this, 'get_public_item_schema' ),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 

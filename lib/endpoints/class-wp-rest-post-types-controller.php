@@ -17,14 +17,12 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			),
 		) );
 
-		register_rest_route( 'wp/v2', '/types/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
-		) );
-
 		register_rest_route( 'wp/v2', '/types/(?P<type>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
+			array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+			),
+			'schema'          => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
