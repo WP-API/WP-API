@@ -273,7 +273,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 				'message' => 'Message text',
 			),
 		);
-		$expected = json_encode( $data );
+		$expected = wp_json_encode( $data );
 		$response = $this->server->json_error( 'wp-api-test-error', 'Message text' );
 
 		$this->assertEquals( $expected, $response );
@@ -294,7 +294,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 				'message' => 'Message text',
 			),
 		);
-		$expected = json_encode( $data );
+		$expected = wp_json_encode( $data );
 
 		$response = $stub->json_error( 'wp-api-test-error', 'Message text', 400 );
 
