@@ -76,6 +76,11 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	if ( $namespace ) {
 		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
 	} else {
+		// Non-namespaced routes are not allowed, with the exception of the main
+		// and namespace indexes. If you really need to register a
+		// non-namespaced route, call `WP_REST_Server::register_route` directly.
+		_doing_it_wrong( 'register_rest_route', 'Routes must be namespaced with plugin name and version', 'WPAPI-2.0' );
+
 		$full_route = '/' . trim( $route, '/' );
 	}
 
