@@ -7,7 +7,7 @@
  * @package WordPress
  */
 
-require_once ( ABSPATH . 'wp-admin/includes/admin.php' );
+require_once( ABSPATH . 'wp-admin/includes/admin.php' );
 
 /**
  * WordPress REST API server handler
@@ -165,7 +165,7 @@ class WP_REST_Server {
 		}
 		$error = compact( 'code', 'message' );
 
-		return json_encode( array( $error ) );
+		return wp_json_encode( array( $error ) );
 	}
 
 	/**
@@ -304,13 +304,13 @@ class WP_REST_Server {
 			// Embed links inside the request
 			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
-			$result = json_encode( $result );
+			$result = wp_json_encode( $result );
 
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
 				$json_error_obj = new WP_Error( 'rest_encode_error', $json_error_message, array( 'status' => 500 ) );
 				$result = $this->error_to_response( $json_error_obj );
-				$result = json_encode( $result->data[0] );
+				$result = wp_json_encode( $result->data[0] );
 			}
 
 			if ( isset( $_GET['_jsonp'] ) ) {

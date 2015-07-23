@@ -18,7 +18,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		) );
 
 		$this->editor = $this->factory->user->create( array(
-			'role' => 'editor',
+			'role'       => 'editor',
+			'user_email' => 'editor@example.com',
 		) );
 
 		$this->endpoint = new WP_REST_Users_Controller();
@@ -201,6 +202,27 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_user_response( $data, 'edit' );
 	}
 
+	public function test_get_user_avatar_urls() {
+		wp_set_current_user( $this->user );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->editor ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 24,  $data['avatar_urls'] );
+		$this->assertArrayHasKey( 48,  $data['avatar_urls'] );
+		$this->assertArrayHasKey( 96,  $data['avatar_urls'] );
+
+		$user = get_user_by( 'id', $this->editor );
+		/**
+		 * Ignore the subdomain, since 'get_avatar_url randomly sets the Gravatar
+		 * server when building the url string.
+		 */
+		$this->assertEquals( substr( get_avatar_url( $user->user_email ), 9 ), substr( $data['avatar_urls'][96], 9 ) );
+	}
+
 	public function test_get_user_invalid_id() {
 		wp_set_current_user( $this->user );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/100' );
@@ -314,7 +336,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
@@ -390,7 +412,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -490,7 +512,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response, true );
@@ -590,7 +612,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'role', 'BeSharp' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -741,8 +763,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 16, count( $properties ) );
-		$this->assertArrayHasKey( 'avatar_url', $properties );
+		$this->assertEquals( 17, count( $properties ) );
+		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'email', $properties );
@@ -757,6 +779,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
+		$this->assertArrayHasKey( 'roles', $properties );
+		$this->assertArrayHasKey( 'role', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -833,8 +857,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
 		$this->assertEquals( $user->description, $data['description'] );
-		$this->assertEquals( rest_get_avatar_url( $user->user_email ), $data['avatar_url'] );
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
+		$this->assertArrayHasKey( 'avatar_urls', $data );
 
 		if ( 'view' === $context || 'edit' === $context ) {
 			$this->assertEquals( $user->first_name, $data['first_name'] );

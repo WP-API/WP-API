@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta2
+ * Version: 2.0-beta3
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -14,7 +14,7 @@
  *
  * @var string
  */
-define( 'REST_API_VERSION', '2.0-beta2' );
+define( 'REST_API_VERSION', '2.0-beta3' );
 
 /**
  * Include our files for the API.
@@ -138,13 +138,17 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 function _add_extra_api_taxonomy_arguments() {
 	global $wp_taxonomies;
 
-	$wp_taxonomies['category']->show_in_rest = true;
-	$wp_taxonomies['category']->rest_base = 'category';
-	$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
+	if ( isset( $wp_taxonomies['category'] ) ) {
+		$wp_taxonomies['category']->show_in_rest = true;
+		$wp_taxonomies['category']->rest_base = 'category';
+		$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
+	}
 
-	$wp_taxonomies['post_tag']->show_in_rest = true;
-	$wp_taxonomies['post_tag']->rest_base = 'tag';
-	$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
+	if ( isset( $wp_taxonomies['post_tag'] ) ) {
+		$wp_taxonomies['post_tag']->show_in_rest = true;
+		$wp_taxonomies['post_tag']->rest_base = 'tag';
+		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
+	}
 }
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
@@ -507,8 +511,7 @@ function rest_ensure_request( $request ) {
  * immediately check for this value.
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return mixed WP_Error if present, WP_HTTP_ResponseInterface if instance,
- *               otherwise WP_REST_Response.
+ * @return WP_Error|WP_HTTP_ResponseInterface|WP_REST_Response WP_Error if response generated an error, WP_HTTP_ResponseInterface if response is a already an instance, otherwise returns a new WP_REST_Response instance.
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {

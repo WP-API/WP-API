@@ -4,6 +4,7 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=develop)](https://travis-ci.org/WP-API/WP-API)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/WP-API/WP-API/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/WP-API/WP-API/?branch=develop)
+[![codecov.io](http://codecov.io/github/WP-API/WP-API/coverage.svg?branch=develop)](http://codecov.io/github/WP-API/WP-API?branch=develop)
 
 ## WARNING
 
@@ -48,6 +49,9 @@ There's no fixed timeline for integration into core at this time, but getting cl
 
 Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
+
+Also, be sure to use the `trunk` branch of WordPress Core as there are potentially
+recent commits to Core that the REST API relies on.
 
 ## Issue Tracking
 

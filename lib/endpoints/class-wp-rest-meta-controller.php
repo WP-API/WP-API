@@ -50,12 +50,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'                => array(
-					'key'                 => array(
-						'required'            => true,
-					),
-					'value'               => array(),
-				),
+				'args'                => $this->get_endpoint_args_for_item_schema( true ),
 			),
 		) );
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
@@ -73,10 +68,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'methods'             => WP_REST_Server::EDITABLE,
 				'callback'            => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'                => array(
-					'key'                 => array(),
-					'value'               => array(),
-				),
+				'args'                => $this->get_endpoint_args_for_item_schema( false ),
 			),
 			array(
 				'methods'             => WP_REST_Server::DELETABLE,
@@ -109,11 +101,16 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'int',
 					'context'     => array( 'edit' ),
+					'readonly'    => true,
 				),
 				'key' => array(
 					'description' => 'The key for the custom field.',
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
+					'required'    => true,
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 				),
 				'value' => array(
 					'description' => 'The value of the custom field.',
@@ -355,12 +352,12 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			return new WP_Error( $code, __( 'Invalid provided meta data for action.' ), array( 'status' => 400 ) );
 		}
 
-		if ( is_protected_meta( $request['key'] ) ) {
-			return new WP_Error( 'rest_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $request['key'] ), array( 'status' => 403 ) );
-		}
-
 		if ( empty( $request['key'] ) ) {
 			return new WP_Error( 'rest_meta_invalid_key', __( 'Invalid meta key.' ), array( 'status' => 400 ) );
+		}
+
+		if ( is_protected_meta( $request['key'] ) ) {
+			return new WP_Error( 'rest_meta_protected', sprintf( __( '%s is marked as a protected field.' ), $request['key'] ), array( 'status' => 403 ) );
 		}
 
 		$meta_key = wp_slash( $request['key'] );

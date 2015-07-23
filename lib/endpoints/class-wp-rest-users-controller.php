@@ -192,10 +192,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing user.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $request['role'] ) && ! isset( $wp_roles->role_objects[ $request['role'] ] ) ) {
-			return new WP_Error( 'rest_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
-		}
-
 		$user = $this->prepare_item_for_database( $request );
 
 		if ( is_multisite() ) {
@@ -445,7 +441,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$data = array(
-			'avatar_url'         => rest_get_avatar_url( $user->user_email ),
+			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
 			'capabilities'       => $user->allcaps,
 			'description'        => $user->description,
 			'email'              => $user->user_email,
@@ -538,7 +534,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_user->description = $request['description'];
 		}
 		if ( isset( $request['role'] ) ) {
-			$prepared_user->role = sanitize_text_field( $request['role'] );
+			$prepared_user->role = $request['role'];
 		}
 		if ( isset( $request['url'] ) ) {
 			$prepared_user->user_url = $request['url'];
@@ -556,10 +552,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	protected function check_role_update( $user_id, $role ) {
 		global $wp_roles;
-
-		if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
-			return new WP_Error( 'rest_user_invalid_role', __( 'Role is invalid.' ), array( 'status' => 400 ) );
-		}
 
 		$potential_role = $wp_roles->role_objects[ $role ];
 
@@ -584,18 +576,30 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		$avatar_properties = array();
+
+		$avatar_sizes = rest_get_avatar_sizes();
+		foreach ( $avatar_sizes as $size ) {
+			$avatar_properties[ $size ] = array(
+				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'type'        => 'uri',
+				'context'     => array( 'embed', 'view', 'edit' ),
+			);
+		}
+
+		global $wp_roles;
 
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'user',
 			'type'       => 'object',
 			'properties' => array(
-				'avatar_url'  => array(
-					'description' => 'Avatar URL for the object.',
-					'type'        => 'string',
-					'format'      => 'uri',
+				'avatar_urls'  => array(
+					'description' => 'Avatar URLs for the object.',
+					'type'        => 'object',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
+					'properties'  => $avatar_properties,
 				),
 				'capabilities'    => array(
 					'description' => 'All capabilities assigned to the user.',
@@ -678,6 +682,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'Roles assigned to the user.',
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'role'            => array(
+					'description' => 'Role assigned to the user.',
+					'type'        => 'string',
+					'enum'        => array_keys( $wp_roles->role_objects ),
 				),
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',

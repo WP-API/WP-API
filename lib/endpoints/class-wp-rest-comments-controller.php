@@ -28,31 +28,46 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'absint',
 					),
 					'type'         => array(
-						'default'           => 'comment',
+						'default'           => '',
 						'sanitize_callback' => 'sanitize_key',
-					),
-					'author'         => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
 					),
 					'parent'       => array(
 						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
 					'content'      => array(
+						'default'           => '',
 						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 					'author'       => array(
+						'default'           => 0,
 						'sanitize_callback' => 'absint',
 					),
+					'author_name'  => array(
+						'default'           => '',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
 					'author_email' => array(
+						'default'           => '',
 						'sanitize_callback' => 'sanitize_email',
 					),
 					'author_url'   => array(
+						'default'           => '',
 						'sanitize_callback' => 'esc_url_raw',
 					),
-					'date'         => array(),
-					'date_gmt'     => array(),
+					'karma'        => array(
+						'default'           => 0,
+						'sanitize_callback' => 'absint',
+					),
+					'status'       => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'date'         => array(
+						'default'           => current_time( 'mysql' ),
+					),
+					'date_gmt'     => array(
+						'default'           => current_time( 'mysql', true ),
+					),
 				),
 			),
 		) );
@@ -73,13 +88,38 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
 				'args'     => array(
-					'post'         => array(),
-					'status'       => array(),
-					'content'      => array(),
-					'author'       => array(),
-					'author_email' => array(),
-					'author_url'   => array(),
+					'post'         => array(
+						'sanitize_callback' => 'absint',
+					),
+					'type'         => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
+					'parent'       => array(
+						'sanitize_callback' => 'absint',
+					),
+					'content'      => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
+					'author'       => array(
+						'sanitize_callback' => 'absint',
+					),
+					'author_name'  => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'author_email' => array(
+						'sanitize_callback' => 'sanitize_email',
+					),
+					'author_url'   => array(
+						'sanitize_callback' => 'esc_url_raw',
+					),
+					'karma'        => array(
+						'sanitize_callback' => 'absint',
+					),
+					'status'       => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 					'date'         => array(),
+					'date_gmt'     => array(),
 				),
 			),
 			array(
@@ -192,6 +232,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
+		// Setting remaining values before wp_insert_comment so we can
+		// use wp_allow_comment().
+		$prepared_comment['comment_author_IP'] = '127.0.0.1';
+		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
 		$prepared_comment = apply_filters( 'rest_pre_insert_comment', $prepared_comment, $request );
@@ -199,6 +243,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment_id = wp_insert_comment( $prepared_comment );
 		if ( ! $comment_id ) {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
+		}
+
+		if ( isset( $request['status'] ) ) {
+			$comment = get_comment( $comment_id );
+			$this->handle_status_param( $request['status'], $comment );
 		}
 
 		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
@@ -232,11 +281,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
 
-		$prepared_args = $this->prepare_item_for_update( $request );
+		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
+			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
+		}
+
+		$prepared_args = $this->prepare_item_for_database( $request );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
-			// only the comment status is being changed.
-			$change = $this->handle_status_change( $request['status'], $comment );
+			// Only the comment status is being changed.
+			$change = $this->handle_status_param( $request['status'], $comment );
 			if ( ! $change ) {
 				return new WP_Error( 'rest_comment_failed_edit', __( 'Updating comment status failed.' ), array( 'status' => 500 ) );
 			}
@@ -249,7 +302,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			if ( isset( $request['status'] ) ) {
-				$this->handle_status_change( $request['status'], $comment );
+				$this->handle_status_param( $request['status'], $comment );
 			}
 		}
 
@@ -378,7 +431,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
-		// If the post id isn't specified, presume we can create
+		// Limit who can set comment `author`, `karma` or `status` to anything other than the default.
+		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => 403 ) );
+		}
+		if ( isset( $request['karma'] ) && $request['karma'] > 0 && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_karma', __( 'Sorry, you cannot set karma for comments.' ), array( 'status' => 403 ) );
+		}
+		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_status', __( 'Sorry, you cannot set status for comments.' ), array( 'status' => 403 ) );
+		}
+
+		// If the post id isn't specified, presume we can create.
 		if ( ! isset( $request['post'] ) ) {
 			return true;
 		}
@@ -437,26 +501,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$data = array(
-			'id'                => (int) $comment->comment_ID,
-			'post'              => (int) $comment->comment_post_ID,
-			'parent'            => (int) $comment->comment_parent,
-			'author'            => (int) $comment->user_id,
-			'author_name'       => $comment->comment_author,
-			'author_email'      => $comment->comment_author_email,
-			'author_url'        => $comment->comment_author_url,
-			'author_ip'         => $comment->comment_author_IP,
-			'author_avatar_url' => rest_get_avatar_url( $comment->comment_author_email ),
-			'author_user_agent' => $comment->comment_agent,
-			'date'              => rest_mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'          => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
-			'content'           => array(
+			'id'                 => (int) $comment->comment_ID,
+			'post'               => (int) $comment->comment_post_ID,
+			'parent'             => (int) $comment->comment_parent,
+			'author'             => (int) $comment->user_id,
+			'author_name'        => $comment->comment_author,
+			'author_email'       => $comment->comment_author_email,
+			'author_url'         => $comment->comment_author_url,
+			'author_ip'          => $comment->comment_author_IP,
+			'author_avatar_urls' => rest_get_avatar_urls( $comment->comment_author_email ),
+			'author_user_agent'  => $comment->comment_agent,
+			'date'               => rest_mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'           => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'content'            => array(
 				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 				'raw'      => $comment->comment_content,
 			),
-			'karma'             => (int) $comment->comment_karma,
-			'link'              => get_comment_link( $comment ),
-			'status'            => $this->prepare_status_response( $comment->comment_approved ),
-			'type'              => get_comment_type( $comment->comment_ID ),
+			'karma'              => (int) $comment->comment_karma,
+			'link'               => get_comment_link( $comment ),
+			'status'             => $this->prepare_status_response( $comment->comment_approved ),
+			'type'               => get_comment_type( $comment->comment_ID ),
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -622,56 +686,64 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Prepare a single comment to be inserted into the database.
 	 *
 	 * @param  WP_REST_Request $request Request object.
-	 * @return array           $prepared_comment
+	 * @return array|WP_Error  $prepared_comment
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_comment = array(
-			'comment_post_ID'      => (int) $request['post'],
-			'comment_type'         => isset( $request['type'] ) ? sanitize_key( $request['type'] ) : '',
-			'comment_parent'       => (int) $request['parent'],
-			'user_id'              => isset( $request['author'] ) ? (int) $request['author'] : get_current_user_id(),
-			'comment_content'      => isset( $request['content'] ) ? $request['content'] : '',
-			'comment_author'       => isset( $request['author_name'] ) ? sanitize_text_field( $request['author_name'] ) : '',
-			'comment_author_email' => isset( $request['author_email'] ) ? sanitize_email( $request['author_email'] ) : '',
-			'comment_author_url'   => isset( $request['author_url'] ) ? esc_url_raw( $request['author_url'] ) : '',
-			'comment_date'         => isset( $request['date'] ) ? $request['date'] : current_time( 'mysql' ),
-			'comment_date_gmt'     => isset( $request['date_gmt'] ) ? $request['date_gmt'] : current_time( 'mysql', 1 ),
-			// Setting remaining values before wp_insert_comment so we can
-			// use wp_allow_comment().
-			'comment_author_IP'    => '127.0.0.1',
-			'comment_agent'        => '',
-		);
-
-		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
-	}
-
-	/**
-	 * Prepare a single comment for database update.
-	 *
-	 * @param  WP_REST_Request $request Request object.
-	 * @return array           $prepared_comment
-	 */
-	protected function prepare_item_for_update( $request ) {
 		$prepared_comment = array();
 
 		if ( isset( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
 
+		if ( isset( $request['post'] ) ) {
+			$prepared_comment['comment_post_ID'] = (int) $request['post'];
+		}
+
+		if ( isset( $request['parent'] ) ) {
+			$prepared_comment['comment_parent'] = $request['parent'];
+		}
+
+		if ( isset( $request['author'] ) ) {
+			$prepared_comment['user_id'] = $request['author'];
+		}
+
 		if ( isset( $request['author_name'] ) ) {
-			$prepared_comment['comment_author'] = sanitize_text_field( $request['author_name'] );
+			$prepared_comment['comment_author'] = $request['author_name'];
 		}
 
 		if ( isset( $request['author_email'] ) ) {
-			$prepared_comment['comment_author_email'] = sanitize_email( $request['author_email'] );
+			$prepared_comment['comment_author_email'] = $request['author_email'];
 		}
 
 		if ( isset( $request['author_url'] ) ) {
-			$prepared_comment['comment_author_url'] = esc_url_raw( $request['author_url'] );
+			$prepared_comment['comment_author_url'] = $request['author_url'];
+		}
+
+		if ( isset( $request['type'] ) ) {
+			$prepared_comment['comment_type'] = $request['type'];
+		}
+
+		if ( isset( $request['karma'] ) ) {
+			$prepared_comment['comment_karma'] = $request['karma'] ;
 		}
 
 		if ( ! empty( $request['date'] ) ) {
-			$prepared_comment['comment_date'] = $request['date'];
+			$date_data = rest_get_date_with_gmt( $request['date'] );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) =
+					$date_data;
+			} else {
+				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
+			}
+		} elseif ( ! empty( $request['date_gmt'] ) ) {
+			$date_data = rest_get_date_with_gmt( $request['date_gmt'], true );
+
+			if ( ! empty( $date_data ) ) {
+				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) = $date_data;
+			} else {
+				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
@@ -683,6 +755,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		$avatar_properties = array();
+
+		$avatar_sizes = rest_get_avatar_sizes();
+		foreach ( $avatar_sizes as $size ) {
+			$avatar_properties[ $size ] = array(
+				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'type'        => 'uri',
+				'context'     => array( 'embed', 'view', 'edit' ),
+			);
+		}
 
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
@@ -700,11 +782,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					),
-				'author_avatar_url' => array(
-					'description'   => 'Avatar URL for the object author.',
-					'type'          => 'string',
-					'format'        => 'uri',
+				'author_avatar_urls' => array(
+					'description'   => 'Avatar URLs for the object author.',
+					'type'          => 'object',
 					'context'       => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+					'properties'  => $avatar_properties,
 					),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
@@ -886,13 +969,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Process a comment_status change when updating a comment.
+	 * Set the comment_status of a given comment object when creating or updating a comment.
 	 *
 	 * @param string|int $new_status
 	 * @param object     $comment
 	 * @return boolean   $changed
 	 */
-	protected function handle_status_change( $new_status, $comment ) {
+	protected function handle_status_param( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
 		if ( $new_status === $old_status ) {
