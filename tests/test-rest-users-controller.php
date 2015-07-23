@@ -336,7 +336,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
@@ -512,7 +512,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response, true );
