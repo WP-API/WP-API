@@ -258,10 +258,10 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	public function test_rest_url_generation() {
 		// In pretty permalinks case, we expect a path of wp-json/ with no query
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
-		$this->assertEquals( "http://example.org/wp-json/", get_rest_url() );
+		$this->assertEquals( 'http://example.org/wp-json/', get_rest_url() );
 
 		// In non-pretty case, we get a query string to invoke the rest router
 		update_option( 'permalink_structure', '' );
-		$this->assertEquals( "http://example.org/?rest_route=/", get_rest_url() );
+		$this->assertEquals( 'http://example.org/?rest_route=/', get_rest_url() );
 	}
 }
