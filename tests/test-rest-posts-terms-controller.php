@@ -193,6 +193,45 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
 	}
 
+	public function test_create_items() {
+
+		wp_set_current_user( $this->admin_id );
+		$tag1 = wp_insert_term( 'test-tag', 'post_tag' );
+		$tag2 = wp_insert_term( 'test-tag-2', 'post_tag' );
+		$tag3 = wp_insert_term( 'test-tag-3', 'post_tag' );
+
+		wp_set_object_terms( $this->post_id, $tag3['term_id'], 'post_tag' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
+		$request->set_param( 'ids', array( $tag1['term_taxonomy_id'], $tag2['term_taxonomy_id'] ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertTrue( is_object_in_term( $this->post_id, 'post_tag', $tag1['term_id'] ) );
+		$this->assertTrue( is_object_in_term( $this->post_id, 'post_tag', $tag2['term_id'] ) );
+		$this->assertTrue( is_object_in_term( $this->post_id, 'post_tag', $tag3['term_id'] ) );
+	}
+
+	public function test_create_items_without_append() {
+
+		wp_set_current_user( $this->admin_id );
+		$tag1 = wp_insert_term( 'test-tag', 'post_tag' );
+		$tag2 = wp_insert_term( 'test-tag-2', 'post_tag' );
+		$tag3 = wp_insert_term( 'test-tag-3', 'post_tag' );
+
+		wp_set_object_terms( $this->post_id, $tag3['term_id'], 'post_tag' );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
+		$request->set_param( 'ids', array( $tag1['term_taxonomy_id'], $tag2['term_taxonomy_id'] ) );
+		$request->set_param( 'append', false );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertTrue( is_object_in_term( $this->post_id, 'post_tag', $tag1['term_id'] ) );
+		$this->assertTrue( is_object_in_term( $this->post_id, 'post_tag', $tag2['term_id'] ) );
+		$this->assertFalse( is_object_in_term( $this->post_id, 'post_tag', $tag3['term_id'] ) );
+	}
+
 	public function test_delete_item() {
 		wp_set_current_user( $this->admin_id );
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
