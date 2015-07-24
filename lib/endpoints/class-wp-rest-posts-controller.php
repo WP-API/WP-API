@@ -224,12 +224,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
 
-		/**
-		 * @TODO: Enable rest_insert_post() action after
-		 * Media Controller has been migrated to new style.
-		 *
-		 * do_action( 'rest_insert_post', $post, $request, true );
-		 */
+		do_action( 'rest_insert_post', $post, $request, true );
 
 		$response = $this->get_item( array(
 			'id'      => $post_id,
