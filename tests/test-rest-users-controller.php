@@ -336,7 +336,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
@@ -412,7 +412,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -512,7 +512,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response, true );
@@ -612,7 +612,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'role', 'BeSharp' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -763,7 +763,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -779,6 +779,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
+		$this->assertArrayHasKey( 'roles', $properties );
+		$this->assertArrayHasKey( 'role', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
