@@ -266,6 +266,6 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		update_option( 'permalink_structure', '' );
 		$this->assertEquals( "http://example.org/?rest_route=/", get_rest_url() );
 
-		update_option( 'permalink_structure', $default_original );
+		update_option( 'permalink_structure', $original_structure );
 	}
 }
