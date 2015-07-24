@@ -27,13 +27,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'default'           => 10,
 				'sanitize_callback' => 'absint',
 			),
+			'filter'                => array(),
 		);
-
-		foreach ( $this->get_allowed_query_vars() as $var ) {
-			if ( ! isset( $posts_args[ $var ] ) ) {
-				$posts_args[ $var ] = array();
-			}
-		}
 
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
@@ -89,11 +84,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$args = (array) $request->get_params();
-		$args['post_type'] = $this->post_type;
-		$args['paged'] = $args['page'];
-		$args['posts_per_page'] = $args['per_page'];
+		$args                   = array();
+		$args['post_type']      = $this->post_type;
+		$args['paged']          = $request['page'];
+		$args['posts_per_page'] = $request['per_page'];
 		unset( $args['page'] );
+
+		if ( isset( $request['filter'] ) ) {
+			$args = array_merge( $args, $request['filter'] );
+			unset( $args['filter'] );
+		}
 
 		/**
 		 * Alter the query arguments for a request.
