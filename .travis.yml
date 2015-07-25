@@ -39,3 +39,6 @@ script:
 after_script:
   # Push coverage off to Codecov
   - bash <(curl -s https://codecov.io/bash)
+
+git:
+  depth: 5
