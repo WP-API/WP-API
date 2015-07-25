@@ -26,7 +26,7 @@ before_script:
   # Setup Coveralls
   - phpenv local 5.5
   - composer self-update
-  - composer install --dev --no-interaction
+  - composer install --no-interaction
   - phpenv local --unset
 
   - npm install
