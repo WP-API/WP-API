@@ -41,4 +41,4 @@ after_script:
   - bash <(curl -s https://codecov.io/bash)
 
 git:
-  depth: 5
+  depth: 1
