@@ -20,6 +20,7 @@ cache:
   directories:
   - vendor
   - $HOME/.composer/cache
+  - node_modules
 
 # Clones WordPress and configures our testing environment.
 before_script:
