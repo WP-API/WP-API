@@ -16,11 +16,16 @@ matrix:
     - php: 5.2
       env: WP_VERSION=latest WP_MULTISITE=1
 
+before_install:
+  - composer self-update
+
+install:
+  - composer install --dev --no-interaction
+
 # Clones WordPress and configures our testing environment.
 before_script:
   # Setup Coveralls
   - phpenv local 5.5
-  - composer install --dev --no-interaction
   - phpenv local --unset
 
   - npm install
