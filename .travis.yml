@@ -16,6 +16,11 @@ matrix:
     - php: 5.2
       env: WP_VERSION=latest WP_MULTISITE=1
 
+cache:
+  directories:
+  - vendor
+  - $HOME/.composer/cache
+
 # Clones WordPress and configures our testing environment.
 before_script:
   # Setup Coveralls
