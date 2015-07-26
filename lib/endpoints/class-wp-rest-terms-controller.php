@@ -170,15 +170,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$term = wp_insert_term( $name, $this->taxonomy, $args );
 		if ( is_wp_error( $term ) ) {
-			
+
 			// If we're going to inform the client that the term exists, give them the identifier
 			// they can actually use (term_taxonomy_id) -- NOT term_id.
-			
-			if ( ( $term_id = $term->get_error_data('term_exists') ) ) {
+
+			if ( ( $term_id = $term->get_error_data( 'term_exists' ) ) ) {
 				$existing_term = get_term( $term_id, $this->taxonomy );
 				$term->add_data( $existing_term->term_taxonomy_id, 'term_exists' );
 			}
-			
+
 			return $term;
 		}
 
