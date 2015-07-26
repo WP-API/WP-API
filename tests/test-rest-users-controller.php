@@ -41,15 +41,33 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
-		$this->check_get_users_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$all_data = $response->get_data();
+		$data = $all_data[0];
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'view' );
 	}
 
-	public function test_get_items_without_permission() {
-		wp_set_current_user( $this->editor );
+	public function test_get_items_unauthenticated_only_shows_public_users() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( array(), $response->get_data() );
+
+		$this->factory->post->create( array( 'post_author' => $this->editor ) );
+		$this->factory->post->create( array( 'post_author' => $this->user, 'post_status' => 'draft' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$users = $response->get_data();
+
+		foreach ( $users as $user ) {
+			$this->assertTrue( count_user_posts( $user['id'] ) > 0 );
+		}
 	}
 
 	/**
@@ -896,17 +914,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
 
-	}
-
-	protected function check_get_users_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, $context );
 	}
 
 	protected function check_get_user_response( $response, $context = 'view' ) {

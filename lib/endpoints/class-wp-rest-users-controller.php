@@ -15,7 +15,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
-				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $query_params,
 			),
 			array(
@@ -91,6 +90,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
+
+		if ( ! current_user_can( 'list_users' ) ) {
+			$prepared_args['has_published_posts'] = true;
+		}
 
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -329,21 +332,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		return $orig_user;
-	}
-
-	/**
-	 * Check if a given request has access to list users
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function get_items_permissions_check( $request ) {
-
-		if ( ! current_user_can( 'list_users' ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
