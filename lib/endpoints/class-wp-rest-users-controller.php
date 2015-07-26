@@ -93,6 +93,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
+
+			// Only display a public subset of information
+			$request['context'] = 'embed';
 		}
 
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
