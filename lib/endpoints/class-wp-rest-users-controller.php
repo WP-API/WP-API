@@ -88,10 +88,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'id'              => 'ID',
 			'name'            => 'display_name',
 			'registered_date' => 'registered',
-			);
+		);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
 
+		/**
+		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API
+		 *
+		 * @see https://codex.wordpress.org/Class_Reference/WP_User_Query
+		 * @param array $prepared_args Arguments for WP_User_Query
+		 * @param WP_REST_Request $request The current request
+		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
 		$query = new WP_User_Query( $prepared_args );
@@ -221,6 +228,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( $user, $request );
 
+		/**
+		 * Fires after a user is created via the REST API
+		 *
+		 * @param object $user Data used to create user (not a WP_User object)
+		 * @param WP_REST_Request $request Request object.
+		 * @param bool $bool A boolean that is false.
+		 */
 		do_action( 'rest_insert_user', $user, $request, false );
 
 		$response = $this->get_item( array(
@@ -469,6 +483,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$data->add_links( $this->prepare_links( $user ) );
 
+		/**
+		 * Filter user data before returning via the REST API
+		 *
+		 * @param WP_REST_Response $data Response data
+		 * @param object $user User object used to create response
+		 * @param WP_REST_Request $request Request object.
+		 */
 		return apply_filters( 'rest_prepare_user', $data, $user, $request );
 	}
 
@@ -540,6 +561,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_user->user_url = $request['url'];
 		}
 
+		/**
+		 * Filter user data before inserting user via REST API
+		 *
+		 * @param object $prepared_user User object.
+		 * @param WP_REST_Request $request Request object.
+		 */
 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
 	}
 
@@ -605,7 +632,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'All capabilities assigned to the user.',
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
-					),
+				),
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
@@ -626,7 +653,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
-					),
+				),
 				'first_name'  => array(
 					'description' => 'First name for the object.',
 					'type'        => 'string',
