@@ -22,6 +22,29 @@ cache:
   - $HOME/.composer/cache
   - node_modules
 
+before_install:
+  # set up WP install
+  - export WP_DEVELOP_DIR=/tmp/wordpress/
+  - mkdir -p $WP_DEVELOP_DIR
+  - git clone --depth=1 git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
+  - plugin_slug=$(basename $(pwd))
+  - plugin_dir=$WP_DEVELOP_DIR/src/wp-content/plugins/$plugin_slug
+  - cd ..
+  # ToDo: If we move, we lose Travis cache, we can keep plugin by updating phpunit bootstrap to look at WP_DEVELOP_DIR
+  - mv $plugin_slug $plugin_dir
+  # set up tests config
+  - cd $WP_DEVELOP_DIR
+  - echo $WP_DEVELOP_DIR
+  - cp wp-tests-config-sample.php wp-tests-config.php
+  - sed -i "s/youremptytestdbnamehere/wordpress_test/" wp-tests-config.php
+  - sed -i "s/yourusernamehere/root/" wp-tests-config.php
+  - sed -i "s/yourpasswordhere//" wp-tests-config.php
+  # set up database
+  - mysql -e 'CREATE DATABASE wordpress_test;' -uroot
+  # prepare for running the tests
+  - cd $plugin_dir
+  - npm install -g grunt-cli
+
 # Clones WordPress and configures our testing environment.
 before_script:
   # Setup Coveralls
@@ -29,9 +52,6 @@ before_script:
   - composer self-update
   - composer install --no-interaction
   - phpenv local --unset
-
-  - npm install
-  - bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 $WP_VERSION
 
 script:
   - bash bin/phpcs.sh
