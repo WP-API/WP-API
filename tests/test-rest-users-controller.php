@@ -67,6 +67,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $users as $user ) {
 			$this->assertTrue( count_user_posts( $user['id'] ) > 0 );
+
+			// Ensure we don't expose non-public data
+			$this->assertArrayNotHasKey( 'capabilities', $user );
+			$this->assertArrayNotHasKey( 'email', $user );
+			$this->assertArrayNotHasKey( 'roles', $user );
 		}
 	}
 
