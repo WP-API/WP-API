@@ -48,8 +48,6 @@ before_script:
   - phpenv local --unset
 
 script:
-  # No need for this now
-  # bash bin/phpcs.sh
   - phpunit --coverage-clover clover.xml
 
 after_script:
