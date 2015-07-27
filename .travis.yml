@@ -9,12 +9,12 @@ php:
   - 5.5
 
 env:
-  - WP_VERSION=latest WP_MULTISITE=0
+  - WP_VERSION=nightly WP_MULTISITE=0
 
 matrix:
   include:
     - php: 5.2
-      env: WP_VERSION=latest WP_MULTISITE=1
+      env: WP_VERSION=nightly WP_MULTISITE=1
 
 cache:
   directories:
