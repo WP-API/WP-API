@@ -15,72 +15,71 @@ require_once( ABSPATH . 'wp-admin/includes/admin.php' );
  * @package WordPress
  */
 class WP_REST_Server {
-		/**
-	 * GET transport method
+	/**
+	 * GET transport method.
 	 *
 	 * @var string
 	 */
 	const METHOD_GET    = 'GET';
 
-
 	/**
-	 * POST transport method
+	 * POST transport method.
 	 *
 	 * @var string
 	 */
 	const METHOD_POST   = 'POST';
 
 	/**
-	 * PUT transport method
+	 * PUT transport method.
 	 *
 	 * @var string
 	 */
 	const METHOD_PUT    = 'PUT';
 
 	/**
-	 * PATCH transport method
+	 * PATCH transport method.
 	 *
 	 * @var string
 	 */
 	const METHOD_PATCH  = 'PATCH';
 
 	/**
-	 * DELETE transport method
+	 * DELETE transport method.
 	 *
 	 * @var string
 	 */
 	const METHOD_DELETE = 'DELETE';
 
 	/**
-	 * Alias for GET transport method
+	 * Alias for GET transport method.
 	 *
 	 * @var string
 	 */
 	const READABLE   = 'GET';
 
 	/**
-	 * Alias for POST transport method
+	 * Alias for POST transport method.
 	 *
 	 * @var string
 	 */
 	const CREATABLE  = 'POST';
 
 	/**
-	 * Alias for GET, PUT, PATCH transport methods together
+	 * Alias for GET, PUT, PATCH transport methods together.
 	 *
 	 * @var string
 	 */
 	const EDITABLE   = 'POST, PUT, PATCH';
 
 	/**
-	 * Alias for DELETE transport method
+	 * Alias for DELETE transport method.
 	 *
 	 * @var string
 	 */
 	const DELETABLE  = 'DELETE';
 
 	/**
-	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together
+	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together.
 	 *
 	 * @var string
 	 */
