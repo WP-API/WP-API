@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage JSON API
-*/
+ */
 
 /**
  * Determine where the WP test suite lives.

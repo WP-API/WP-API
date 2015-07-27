@@ -25,13 +25,7 @@ cache:
 before_install:
   # set up WP install
   - export WP_DEVELOP_DIR=/tmp/wordpress/
-  - mkdir -p $WP_DEVELOP_DIR
   - git clone --depth=1 git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
-  - plugin_slug=$(basename $(pwd))
-  - plugin_dir=$WP_DEVELOP_DIR/src/wp-content/plugins/$plugin_slug
-  - cd ..
-  # ToDo: If we move, we lose Travis cache, we can keep plugin by updating phpunit bootstrap to look at WP_DEVELOP_DIR
-  - mv $plugin_slug $plugin_dir
   # set up tests config
   - cd $WP_DEVELOP_DIR
   - echo $WP_DEVELOP_DIR
@@ -42,7 +36,7 @@ before_install:
   # set up database
   - mysql -e 'CREATE DATABASE wordpress_test;' -uroot
   # prepare for running the tests
-  - cd $plugin_dir
+  - cd $TRAVIS_BUILD_DIR
   - npm install -g grunt-cli
 
 # Clones WordPress and configures our testing environment.
@@ -54,7 +48,8 @@ before_script:
   - phpenv local --unset
 
 script:
-  - bash bin/phpcs.sh
+  # No need for this now
+  # bash bin/phpcs.sh
   - phpunit --coverage-clover clover.xml
 
 after_script:
