@@ -1,6 +1,5 @@
-'use strict';
-
 ( function( WP_API_Settings, Backbone, _, window, undefined ) {
+	'use strict';
 
 	window.wp = window.wp || {};
 
