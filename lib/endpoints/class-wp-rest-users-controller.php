@@ -291,10 +291,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'id'      => $user_id,
 			'context' => 'edit',
 		));
-		$response = rest_ensure_response( $response );
-		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
