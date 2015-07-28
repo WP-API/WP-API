@@ -2,7 +2,7 @@
 	'use strict';
 
 	window.wp = window.wp || {};
-
+	var pad;
 	wp.api = {
 		models: {},
 		collections: {},
@@ -14,7 +14,7 @@
 	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 	 */
 	if ( ! Date.prototype.toISOString ) {
-		var pad = function( number ) {
+		pad = function( number ) {
 			var r = String( number );
 			if ( r.length === 1 ) {
 				r = '0' + r;
@@ -127,7 +127,7 @@
 			});
 
 			// Parse the author into a User object
-			if ( 'undefined' typeof response.author ) {
+			if ( 'undefined' !== typeof response.author ) {
 				response.author = new wp.api.models.User( response.author );
 			}
 
@@ -758,13 +758,7 @@
 			model: wp.api.models.PostStatus,
 
 			parse: function( response ) {
-				var responseArray = [];
-
-				for ( var property in response ) {
-					if ( response.hasOwnProperty( property ) ) {
-						responseArray.push( response[property] );
-					}
-				}
+				var responseArray = _.values( response );
 
 				return this.constructor.__super__.parse.call( this, responseArray );
 			}
