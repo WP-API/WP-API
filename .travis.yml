@@ -6,6 +6,8 @@ language: php
 matrix:
   include:
   - php: 5.6
+    env: WP_TRAVISCI=travis:phpvalidate
+  - php: 5.6
     env: WP_TRAVISCI=travis:codecoverage
   - php: 5.6
     env: WP_TRAVISCI=travis:phpunit
@@ -57,11 +59,17 @@ before_install:
 
 before_script:
   # Setup Coveralls
-- |
-  if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
-    composer self-update
-    composer install --no-interaction
-  fi
+  - |
+    if [[ "$WP_TRAVISCI" == "travis:phpvalidate" ]] ; then
+      composer self-update
+      composer install --no-interaction
+    fi
+  # Setup Coveralls
+  - |
+    if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
+      composer self-update
+      composer install --no-interaction
+    fi
 
 script:
   - grunt $WP_TRAVISCI

@@ -58,6 +58,10 @@ module.exports = function( grunt ) {
 	grunt.util.linefeed = '\n';
 
 	// Travis CI tasks.
+	grunt.registerTask('travis:phpvalidate', 'Runs PHPUnit Travis CI PHP code tasks.', [
+		'phpcs',
+		'phplint'
+	] );
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [
 		'phpunit:default',
 		'phpunit:multisite'
