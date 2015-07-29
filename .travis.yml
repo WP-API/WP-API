@@ -26,6 +26,12 @@ matrix:
   - php: 7.0
   fast_finish: true
 
+cache:
+  directories:
+  - vendor
+  - $HOME/.composer/cache
+  - node_modules
+
 before_install:
   # set up WP install
   - export WP_DEVELOP_DIR=/tmp/wordpress/
