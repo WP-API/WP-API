@@ -39,8 +39,8 @@ module.exports = function( grunt ) {
 			'codecoverage': {
 				cmd: 'phpunit',
 				args: ['-c', 'codecoverage.xml']
-			},
-		},
+			}
+		}
 
 	} );
 	grunt.loadNpmTasks( 'grunt-phpcs' );
