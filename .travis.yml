@@ -48,13 +48,9 @@ before_install:
   - mysql -e 'CREATE DATABASE wordpress_test;' -uroot
   # prepare for running the tests
   - cd $TRAVIS_BUILD_DIR
-  # Node debug
-  - node --version
-  - npm --version
-  - grunt --version
-  - npm install -g npm
-  - npm install -g grunt-cli
+  - npm install -g npm grunt-cli
   - npm install
+  - node --version
   - npm --version
   - grunt --version
 
