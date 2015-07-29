@@ -25,6 +25,7 @@ cache:
 before_install:
   # set up WP install
   - export WP_DEVELOP_DIR=/tmp/wordpress/
+  - mkdir -p $WP_DEVELOP_DIR
   - git clone --depth=1 git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
   # set up tests config
   - cd $WP_DEVELOP_DIR
