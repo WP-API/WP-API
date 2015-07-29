@@ -48,7 +48,15 @@ before_install:
   - mysql -e 'CREATE DATABASE wordpress_test;' -uroot
   # prepare for running the tests
   - cd $TRAVIS_BUILD_DIR
+  # Node debug
+  - node --version
+  - npm --version
+  - grunt --version
+  - npm install -g npm
   - npm install -g grunt-cli
+  - npm install
+  - npm --version
+  - grunt --version
 
 before_script:
   # Setup Coveralls
@@ -60,7 +68,6 @@ before_script:
 
 script:
   - grunt $WP_TRAVISCI
-  - phpunit --coverage-clover clover.xml
 
 after_script:
   # Push coverage off to Codecov
