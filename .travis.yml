@@ -3,18 +3,28 @@
 # Tell Travis CI we're using PHP
 language: php
 
-php:
-  - 5.2
-  - 5.3
-  - 5.5
-
-env:
-  - WP_VERSION=nightly WP_MULTISITE=0
-
 matrix:
   include:
-    - php: 5.2
-      env: WP_VERSION=nightly WP_MULTISITE=1
+  - php: 5.6
+    env: WP_TRAVISCI=travis:codecoverage
+  - php: 5.6
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.5
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.4
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.3
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.2
+    env: WP_TRAVISCI=travis:phpunit
+  - php: hhvm
+    env: WP_TRAVISCI=travis:phpunit
+  - php: nightly
+    env: WP_TRAVISCI=travis:phpunit
+  allow_failures:
+  - php: hhvm
+  - php: nightly
+  fast_finish: true
 
 cache:
   directories:
@@ -40,20 +50,24 @@ before_install:
   - cd $TRAVIS_BUILD_DIR
   - npm install -g grunt-cli
 
-# Clones WordPress and configures our testing environment.
 before_script:
   # Setup Coveralls
-  - phpenv local 5.5
-  - composer self-update
-  - composer install --no-interaction
-  - phpenv local --unset
+- |
+  if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
+    composer self-update
+    composer install --no-interaction
+  fi
 
 script:
+  - grunt $WP_TRAVISCI
   - phpunit --coverage-clover clover.xml
 
 after_script:
   # Push coverage off to Codecov
-  - bash <(curl -s https://codecov.io/bash)
+- |
+  if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
+    bash <(curl -s https://codecov.io/bash)
+  fi
 
 git:
   depth: 1
