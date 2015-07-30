@@ -460,7 +460,7 @@ function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 			$path = '/';
 		} else {
 			$path = '/' . ltrim( $path, '/' );
- 		}
+		}
 
 		$url = add_query_arg( 'rest_route', $path, $url );
 	}
