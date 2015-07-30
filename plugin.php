@@ -456,9 +456,11 @@ function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
-		if ( ! empty( $path ) ) {
-			$path = ltrim( $path, '/' );
-		}
+		if ( empty( $path ) ) {
+			$path = '/';
+		} else {
+			$path = '/' . ltrim( $path, '/' );
+ 		}
 
 		$url = add_query_arg( 'rest_route', $path, $url );
 	}
