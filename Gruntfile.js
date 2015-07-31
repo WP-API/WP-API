@@ -67,6 +67,7 @@ module.exports = function( grunt ) {
 		'phpunit:multisite'
 	] );
 	grunt.registerTask('travis:codecoverage', 'Runs PHPUnit Travis CI Code Coverage task.', [
-		'phpunit:codecoverage'
+		'phpunit:codecoverage',
+		'phpunit:multisite'
 	] );
 };
