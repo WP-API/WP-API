@@ -181,12 +181,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $tag_link );
 		$this->assertNotEmpty( $cat_link );
 
-		$tags_url = rest_url( '/wp/v2/terms/tag' );
-		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
+		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/tag' );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = rest_url( '/wp/v2/terms/category' );
-		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
+		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/category' );
 		$this->assertEquals( $category_url, $cat_link['href'] );
 	}
 
