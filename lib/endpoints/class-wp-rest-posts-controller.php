@@ -1154,11 +1154,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					continue;
 				}
 
-				if ( 'post_tag' === $tax ) {
-					$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/tag' );
-				} else {
-					$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax );
-				}
+				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
+				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax_base );
 
 				$links['http://v2.wp-api.org/term'][] = array(
 					'href'       => $terms_url,
