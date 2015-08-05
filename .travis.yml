@@ -3,6 +3,8 @@
 # Tell Travis CI we're using PHP
 language: php
 
+sudo: false
+
 matrix:
   include:
   - php: 5.6
