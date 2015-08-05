@@ -404,8 +404,7 @@ class WP_REST_Server {
 			// Is this a numeric array?
 			if ( rest_is_list( $data ) ) {
 				$data = array_map( array( $this, 'embed_links' ), $data );
-			}
-			else {
+			} else {
 				$data = $this->embed_links( $data );
 			}
 		}
