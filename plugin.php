@@ -730,3 +730,19 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 		}
 	}
 endif;
+
+/**
+ * Is the variable a list? (Numeric-indexed array)
+ *
+ * @param mixed $data Variable to check.
+ * @return boolean
+ */
+function rest_is_list( $data ) {
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	$keys = array_keys( $data );
+	$string_keys = array_filter( $keys, 'is_string' );
+	return count( $string_keys ) === 0;
+}

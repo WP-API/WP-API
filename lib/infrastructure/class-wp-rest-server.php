@@ -399,8 +399,12 @@ class WP_REST_Server {
 		if ( ! empty( $links ) ) {
 			// Convert links to part of the data
 			$data['_links'] = $links;
-
-			if ( $embed ) {
+		}
+		if ( $embed ) {
+			// Is this a numeric array?
+			if ( rest_is_list( $data ) ) {
+				$data = array_map( array( $this, 'embed_links' ), $data );
+			} else {
 				$data = $this->embed_links( $data );
 			}
 		}
