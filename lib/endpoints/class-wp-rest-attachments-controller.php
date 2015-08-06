@@ -169,7 +169,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
 				// Use the same method image_downsize() does
-				$size_data['source_url'] = str_replace( $img_url_basename, $size_data['file'], $data['source_url'] );
+				$image_src = wp_get_attachment_image_src( $post->ID, $size );
+
+				if ( ! $image_src ) {
+					continue;
+				}
+
+				$size_data['source_url'] = $image_src[0];
 			}
 		} else {
 			$data['media_details']['sizes'] = new stdClass;
