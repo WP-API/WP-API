@@ -69,9 +69,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
+		$image_src = wp_get_attachment_image_src( $attachment_id, 'rest-api-test' );
 		remove_image_size( 'rest-api-test' );
 
-		$image_src = wp_get_attachment_image_src( $attachment_id, 'rest-api-test' );
 		$this->assertEquals( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
 	}
 
