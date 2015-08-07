@@ -71,10 +71,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 7, count( $properties ) );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
