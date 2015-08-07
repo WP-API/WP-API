@@ -86,15 +86,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$args                   = array();
-		$args['post_type']      = $this->post_type;
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
-		unset( $args['page'] );
 
 		if ( isset( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
+
+		// Force the post_type argument, since it's not a user input variable
+		$args['post_type'] = $this->post_type;
 
 		/**
 		 * Alter the query arguments for a request.
