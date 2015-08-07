@@ -80,9 +80,31 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 /**
  * Register a new field on an existing WordPress object type
  *
- * @param  string|array $object_type "post"|"term"|"comment" etc
- * @param  string $attribute   The attribute name
- * @param  array  $args
+ * @global array $wp_rest_additional_fields Holds registered fields, organized
+ *                                          by object type.
+ *
+ * @param  string|array $object_type Object(s) the field is being registered
+ *                                   to, "post"|"term"|"comment" etc.
+ * @param  string $attribute         The attribute name.
+ * @param  array  $args {
+ *     Optional. An array of arguments used to handle the registered field.
+ *
+ *     @type string|array|null $get_callback    Optional. The callback function
+ *                                              used to retrieve the field
+ *                                              value. Default is 'null', the
+ *                                              field will not be returned in
+ *                                              the response.
+ *     @type string|array|null $update_callback Optional. The callback function
+ *                                              used to set and update the
+ *                                              field value. Default is 'null',
+ *                                              the value cannot be set or
+ *                                              updated.
+ *     @type string|array|null schema           Optional. The callback function
+ *                                              used to create the schema for
+ *                                              this field. Default is 'null',
+ *                                              no schema entry will be
+ *                                              returned.
+ * }
  * @return bool|wp_error
  */
 function register_api_field( $object_type, $attribute, $args = array() ) {
@@ -133,13 +155,17 @@ add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 function _add_extra_api_taxonomy_arguments() {
 	global $wp_taxonomies;
 
-	$wp_taxonomies['category']->show_in_rest = true;
-	$wp_taxonomies['category']->rest_base = 'category';
-	$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
+	if ( isset( $wp_taxonomies['category'] ) ) {
+		$wp_taxonomies['category']->show_in_rest = true;
+		$wp_taxonomies['category']->rest_base = 'category';
+		$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
+	}
 
-	$wp_taxonomies['post_tag']->show_in_rest = true;
-	$wp_taxonomies['post_tag']->rest_base = 'tag';
-	$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
+	if ( isset( $wp_taxonomies['post_tag'] ) ) {
+		$wp_taxonomies['post_tag']->show_in_rest = true;
+		$wp_taxonomies['post_tag']->rest_base = 'tag';
+		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
+	}
 }
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
@@ -502,8 +528,7 @@ function rest_ensure_request( $request ) {
  * immediately check for this value.
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return mixed WP_Error if present, WP_HTTP_ResponseInterface if instance,
- *               otherwise WP_REST_Response.
+ * @return WP_Error|WP_HTTP_ResponseInterface|WP_REST_Response WP_Error if response generated an error, WP_HTTP_ResponseInterface if response is a already an instance, otherwise returns a new WP_REST_Response instance.
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -705,3 +730,19 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 		}
 	}
 endif;
+
+/**
+ * Is the variable a list? (Numeric-indexed array)
+ *
+ * @param mixed $data Variable to check.
+ * @return boolean
+ */
+function rest_is_list( $data ) {
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	$keys = array_keys( $data );
+	$string_keys = array_filter( $keys, 'is_string' );
+	return count( $string_keys ) === 0;
+}

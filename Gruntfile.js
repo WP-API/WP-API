@@ -32,7 +32,15 @@ module.exports = function( grunt ) {
 				cmd: 'phpunit',
 				args: ['-c', 'phpunit.xml.dist']
 			},
-		},
+			'multisite': {
+				cmd: 'phpunit',
+				args: ['-c', 'multisite.xml']
+			},
+			'codecoverage': {
+				cmd: 'phpunit',
+				args: ['-c', 'codecoverage.xml']
+			}
+		}
 
 	} );
 	grunt.loadNpmTasks( 'grunt-phpcs' );
@@ -46,7 +54,20 @@ module.exports = function( grunt ) {
 		}, this.async());
 	});
 
-	grunt.registerTask( 'test', [ 'phpcs', 'phplint', 'phpunit' ] );
+	grunt.registerTask( 'test', [ 'phpcs', 'phplint', 'phpunit:default', 'phpunit:multisite' ] );
 	grunt.util.linefeed = '\n';
 
+	// Travis CI tasks.
+	grunt.registerTask('travis:phpvalidate', 'Runs PHPUnit Travis CI PHP code tasks.', [
+		'phpcs',
+		'phplint'
+	] );
+	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [
+		'phpunit:default',
+		'phpunit:multisite'
+	] );
+	grunt.registerTask('travis:codecoverage', 'Runs PHPUnit Travis CI Code Coverage task.', [
+		'phpunit:codecoverage',
+		'phpunit:multisite'
+	] );
 };

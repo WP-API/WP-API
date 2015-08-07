@@ -34,6 +34,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $posts_args,
 			),
 			array(
@@ -223,12 +224,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
 
-		/**
-		 * @TODO: Enable rest_insert_post() action after
-		 * Media Controller has been migrated to new style.
-		 *
-		 * do_action( 'rest_insert_post', $post, $request, true );
-		 */
+		do_action( 'rest_insert_post', $post, $request, true );
 
 		$response = $this->get_item( array(
 			'id'      => $post_id,
@@ -371,6 +367,23 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Check if a given request has access to read /posts
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		$post_type = get_post_type_object( $this->post_type );
+
+		if ( 'edit' === $request['context'] && ! current_user_can( $post_type->cap->edit_posts ) ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit these posts in this post type' ), array( 'status' => 403 ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Check if a given request has access to read a post
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
@@ -381,7 +394,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( (int) $request['id'] );
 
 		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post' ), array( 'status' => 403 ) );
 		}
 
 		if ( $post ) {
@@ -668,7 +681,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		// Post slug
 		if ( isset( $request['slug'] ) ) {
-			$prepared_post->post_name = sanitize_title( $request['slug'] );
+			$prepared_post->post_name = $request['slug'];
 		}
 
 		// Author
@@ -718,12 +731,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Comment status
 		if ( ! empty( $schema['properties']['comment_status'] ) && ! empty( $request['comment_status'] ) ) {
-			$prepared_post->comment_status = sanitize_text_field( $request['comment_status'] );
+			$prepared_post->comment_status = $request['comment_status'];
 		}
 
 		// Ping status
 		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
-			$prepared_post->ping_status = sanitize_text_field( $request['ping_status'] );
+			$prepared_post->ping_status = $request['ping_status'];
 		}
 
 		return apply_filters( 'rest_pre_insert_' . $this->post_type, $prepared_post, $request );
@@ -737,7 +750,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|string $post_status
 	 */
 	protected function handle_status_param( $post_status, $post_type ) {
-		$post_status = sanitize_text_field( $post_status );
+		$post_status = $post_status;
 
 		switch ( $post_status ) {
 			case 'draft':
@@ -1141,13 +1154,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					continue;
 				}
 
-				if ( 'post_tag' === $tax ) {
-					$terms_url = rest_url( '/wp/v2/terms/tag' );
-				} else {
-					$terms_url = rest_url( '/wp/v2/terms/' . $tax );
-				}
-
-				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
+				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax_base );
 
 				$links['http://v2.wp-api.org/term'][] = array(
 					'href'       => $terms_url,
@@ -1247,6 +1255,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_title',
+					),
 				),
 				'status'          => array(
 					'description' => 'A named status for the object.',

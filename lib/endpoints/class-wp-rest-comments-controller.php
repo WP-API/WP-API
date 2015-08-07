@@ -22,53 +22,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'methods'  => WP_REST_Server::CREATABLE,
 				'callback' => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'     => array(
-					'post'         => array(
-						'required'     => true,
-						'sanitize_callback' => 'absint',
-					),
-					'type'         => array(
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'parent'       => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
-					),
-					'content'      => array(
-						'default'           => '',
-						'sanitize_callback' => 'wp_filter_post_kses',
-					),
-					'author'       => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
-					),
-					'author_name'  => array(
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-					'author_email' => array(
-						'default'           => '',
-						'sanitize_callback' => 'sanitize_email',
-					),
-					'author_url'   => array(
-						'default'           => '',
-						'sanitize_callback' => 'esc_url_raw',
-					),
-					'karma'        => array(
-						'default'           => 0,
-						'sanitize_callback' => 'absint',
-					),
-					'status'       => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'date'         => array(
-						'default'           => current_time( 'mysql' ),
-					),
-					'date_gmt'     => array(
-						'default'           => current_time( 'mysql', true ),
-					),
-				),
+				'args'     => $this->get_endpoint_args_for_item_schema( true ),
 			),
 		) );
 
@@ -87,40 +41,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'methods'  => WP_REST_Server::EDITABLE,
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'     => array(
-					'post'         => array(
-						'sanitize_callback' => 'absint',
-					),
-					'type'         => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'parent'       => array(
-						'sanitize_callback' => 'absint',
-					),
-					'content'      => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
-					),
-					'author'       => array(
-						'sanitize_callback' => 'absint',
-					),
-					'author_name'  => array(
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-					'author_email' => array(
-						'sanitize_callback' => 'sanitize_email',
-					),
-					'author_url'   => array(
-						'sanitize_callback' => 'esc_url_raw',
-					),
-					'karma'        => array(
-						'sanitize_callback' => 'absint',
-					),
-					'status'       => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-					'date'         => array(),
-					'date_gmt'     => array(),
-				),
+				'args'     => $this->get_endpoint_args_for_item_schema( false ),
 			),
 			array(
 				'methods'  => WP_REST_Server::DELETABLE,
@@ -232,8 +153,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
+
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
+		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
+			$prepared_comment['comment_date_gmt'] = current_time( 'mysql', true );
+		}
+		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
+			$prepared_comment['comment_author_email'] = '';
+		}
+		if ( ! isset( $prepared_comment['comment_author_url'] ) ) {
+			$prepared_comment['comment_author_url'] = '';
+		}
 		$prepared_comment['comment_author_IP'] = '127.0.0.1';
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
@@ -312,13 +243,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'id'      => $id,
 			'context' => 'edit',
 		) );
-		$response = rest_ensure_response( $response );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment->comment_ID ) );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -776,48 +702,52 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
-					),
+				),
 				'author'           => array(
 					'description'  => 'The ID of the user object, if author was a user.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
-					),
+				),
 				'author_avatar_urls' => array(
 					'description'   => 'Avatar URLs for the object author.',
 					'type'          => 'object',
 					'context'       => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 					'properties'  => $avatar_properties,
-					),
+				),
 				'author_email'     => array(
 					'description'  => 'Email address for the object author.',
 					'type'         => 'string',
 					'format'       => 'email',
 					'context'      => array( 'edit' ),
-					),
+				),
 				'author_ip'     => array(
 					'description'  => 'IP address for the object author.',
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'author_name'     => array(
 					'description'  => 'Display name for the object author.',
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'arg_options'  => array(
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => '',
 					),
+				),
 				'author_url'       => array(
 					'description'  => 'URL for the object author.',
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
-					),
+				),
 				'author_user_agent'     => array(
 					'description'  => 'User agent for the object author.',
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'content'          => array(
 					'description'     => 'The content for the object.',
 					'type'            => 'object',
@@ -827,14 +757,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							'description'     => 'Content for the object, as it exists in the database.',
 							'type'            => 'string',
 							'context'         => array( 'edit' ),
-							),
+						),
 						'rendered'    => array(
 							'description'     => 'Content for the object, transformed for display.',
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
-							),
 						),
 					),
+					'arg_options'  => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+						'default'           => '',
+					),
+				),
 				'date'             => array(
 					'description'  => 'The date the object was published.',
 					'type'         => 'string',
@@ -851,7 +785,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'Karma for the object.',
 					'type'         => 'integer',
 					'context'      => array( 'edit' ),
-					'readonly'     => true,
 				),
 				'link'             => array(
 					'description'  => 'URL to the object.',
@@ -864,6 +797,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The ID for the parent of the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'arg_options'  => array(
+						'default'           => 0,
+					),
 				),
 				'post'             => array(
 					'description'  => 'The ID of the associated post object.',
@@ -874,11 +810,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'State of the object.',
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
+					'arg_options'  => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 				),
 				'type'             => array(
 					'description'  => 'Type of Comment for the object.',
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'arg_options'  => array(
+						'sanitize_callback' => 'sanitize_key',
+						'default'           => '',
+					),
 				),
 			),
 		);

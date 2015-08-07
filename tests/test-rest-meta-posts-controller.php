@@ -332,6 +332,19 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertErrorResponse( 'rest_missing_callback_param', $response, 400 );
 	}
 
+	public function test_create_item_empty_string_key() {
+		$post_id = $this->factory->post->create();
+		$data = array(
+			'key' => '',
+			'value' => 'testvalue',
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_meta_invalid_key', $response, 400 );
+	}
+
 	public function test_create_item_invalid_key() {
 		$post_id = $this->factory->post->create();
 		$data = array(
@@ -373,7 +386,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
@@ -388,7 +401,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
@@ -702,7 +715,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
@@ -717,7 +730,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_post_invalid_action', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 

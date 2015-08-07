@@ -41,15 +41,38 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
-		$this->check_get_users_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$all_data = $response->get_data();
+		$data = $all_data[0];
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'view' );
 	}
 
-	public function test_get_items_without_permission() {
-		wp_set_current_user( $this->editor );
+	public function test_get_items_unauthenticated_only_shows_public_users() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( array(), $response->get_data() );
+
+		$this->factory->post->create( array( 'post_author' => $this->editor ) );
+		$this->factory->post->create( array( 'post_author' => $this->user, 'post_status' => 'draft' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$users = $response->get_data();
+
+		foreach ( $users as $user ) {
+			$this->assertTrue( count_user_posts( $user['id'] ) > 0 );
+
+			// Ensure we don't expose non-public data
+			$this->assertArrayNotHasKey( 'capabilities', $user );
+			$this->assertArrayNotHasKey( 'email', $user );
+			$this->assertArrayNotHasKey( 'roles', $user );
+		}
 	}
 
 	/**
@@ -336,7 +359,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response );
@@ -412,7 +435,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -512,7 +535,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( json_encode( $params ) );
+		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
 		$this->check_add_edit_user_response( $response, true );
@@ -612,7 +635,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'role', 'BeSharp' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -763,7 +786,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['properties'];
 
-		$this->assertEquals( 16, count( $properties ) );
+		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -779,6 +802,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
+		$this->assertArrayHasKey( 'roles', $properties );
+		$this->assertArrayHasKey( 'role', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -894,17 +919,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
 
-	}
-
-	protected function check_get_users_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, $context );
 	}
 
 	protected function check_get_user_response( $response, $context = 'view' ) {

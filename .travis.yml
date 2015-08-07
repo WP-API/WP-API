@@ -3,33 +3,83 @@
 # Tell Travis CI we're using PHP
 language: php
 
-php:
-  - 5.2
-  - 5.3
-  - 5.5
-
-env:
-  - WP_VERSION=latest WP_MULTISITE=0
+sudo: false
 
 matrix:
   include:
-    - php: 5.2
-      env: WP_VERSION=latest WP_MULTISITE=1
+  - php: 5.6
+    env: WP_TRAVISCI=travis:phpvalidate
+  - php: 5.6
+    env: WP_TRAVISCI=travis:codecoverage
+  - php: 5.5
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.4
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.3
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 5.2
+    env: WP_TRAVISCI=travis:phpunit
+  - php: hhvm
+    env: WP_TRAVISCI=travis:phpunit
+  - php: 7.0
+    env: WP_TRAVISCI=travis:phpunit
+  allow_failures:
+  - php: hhvm
+  - php: 7.0
+  fast_finish: true
 
-# Clones WordPress and configures our testing environment.
+cache:
+  directories:
+  - vendor
+  - $HOME/.composer/cache
+  - node_modules
+
+before_install:
+  # set up WP install
+  - export WP_DEVELOP_DIR=/tmp/wordpress/
+  - mkdir -p $WP_DEVELOP_DIR
+  - git clone --depth=1 git://develop.git.wordpress.org/ $WP_DEVELOP_DIR
+  # set up tests config
+  - cd $WP_DEVELOP_DIR
+  - echo $WP_DEVELOP_DIR
+  - cp wp-tests-config-sample.php wp-tests-config.php
+  - sed -i "s/youremptytestdbnamehere/wordpress_test/" wp-tests-config.php
+  - sed -i "s/yourusernamehere/root/" wp-tests-config.php
+  - sed -i "s/yourpasswordhere//" wp-tests-config.php
+  # set up database
+  - mysql -e 'CREATE DATABASE wordpress_test;' -uroot
+  # prepare for running the tests
+  - cd $TRAVIS_BUILD_DIR
+  - npm install -g npm
+  - npm install -g grunt-cli
+  - npm install
+  - node --version
+  - npm --version
+  - grunt --version
+
 before_script:
   # Setup Coveralls
-  - phpenv local 5.5
-  - composer install --dev --no-interaction
-  - phpenv local --unset
-
-  - npm install
-  - bash bin/install-wp-tests.sh wordpress_test root '' 127.0.0.1 $WP_VERSION
+  - |
+    if [[ "$WP_TRAVISCI" == "travis:phpvalidate" ]] ; then
+      composer self-update
+      composer install --no-interaction
+    fi
+  # Setup Coveralls
+  - |
+    if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
+      composer self-update
+      composer install --no-interaction
+    fi
 
 script:
-  - bash bin/phpcs.sh
-  - phpunit --coverage-clover clover.xml
+  - grunt $WP_TRAVISCI
 
 after_script:
   # Push coverage off to Codecov
-  - bash <(curl -s https://codecov.io/bash)
+- |
+  if [[ "$WP_TRAVISCI" == "travis:codecoverage" ]] ; then
+    bash <(curl -s https://codecov.io/bash)
+  fi
+
+git:
+  depth: 1
