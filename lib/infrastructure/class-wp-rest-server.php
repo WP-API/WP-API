@@ -302,20 +302,6 @@ class WP_REST_Server {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
-			/**
-			 * Allow hijacking the request before dispatching
-			 *
-			 * If `$result` is non-empty, this value will be used to serve the
-			 * request instead.
-			 *
-			 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
-			 * @param WP_REST_Server  $this    Server instance
-			 * @param WP_REST_Request $request Request used to generate the response
-			 */
-			$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
-		}
-
-		if ( empty( $result ) ) {
 			$result = $this->dispatch( $request );
 		}
 
@@ -685,6 +671,21 @@ class WP_REST_Server {
 	 * @return WP_REST_Response Response returned by the callback
 	 */
 	public function dispatch( $request ) {
+		/**
+		 * Allow hijacking the request before dispatching
+		 *
+		 * If `$result` is non-empty, this value will be used to serve the
+		 * request instead.
+		 *
+		 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+		 * @param WP_REST_Server  $this    Server instance
+		 * @param WP_REST_Request $request Request used to generate the response
+		 */
+		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
+		if ( ! empty( $result ) ) {
+			return $result;
+		}
+
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
