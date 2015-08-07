@@ -15,22 +15,84 @@ require_once( ABSPATH . 'wp-admin/includes/admin.php' );
  * @package WordPress
  */
 class WP_REST_Server {
+	/**
+	 * GET transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_GET    = 'GET';
+
+	/**
+	 * POST transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_POST   = 'POST';
+
+	/**
+	 * PUT transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_PUT    = 'PUT';
+
+	/**
+	 * PATCH transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_PATCH  = 'PATCH';
+
+	/**
+	 * DELETE transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_DELETE = 'DELETE';
 
+	/**
+	 * Alias for GET transport method.
+	 *
+	 * @var string
+	 */
 	const READABLE   = 'GET';
+
+	/**
+	 * Alias for POST transport method.
+	 *
+	 * @var string
+	 */
 	const CREATABLE  = 'POST';
+
+	/**
+	 * Alias for GET, PUT, PATCH transport methods together.
+	 *
+	 * @var string
+	 */
 	const EDITABLE   = 'POST, PUT, PATCH';
+
+	/**
+	 * Alias for DELETE transport method.
+	 *
+	 * @var string
+	 */
 	const DELETABLE  = 'DELETE';
+
+	/**
+	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together.
+	 *
+	 * @var string
+	 */
 	const ALLMETHODS = 'GET, POST, PUT, PATCH, DELETE';
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
 	 */
 	const ACCEPT_RAW = 64;
+
+	/**
+	 * Does the endpoint accept encoded JSON?
+	 */
 	const ACCEPT_JSON = 128;
 
 	/**
@@ -81,6 +143,11 @@ class WP_REST_Server {
 			'/' => array(
 				'callback' => array( $this, 'get_index' ),
 				'methods' => 'GET',
+				'args' => array(
+					'context' => array(
+						'default' => 'view',
+					),
+				),
 			),
 		);
 	}
@@ -235,20 +302,6 @@ class WP_REST_Server {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
-			/**
-			 * Allow hijacking the request before dispatching
-			 *
-			 * If `$result` is non-empty, this value will be used to serve the
-			 * request instead.
-			 *
-			 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
-			 * @param WP_REST_Server  $this    Server instance
-			 * @param WP_REST_Request $request Request used to generate the response
-			 */
-			$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
-		}
-
-		if ( empty( $result ) ) {
 			$result = $this->dispatch( $request );
 		}
 
@@ -337,8 +390,12 @@ class WP_REST_Server {
 		if ( ! empty( $links ) ) {
 			// Convert links to part of the data
 			$data['_links'] = $links;
-
-			if ( $embed ) {
+		}
+		if ( $embed ) {
+			// Is this a numeric array?
+			if ( rest_is_list( $data ) ) {
+				$data = array_map( array( $this, 'embed_links' ), $data );
+			} else {
 				$data = $this->embed_links( $data );
 			}
 		}
@@ -429,7 +486,9 @@ class WP_REST_Server {
 				}
 
 				// Embedded resources get passed context=embed
-				$query_params['context'] = 'embed';
+				if ( empty( $query_params['context'] ) ) {
+					$query_params['context'] = 'embed';
+				}
 
 				$request = new WP_REST_Request( 'GET', $parsed['path'] );
 				$request->set_query_params( $query_params );
@@ -500,6 +559,9 @@ class WP_REST_Server {
 					'args' => array(
 						'namespace' => array(
 							'default' => $namespace,
+						),
+						'context' => array(
+							'default' => 'view',
 						),
 					),
 				),
@@ -591,12 +653,41 @@ class WP_REST_Server {
 	}
 
 	/**
+	 * Get specified options for a route.
+	 *
+	 * @param string $route Route pattern to fetch options for.
+	 * @return array|null Data as an associative array if found, or null if not found.
+	 */
+	public function get_route_options( $route ) {
+		if ( ! isset( $this->route_options[ $route ] ) ) {
+			return null;
+		}
+
+		return $this->route_options[ $route ];
+	}
+
+	/**
 	 * Match the request to a callback and call it
 	 *
 	 * @param WP_REST_Request $request Request to attempt dispatching
 	 * @return WP_REST_Response Response returned by the callback
 	 */
 	public function dispatch( $request ) {
+		/**
+		 * Allow hijacking the request before dispatching
+		 *
+		 * If `$result` is non-empty, this value will be used to serve the
+		 * request instead.
+		 *
+		 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+		 * @param WP_REST_Server  $this    Server instance
+		 * @param WP_REST_Request $request Request used to generate the response
+		 */
+		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
+		if ( ! empty( $result ) ) {
+			return $result;
+		}
+
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
@@ -718,7 +809,7 @@ class WP_REST_Server {
 	 *
 	 * @return array Index entity
 	 */
-	public function get_index() {
+	public function get_index( $request ) {
 		// General site data
 		$available = array(
 			'name'           => get_option( 'blogname' ),
@@ -726,7 +817,7 @@ class WP_REST_Server {
 			'url'            => get_option( 'siteurl' ),
 			'namespaces'     => array_keys( $this->namespaces ),
 			'authentication' => array(),
-			'routes'         => $this->get_route_data( $this->get_routes() ),
+			'routes'         => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
 		);
 
 		$response = new WP_REST_Response( $available );
@@ -762,7 +853,7 @@ class WP_REST_Server {
 
 		$data = array(
 			'namespace' => $namespace,
-			'routes' => $this->get_route_data( $endpoints ),
+			'routes' => $this->get_data_for_routes( $endpoints, $request['context'] ),
 		);
 		$response = rest_ensure_response( $data );
 
@@ -785,43 +876,15 @@ class WP_REST_Server {
 	 * Get the publicly-visible data for routes.
 	 *
 	 * @param array $routes Routes to get data for
+	 * @param string $context Context for data. One of 'view', 'help'.
 	 * @return array Route data to expose in indexes.
 	 */
-	protected function get_route_data( $routes ) {
+	public function get_data_for_routes( $routes, $context = 'view' ) {
 		$available = array();
 		// Find the available routes
 		foreach ( $routes as $route => $callbacks ) {
-			$data = array(
-				'namespace' => '',
-				'methods' => array(),
-			);
-			if ( isset( $this->route_options[ $route ] ) ) {
-				$options = $this->route_options[ $route ];
-				if ( isset( $options['namespace'] ) ) {
-					$data['namespace'] = $options['namespace'];
-				}
-			}
-
-			$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
-
-			foreach ( $callbacks as $callback ) {
-				// Skip to the next route if any callback is hidden
-				if ( empty( $callback['show_in_index'] ) ) {
-					continue;
-				}
-
-				$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
-
-				// For non-variable routes, generate links
-				if ( strpos( $route, '{' ) === false ) {
-					$data['_links'] = array(
-						'self' => rest_url( $route ),
-					);
-				}
-			}
-
-			if ( empty( $data['methods'] ) ) {
-				// No methods supported, hide the route
+			$data = $this->get_data_for_route( $route, $callbacks, $context );
+			if ( empty( $data ) ) {
 				continue;
 			}
 
@@ -839,6 +902,74 @@ class WP_REST_Server {
 		 * @param array $routes Internal route data as an associative array.
 		 */
 		return apply_filters( 'rest_route_data', $available, $routes );
+	}
+
+	/**
+	 * Get publicly-visible data for the route.
+	 *
+	 * @param string $route Route to get data for.
+	 * @param array $callbacks Callbacks to convert to data.
+	 * @param string $context Context for the data.
+	 * @return array|null Data for the route, or null if no publicly-visible data.
+	 */
+	public function get_data_for_route( $route, $callbacks, $context = 'view' ) {
+		$data = array(
+			'namespace' => '',
+			'methods' => array(),
+			'endpoints' => array(),
+		);
+		if ( isset( $this->route_options[ $route ] ) ) {
+			$options = $this->route_options[ $route ];
+			if ( isset( $options['namespace'] ) ) {
+				$data['namespace'] = $options['namespace'];
+			}
+			if ( isset( $options['schema'] ) && 'help' === $context ) {
+				$data['schema'] = call_user_func( $options['schema'] );
+			}
+		}
+
+		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
+
+		foreach ( $callbacks as $callback ) {
+			// Skip to the next route if any callback is hidden
+			if ( empty( $callback['show_in_index'] ) ) {
+				continue;
+			}
+
+			$data['methods'] = array_merge( $data['methods'], array_keys( $callback['methods'] ) );
+			$endpoint_data = array(
+				'methods' => array_keys( $callback['methods'] ),
+			);
+
+			if ( isset( $callback['args'] ) ) {
+				$endpoint_data['args'] = array();
+				foreach ( $callback['args'] as $key => $opts ) {
+					$arg_data = array(
+						'required' => ! empty( $opts['required'] ),
+					);
+					if ( isset( $opts['default'] ) ) {
+						$arg_data['default'] = $opts['default'];
+					}
+					$endpoint_data['args'][ $key ] = $arg_data;
+				}
+			}
+
+			$data['endpoints'][] = $endpoint_data;
+
+			// For non-variable routes, generate links
+			if ( strpos( $route, '{' ) === false ) {
+				$data['_links'] = array(
+					'self' => rest_url( $route ),
+				);
+			}
+		}
+
+		if ( empty( $data['methods'] ) ) {
+			// No methods supported, hide the route
+			return null;
+		}
+
+		return $data;
 	}
 
 	/**

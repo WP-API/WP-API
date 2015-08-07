@@ -27,13 +27,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'default'           => 10,
 				'sanitize_callback' => 'absint',
 			),
+			'filter'                => array(),
 		);
-
-		foreach ( $this->get_allowed_query_vars() as $var ) {
-			if ( ! isset( $posts_args[ $var ] ) ) {
-				$posts_args[ $var ] = array();
-			}
-		}
 
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
@@ -48,6 +43,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => $this->get_endpoint_args_for_item_schema( true ),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
 			array(
@@ -76,10 +73,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					),
 				),
 			),
-		) );
-		register_rest_route( 'wp/v2', '/' . $base . '/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
@@ -90,11 +85,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$args = (array) $request->get_params();
+		$args                   = array();
+		$args['paged']          = $request['page'];
+		$args['posts_per_page'] = $request['per_page'];
+
+		if ( isset( $request['filter'] ) ) {
+			$args = array_merge( $args, $request['filter'] );
+			unset( $args['filter'] );
+		}
+
+		// Force the post_type argument, since it's not a user input variable
 		$args['post_type'] = $this->post_type;
-		$args['paged'] = $args['page'];
-		$args['posts_per_page'] = $args['per_page'];
-		unset( $args['page'] );
 
 		/**
 		 * Alter the query arguments for a request.
@@ -1154,13 +1155,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					continue;
 				}
 
-				if ( 'post_tag' === $tax ) {
-					$terms_url = rest_url( '/wp/v2/terms/tag' );
-				} else {
-					$terms_url = rest_url( '/wp/v2/terms/' . $tax );
-				}
-
-				$terms_url = add_query_arg( 'post', $post->ID, $terms_url );
+				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
+				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax_base );
 
 				$links['http://v2.wp-api.org/term'][] = array(
 					'href'       => $terms_url,

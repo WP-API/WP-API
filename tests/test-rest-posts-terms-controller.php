@@ -270,11 +270,11 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/terms/post_tag/schema', $this->post_id ) );
+		$request = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d/terms/post_tag', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 7, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'count', $properties );

@@ -69,7 +69,12 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		'callback'        => null,
 		'args'            => array(),
 	);
-	foreach ( $args as &$arg_group ) {
+	foreach ( $args as $key => &$arg_group ) {
+		if ( ! is_numeric( $arg_group ) ) {
+			// Route option, skip here
+			continue;
+		}
+
 		$arg_group = array_merge( $defaults, $arg_group );
 	}
 
@@ -80,9 +85,31 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 /**
  * Register a new field on an existing WordPress object type
  *
- * @param  string|array $object_type "post"|"term"|"comment" etc
- * @param  string $attribute   The attribute name
- * @param  array  $args
+ * @global array $wp_rest_additional_fields Holds registered fields, organized
+ *                                          by object type.
+ *
+ * @param  string|array $object_type Object(s) the field is being registered
+ *                                   to, "post"|"term"|"comment" etc.
+ * @param  string $attribute         The attribute name.
+ * @param  array  $args {
+ *     Optional. An array of arguments used to handle the registered field.
+ *
+ *     @type string|array|null $get_callback    Optional. The callback function
+ *                                              used to retrieve the field
+ *                                              value. Default is 'null', the
+ *                                              field will not be returned in
+ *                                              the response.
+ *     @type string|array|null $update_callback Optional. The callback function
+ *                                              used to set and update the
+ *                                              field value. Default is 'null',
+ *                                              the value cannot be set or
+ *                                              updated.
+ *     @type string|array|null schema           Optional. The callback function
+ *                                              used to create the schema for
+ *                                              this field. Default is 'null',
+ *                                              no schema entry will be
+ *                                              returned.
+ * }
  * @return bool|wp_error
  */
 function register_api_field( $object_type, $attribute, $args = array() ) {
@@ -589,6 +616,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	}
 
 	$response = new WP_REST_Response();
+	$data = array();
 
 	$accept = array();
 
@@ -599,15 +627,13 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
-		foreach ( $endpoints as $endpoint ) {
-			$accept = array_merge( $accept, $endpoint['methods'] );
-		}
+		$data = $handler->get_data_for_route( $route, $endpoints, 'help' );
+		$accept = array_merge( $accept, $data['methods'] );
 		break;
 	}
-	$accept = array_keys( $accept );
-
 	$response->header( 'Accept', implode( ', ', $accept ) );
 
+	$response->set_data( $data );
 	return $response;
 }
 
@@ -708,3 +734,19 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 		}
 	}
 endif;
+
+/**
+ * Is the variable a list? (Numeric-indexed array)
+ *
+ * @param mixed $data Variable to check.
+ * @return boolean
+ */
+function rest_is_list( $data ) {
+	if ( ! is_array( $data ) ) {
+		return false;
+	}
+
+	$keys = array_keys( $data );
+	$string_keys = array_filter( $keys, 'is_string' );
+	return count( $string_keys ) === 0;
+}

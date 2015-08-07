@@ -57,6 +57,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->check_get_post_response( $response );
 	}
 
+	public function test_get_item_sizes() {
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		), $this->test_file );
+
+		add_image_size( 'rest-api-test', 119, 119, true );
+		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $this->test_file ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$image_src = wp_get_attachment_image_src( $attachment_id, 'rest-api-test' );
+		remove_image_size( 'rest-api-test' );
+
+		$this->assertEquals( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
+	}
+
+	public function test_get_item_sizes_with_no_url() {
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		), $this->test_file );
+
+		add_image_size( 'rest-api-test', 119, 119, true );
+		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $this->test_file ) );
+
+		add_filter( 'wp_get_attachment_image_src', '__return_false' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		remove_filter( 'wp_get_attachment_image_src', '__return_false' );
+		remove_image_size( 'rest-api-test' );
+
+		$this->assertFalse( isset( $data['media_details']['sizes']['rest-api-test']['source_url'] ) );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -273,10 +311,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/media/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 22, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
@@ -316,11 +354,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/media/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
-		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',

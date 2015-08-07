@@ -24,6 +24,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'     => $this->get_endpoint_args_for_item_schema( true ),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
 		register_rest_route( 'wp/v2', '/comments/(?P<id>[\d]+)', array(
@@ -51,11 +53,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'force'    => array(),
 				),
 			),
-		) );
 
-		register_rest_route( 'wp/v2', '/comments/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
@@ -243,13 +242,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'id'      => $id,
 			'context' => 'edit',
 		) );
-		$response = rest_ensure_response( $response );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment->comment_ID ) );
 
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**

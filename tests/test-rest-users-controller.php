@@ -41,15 +41,38 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'context', 'view' );
 		$response = $this->server->dispatch( $request );
-		$this->check_get_users_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$all_data = $response->get_data();
+		$data = $all_data[0];
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'view' );
 	}
 
-	public function test_get_items_without_permission() {
-		wp_set_current_user( $this->editor );
+	public function test_get_items_unauthenticated_only_shows_public_users() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( array(), $response->get_data() );
+
+		$this->factory->post->create( array( 'post_author' => $this->editor ) );
+		$this->factory->post->create( array( 'post_author' => $this->user, 'post_status' => 'draft' ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$users = $response->get_data();
+
+		foreach ( $users as $user ) {
+			$this->assertTrue( count_user_posts( $user['id'] ) > 0 );
+
+			// Ensure we don't expose non-public data
+			$this->assertArrayNotHasKey( 'capabilities', $user );
+			$this->assertArrayNotHasKey( 'email', $user );
+			$this->assertArrayNotHasKey( 'roles', $user );
+		}
 	}
 
 	/**
@@ -758,10 +781,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 
 		$this->assertEquals( 17, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_urls', $properties );
@@ -798,12 +821,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 
-		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
-		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 		if ( is_multisite() ) {
@@ -896,17 +920,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
 
-	}
-
-	protected function check_get_users_response( $response, $context = 'view' ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, $context );
 	}
 
 	protected function check_get_user_response( $response, $context = 'view' ) {

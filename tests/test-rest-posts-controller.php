@@ -50,11 +50,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
-			'type'           => 'post',
-			'year'           => 2008,
+			'filter' => array( 'year' => 2008 ),
 		) );
 		$response = $this->server->dispatch( $request );
-
 		$this->assertEquals( array(), $response->get_data() );
 		$this->assertEquals( 200, $response->get_status() );
 	}
@@ -181,12 +179,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $tag_link );
 		$this->assertNotEmpty( $cat_link );
 
-		$tags_url = rest_url( '/wp/v2/terms/tag' );
-		$tags_url = add_query_arg( 'post', $this->post_id, $tags_url );
+		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/tag' );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = rest_url( '/wp/v2/terms/category' );
-		$category_url = add_query_arg( 'post', $this->post_id, $category_url );
+		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/category' );
 		$this->assertEquals( $category_url, $cat_link['href'] );
 	}
 
@@ -1056,10 +1052,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 20, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
@@ -1098,12 +1094,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 
-		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
-		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 

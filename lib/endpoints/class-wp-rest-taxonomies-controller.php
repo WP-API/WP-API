@@ -8,22 +8,25 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route( 'wp/v2', '/taxonomies', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'args'            => array(
-				'post_type'   => array(
-					'sanitize_callback' => 'sanitize_key',
+			array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'args'            => array(
+					'post_type'   => array(
+						'sanitize_callback' => 'sanitize_key',
+					),
 				),
 			),
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
-		register_rest_route( 'wp/v2', '/taxonomies/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
-		) );
+
 		register_rest_route( 'wp/v2', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_item' ),
-			'permission_callback' => array( $this, 'get_item_permissions_check' ),
+			array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+			),
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
