@@ -50,11 +50,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
-			'type'           => 'post',
-			'year'           => 2008,
+			'filter' => array( 'year' => 2008 ),
 		) );
 		$response = $this->server->dispatch( $request );
-
 		$this->assertEquals( array(), $response->get_data() );
 		$this->assertEquals( 200, $response->get_status() );
 	}
