@@ -52,6 +52,8 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'                => $this->get_endpoint_args_for_item_schema( true ),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
 			array(

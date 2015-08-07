@@ -26,6 +26,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'                => $query_params,
 			),
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
 		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $this->taxonomy ), array(
