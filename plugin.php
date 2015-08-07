@@ -451,21 +451,18 @@ function rest_get_url_prefix() {
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
  */
-function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
+function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
+	if ( empty( $path ) ) {
+		$path = '/';
+	}
+
 	if ( get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
-
-		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false ) {
-			$url .= '/' . ltrim( $path, '/' );
-		}
+		$url .= '/' . ltrim( $path, '/' );
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
-		if ( empty( $path ) ) {
-			$path = '/';
-		} else {
-			$path = '/' . ltrim( $path, '/' );
-		}
+		$path = '/' . ltrim( $path, '/' );
 
 		$url = add_query_arg( 'rest_route', $path, $url );
 	}
