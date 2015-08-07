@@ -16,10 +16,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		$base = $this->posts_controller->get_post_type_base( $this->post_type );
+		$base     = $this->posts_controller->get_post_type_base( $this->post_type );
+		$tax_base = $this->terms_controller->get_taxonomy_base( $this->taxonomy );
 
 		$query_params = $this->get_collection_params();
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $this->taxonomy ), array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $tax_base), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -29,7 +30,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $this->taxonomy ), array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $tax_base ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
