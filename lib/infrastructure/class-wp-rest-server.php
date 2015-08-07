@@ -495,7 +495,9 @@ class WP_REST_Server {
 				}
 
 				// Embedded resources get passed context=embed
-				$query_params['context'] = 'embed';
+				if ( empty( $query_params['context'] ) ) {
+					$query_params['context'] = 'embed';
+				}
 
 				$request = new WP_REST_Request( 'GET', $parsed['path'] );
 				$request->set_query_params( $query_params );
