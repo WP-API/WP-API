@@ -20,7 +20,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$tax_base = $this->terms_controller->get_taxonomy_base( $this->taxonomy );
 
 		$query_params = $this->get_collection_params();
-		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $tax_base), array(
+		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s', $base, $tax_base ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
