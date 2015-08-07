@@ -124,7 +124,8 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			return $is_request_valid;
 		}
 
-		$tt_ids = wp_set_object_terms( $post->ID, $term_id, $this->taxonomy, true );
+		$term = get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy );
+		$tt_ids = wp_set_object_terms( $post->ID, $term->term_id, $this->taxonomy, true );
 
 		if ( is_wp_error( $tt_ids ) ) {
 			return $tt_ids;
