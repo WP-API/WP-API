@@ -109,7 +109,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	function test_rest_route_capability_authorization_fails() {
 		register_rest_route( 'test-ns', '/test', array(
-			'method'       => 'GET',
+			'methods'      => 'GET',
 			'callback'     => '__return_null',
 			'should_exist' => false,
 			'permission_callback' => array( $this, 'permission_denied' ),
@@ -466,7 +466,8 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 			),
 		) );
 
-		$index = rest_ensure_response( $server->get_index() );
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index = $server->dispatch( $request );
 		$data = $index->get_data();
 
 		$this->assertArrayHasKey( 'name', $data );
