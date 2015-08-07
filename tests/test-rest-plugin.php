@@ -250,4 +250,18 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		$this->assertEquals( 'tag', $taxonomy->rest_base );
 		$this->assertEquals( 'WP_REST_Terms_Controller', $taxonomy->rest_controller_class );
 	}
+
+	/**
+	 * The get_rest_url function should return a URL consistently terminated with a "/",
+	 * whether the blog is configured with pretty permalink support or not.
+	 */
+	public function test_rest_url_generation() {
+		// In pretty permalinks case, we expect a path of wp-json/ with no query
+		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+		$this->assertEquals( 'http://' . WP_TESTS_DOMAIN . '/wp-json/', get_rest_url() );
+
+		// In non-pretty case, we get a query string to invoke the rest router
+		update_option( 'permalink_structure', '' );
+		$this->assertEquals( 'http://' . WP_TESTS_DOMAIN . '/?rest_route=/', get_rest_url() );
+	}
 }
