@@ -26,6 +26,19 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'                => $query_params,
 			),
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'create_items' ),
+				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'                => array(
+					'ids'        => array(
+						'required'    => true,
+					),
+					'append'     => array(
+						'default'     => true,
+					),
+				),
+			),
 		) );
 
 		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/terms/%s/(?P<term_id>[\d]+)', $base, $this->taxonomy ), array(
@@ -108,6 +121,39 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$term = $this->terms_controller->prepare_item_for_response( get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ), $request );
 
 		$response = rest_ensure_response( $term );
+
+		return $response;
+	}
+
+	/**
+	 * Add multiple terms to a post
+	 *
+	 * @param  WP_REST_Request $request Full details about the request
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function create_items( $request ) {
+
+		$is_request_valid = $this->validate_request( $request );
+		if ( is_wp_error( $is_request_valid ) ) {
+			return $is_request_valid;
+		}
+
+		$post     = get_post( $request['post_id'] );
+		$tt_ids   = array_map( 'absint', $request['ids'] );
+		$term_ids = array();
+
+		foreach ( $tt_ids as $tt_id ) {
+			$term_ids[] = get_term_by( 'term_taxonomy_id', $tt_id, $this->taxonomy )->term_id;
+		}
+
+		$tt_ids = wp_set_object_terms( $post->ID, $term_ids, $this->taxonomy, (bool) $request['append'] );
+
+		if ( is_wp_error( $tt_ids ) ) {
+			return $tt_ids;
+		}
+
+		$response = $this->get_items( $request );
+		$response->set_status( 201 );
 
 		return $response;
 	}
@@ -203,6 +249,15 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 			if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
 				return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+			}
+		}
+
+		if ( ! empty( $request['ids'] ) ) {
+
+			foreach ( $request['ids'] as $term_id ) {
+				if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
+					return new WP_Error( 'rest_term_invalid', sprintf( __( "Term %d doesn't exist." ), $term_id ), array( 'status' => 404 ) );
+				}
 			}
 		}
 
