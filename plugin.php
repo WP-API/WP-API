@@ -627,7 +627,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
-		$data = $handler->get_data_for_route( $route, $endpoints, 'embed' );
+		$data = $handler->get_data_for_route( $route, $endpoints, 'help' );
 		$accept = array_merge( $accept, $data['methods'] );
 		break;
 	}
