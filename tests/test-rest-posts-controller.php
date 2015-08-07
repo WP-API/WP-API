@@ -1054,10 +1054,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 20, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
@@ -1096,12 +1096,13 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 
-		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
-		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 

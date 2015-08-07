@@ -22,10 +22,8 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/terms/category', $routes );
 		$this->assertArrayHasKey( '/wp/v2/terms/category/(?P<id>[\d]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/terms/category/schema', $routes );
 		$this->assertArrayHasKey( '/wp/v2/terms/tag', $routes );
 		$this->assertArrayHasKey( '/wp/v2/terms/tag/(?P<id>[\d]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/terms/tag/schema', $routes );
 	}
 
 	public function test_get_items() {
@@ -445,10 +443,10 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/terms/category' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 8, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'count', $properties );
@@ -462,10 +460,10 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_schema_non_hierarchical() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/terms/tag' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertFalse( isset( $properties['parent'] ) );
 	}

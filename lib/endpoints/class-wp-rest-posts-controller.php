@@ -48,6 +48,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => $this->get_endpoint_args_for_item_schema( true ),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
 			array(
@@ -76,10 +78,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					),
 				),
 			),
-		) );
-		register_rest_route( 'wp/v2', '/' . $base . '/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 

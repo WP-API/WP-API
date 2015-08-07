@@ -69,7 +69,12 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		'callback'        => null,
 		'args'            => array(),
 	);
-	foreach ( $args as &$arg_group ) {
+	foreach ( $args as $key => &$arg_group ) {
+		if ( ! is_numeric( $arg_group ) ) {
+			// Route option, skip here
+			continue;
+		}
+
 		$arg_group = array_merge( $defaults, $arg_group );
 	}
 
@@ -611,6 +616,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
 	}
 
 	$response = new WP_REST_Response();
+	$data = array();
 
 	$accept = array();
 
@@ -621,15 +627,13 @@ function rest_handle_options_request( $response, $handler, $request ) {
 			continue;
 		}
 
-		foreach ( $endpoints as $endpoint ) {
-			$accept = array_merge( $accept, $endpoint['methods'] );
-		}
+		$data = $handler->get_data_for_route( $route, $endpoints, 'help' );
+		$accept = array_merge( $accept, $data['methods'] );
 		break;
 	}
-	$accept = array_keys( $accept );
-
 	$response->header( 'Accept', implode( ', ', $accept ) );
 
+	$response->set_data( $data );
 	return $response;
 }
 

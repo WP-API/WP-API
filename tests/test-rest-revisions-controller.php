@@ -137,10 +137,10 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_get_item_schema() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/revisions/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$properties = $data['properties'];
+		$properties = $data['schema']['properties'];
 		$this->assertEquals( 12, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -157,13 +157,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	public function test_create_item() {
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/revisions' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_update_item() {
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/revisions/' . $this->revision_id1 );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
@@ -183,12 +183,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
 		) );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/revisions/schema' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 
-		$this->assertArrayHasKey( 'my_custom_int', $response->data['properties'] );
-		$this->assertEquals( $schema, $response->data['properties']['my_custom_int'] );
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 

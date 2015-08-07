@@ -18,14 +18,18 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/revisions', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_items' ),
-			'permission_callback' => array( $this, 'get_items_permissions_check' ),
-			'args'            => array(
-				'context'          => array(
-					'default'      => 'view',
+			array(
+				'methods'         => WP_REST_Server::READABLE,
+				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+					),
 				),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
 		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', array(
@@ -44,12 +48,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			),
-		));
 
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/revisions/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
-		) );
+			'schema' => array( $this, 'get_public_item_schema' ),
+		));
 
 	}
 

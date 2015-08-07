@@ -34,6 +34,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'        => $this->get_endpoint_args_for_item_schema( true ),
 			),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		));
 		register_rest_route( 'wp/v2', '/terms/' . $base . '/(?P<id>[\d]+)', array(
 			array(
@@ -52,10 +54,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'callback'   => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			),
-		) );
-		register_rest_route( 'wp/v2', '/terms/' . $base . '/schema', array(
-			'methods'         => WP_REST_Server::READABLE,
-			'callback'        => array( $this, 'get_public_item_schema' ),
+
+			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
 
