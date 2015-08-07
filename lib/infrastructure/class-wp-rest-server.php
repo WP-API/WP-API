@@ -15,22 +15,84 @@ require_once( ABSPATH . 'wp-admin/includes/admin.php' );
  * @package WordPress
  */
 class WP_REST_Server {
+	/**
+	 * GET transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_GET    = 'GET';
+
+	/**
+	 * POST transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_POST   = 'POST';
+
+	/**
+	 * PUT transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_PUT    = 'PUT';
+
+	/**
+	 * PATCH transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_PATCH  = 'PATCH';
+
+	/**
+	 * DELETE transport method.
+	 *
+	 * @var string
+	 */
 	const METHOD_DELETE = 'DELETE';
 
+	/**
+	 * Alias for GET transport method.
+	 *
+	 * @var string
+	 */
 	const READABLE   = 'GET';
+
+	/**
+	 * Alias for POST transport method.
+	 *
+	 * @var string
+	 */
 	const CREATABLE  = 'POST';
+
+	/**
+	 * Alias for GET, PUT, PATCH transport methods together.
+	 *
+	 * @var string
+	 */
 	const EDITABLE   = 'POST, PUT, PATCH';
+
+	/**
+	 * Alias for DELETE transport method.
+	 *
+	 * @var string
+	 */
 	const DELETABLE  = 'DELETE';
+
+	/**
+	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together.
+	 *
+	 * @var string
+	 */
 	const ALLMETHODS = 'GET, POST, PUT, PATCH, DELETE';
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
 	 */
 	const ACCEPT_RAW = 64;
+
+	/**
+	 * Does the endpoint accept encoded JSON?
+	 */
 	const ACCEPT_JSON = 128;
 
 	/**
@@ -170,7 +232,7 @@ class WP_REST_Server {
 		}
 		$error = compact( 'code', 'message' );
 
-		return json_encode( array( $error ) );
+		return wp_json_encode( array( $error ) );
 	}
 
 	/**
@@ -309,13 +371,13 @@ class WP_REST_Server {
 			// Embed links inside the request
 			$result = $this->response_to_data( $result, isset( $_GET['_embed'] ) );
 
-			$result = json_encode( $result );
+			$result = wp_json_encode( $result );
 
 			$json_error_message = $this->get_json_last_error();
 			if ( $json_error_message ) {
 				$json_error_obj = new WP_Error( 'rest_encode_error', $json_error_message, array( 'status' => 500 ) );
 				$result = $this->error_to_response( $json_error_obj );
-				$result = json_encode( $result->data[0] );
+				$result = wp_json_encode( $result->data[0] );
 			}
 
 			if ( isset( $_GET['_jsonp'] ) ) {
@@ -342,8 +404,12 @@ class WP_REST_Server {
 		if ( ! empty( $links ) ) {
 			// Convert links to part of the data
 			$data['_links'] = $links;
-
-			if ( $embed ) {
+		}
+		if ( $embed ) {
+			// Is this a numeric array?
+			if ( rest_is_list( $data ) ) {
+				$data = array_map( array( $this, 'embed_links' ), $data );
+			} else {
 				$data = $this->embed_links( $data );
 			}
 		}

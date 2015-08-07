@@ -101,7 +101,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 			'has_body_params' => true,
 		) );
 
-		$json_data = json_encode( array(
+		$json_data = wp_json_encode( array(
 			'source'          => 'json',
 			'has_json_params' => true,
 		) );
@@ -237,7 +237,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_method( 'PUT' );
 		$this->request->add_header( 'content-type', 'application/json' );
-		$this->request->set_body( json_encode( $data ) );
+		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
 			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );
@@ -259,7 +259,7 @@ class WP_Test_REST_Request extends WP_UnitTestCase {
 
 		$this->request->set_method( 'POST' );
 		$this->request->add_header( 'content-type', 'application/json' );
-		$this->request->set_body( json_encode( $data ) );
+		$this->request->set_body( wp_json_encode( $data ) );
 
 		foreach ( $data as $key => $expected_value ) {
 			$this->assertEquals( $expected_value, $this->request->get_param( $key ) );

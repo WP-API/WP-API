@@ -6,12 +6,16 @@
 	convertNoticesToExceptions="true"
 	convertWarningsToExceptions="true"
 	>
+	<php>
+		<const name="WP_TESTS_MULTISITE" value="1" />
+	</php>
 	<testsuites>
 		<!-- Default test suite to run all tests -->
 		<testsuite>
 			<directory prefix="test-" suffix=".php">tests</directory>
 		</testsuite>
 	</testsuites>
+
 	<filter>
 		<blacklist>
 			<directory suffix=".php">.</directory>
