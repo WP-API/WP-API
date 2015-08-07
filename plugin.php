@@ -456,7 +456,7 @@ function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
 
 		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false ) {
-			$url .= '/' . ltrim( $path, '/' );
+			$url .= ltrim( $path, '/' );
 		}
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
