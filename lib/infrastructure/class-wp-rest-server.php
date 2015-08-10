@@ -494,7 +494,7 @@ class WP_REST_Server {
 				$request->set_query_params( $query_params );
 				$response = $this->dispatch( $request );
 
-				$embeds[] = $response;
+				$embeds[] = $this->response_to_data( $response, false );
 			}
 
 			// Did we get any real links?
