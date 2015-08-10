@@ -203,7 +203,7 @@ class WP_JSON_Server implements WP_JSON_ResponseHandler {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W\./', $_GET['_jsonp'] ) ) {
+			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/[^a-zA-Z0-9._]/', $_GET['_jsonp'] ) ) {
 				echo $this->json_error( 'json_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
