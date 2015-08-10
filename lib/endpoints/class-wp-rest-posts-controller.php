@@ -527,7 +527,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars
-		$rest_valid = array( 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
+		$rest_valid = array( 'posts_per_page', 'ignore_sticky_posts', 'post_parent', 'offset' );
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
