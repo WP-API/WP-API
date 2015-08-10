@@ -136,7 +136,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( isset( $request['post'] ) ) {
-			$prepared_attachment->post_parent = (int) $request['post_parent'];
+			$prepared_attachment->post_parent = (int) $request['post'];
 		}
 
 		return $prepared_attachment;
