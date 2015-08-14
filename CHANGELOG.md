@@ -1,5 +1,238 @@
 # Changelog
 
+## 2.0 Beta 4.0
+
+- Show public user information through the user controller.
+
+  In WordPress as of [r32683](https://core.trac.wordpress.org/changeset/32683) (scheduled for 4.3), `WP_User_Query` now has support for getting users with published posts.
+
+  To match current behaviour in WordPress themes and feeds, we now expose this public user information. This includes the avatar, description, user ID, custom URL, display name, and URL, for users who have published at least one post on the site. This information is available to all clients; other fields and data for all users are still only available when authenticated.
+
+  (props @joehoyle, @rmccue, @Shelob9, [#1397][gh-1397], [#839][gh-839], [#1435][gh-1435])
+
+- Send schema in OPTIONS requests and index.
+
+  Rather than using separate `/schema` endpoints, the schema for items is now available through an OPTIONS request to the route. This means that full documentation is now available for endpoints through an OPTIONS request; this includes available methods, what data you can pass to the endpoint, and the data you'll get back.
+
+  This data is now also available in the main index and namespace indexes. Simply request the index with `context=help` to get full schema data. Warning: this response will be huge. The schema for single endpoints is also available in the collection's OPTIONS response.
+
+  **⚠️ This breaks backwards compatibility** for clients relying on schemas being at their own routes. These clients should instead send `OPTIONS` requests.
+
+  Custom endpoints can register their own schema via the `schema` option on the route. This option should live side-by-side with the endpoints (similar to `relation` in WP's meta queries), so your registration call will look something like:
+
+  ```php
+  register_rest_route( 'test-ns', '/test', array(
+    array(
+      'methods' => 'GET',
+      'callback' => 'my_test_callback',
+    ),
+
+    'schema' => 'my_schema_callback',
+  ) );
+  ```
+
+  (props @rmccue, [#1415][gh-1415], [#1222][gh-1222], [#1305][gh-1305])
+
+- Update JavaScript API for version 2.
+
+  Our fantastic JavaScript API from version 1 is now available for version 2, refreshed with the latest and greatest changes.
+
+  As a refresher: if you want to use it, simply make your script depend on `wp-api` when you enqueue it. If you want to enqueue the script manually, add `wp_enqueue_script( 'wp-api' )` to a callback on `wp_enqueue_scripts`.
+
+  (props @tlovett1, @kadamwhite, @nathanrice, [#1374][gh-1374], [#1320][gh-1320])
+
+- Embed links inside items in a collection.
+
+  Previously when fetching a collection of items, you only received the items themselves. To fetch the links as well via embedding, you needed to make a request to the single item with `_embed` set.
+
+  No longer! You can now request a collection with embeds enabled (try `/wp/v2/posts?_embed`). This will embed links inside each item, allowing you to build interface items much easier (for example, post archive pages can get featured image data at the same time).
+
+  This also applies to custom endpoints. Any endpoint that returns a list of objects will automatically have the embedding applied to objects inside the list.
+
+  (props @rmccue, [#1459][gh-1459], [#865][gh-865])
+
+- Fix potential XSS vulnerability.
+
+  Requests from other origins could potentially run code on the API domain, allowing cross-origin access to authentication cookies or similar.
+
+  Reported by @xknown on 2015-07-23.
+
+- Move `/posts` `WP_Query` vars back to `filter` param.
+
+  In version 1, we had internal `WP_Query` vars available via `filter` (e.g. `filter[s]=search+term`). For our first betas of version 2, we tried something different and exposed these directly on the endpoint. The experiment has now concluded; we didn't like this that much, so `filter` is back.
+
+  We plan on adding nicer looking arguments to collections in future releases, with a view towards being consistent across different collections. We also plan on opening up the underlying query vars via `filter` for users, comments, and terms as well.
+
+  **⚠️ This breaks backwards compatibility** for users using WP Query vars. Simply change your `x=y` parameter to `filter[x]=y`.
+
+  (props @WP-API, [#1420][gh-1420])
+
+- Respect `rest_base` for taxonomies.
+
+  **⚠️ This breaks backwards compatibility** by changing the `/wp/v2/posts/{id}/terms/post_tag` endpoint to `/wp/v2/posts/{id}/tag`.
+
+  (props @joehoyle, [#1466][gh-1466])
+
+- Add permission check for retrieving the posts collection in edit context.
+
+  By extension of the fact that getting any individual post yields a forbidden context error when the `context=edit` and the user is not authorized, the user should also not be permitted to list any post items when unauthorized.
+
+  (props @danielpunkass, [#1412][gh-1412])
+
+- Ensure the REST API URL always has a trailing slash.
+
+  Previously, when pretty permalinks were enabled, the API URL during autodiscovery looked like `/wp-json`, whereas the non-pretty permalink URL looked like `?rest_route=/`. These are now consistent, and always end with a slash character to simplify client URL building.
+
+  (props @danielpunkass, @rmccue, [#1426][gh-1426], [#1442][gh-1442], [#1455][gh-1455], [#1467][gh-1467])
+
+- Use `wp_json_encode` instead of `json_encode`
+
+  Since WordPress 4.1, `wp_json_encode` has been available to ensure encoded values are sane, and that non-UTF8 encodings are supported. We now use this function rather than doing the encode ourselves.
+
+  (props @rmccue, @pento, [#1417][gh-1417])
+
+- Add `role` to schema for users.
+
+  The available roles you can assign to a user are now available in the schema as an `enum`.
+
+  (props @joehoyle, [#1400][gh-1400])
+
+- Use the schema for validation inside the comments controller.
+
+  Previously, the schema was merely a decorative element for documentation inside the comments controller. To bring it inline with our other controllers, the schema is now used internally for validation.
+
+  (props @joehoyle, [#1422][gh-1422])
+
+- Don't set the Location header in update responses.
+
+  Previously, the Location header was sent when updating resources due to some inadvertent copypasta. This header should only be sent when creating to direct clients to the new resource, and isn't required when you're already on the correct resource.
+
+  (props @rachelbaker, [#1441][gh-1441])
+
+- Re-enable the `rest_insert_post` action hook for `WP_REST_Posts_Controller`
+
+  This was disabled during 2.0 development to avoid breaking lots of plugins on the `json_insert_post` action. Now that we've changed namespaces and are Mostly Stable (tm), we can re-enable the action.
+
+  (props @jaredcobb, [#1427][gh-1427], [#1424][gh-1424])
+
+- Fix post taxonomy terms link URLs.
+
+  When moving the routes in a previous beta, we forgot to correct the links on post objects to the new correct route. Sorry!
+
+  (props @rachelbaker, @joehoyle, [#1447][gh-1447], [#1383][gh-1383])
+
+- Use `wp_get_attachment_image_src()` on the image sizes in attachments.
+
+  Since the first versions of the API, we've been building attachment URLs via `str_replace`. Who knows why we were doing this, but it caused problems with custom attachment URLs (such as CDN-hosted images). This now correctly uses the internal functions and filters.
+
+  (props @joehoyle, [#1462][gh-1462])
+
+- Make the embed context a default, not forced.
+
+  If you want embeds to bring in full data rather than with `context=edit`, you can now change the link to specify `context=view` explicitly.
+
+  (props @rmccue, [#1464][gh-1464])
+
+- Ensure we always use the `term_taxonomy_id` and never expose `term_id` publicly.
+
+  Previously, `term_id` was inadvertently exposed in some error responses.
+
+  (props @jdolan, [#1430][gh-1430])
+
+- Fix adding alt text to attachments on creation.
+
+  Previously, this could only be set when updating an attachment, not when creating one.
+
+  (props @joehoyle, [#1398][gh-1398])
+
+- Throw an error when registering routes without a namespace.
+
+  Namespaces should **always** be provided when registering routes. We now throw a `doing_it_wrong` error when attempting to register one. (Previously, this caused a warning, or an invalid internal route.)
+
+  If you *really* need to register namespaceless routes (e.g. to replicate an existing API), call `WP_REST_Server::register_route` directly rather than using the convenience function.
+
+  (props @joehoyle, @rmccue, [#1355][gh-1355])
+
+- Show links on embeds.
+
+  Previously, links were accidentally stripped from embedded response data.
+
+  (props @rmccue, [#1472][gh-1472])
+
+- Clarify insufficient permisssion error when editing posts.
+
+  (props @danielpunkass, [#1411][gh-1411])
+
+- Improve @return inline docs for rest_ensure_response()
+
+  (props @Shelob9, [#1328][gh-1328])
+
+- Check taxonomies exist before trying to set properties.
+
+  (props @joehoyle, @rachelbaker, [#1354][gh-1354])
+
+- Update controllers to ensure we use `sanitize_callback` wherever possible.
+
+  (props @joehoyle, [#1399][gh-1399])
+
+- Add more phpDoc documentation, and correct existing documentation.
+
+  (props @Shelob9, @rmccue, [#1432][gh-1432], [#1433][gh-1433], [#1465][gh-1465])
+
+- Update testing infrastructure.
+
+  Travis now runs our coding standards tests in parallel, and now uses the new, faster container-based testing infrastructure.
+
+  (props @ntwb, @frozzare, [#1449][gh-1449], [#1457][gh-1457])
+
+[View all changes](https://github.com/WP-API/WP-API/compare/2.0-beta3...2.0-beta4)
+
+[gh-839]: https://github.com/WP-API/WP-API/issues/839
+[gh-865]: https://github.com/WP-API/WP-API/issues/865
+[gh-1222]: https://github.com/WP-API/WP-API/issues/1222
+[gh-1305]: https://github.com/WP-API/WP-API/issues/1305
+[gh-1310]: https://github.com/WP-API/WP-API/issues/1310
+[gh-1320]: https://github.com/WP-API/WP-API/issues/1320
+[gh-1328]: https://github.com/WP-API/WP-API/issues/1328
+[gh-1354]: https://github.com/WP-API/WP-API/issues/1354
+[gh-1355]: https://github.com/WP-API/WP-API/issues/1355
+[gh-1372]: https://github.com/WP-API/WP-API/issues/1372
+[gh-1374]: https://github.com/WP-API/WP-API/issues/1374
+[gh-1383]: https://github.com/WP-API/WP-API/issues/1383
+[gh-1397]: https://github.com/WP-API/WP-API/issues/1397
+[gh-1398]: https://github.com/WP-API/WP-API/issues/1398
+[gh-1399]: https://github.com/WP-API/WP-API/issues/1399
+[gh-1400]: https://github.com/WP-API/WP-API/issues/1400
+[gh-1402]: https://github.com/WP-API/WP-API/issues/1402
+[gh-1411]: https://github.com/WP-API/WP-API/issues/1411
+[gh-1412]: https://github.com/WP-API/WP-API/issues/1412
+[gh-1413]: https://github.com/WP-API/WP-API/issues/1413
+[gh-1415]: https://github.com/WP-API/WP-API/issues/1415
+[gh-1417]: https://github.com/WP-API/WP-API/issues/1417
+[gh-1420]: https://github.com/WP-API/WP-API/issues/1420
+[gh-1422]: https://github.com/WP-API/WP-API/issues/1422
+[gh-1424]: https://github.com/WP-API/WP-API/issues/1424
+[gh-1426]: https://github.com/WP-API/WP-API/issues/1426
+[gh-1427]: https://github.com/WP-API/WP-API/issues/1427
+[gh-1430]: https://github.com/WP-API/WP-API/issues/1430
+[gh-1432]: https://github.com/WP-API/WP-API/issues/1432
+[gh-1433]: https://github.com/WP-API/WP-API/issues/1433
+[gh-1435]: https://github.com/WP-API/WP-API/issues/1435
+[gh-1441]: https://github.com/WP-API/WP-API/issues/1441
+[gh-1442]: https://github.com/WP-API/WP-API/issues/1442
+[gh-1447]: https://github.com/WP-API/WP-API/issues/1447
+[gh-1449]: https://github.com/WP-API/WP-API/issues/1449
+[gh-1455]: https://github.com/WP-API/WP-API/issues/1455
+[gh-1455]: https://github.com/WP-API/WP-API/issues/1455
+[gh-1457]: https://github.com/WP-API/WP-API/issues/1457
+[gh-1459]: https://github.com/WP-API/WP-API/issues/1459
+[gh-1462]: https://github.com/WP-API/WP-API/issues/1462
+[gh-1464]: https://github.com/WP-API/WP-API/issues/1464
+[gh-1465]: https://github.com/WP-API/WP-API/issues/1465
+[gh-1466]: https://github.com/WP-API/WP-API/issues/1466
+[gh-1467]: https://github.com/WP-API/WP-API/issues/1467
+[gh-1472]: https://github.com/WP-API/WP-API/issues/1472
+
 ## 2.0 Beta 3.0
 
 - Add ability to declare sanitization and default options for schema fields.
