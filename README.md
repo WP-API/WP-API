@@ -27,7 +27,7 @@ Retrieving or updating data is as simple as sending a HTTP request.
 
 Want to get your site's posts? Simply send a `GET` request to `/wp-json/wp/v2/posts`.
 Update user with ID 4? Send a `POST` request to `/wp-json/wp/v2/users/4`. Get all
-posts with the search term "awesome"? `GET /wp-json/wp/v2/posts?s=awesome`.
+posts with the search term "awesome"? `GET /wp-json/wp/v2/posts?filter[s]=awesome`.
 It's that easy.
 
 WP API exposes a simple yet easy interface to WP Query, the posts API, post meta
@@ -50,8 +50,7 @@ There's no fixed timeline for integration into core at this time, but getting cl
 Drop this directory in and activate it. You need to be using pretty permalinks
 to use the plugin, as it uses custom rewrite rules to power the API.
 
-Also, be sure to use the `trunk` branch of WordPress Core as there are potentially
-recent commits to Core that the REST API relies on.
+Also, be sure to use the Subversion `trunk` branch of WordPress Core as there are potentially recent commits to Core that the REST API relies on. See the [WordPress.org website](https://wordpress.org/download/svn/) for simple instructions.
 
 ## Issue Tracking
 
