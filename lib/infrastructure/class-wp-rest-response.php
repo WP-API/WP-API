@@ -58,18 +58,18 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 */
 	public function remove_link( $rel, $href = null ) {
 
-		if ( ! isset( $this->links[$rel] ) ) {
+		if ( ! isset( $this->links[ $rel ] ) ) {
 			return;
 		}
 
 		if ( $href	 ) {
-			$this->links[$rel] = wp_list_filter( $this->links[$rel], array( 'href' => $href ), 'NOT' );
+			$this->links[ $rel ] = wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' );
 		} else {
-			$this->links[$rel] = array();
+			$this->links[ $rel ] = array();
 		}
 
-		if ( ! $this->links[$rel] ) {
-			unset( $this->links[$rel] );
+		if ( ! $this->links[ $rel ] ) {
+			unset( $this->links[ $rel ] );
 		}
 	}
 
