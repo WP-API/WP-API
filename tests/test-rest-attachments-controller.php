@@ -111,10 +111,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params( array(
-			'file'     => file_get_contents( $this->test_file ),
-			'name'     => 'canola.jpg',
-			'size'     => filesize( $this->test_file ),
-			'tmp_name' => $this->test_file,
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
 		) );
 		$request->set_header( 'Content-MD5', md5_file( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
@@ -162,10 +164,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params( array(
-			'file'     => file_get_contents( $this->test_file ),
-			'name'     => 'canola.jpg',
-			'size'     => filesize( $this->test_file ),
-			'tmp_name' => $this->test_file,
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
 		) );
 		$request->set_header( 'Content-MD5', 'abc123' );
 		$response = $this->server->dispatch( $request );
