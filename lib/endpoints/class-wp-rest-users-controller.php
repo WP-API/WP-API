@@ -340,6 +340,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$get_request->set_param( 'context', 'edit' );
 		$orig_user = $this->prepare_item_for_response( $user, $get_request );
 
+		$data = $orig_user->get_data();
+		$data = array(
+			'data'    => $data,
+			'deleted' => true,
+		);
+		$orig_user->set_data( $data );
+
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
