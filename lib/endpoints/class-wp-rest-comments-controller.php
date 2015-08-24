@@ -287,7 +287,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$status = 'trashed';
 		}
 
-		$response = $this->prepare_item_for_response( $comment, $get_request, $status );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
+
+		if ( in_array( $status, array( 'trashed', 'deleted' ), true ) ) {
+			$data = $response->get_data();
+			$data = array(
+				'data'  => $data,
+				$status => true,
+			);
+			$response->set_data( $data );
+		}
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
@@ -427,10 +436,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @param  object          $comment Comment object.
 	 * @param  WP_REST_Request $request Request object.
-	 * @param  string          $status  Status of the comment.
 	 * @return array $fields
 	 */
-	public function prepare_item_for_response( $comment, $request, $status = '' ) {
+	public function prepare_item_for_response( $comment, $request ) {
 		$data = array(
 			'id'                 => (int) $comment->comment_ID,
 			'post'               => (int) $comment->comment_post_ID,
@@ -457,13 +465,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
-
-		if ( in_array( $status, array( 'trashed', 'deleted' ), true ) ) {
-			$data = array(
-				'data'  => $data,
-				$status => true,
-			);
-		}
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
