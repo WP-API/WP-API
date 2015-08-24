@@ -260,6 +260,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$get_request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $get_request );
 
+		$data = $response->get_data();
+		$data = array(
+			'data'    => $data,
+			'deleted' => true,
+		);
+		$response->set_data( $data );
+
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
 		if ( ! $retval ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.' ), array( 'status' => 500 ) );
