@@ -250,7 +250,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Delete a single term from a taxonomy
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return null
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public function delete_item( $request ) {
 
