@@ -685,6 +685,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $this->post_id, $data['data']['post'] );
+		$this->assertTrue( $data['trashed'] );
 	}
 
 	public function test_delete_comment_invalid_id() {

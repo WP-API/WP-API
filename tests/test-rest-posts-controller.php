@@ -1011,6 +1011,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'Deleted post', $data['data']['title']['raw'] );
+		$this->assertTrue( $data['trashed'] );
 	}
 
 	public function test_delete_post_invalid_id() {

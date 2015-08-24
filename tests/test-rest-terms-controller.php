@@ -390,6 +390,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'Deleted Category', $data['data']['name'] );
+		$this->assertTrue( $data['deleted'] );
 	}
 
 	public function test_delete_item_invalid_taxonomy() {
