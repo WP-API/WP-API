@@ -250,7 +250,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Delete a comment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|array
+	 * @return WP_Error|WP_REST_Response $response
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];

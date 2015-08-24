@@ -447,7 +447,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @param object $user User object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return array $data Response data.
+	 * @return WP_REST_Response $data Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$data = array(
