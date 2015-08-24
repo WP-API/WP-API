@@ -272,8 +272,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
 		$get_request->set_param( 'context', 'edit' );
 
-		$status = '';
-
 		if ( $force ) {
 			$result = wp_delete_comment( $comment->comment_ID, true );
 			$status = 'deleted';
@@ -289,14 +287,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$response = $this->prepare_item_for_response( $comment, $get_request );
 
-		if ( in_array( $status, array( 'trashed', 'deleted' ), true ) ) {
-			$data = $response->get_data();
-			$data = array(
-				'data'  => $data,
-				$status => true,
-			);
-			$response->set_data( $data );
-		}
+		$data = $response->get_data();
+		$data = array(
+			'data'  => $data,
+			$status => true,
+		);
+		$response->set_data( $data );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );

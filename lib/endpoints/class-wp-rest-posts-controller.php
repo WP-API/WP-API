@@ -341,8 +341,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$request->set_param( 'context', 'edit' );
 		$response = rest_do_request( $request );
 
-		$status = '';
-
 		// If we're forcing, then delete permanently
 		if ( $force ) {
 			$result = wp_delete_post( $id, true );
@@ -368,14 +366,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		if ( in_array( $status, array( 'trashed', 'deleted' ), true ) ) {
-			$data = $response->get_data();
-			$data = array(
-				'data'  => $data,
-				$status => true,
-			);
-			$response->set_data( $data );
-		}
+		$data = $response->get_data();
+		$data = array(
+			'data'  => $data,
+			$status => true,
+		);
+		$response->set_data( $data );
 
 		return $response;
 	}
