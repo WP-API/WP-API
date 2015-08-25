@@ -271,6 +271,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
 		$get_request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $get_request );
 
 		if ( $force ) {
 			$result = wp_delete_comment( $comment->comment_ID, true );
@@ -284,8 +285,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$result = wp_trash_comment( $comment->comment_ID );
 			$status = 'trashed';
 		}
-
-		$response = $this->prepare_item_for_response( $comment, $get_request );
 
 		$data = $response->get_data();
 		$data = array(
