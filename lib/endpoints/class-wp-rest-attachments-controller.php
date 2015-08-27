@@ -352,8 +352,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Verify hash, if given
-		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
-			$expected = trim( $headers['CONTENT_MD5'] );
+		if ( ! empty( $headers['content_md5'] ) ) {
+			$content_md5 = array_shift( $headers['content_md5'] );
+			$expected = trim( $content_md5 );
 			$actual = md5_file( $files['file']['tmp_name'] );
 			if ( $expected !== $actual ) {
 				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
