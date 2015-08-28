@@ -18,16 +18,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$posts_args = array(
 			'context'               => array(
 				'default'           => 'view',
+				'description'       => 'Defines which properties to project',
+				'accepts'           => array( 'view', 'embed', 'edit' ),
 			),
 			'page'                  => array(
 				'default'           => 1,
 				'sanitize_callback' => 'absint',
+				'description'       => 'Number of page to load',
 			),
 			'per_page'              => array(
 				'default'           => 10,
 				'sanitize_callback' => 'absint',
+				'description'       => 'Quantity of posts to fetch per page',
 			),
-			'filter'                => array(),
+			'filter'                => array(
+				'description'       => 'Filter to apply to the query',
+			),
 		);
 
 		register_rest_route( 'wp/v2', '/' . $base, array(
