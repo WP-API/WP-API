@@ -54,6 +54,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args' => array(
+					'force'    => array(
+						'default' => false,
+					),
 					'reassign' => array(),
 				),
 			),
