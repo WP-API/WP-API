@@ -76,7 +76,11 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'methods'             => WP_REST_Server::DELETABLE,
 				'callback'            => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-				'args'                => array(),
+				'args'                => array(
+					'force' => array(
+						'default' => false,
+					),
+				),
 			),
 
 			'schema' => array( $this, 'get_public_item_schema' ),
