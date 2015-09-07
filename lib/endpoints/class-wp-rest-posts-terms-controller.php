@@ -42,9 +42,14 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 			),
 			array(
-				'methods'         => WP_REST_Server::DELETABLE,
-				'callback'        => array( $this, 'delete_item' ),
+				'methods'             => WP_REST_Server::DELETABLE,
+				'callback'            => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'args'                => array(
+					'force' => array(
+						'default' => false,
+					),
+				),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -149,10 +154,10 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$post     = get_post( absint( $request['post_id'] ) );
 		$term_id  = absint( $request['term_id'] );
-		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force    = (bool) $request['force'];
 
 		// We don't support trashing for this type, error out
-		if ( ! $force ) {
+		if ( $force ) {
 			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
 		}
 

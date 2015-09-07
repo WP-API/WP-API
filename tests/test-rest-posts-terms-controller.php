@@ -199,11 +199,22 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
-		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertFalse( is_object_in_term( $this->post_id, 'post_tag', $tag['term_id'] ) );
+	}
+
+	public function test_delete_item_invalid_force() {
+		wp_set_current_user( $this->admin_id );
+		$tag = wp_insert_term( 'test-tag', 'post_tag' );
+		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
+		$request['force'] = true;
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_trash_not_supported', $response, 501 );
 	}
 
 	public function test_delete_item_invalid_permission() {
@@ -211,7 +222,6 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/tag/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
-		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
@@ -223,7 +233,6 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
-		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -235,7 +244,6 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/invalid_taxonomy/%d', $this->post_id, $tag['term_taxonomy_id'] ) );
-		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -247,7 +255,6 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/terms/tag/%d', 9999, $tag['term_taxonomy_id'] ) );
-		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
