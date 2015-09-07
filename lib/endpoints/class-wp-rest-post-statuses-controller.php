@@ -150,5 +150,4 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			);
 		return $this->add_additional_fields_schema( $schema );
 	}
-
 }

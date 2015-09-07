@@ -128,5 +128,4 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
 	}
-
 }

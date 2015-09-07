@@ -539,5 +539,4 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertContains( 'test/example', $namespaces );
 		$this->assertContains( 'test/another', $namespaces );
 	}
-
 }

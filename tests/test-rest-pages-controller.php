@@ -238,5 +238,4 @@ EOT;
 		$args['type'] = 'page';
 		return $args;
 	}
-
 }

@@ -117,5 +117,4 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$obj = get_post_type_object( 'post' );
 		$this->check_post_type_obj( $obj, $data );
 	}
-
 }

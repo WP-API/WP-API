@@ -64,5 +64,4 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 
 		return $schema;
 	}
-
 }

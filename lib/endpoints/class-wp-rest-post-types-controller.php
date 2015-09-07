@@ -127,5 +127,4 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			);
 		return $this->add_additional_fields_schema( $schema );
 	}
-
 }

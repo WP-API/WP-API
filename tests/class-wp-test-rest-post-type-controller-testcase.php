@@ -226,5 +226,4 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			),
 		) ) );
 	}
-
 }

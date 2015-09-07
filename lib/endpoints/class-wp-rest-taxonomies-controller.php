@@ -163,5 +163,4 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			);
 		return $this->add_additional_fields_schema( $schema );
 	}
-
 }

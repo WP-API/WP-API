@@ -786,7 +786,7 @@ class WP_REST_Server {
 	 *
 	 * @return boolean|string Boolean false or string error message
 	 */
-	protected function get_json_last_error( ) {
+	protected function get_json_last_error() {
 		// see https://core.trac.wordpress.org/ticket/27799
 		if ( ! function_exists( 'json_last_error' ) ) {
 			return false;
