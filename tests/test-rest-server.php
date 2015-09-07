@@ -448,6 +448,25 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		return $data;
 	}
 
+	public function test_removing_links() {
+		$response = new WP_REST_Response();
+		$response->add_link( 'self', 'http://example.com/' );
+		$response->add_link( 'alternate', 'http://example.org/', array( 'type' => 'application/xml' ) );
+
+		$response->remove_link( 'self' );
+
+		$data = $this->server->response_to_data( $response, false );
+		$this->assertArrayHasKey( '_links', $data );
+
+		$this->assertArrayNotHasKey( 'self', $data['_links'] );
+
+		$alternate = array(
+			'href' => 'http://example.org/',
+			'type' => 'application/xml',
+		);
+		$this->assertEquals( $alternate, $data['_links']['alternate'][0] );
+	}
+
 	public function test_get_index() {
 		$server = new WP_REST_Server();
 		$server->register_route( 'test/example', '/test/example/some-route', array(
