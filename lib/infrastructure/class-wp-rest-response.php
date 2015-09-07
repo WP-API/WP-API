@@ -30,9 +30,10 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @link http://tools.ietf.org/html/rfc5988
 	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $rel Link relation. Either an IANA registered type, or an absolute URL
-	 * @param string $link Target IRI for the link
-	 * @param array $attributes Link parameters to send along with the URL
+	 * @param string $rel        Link relation. Either an IANA registered type,
+	 *                           or an absolute URL.
+	 * @param string $href       Target URI for the link.
+	 * @param array  $attributes Link parameters to send along with the URL.
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
@@ -48,6 +49,30 @@ class WP_REST_Response extends WP_HTTP_Response {
 			'href'       => $href,
 			'attributes' => $attributes,
 		);
+	}
+
+	/**
+	 * Remove a link from the response.
+	 *
+	 * @param  string $rel  Link relation. Either an IANA registered type, or
+	 *                      an absolute URL.
+	 * @param  string $href Optional. Only remove links for the relation
+	 *                      matching the given href. Default null.
+	 */
+	public function remove_link( $rel, $href = null ) {
+		if ( ! isset( $this->links[ $rel ] ) ) {
+			return;
+		}
+
+		if ( $href ) {
+			$this->links[ $rel ] = wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' );
+		} else {
+			$this->links[ $rel ] = array();
+		}
+
+		if ( ! $this->links[ $rel ] ) {
+			unset( $this->links[ $rel ] );
+		}
 	}
 
 	/**
