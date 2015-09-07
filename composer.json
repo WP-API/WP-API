@@ -18,7 +18,7 @@
         "composer/installers": "~1.0"
     },
     "require-dev": {
-        "wp-coding-standards/wpcs": "dev-develop"
+        "wp-coding-standards/wpcs": "0.6.0"
     },
     "extra": {
         "installer-name": "json-rest-api"
