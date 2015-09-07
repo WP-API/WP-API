@@ -322,7 +322,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		// We don't support trashing for this type, error out
 		if ( ! $force ) {
-			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
+			return new WP_Error( 'rest_trash_not_supported', __( 'Users do not support trashing.' ), array( 'status' => 501 ) );
 		}
 
 		$user = get_userdata( $id );
