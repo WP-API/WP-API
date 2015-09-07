@@ -52,18 +52,19 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Remove a link from the response
+	 * Remove a link from the response.
 	 *
-	 * @param  string $rel   Link relation. Either an IANA registered type, or an absolute URL
-	 * @param  string $href  Optional. Only remove a links for the relation matching the given href
+	 * @param  string $rel  Link relation. Either an IANA registered type, or
+	 *                      an absolute URL.
+	 * @param  string $href Optional. Only remove links for the relation
+	 *                      matching the given href. Default null.
 	 */
 	public function remove_link( $rel, $href = null ) {
-
 		if ( ! isset( $this->links[ $rel ] ) ) {
 			return;
 		}
 
-		if ( $href	 ) {
+		if ( $href ) {
 			$this->links[ $rel ] = wp_list_filter( $this->links[ $rel ], array( 'href' => $href ), 'NOT' );
 		} else {
 			$this->links[ $rel ] = array();
