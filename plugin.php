@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta3
+ * Version: 2.0-beta4
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -14,7 +14,7 @@
  *
  * @var string
  */
-define( 'REST_API_VERSION', '2.0-beta3' );
+define( 'REST_API_VERSION', '2.0-beta4' );
 
 /**
  * Include our files for the API.
@@ -78,7 +78,17 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		$arg_group = array_merge( $defaults, $arg_group );
 	}
 
-	$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+	if ( $namespace ) {
+		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
+	} else {
+		// Non-namespaced routes are not allowed, with the exception of the main
+		// and namespace indexes. If you really need to register a
+		// non-namespaced route, call `WP_REST_Server::register_route` directly.
+		_doing_it_wrong( 'register_rest_route', 'Routes must be namespaced with plugin name and version', 'WPAPI-2.0' );
+
+		$full_route = '/' . trim( $route, '/' );
+	}
+
 	$wp_rest_server->register_route( $namespace, $full_route, $args, $override );
 }
 
@@ -451,21 +461,18 @@ function rest_get_url_prefix() {
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
  */
-function get_rest_url( $blog_id = null, $path = '', $scheme = 'json' ) {
+function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
+	if ( empty( $path ) ) {
+		$path = '/';
+	}
+
 	if ( get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
-
-		if ( ! empty( $path ) && is_string( $path ) && strpos( $path, '..' ) === false ) {
-			$url .= '/' . ltrim( $path, '/' );
-		}
+		$url .= '/' . ltrim( $path, '/' );
 	} else {
 		$url = trailingslashit( get_home_url( $blog_id, '', $scheme ) );
 
-		if ( empty( $path ) ) {
-			$path = '/';
-		} else {
-			$path = '/' . ltrim( $path, '/' );
-		}
+		$path = '/' . ltrim( $path, '/' );
 
 		$url = add_query_arg( 'rest_route', $path, $url );
 	}

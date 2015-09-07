@@ -267,7 +267,7 @@ class WP_REST_Server {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/\W\./', $_GET['_jsonp'] ) ) {
+			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/[^\w\.]/', $_GET['_jsonp'] ) ) {
 				echo $this->json_error( 'rest_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
@@ -494,7 +494,7 @@ class WP_REST_Server {
 				$request->set_query_params( $query_params );
 				$response = $this->dispatch( $request );
 
-				$embeds[] = $response;
+				$embeds[] = $this->response_to_data( $response, false );
 			}
 
 			// Did we get any real links?

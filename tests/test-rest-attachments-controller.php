@@ -111,10 +111,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params( array(
-			'file'     => file_get_contents( $this->test_file ),
-			'name'     => 'canola.jpg',
-			'size'     => filesize( $this->test_file ),
-			'tmp_name' => $this->test_file,
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
 		) );
 		$request->set_header( 'Content-MD5', md5_file( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
@@ -162,10 +164,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params( array(
-			'file'     => file_get_contents( $this->test_file ),
-			'name'     => 'canola.jpg',
-			'size'     => filesize( $this->test_file ),
-			'tmp_name' => $this->test_file,
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
 		) );
 		$request->set_header( 'Content-MD5', 'abc123' );
 		$response = $this->server->dispatch( $request );
@@ -238,6 +242,27 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $attachment->post_content );
 		$this->assertEquals( 'Alt text is stored outside post schema.', $data['alt_text'] );
 		$this->assertEquals( 'Alt text is stored outside post schema.', get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ) );
+	}
+
+	public function test_update_item_parent() {
+		wp_set_current_user( $this->editor_id );
+		$original_parent = $this->factory->post->create( array() );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, $original_parent, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+
+		$attachment = get_post( $attachment_id );
+		$this->assertEquals( $original_parent, $attachment->post_parent );
+
+		$new_parent = $this->factory->post->create( array() );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'post', $new_parent );
+		$response = $this->server->dispatch( $request );
+
+		$attachment = get_post( $attachment_id );
+		$this->assertEquals( $new_parent, $attachment->post_parent );
 	}
 
 	public function test_update_item_invalid_permissions() {

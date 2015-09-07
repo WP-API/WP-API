@@ -342,14 +342,12 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 2, $alternate );
 		$this->assertEmpty( $alternate[0] );
 
-		$this->assertInstanceOf( 'WP_REST_Response', $alternate[1] );
-		$this->assertEquals( 200, $alternate[1]->get_status() );
-
-		$embedded_data = $alternate[1]->get_data();
-		$this->assertTrue( $embedded_data['hello'] );
+		$this->assertInternalType( 'array', $alternate[1] );
+		$this->assertArrayNotHasKey( 'code', $alternate[1] );
+		$this->assertTrue( $alternate[1]['hello'] );
 
 		// Ensure the context is set to embed when requesting
-		$this->assertEquals( 'embed', $embedded_data['parameters']['context'] );
+		$this->assertEquals( 'embed', $alternate[1]['parameters']['context'] );
 	}
 
 	/**
@@ -388,9 +386,7 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayHasKey( '_embedded', $data );
 		$this->assertArrayHasKey( 'alternate', $data['_embedded'] );
-
-		$this->assertEquals( 200, $data['_embedded']['alternate'][0]->get_status() );
-		$data = $data['_embedded']['alternate'][0]->get_data();
+		$data = $data['_embedded']['alternate'][0];
 
 		$this->assertEquals( 'yes', $data['parameters']['parsed_params'] );
 	}
@@ -416,12 +412,11 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		// Check that errors are embedded correctly
 		$up = $data['_embedded']['up'];
 		$this->assertCount( 1, $up );
-		$this->assertInstanceOf( 'WP_REST_Response', $up[0] );
-		$this->assertEquals( 403, $up[0]->get_status() );
 
-		$up_data = $up[0]->get_data();
+		$up_data = $up[0];
 		$this->assertEquals( 'wp-api-test-error', $up_data[0]['code'] );
 		$this->assertEquals( 'Test message',      $up_data[0]['message'] );
+		$this->assertEquals( 403, $up_data[0]['data']['status'] );
 	}
 
 	/**

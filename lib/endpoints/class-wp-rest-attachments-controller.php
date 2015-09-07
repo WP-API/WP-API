@@ -136,7 +136,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		if ( isset( $request['post'] ) ) {
-			$prepared_attachment->post_parent = (int) $request['post_parent'];
+			$prepared_attachment->post_parent = (int) $request['post'];
 		}
 
 		return $prepared_attachment;
@@ -369,7 +369,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$overrides['action'] = 'wp_handle_mock_upload';
 		}
 
-		$file = wp_handle_upload( $files, $overrides );
+		$file = wp_handle_upload( $files['file'], $overrides );
 
 		if ( isset( $file['error'] ) ) {
 			return new WP_Error( 'rest_upload_unknown_error', $file['error'], array( 'status' => 500 ) );

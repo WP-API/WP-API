@@ -829,6 +829,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
 	}
 
+	public function test_update_post_invalid_route() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
+	}
+
 	public function test_update_post_with_format() {
 		wp_set_current_user( $this->editor_id );
 
