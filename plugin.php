@@ -290,7 +290,7 @@ add_action( 'init', 'rest_api_init' );
  */
 function rest_api_register_rewrites() {
 	add_rewrite_rule( '^' . rest_get_url_prefix() . '/?$','index.php?rest_route=/','top' );
-	add_rewrite_rule( '^' . rest_get_url_prefix() . '(.*)?','index.php?rest_route=$matches[1]','top' );
+	add_rewrite_rule( '^' . rest_get_url_prefix() . '/(.*)?','index.php?rest_route=/$matches[1]','top' );
 }
 
 /**
