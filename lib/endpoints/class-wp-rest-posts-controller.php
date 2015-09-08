@@ -983,10 +983,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'id'           => $post->ID,
 			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			// 'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-			'guid'         => array(
-				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
-				'raw'      => $post->guid,
-			),
+			// 'guid'         => array(
+			// 	'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+			// 	'raw'      => $post->guid,
+			// ),
 			// 'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
 			// 'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
 			 'password'     => $post->post_password,
@@ -998,11 +998,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$schema = $this->get_item_schema();
 
+		$data['guid_rendered'] = apply_filters( 'get_the_guid', $post->guid );
+
 		if ( ! empty( $schema['properties']['title'] ) ) {
-			$data['title'] = array(
-				'raw'      => $post->post_title,
-				'rendered' => get_the_title( $post->ID ),
-			);
+			// $data['title'] = array(
+			// 	'raw'      => $post->post_title,
+			// 	'rendered' => get_the_title( $post->ID ),
+			// );
+
+			$data['post_title'] =  get_the_title( $post->ID );
+
 		}
 
 		if ( $full_post_view  && ! empty( $schema['properties']['content'] ) ) {
@@ -1011,10 +1016,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$this->prepare_password_response( $post->post_password );
 			}
 
-			$data['content'] = array(
-				'raw'      => $post->post_content,
-				'rendered' => apply_filters( 'the_content', $post->post_content ),
-			);
+			// $data['content'] = array(
+			// 	'raw'      => $post->post_content,
+			// 	'rendered' => apply_filters( 'the_content', $post->post_content ),
+			// );
+			$data['post_content'] = apply_filters( 'the_content', $post->post_content );
 
 			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
 			if ( ! empty( $post->post_password ) ) {
@@ -1030,7 +1036,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// }
 
 		if ( ! empty( $schema['properties']['author'] ) ) {
-			$data['author'] = (int) $post->post_author;
+			$data['author'] = array(
+				'id'   => (int) $post->post_author,
+				'name' => (string) get_the_author_meta( display_name, $post->post_author ),
+			);
 		}
 
 		if ( ! empty( $schema['properties']['featured_image'] ) ) {
@@ -1068,13 +1077,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// 	}
 		// }
 
-		if ( ! empty( $schema['properties']['format'] ) ) {
-			$data['format'] = get_post_format( $post->ID );
-			// Fill in blank post format
-			if ( empty( $data['format'] ) ) {
-				$data['format'] = 'standard';
-			}
-		}
+		// if ( ! empty( $schema['properties']['format'] ) ) {
+		// 	$data['format'] = get_post_format( $post->ID );
+		// 	// Fill in blank post format
+		// 	if ( empty( $data['format'] ) ) {
+		// 		$data['format'] = 'standard';
+		// 	}
+		// }
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
