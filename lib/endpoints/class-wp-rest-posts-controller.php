@@ -118,7 +118,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			$data = $this->prepare_item_for_response( $post, $request );
+			$data = $this->prepare_item_for_response( $post, $request, false );
 			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
@@ -163,7 +163,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
-		$data = $this->prepare_item_for_response( $post, $request );
+		$data = $this->prepare_item_for_response( $post, $request, true );
 		$response = rest_ensure_response( $data );
 
 		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
@@ -974,7 +974,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Request object
 	 * @return WP_REST_Response $data
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $post, $request, $full_post_view ) {
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 
@@ -982,39 +982,45 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = array(
 			'id'           => $post->ID,
 			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-			'guid'         => array(
-				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
-				'raw'      => $post->guid,
-			),
-			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			'password'     => $post->post_password,
-			'slug'         => $post->post_name,
-			'status'       => $post->post_status,
-			'type'         => $post->post_type,
+			// 'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
+			// 'guid'         => array(
+			// 	'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+			// 	'raw'      => $post->guid,
+			// ),
+			// 'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
+			// 'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
+			 'password'     => $post->post_password,
+			// 'slug'         => $post->post_name,
+			// 'status'       => $post->post_status,
+			// 'type'         => $post->post_type,
 			'link'         => get_permalink( $post->ID ),
 		);
 
 		$schema = $this->get_item_schema();
 
+		$data['guid_rendered'] = apply_filters( 'get_the_guid', $post->guid );
+
 		if ( ! empty( $schema['properties']['title'] ) ) {
-			$data['title'] = array(
-				'raw'      => $post->post_title,
-				'rendered' => get_the_title( $post->ID ),
-			);
+			// $data['title'] = array(
+			// 	'raw'      => $post->post_title,
+			// 	'rendered' => get_the_title( $post->ID ),
+			// );
+
+			$data['post_title'] =  get_the_title( $post->ID );
+
 		}
 
-		if ( ! empty( $schema['properties']['content'] ) ) {
+		if ( $full_post_view  && ! empty( $schema['properties']['content'] ) ) {
 
 			if ( ! empty( $post->post_password ) ) {
 				$this->prepare_password_response( $post->post_password );
 			}
 
-			$data['content'] = array(
-				'raw'      => $post->post_content,
-				'rendered' => apply_filters( 'the_content', $post->post_content ),
-			);
+			// $data['content'] = array(
+			// 	'raw'      => $post->post_content,
+			// 	'rendered' => apply_filters( 'the_content', $post->post_content ),
+			// );
+			$data['post_content'] = apply_filters( 'the_content', $post->post_content );
 
 			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055
 			if ( ! empty( $post->post_password ) ) {
@@ -1022,56 +1028,62 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['excerpt'] ) ) {
-			$data['excerpt'] = array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+		// if ( ! empty( $schema['properties']['excerpt'] ) ) {
+		// 	$data['excerpt'] = array(
+		// 		'raw'      => $post->post_excerpt,
+		// 		'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+		// 	);
+		// }
+
+		if ( ! empty( $schema['properties']['author'] ) ) {
+			$data['author'] = array(
+				'id'   => (int) $post->post_author,
+				'name' => (string) get_the_author_meta( display_name, $post->post_author ),
 			);
 		}
 
-		if ( ! empty( $schema['properties']['author'] ) ) {
-			$data['author'] = (int) $post->post_author;
-		}
-
 		if ( ! empty( $schema['properties']['featured_image'] ) ) {
-			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
+			// $data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
+				$thumbnail_id = get_post_thumbnail_id( $post->ID );
+				$thumbnail = wp_get_attachment_image_src( $thumbnail_id );
+				$data['featured_image'] = $thumbnail[0];
 		}
 
-		if ( ! empty( $schema['properties']['parent'] ) ) {
-			$data['parent'] = (int) $post->post_parent;
-		}
+		// if ( ! empty( $schema['properties']['parent'] ) ) {
+		// 	$data['parent'] = (int) $post->post_parent;
+		// }
+		//
+		// if ( ! empty( $schema['properties']['menu_order'] ) ) {
+		// 	$data['menu_order'] = (int) $post->menu_order;
+		// }
 
-		if ( ! empty( $schema['properties']['menu_order'] ) ) {
-			$data['menu_order'] = (int) $post->menu_order;
-		}
+		// if ( ! empty( $schema['properties']['comment_status'] ) ) {
+		// 	$data['comment_status'] = $post->comment_status;
+		// }
+		//
+		// if ( ! empty( $schema['properties']['ping_status'] ) ) {
+		// 	$data['ping_status'] = $post->ping_status;
+		// }
+		//
+		// if ( ! empty( $schema['properties']['sticky'] ) ) {
+		// 	$data['sticky'] = is_sticky( $post->ID );
+		// }
+		//
+		// if ( ! empty( $schema['properties']['template'] ) ) {
+		// 	if ( $template = get_page_template_slug( $post->ID ) ) {
+		// 		$data['template'] = $template;
+		// 	} else {
+		// 		$data['template'] = '';
+		// 	}
+		// }
 
-		if ( ! empty( $schema['properties']['comment_status'] ) ) {
-			$data['comment_status'] = $post->comment_status;
-		}
-
-		if ( ! empty( $schema['properties']['ping_status'] ) ) {
-			$data['ping_status'] = $post->ping_status;
-		}
-
-		if ( ! empty( $schema['properties']['sticky'] ) ) {
-			$data['sticky'] = is_sticky( $post->ID );
-		}
-
-		if ( ! empty( $schema['properties']['template'] ) ) {
-			if ( $template = get_page_template_slug( $post->ID ) ) {
-				$data['template'] = $template;
-			} else {
-				$data['template'] = '';
-			}
-		}
-
-		if ( ! empty( $schema['properties']['format'] ) ) {
-			$data['format'] = get_post_format( $post->ID );
-			// Fill in blank post format
-			if ( empty( $data['format'] ) ) {
-				$data['format'] = 'standard';
-			}
-		}
+		// if ( ! empty( $schema['properties']['format'] ) ) {
+		// 	$data['format'] = get_post_format( $post->ID );
+		// 	// Fill in blank post format
+		// 	if ( empty( $data['format'] ) ) {
+		// 		$data['format'] = 'standard';
+		// 	}
+		// }
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1081,7 +1093,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $post ) );
+		// $data->add_links( $this->prepare_links( $post ) );
 
 		return apply_filters( 'rest_prepare_' . $this->post_type, $data, $post, $request );
 	}

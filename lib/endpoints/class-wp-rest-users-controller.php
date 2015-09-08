@@ -445,32 +445,33 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function prepare_item_for_response( $user, $request ) {
 		$data = array(
 			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
-			'capabilities'       => $user->allcaps,
+			// 'capabilities'       => $user->allcaps,
 			'description'        => $user->description,
-			'email'              => $user->user_email,
-			'extra_capabilities' => $user->caps,
-			'first_name'         => $user->first_name,
+			// 'email'              => $user->user_email,
+			// 'extra_capabilities' => $user->caps,
+			// 'first_name'         => $user->first_name,
 			'id'                 => $user->ID,
-			'last_name'          => $user->last_name,
+			// 'last_name'          => $user->last_name,
 			'link'               => get_author_posts_url( $user->ID ),
 			'name'               => $user->display_name,
-			'nickname'           => $user->nickname,
-			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
-			'roles'              => $user->roles,
-			'slug'               => $user->user_nicename,
-			'url'                => $user->user_url,
-			'username'           => $user->user_login,
+			// 'nickname'           => $user->nickname,
+			// 'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
+			// 'roles'              => $user->roles,
+			// 'slug'               => $user->user_nicename,
+			// 'url'                => $user->user_url,
+			// 'username'           => $user->user_login,
+			'posts_count'        => count_user_posts($user->ID),
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 		$data = $this->filter_response_by_context( $data, $context );
 
-		$data = $this->add_additional_fields_to_object( $data, $request );
+		// $data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
 		$data = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $user ) );
+		// $data->add_links( $this->prepare_links( $user ) );
 
 		/**
 		 * Filter user data before returning via the REST API
