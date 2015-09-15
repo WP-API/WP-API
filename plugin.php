@@ -372,7 +372,7 @@ function rest_api_loaded() {
 	 * This filter allows you to adjust the server class used by the API, using a
 	 * different class to handle requests.
 	 *
-	 * @param string $class_name The name of the server class.
+	 * @param string $class_name The name of the server class. Default 'WP_REST_Server'.
 	 */
 	$wp_rest_server_class = apply_filters( 'wp_rest_server_class', 'WP_REST_Server' );
 	$wp_rest_server = new $wp_rest_server_class;
