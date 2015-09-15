@@ -182,6 +182,16 @@ function rest_get_avatar_urls( $email ) {
  * @return array
  */
 function rest_get_avatar_sizes() {
+	/**
+	 * Filter the REST avatar sizes.
+	 *
+	 * Use this filter to adjust the array of sizes returned by
+	 * the `rest_get_avatar_sizes` function.
+	 *
+	 * @param array $sizes {
+	 *    An array of int values that are the pixel sizes for avatars.
+	 *    Default: [ 24, 48, 96 ].
+	 */
 	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
 }
 
