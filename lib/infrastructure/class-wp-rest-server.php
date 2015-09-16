@@ -253,7 +253,7 @@ class WP_REST_Server {
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
 
 		/**
-		 * Filter whether the JSON API is enabled.
+		 * Filter whether the REST API is enabled.
 		 *
 		 * @param bool $rest_enabled Whether the REST API is enabled. Default true.
 		 */
