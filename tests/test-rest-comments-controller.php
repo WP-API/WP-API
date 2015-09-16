@@ -608,6 +608,33 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 1, $updated->comment_approved );
 	}
 
+	public function test_update_comment_field_does_not_use_default_values() {
+		wp_set_current_user( $this->admin_id );
+
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 0,
+			'comment_post_ID'  => $this->post_id,
+			'comment_content'  => 'some content'
+		));
+
+		$params = array(
+			'status' => 'approve',
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comment = $response->get_data();
+		$updated = get_comment( $comment_id );
+		$this->assertEquals( 'approved', $comment['status'] );
+		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertEquals( 'some content', $updated->comment_content );
+	}
+
 	public function test_update_comment_date_gmt() {
 		wp_set_current_user( $this->admin_id );
 
