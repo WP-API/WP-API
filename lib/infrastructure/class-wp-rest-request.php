@@ -297,14 +297,18 @@ class WP_REST_Request implements ArrayAccess {
 		$order[] = 'defaults';
 
 		/**
-		 * Alter the parameter checking order
+		 * Filter the parameter order.
 		 *
 		 * The order affects which parameters are checked when using
 		 * {@see get_param} and family. This acts similarly to PHP's
 		 * `request_order` setting.
 		 *
-		 * @param string[] $order List of types to check, in order of priority
-		 * @param WP_REST_Request $this Request object
+		 * @param array           $order {
+		 *    An array of types to check, in order of priority.
+		 *
+		 *    @param string $type The type to check.
+		 * }
+		 * @param WP_REST_Request $this The request object.
 		 */
 		return apply_filters( 'rest_request_parameter_order', $order, $this );
 	}
