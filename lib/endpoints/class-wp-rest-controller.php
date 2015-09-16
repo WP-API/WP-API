@@ -443,7 +443,7 @@ abstract class WP_REST_Controller {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
 		}
 
-		if ( 'string' === $property['type']&& ! is_string( $value ) ) {
+		if ( 'string' === $property['type'] && ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
 		}
 
