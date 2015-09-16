@@ -412,7 +412,7 @@ abstract class WP_REST_Controller {
 
 		/**
 		 * We don't currently validate against empty values, as lots of checks
-		 * can unintentially fail, as the callback will often handle an empty
+		 * can unintentionally fail, as the callback will often handle an empty
 		 * value it's self.
 		 */
 		if ( ! $value ) {
