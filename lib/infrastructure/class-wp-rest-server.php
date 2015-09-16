@@ -178,7 +178,8 @@ class WP_REST_Server {
 		 * the `status` data should be used). A callback can return `true` to
 		 * indicate that the authentication method was used, and it succeeded.
 		 *
-		 * @param WP_Error|null|boolean WP_Error if authentication error, null if authentication method wasn't used, true if authentication succeeded
+		 * @param WP_Error|null|boolean WP_Error if authentication error, null if authentication
+		 *                              method wasn't used, true if authentication succeeded.
 		 */
 		return apply_filters( 'rest_authentication_errors', null );
 	}
@@ -251,9 +252,18 @@ class WP_REST_Server {
 		// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
 		$this->send_header( 'X-Content-Type-Options', 'nosniff' );
 
-		// Proper filter for turning off the JSON API. It is on by default.
+		/**
+		 * Filter whether the REST API is enabled.
+		 *
+		 * @param bool $rest_enabled Whether the REST API is enabled. Default true.
+		 */
 		$enabled = apply_filters( 'rest_enabled', true );
 
+		/**
+		 * Filter whether jsonp is enabled.
+		 *
+		 * @param bool $jsonp_enabled Whether jsonp is enabled. Default true.
+		 */
 		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
 		if ( ! $enabled ) {
@@ -314,11 +324,13 @@ class WP_REST_Server {
 		}
 
 		/**
-		 * Allow modifying the response before returning
+		 * Filter the API response.
 		 *
-		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response
-		 * @param WP_REST_Server            $this    Server instance
-		 * @param WP_REST_Request           $request Request used to generate the response
+		 * Allows modification of the response before returning.
+		 *
+		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_REST_Server            $this    Server instance.
+		 * @param WP_REST_Request           $request Request used to generate the response.
 		 */
 		$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $request );
 
@@ -335,17 +347,14 @@ class WP_REST_Server {
 		$this->set_status( $code );
 
 		/**
-		 * Allow sending the request manually
+		 * Filter whether the request has already been served.
 		 *
-		 * If `$served` is true, the result will not be sent to the client.
+		 * Allow sending the request manually - by returning true, the API result will not be sent to the client.
 		 *
-		 * This is a filter rather than an action, since this is designed to be
-		 * re-entrant if needed.
-		 *
-		 * @param bool                      $served  Whether the request has already been served
-		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response
-		 * @param WP_REST_Request           $request Request used to generate the response
-		 * @param WP_REST_Server            $this    Server instance
+		 * @param bool                      $served  Whether the request has already been served. Default false.
+		 * @param WP_HTTP_ResponseInterface $result  Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_REST_Request           $request Request used to generate the response.
+		 * @param WP_REST_Server            $this    Server instance.
 		 */
 		$served = apply_filters( 'rest_pre_serve_request', false, $result, $request, $this );
 
@@ -520,7 +529,7 @@ class WP_REST_Server {
 	 *
 	 * @param WP_REST_Response $response Response object
 	 * @param boolean $embed Should we embed links?
-	 * @return WP_REST_Response New reponse with wrapped data
+	 * @return WP_REST_Response New response with wrapped data
 	 */
 	public function envelope_response( $response, $embed ) {
 		$envelope = array(
@@ -530,10 +539,10 @@ class WP_REST_Server {
 		);
 
 		/**
-		 * Alter the enveloped form of a response
+		 * Filter the enveloped form of a response.
 		 *
-		 * @param array $envelope Envelope data
-		 * @param WP_REST_Response $response Original response data
+		 * @param array            $envelope Envelope data.
+		 * @param WP_REST_Response $response Original response data.
 		 */
 		$envelope = apply_filters( 'rest_envelope_response', $envelope, $response );
 
@@ -598,6 +607,14 @@ class WP_REST_Server {
 	 */
 	public function get_routes() {
 
+		/**
+		 * Filter the array of available endpoints.
+		 *
+		 * @param array $endpoints The available endpoints. An array of matching regex patterns, each mapped
+		 *                         to an array of callbacks for the endpoint. These take the format
+		 *                         `'/path/regex' => array( $callback, $bitmask )` or
+		 *                         `'/path/regex' => array( array( $callback, $bitmask ).
+		 */
 		$endpoints = apply_filters( 'rest_endpoints', $this->endpoints );
 
 		// Normalise the endpoints
@@ -674,14 +691,14 @@ class WP_REST_Server {
 	 */
 	public function dispatch( $request ) {
 		/**
-		 * Allow hijacking the request before dispatching
+		 * Filter the pre-calculated result of a REST dispatch request.
 		 *
-		 * If `$result` is non-empty, this value will be used to serve the
-		 * request instead.
+		 * Allow hijacking the request before dispatching by returning a non-empty. The returned value
+		 * will be used to serve the request instead.
 		 *
 		 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
-		 * @param WP_REST_Server  $this    Server instance
-		 * @param WP_REST_Request $request Request used to generate the response
+		 * @param WP_REST_Server  $this    Server instance.
+		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
 		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
 		if ( ! empty( $result ) ) {
@@ -749,10 +766,12 @@ class WP_REST_Server {
 
 				if ( ! is_wp_error( $response ) ) {
 					/**
-					 * Allow plugins to override dispatching the request
+					 * Filter the REST dispatch request result.
 					 *
-					 * @param boolean $dispatch_result Dispatch result, will be used if not empty
-					 * @param WP_REST_Request $request
+					 * Allow plugins to override dispatching the request.
+					 *
+					 * @param boolean         $dispatch_result Dispatch result, will be used if not empty.
+					 * @param WP_REST_Request $request         Request used to generate the response.
 					 */
 					$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request );
 
@@ -867,7 +886,7 @@ class WP_REST_Server {
 		 * add any data you'd like here.
 		 *
 		 * @param WP_REST_Response $response Response data.
-		 * @param WP_REST_Request $request Request data. The namespace is passed as the 'namespace' parameter.
+		 * @param WP_REST_Request  $request  Request data. The namespace is passed as the 'namespace' parameter.
 		 */
 		return apply_filters( 'rest_namespace_index', $response, $request );
 	}
@@ -888,6 +907,11 @@ class WP_REST_Server {
 				continue;
 			}
 
+			/**
+			 * Filter the REST endpoint data.
+			 *
+			 * @param WP_REST_Request $request Request data. The namespace is passed as the 'namespace' parameter.
+			 */
 			$available[ $route ] = apply_filters( 'rest_endpoints_description', $data );
 		}
 
@@ -899,7 +923,7 @@ class WP_REST_Server {
 		 * acts as a form of self-documentation.
 		 *
 		 * @param array $available Map of route to route data.
-		 * @param array $routes Internal route data as an associative array.
+		 * @param array $routes    Internal route data as an associative array.
 		 */
 		return apply_filters( 'rest_route_data', $available, $routes );
 	}
