@@ -21,7 +21,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
 					'password'    => array(
 						'required' => true,
 					),
@@ -45,7 +45,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ), array(
 					'password'    => array(),
 				) ),
 			),

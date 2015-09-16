@@ -32,7 +32,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'methods'     => WP_REST_Server::CREATABLE,
 				'callback'    => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'        => $this->get_endpoint_args_for_item_schema( true ),
+				'args'        => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -47,7 +47,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'methods'    => WP_REST_Server::EDITABLE,
 				'callback'   => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'        => $this->get_endpoint_args_for_item_schema( false ),
+				'args'        => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods'    => WP_REST_Server::DELETABLE,
