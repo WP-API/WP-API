@@ -614,7 +614,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment_id = $this->factory->comment->create( array(
 			'comment_approved' => 0,
 			'comment_post_ID'  => $this->post_id,
-			'comment_content'  => 'some content'
+			'comment_content'  => 'some content',
 		));
 
 		$params = array(
