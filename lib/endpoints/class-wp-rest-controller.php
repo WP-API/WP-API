@@ -365,7 +365,7 @@ abstract class WP_REST_Controller {
 	 *                           Where as create requests will.
 	 * @return array
 	 */
-	public function get_endpoint_args_for_item_schema( $add_required_flag = true ) {
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 
 		$schema                = $this->get_item_schema();
 		$schema_properties     = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
@@ -383,16 +383,22 @@ abstract class WP_REST_Controller {
 				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
 			);
 
-			if ( isset( $params['default'] ) ) {
+			if ( WP_REST_Server::CREATABLE && isset( $params['default'] ) ) {
 				$endpoint_args[ $field_id ]['default'] = $params['default'];
 			}
 
-			if ( $add_required_flag && ! empty( $params['required'] ) ) {
+			if ( WP_REST_Server::CREATABLE && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}
 
 			// Merge in any options provided by the schema property
 			if ( isset( $params['arg_options'] ) ) {
+
+				// Only use required / default from arg_options on CREATE endpoints
+				if ( $method !== WP_REST_Server::CREATABLE ) {
+					$params['arg_options'] = array_diff_key( $params['arg_options'], array( 'required' => '', 'default' => '' ) );
+				}
+
 				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
 			}
 		}
