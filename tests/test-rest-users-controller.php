@@ -693,7 +693,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Deleted User', $data['name'] );
+		$this->assertEquals( 'Deleted User', $data['data']['name'] );
+		$this->assertTrue( $data['deleted'] );
 	}
 
 	public function test_delete_item_no_trash() {

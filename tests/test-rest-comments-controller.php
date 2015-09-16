@@ -684,7 +684,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->post_id, $data['post'] );
+		$this->assertEquals( $this->post_id, $data['data']['post'] );
+		$this->assertTrue( $data['trashed'] );
+	}
+
+	public function test_delete_item_skip_trash() {
+		wp_set_current_user( $this->admin_id );
+
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		));
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request['force'] = true;
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $this->post_id, $data['data']['post'] );
+		$this->assertTrue( $data['deleted'] );
 	}
 
 	public function test_delete_comment_invalid_id() {

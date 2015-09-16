@@ -250,7 +250,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Delete a comment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|array
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -275,6 +275,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( $force ) {
 			$result = wp_delete_comment( $comment->comment_ID, true );
+			$status = 'deleted';
 		} else {
 			// If we don't support trashing for this type, error out
 			if ( ! $supports_trash ) {
@@ -282,7 +283,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			$result = wp_trash_comment( $comment->comment_ID );
+			$status = 'trashed';
 		}
+
+		$data = $response->get_data();
+		$data = array(
+			'data'  => $data,
+			$status => true,
+		);
+		$response->set_data( $data );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
@@ -422,7 +431,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @param  object          $comment Comment object.
 	 * @param  WP_REST_Request $request Request object.
-	 * @return array $fields
+	 * @return WP_REST_Response
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$data = array(
