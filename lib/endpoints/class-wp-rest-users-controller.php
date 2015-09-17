@@ -238,12 +238,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a user is created via the REST API.
 		 *
-		 * @param object          $user    Data used to create the user (not a WP_User object).
-		 * @param WP_REST_Request $request Request object.
-		 * @param bool            $bool    A boolean that is false.
-		 * @todo remove final bool = false variable, unused?
+		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $creating  True when creating user, false when updating user.
 		 */
-		do_action( 'rest_insert_user', $user, $request, false );
+		do_action( 'rest_insert_user', $user, $request, true );
 
 		$response = $this->get_item( array(
 			'id'      => $user_id,
@@ -304,13 +303,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a user is updated via the REST API.
 		 *
-		 * @param object          $user    Data used to update the user (not a WP_User object).
-		 * @param WP_REST_Request $request Request object.
-		 * @param bool            $bool    A boolean that is false.
-		 * @todo remove final bool = false variable, unused?
+		 * @param object          $user      Data used to update the user (not a WP_User object).
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $bool      A boolean that is false.
+		 * @param bool            $creating  True when creating user, false when updating user.
 		 */
-		do_action( 'rest_update_user', $user, $request, false );
-
+		do_action( 'rest_insert_user', $user, $request, false );
 		$response = $this->get_item( array(
 			'id'      => $user_id,
 			'context' => 'edit',
