@@ -110,6 +110,15 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
+		/**
+		 * Filter a taxonomy returned from the API.
+		 *
+		 * Allows modification of the taxonomy data right before it is returned.
+		 *
+		 * @param array           $data     Key value array of taxonomy data.
+		 * @param object          $item     The taxonomy object.
+		 * @param WP_REST_Request $request  Request used to generate the response.
+		 */
 		return apply_filters( 'rest_prepare_taxonomy', $data, $taxonomy, $request );
 	}
 
