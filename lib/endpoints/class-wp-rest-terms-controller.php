@@ -445,9 +445,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * Allows modification of the term data right before it is returned.
 		 *
-		 * @param array $data     Key value array of term data.
-		 * @param obj   $item     The term object.
-		 * @param WP_REST_Request $request Request used to generate the response.
+		 * @param array           $data     Key value array of term data.
+		 * @param object          $item     The term object.
+		 * @param WP_REST_Request $request  Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_term', $data, $item, $request );
 	}
