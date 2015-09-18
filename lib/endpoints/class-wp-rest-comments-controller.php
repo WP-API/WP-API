@@ -279,7 +279,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * @param boolean $supports_trash Whether the post type support trashing.
 		 * @param WP_Post $comment        The comment object being considered for trashing support.
 		 */
-		$supports_trash = apply_filters( 'rest_comment_type_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
+		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
 		$get_request->set_param( 'context', 'edit' );
