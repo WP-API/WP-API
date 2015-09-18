@@ -343,7 +343,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param boolean $supports_trash Whether the post type support trashing.
 		 * @param WP_Post $post           The Post object being considered for trashing support.
 		 */
-		$supports_trash = apply_filters( 'rest_post_type_trashable', $supports_trash, $post );
+		$supports_trash = apply_filters( 'rest_post_trashable', $supports_trash, $post );
 
 		if ( ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => 401 ) );
