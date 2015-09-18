@@ -98,13 +98,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Alter the query arguments for a request.
+		 * Filter the query arguments for a request.
 		 *
-		 * This allows you to set extra arguments or defaults for a post
+		 * Enables adding extra arguments or setting defaults for a post
 		 * collection request.
 		 *
-		 * @param array $args Map of query var to query value.
-		 * @param WP_REST_Request $request Full details about the request.
+		 * @param array           $args    Key value array of query var to query value.
+		 * @param WP_REST_Request $request The request used.
 		 */
 		$args = apply_filters( 'rest_post_query', $args, $request );
 		$query_args = $this->prepare_items_query( $args );
@@ -225,6 +225,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
 
+		/**
+		 * Fires after a single post is created via the REST API.
+		 *
+		 * @param object          $post      Inserted Post object (not a WP_Post object).
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $creating  True when creating post, false when updating. user.
+		 */
 		do_action( 'rest_insert_post', $post, $request, true );
 
 		$response = $this->get_item( array(
@@ -298,6 +305,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * do_action( 'rest_insert_post', $post, $request );
 		 */
 
+		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
+		do_action( 'rest_insert_post', $post, $request, false );
+
 		return $this->get_item( array(
 			'id'      => $post_id,
 			'context' => 'edit',
@@ -326,10 +336,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter whether the post type supports trashing.
+		 * Filter whether a post is trashable.
 		 *
-		 * @param boolean $supports_trash Does the post type support trashing?
-		 * @param WP_Post $post Post we're attempting to trash.
+		 * Return false to disable trash support for the post.
+		 *
+		 * @param boolean $supports_trash Whether the post type support trashing.
+		 * @param WP_Post $post           The Post object being considered for trashing support.
 		 */
 		$supports_trash = apply_filters( 'rest_post_type_trashable', $supports_trash, $post );
 
@@ -499,7 +511,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
 			if ( isset( $prepared_args[ $var ] ) ) {
-				$query_args[ $var ] = apply_filters( 'rest_query_var-' . $var, $prepared_args[ $var ] );
+				/**
+				 * Filter the query_vars used in `get_items` for the constructed query.
+				 *
+				 * The dynamic portion of the hook name, $var, refers to the query_var key.
+				 *
+				 * @param mixed $prepared_args[ $var ] The query_var value.
+				 *
+				 */
+				$query_args[ $var ] = apply_filters( "rest_query_var-{$var}", $prepared_args[ $var ] );
 			}
 		}
 
@@ -517,20 +537,29 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function get_allowed_query_vars() {
 		global $wp;
+
+		/**
+		 * Filter the publicly allowed query vars.
+		 *
+		 * Allows adjusting of the default query vars that are made public.
+		 *
+		 * @param array  Array of allowed WP_Query query vars.
+		 */
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			/**
-			 * Alter allowed query vars for authorized users.
+			 * Filter the allowed 'private' query vars for authorized users.
 			 *
 			 * If the user has the `edit_posts` capability, we also allow use of
 			 * private query parameters, which are only undesirable on the
 			 * frontend, but are safe for use in query strings.
 			 *
 			 * To disable anyway, use
-			 * `add_filter('rest_private_query_vars', '__return_empty_array');`
+			 * `add_filter( 'rest_private_query_vars', '__return_empty_array' );`
 			 *
-			 * @param array $private List of allowed query vars for authorized users.
+			 * @param array $private_query_vars Array of allowed query vars for authorized users.
+			 * }
 			 */
 			$private = apply_filters( 'rest_private_query_vars', $wp->private_query_vars );
 			$valid_vars = array_merge( $valid_vars, $private );
@@ -540,13 +569,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
-		 * Alter allowed query vars for the REST API.
+		 * Filter allowed query vars for the REST API.
 		 *
-		 * This filter allows you to add or remove query vars from the allowed
+		 * This filter allows you to add or remove query vars from the final allowed
 		 * list for all requests, including unauthenticated ones. To alter the
 		 * vars for editors only, {@see rest_private_query_vars}.
 		 *
-		 * @param array $valid_vars List of allowed query vars.
+		 * @param array {
+		 *    Array of allowed WP_Query query vars.
+		 *
+		 *    @param string $allowed_query_var The query var to allow.
+		 * }
 		 */
 		$valid_vars = apply_filters( 'rest_query_vars', $valid_vars );
 
@@ -564,6 +597,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return __( 'There is no excerpt because this is a protected post.' );
 		}
 
+		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
 
 		if ( empty( $excerpt ) ) {
@@ -748,8 +782,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
 			$prepared_post->ping_status = $request['ping_status'];
 		}
+		/**
+		 * Filter the query_vars used in `get_items` for the constructed query.
+		 *
+		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
+		 * prepared for insertion.
+		 *
+		 * @param object          $prepared_post An object representing a single post prepared
+		 *                                       for inserting or updating the database.
+		 * @param WP_REST_Request $request       Request object.
+		 */
+		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
 
-		return apply_filters( 'rest_pre_insert_' . $this->post_type, $prepared_post, $request );
 	}
 
 	/**
@@ -993,6 +1037,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
 			'guid'         => array(
+				/** This filter is documented in wp-includes/post-template.php */
 				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
 				'raw'      => $post->guid,
 			),
@@ -1022,6 +1067,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$data['content'] = array(
 				'raw'      => $post->post_content,
+				/** This filter is documented in wp-includes/post-template.php */
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
 
@@ -1091,6 +1137,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = rest_ensure_response( $data );
 
 		$data->add_links( $this->prepare_links( $post ) );
+
+		/**
+		 * Filter the post data for a response.
+		 *
+		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
+		 * prepared for the response.
+		 *
+		 * @param array           $data    An array of post data, prepared for response.
+		 * @param WP_Post         $post    Post object.
+		 * @param WP_REST_Request $request Request object.
+		 */
+
 
 		return apply_filters( 'rest_prepare_' . $this->post_type, $data, $post, $request );
 	}
