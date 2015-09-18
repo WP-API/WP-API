@@ -226,7 +226,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
 
 		/**
-		 * Fires after a single post is created via the REST API.
+		 * Fires after a single post is created or updated via the REST API.
 		 *
 		 * @param object          $post      Inserted Post object (not a WP_Post object).
 		 * @param WP_REST_Request $request   Request object.
