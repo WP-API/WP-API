@@ -467,6 +467,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'slug'               => $user->user_nicename,
 			'url'                => $user->user_url,
 			'username'           => $user->user_login,
+			'posts_count'        => count_user_posts($user->ID),
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
