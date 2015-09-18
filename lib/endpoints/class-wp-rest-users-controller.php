@@ -236,7 +236,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
-		 * Fires after a user is created via the REST API.
+		 * Fires after a user is created or updated via the REST API.
 		 *
 		 * @param object          $user      Data used to create the user (not a WP_User object).
 		 * @param WP_REST_Request $request   Request object.
@@ -300,14 +300,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( $user, $request );
 
-		/**
-		 * Fires after a user is updated via the REST API.
-		 *
-		 * @param object          $user      Data used to update the user (not a WP_User object).
-		 * @param WP_REST_Request $request   Request object.
-		 * @param bool            $bool      A boolean that is false.
-		 * @param bool            $creating  True when creating user, false when updating user.
-		 */
+		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
 		$response = $this->get_item( array(
 			'id'      => $user_id,
