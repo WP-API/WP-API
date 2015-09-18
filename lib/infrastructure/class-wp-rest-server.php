@@ -415,7 +415,7 @@ class WP_REST_Server {
 	/**
 	 * Get links from a response.
 	 *
-	 * Extracts the links from a reponse into a structured hash, suitable for
+	 * Extracts the links from a response into a structured hash, suitable for
 	 * direct output.
 	 *
 	 * @param WP_REST_Response $response Response to extract links from.
