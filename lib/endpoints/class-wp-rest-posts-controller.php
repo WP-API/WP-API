@@ -1159,7 +1159,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
 			$links['http://v2.wp-api.org/attachment'][] = array(
 				'href'       => $attachments_url,
-				'embeddable' => true,
 			);
 		}
 
