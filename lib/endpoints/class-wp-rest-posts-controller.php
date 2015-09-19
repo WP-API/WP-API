@@ -373,6 +373,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$response->set_data( $data );
 
+		/**
+		 * Fires after a single post is deleted or trashed via the REST API.
+		 *
+		 * @param object          $post    The deleted or trashed post.
+		 * @param array           $data    The response data.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_post', $post, $data, $request );
+
 		return $response;
 	}
 
