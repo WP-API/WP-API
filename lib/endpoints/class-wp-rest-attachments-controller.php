@@ -87,6 +87,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
 
+		/**
+		 * Fires after a single attachment is created or updated via the REST API.
+		 *
+		 * @param object          $data     Inserted attachment data.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param bool            $creating True when creating an attachment, false when updating.
+		 */
+		do_action( 'rest_insert_attachment', $data, $request, true );
+
 		return $response;
 
 	}
@@ -114,6 +123,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'id'      => $data['id'],
 			'context' => 'edit',
 		));
+
+		/**
+		 * Fires after a single attachment is created or updated via the REST API.
+		 *
+		 * @param object          $data     Inserted attachment data.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param bool            $creating True when creating an attachment, false when updating.
+		 */
+		do_action( 'rest_insert_attachment', $data, $request, false );
 
 		return rest_ensure_response( $response );
 	}
