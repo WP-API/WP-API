@@ -194,6 +194,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
 
+		/**
+		 * Fires after a comment is created or updated via the REST API.
+		 *
+		 * @param array           $prepared_comment Inserted comment data.
+		 * @param WP_REST_Request $request          The request sent to the API.
+		 * @param bool            $creating         True when creating a comment, false when updating.
+		 */
+		do_action( 'rest_insert_comment', $data, $request, true );
+
 		return $response;
 	}
 
@@ -242,6 +251,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'id'      => $id,
 			'context' => 'edit',
 		) );
+		/**
+		 * Fires after a comment is created or updated via the REST API.
+		 *
+		 * @param array           $prepared_comment Inserted comment data.
+		 * @param WP_REST_Request $request          The request sent to the API.
+		 * @param bool            $creating         True when creating a comment, false when updating.
+		 */
+		do_action( 'rest_insert_comment', $data, $request, false );
 
 		return rest_ensure_response( $response );
 	}
@@ -296,6 +313,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
 		}
+
+		/**
+		 * Fires after a comment is deleted via the REST API.
+		 *
+		 * @param object          $comment The deleted comment data.
+		 * @param array           $data    Delete status data.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_comment', $comment, $data, $request );
+
 
 		return $response;
 	}
