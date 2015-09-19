@@ -194,15 +194,6 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_meta_' . $this->parent_type . '_mismatch', __( 'Meta does not belong to this object' ), array( 'status' => 400 ) );
 		}
 
-		/**
-		 * Fires after a meta field is created or updated via the REST API.
-		 *
-		 * @param array           $prepared_comment Inserted meta data.
-		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param bool            $creating         True when creating meta, false when updating.
-		 */
-		do_action( 'rest_insert_meta', $meta, $request, true );
-
 		return $this->prepare_item_for_response( $meta, $request );
 	}
 
@@ -328,11 +319,11 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a meta field is created or updated via the REST API.
 		 *
-		 * @param array           $prepared_comment Inserted meta data.
-		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param bool            $creating         True when creating meta, false when updating.
+		 * @param array           $data      The inserted meta data.
+		 * @param WP_REST_Request $request   The request sent to the API.
+		 * @param bool            $creating  True when creating meta, false when updating.
 		 */
-		do_action( 'rest_insert_meta', $meta, $request, false );
+		do_action( 'rest_insert_meta', $data, $request, true );
 
 		return rest_ensure_response( $response );
 	}
@@ -397,6 +388,15 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$response->set_status( 201 );
 		$data = $response->get_data();
 		$response->header( 'Location', rest_url( $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
+
+		/**
+		 * Fires after a meta field is created or updated via the REST API.
+		 *
+		 * @param array           $data      The inserted meta data.
+		 * @param WP_REST_Request $request   The request sent to the API.
+		 * @param bool            $creating  True when creating meta, false when updating.
+		 */
+		do_action( 'rest_insert_meta', $data, $request, true );
 
 		return $response;
 	}
