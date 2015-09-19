@@ -230,7 +230,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @param object          $post      Inserted Post object (not a WP_Post object).
 		 * @param WP_REST_Request $request   Request object.
-		 * @param bool            $creating  True when creating post, false when updating. user.
+		 * @param bool            $creating  True when creating post, false when updating.
 		 */
 		do_action( 'rest_insert_post', $post, $request, true );
 
