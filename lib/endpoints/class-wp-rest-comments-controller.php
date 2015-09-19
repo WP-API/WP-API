@@ -323,7 +323,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_delete_comment', $comment, $data, $request );
 
-
 		return $response;
 	}
 
