@@ -34,9 +34,6 @@
 		};
 	}
 
-
-	var origParse = Date.parse;
-
 	/**
 	 * Parse date into ISO8601 format
 	 * 
