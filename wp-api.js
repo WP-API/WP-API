@@ -42,7 +42,7 @@
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
 			minutesOffset = 0,
-			numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];;
+			numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];
 
 		// ES5 §15.9.4.2 states that the string should attempt to be parsed as a Date Time String Format string
 		// before falling back to any implementation-specific date parsing, so that’s what we do, even if native
