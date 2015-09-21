@@ -441,7 +441,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		 *
 		 * @param WP_REST_Request $request The request sent to the API.
 		 */
-		do_action( 'rest_delete_meta', $parent_id, $request );
+		do_action( 'rest_delete_meta', $request );
 
 		return rest_ensure_response( array( 'message' => __( 'Deleted meta' ) ) );
 	}
