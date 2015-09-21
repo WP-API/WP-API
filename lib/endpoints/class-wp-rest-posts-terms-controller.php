@@ -185,7 +185,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		 * @param WP_Post         $post          The post the term was removed from.
 		 * @param WP_REST_Request $request       The request sent to the API.
 		 */
-		do_action( 'rest_insert_term', $previous_item, $post, $request );
+		do_action( 'rest_remove_term', $previous_item, $post, $request );
 
 
 
