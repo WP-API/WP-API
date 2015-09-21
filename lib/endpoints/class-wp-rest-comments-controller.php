@@ -251,13 +251,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'id'      => $id,
 			'context' => 'edit',
 		) );
-		/**
-		 * Fires after a comment is created or updated via the REST API.
-		 *
-		 * @param array           $prepared_comment Inserted comment data.
-		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param bool            $creating         True when creating a comment, false when updating.
-		 */
+
+		/* This action is documented in lib/endpoints/class-wp-rest-comments-controller.php */
 		do_action( 'rest_insert_comment', $data, $request, false );
 
 		return rest_ensure_response( $response );
