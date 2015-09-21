@@ -436,6 +436,13 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
 		}
 
+		/**
+		 * Fires after a meta value is deleted via the REST API.
+		 *
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_meta', $parent_id, $request );
+
 		return rest_ensure_response( array( 'message' => __( 'Deleted meta' ) ) );
 	}
 }
