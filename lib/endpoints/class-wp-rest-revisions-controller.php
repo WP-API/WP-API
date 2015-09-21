@@ -136,6 +136,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item( $request ) {
 		$result = wp_delete_post( $request['id'], true );
+
 		/**
 		 * Fires after a revision is deleted via the REST API.
 		 *
@@ -151,9 +152,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		} else {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
-
-
-
 	}
 
 	/**
