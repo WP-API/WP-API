@@ -99,11 +99,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API
+		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
 		 * @see https://codex.wordpress.org/Class_Reference/WP_User_Query
-		 * @param array $prepared_args Arguments for WP_User_Query
-		 * @param WP_REST_Request $request The current request
+		 *
+		 * @param array           $prepared_args Array of arguments for WP_User_Query.
+		 * @param WP_REST_Request $request       The current request.
 		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -235,13 +236,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
-		 * Fires after a user is created via the REST API
+		 * Fires after a user is created or updated via the REST API.
 		 *
-		 * @param object $user Data used to create user (not a WP_User object)
-		 * @param WP_REST_Request $request Request object.
-		 * @param bool $bool A boolean that is false.
+		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $creating  True when creating user, false when updating user.
 		 */
-		do_action( 'rest_insert_user', $user, $request, false );
+		do_action( 'rest_insert_user', $user, $request, true );
 
 		$response = $this->get_item( array(
 			'id'      => $user_id,
@@ -299,8 +300,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( $user, $request );
 
+		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
-
 		$response = $this->get_item( array(
 			'id'      => $user_id,
 			'context' => 'edit',
@@ -480,11 +481,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$data->add_links( $this->prepare_links( $user ) );
 
 		/**
-		 * Filter user data before returning via the REST API
+		 * Filter user data returned from the REST API.
 		 *
-		 * @param WP_REST_Response $data Response data
-		 * @param object $user User object used to create response
-		 * @param WP_REST_Request $request Request object.
+		 * @param WP_REST_Response $data    Response data.
+		 * @param object           $user    User object used to create response.
+		 * @param WP_REST_Request  $request Request object.
 		 */
 		return apply_filters( 'rest_prepare_user', $data, $user, $request );
 	}
@@ -558,10 +559,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter user data before inserting user via REST API
+		 * Filter user data before inserting user via the REST API.
 		 *
-		 * @param object $prepared_user User object.
-		 * @param WP_REST_Request $request Request object.
+		 * @param object          $prepared_user User object.
+		 * @param WP_REST_Request $request       Request object.
 		 */
 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
 	}
