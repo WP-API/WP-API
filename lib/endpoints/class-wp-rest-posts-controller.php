@@ -1043,7 +1043,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['featured_image'] ) ) {
-			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
+			
+			$featured_id = get_post_thumbnail_id( $post->ID );
+			
+			$sizes = wp_get_attachment_metadata( $featured_id )['sizes'];
+			
+			if ( ! empty( $sizes ) ) {
+	
+				foreach ( $sizes as $size => &$size_data ) {
+					// Use the same method image_downsize() does
+					$image_src = wp_get_attachment_image_src( $featured_id, $size );
+	
+					if ( ! $image_src ) {
+						continue;
+					}
+					
+					$size_data['source_url'] = $image_src[0];
+					
+				}
+			}
+			
+			$data['featured_image'] = array(
+				'id'      => $featured_id,
+				'media_details' => array(
+					'sizes' => array(
+						$size => $sizes,
+					)
+				)
+			);
+			
 		}
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
@@ -1421,7 +1449,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				case 'thumbnail':
 					$schema['properties']['featured_image'] = array(
 						'description' => 'ID of the featured image for the object.',
-						'type'        => 'integer',
+						'type'        => 'object',
 						'context'     => array( 'view', 'edit' ),
 					);
 					break;
