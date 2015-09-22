@@ -158,6 +158,24 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
 			$prepared_comment['comment_date_gmt'] = current_time( 'mysql', true );
 		}
+
+		// Set author data if the user's logged in
+		if ( is_user_logged_in() ) {
+			$user = wp_get_current_user();
+			if ( empty( $prepared_comment['user_id'] ) ) {
+				$prepared_comment['user_id'] = $user->ID;
+			}
+			if ( empty( $prepared_comment['comment_author'] ) ) {
+				$prepared_comment['comment_author'] = $user->display_name;
+			}
+			if ( empty( $prepared_comment['comment_author_email'] ) ) {
+				$prepared_comment['comment_author_email'] = $user->user_email;
+			}
+			if ( empty( $prepared_comment['comment_author_url'] ) ) {
+				$prepared_comment['comment_author_url'] = $user->user_url;
+			}
+		}
+
 		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
 			$prepared_comment['comment_author_email'] = '';
 		}
