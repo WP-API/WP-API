@@ -76,10 +76,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
-			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
-			if ( $parent ) {
-				$prepared_args['parent'] = $parent->term_id;
-			}
+		    if ( $request['parent'] === 0) {
+		        $prepared_args['parent'] = 0;
+
+		    } else {
+				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+				if ( $parent ) {
+					$prepared_args['parent'] = $parent->term_id;
+				}
+		    }
 		}
 
 		$query_result = get_terms( $this->taxonomy, $prepared_args );
@@ -94,7 +99,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		unset( $prepared_args['offset'] );
 		$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
 		$response->header( 'X-WP-Total', (int) $total_terms );
-		$max_pages = ceil( $total_terms / $request['per_page'] );
+		$max_pages = ( $request['per_page'] === 0 ) ? 1 : ceil( $total_terms / $request['per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
