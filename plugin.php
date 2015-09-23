@@ -51,7 +51,9 @@ function json_api_init() {
 add_action( 'init', 'json_api_init' );
 
 /**
- * Add rewrite rules.
+ * Adds rewrite rules.
+ *
+ * @since 4.4.0
  */
 function json_api_register_rewrites() {
 	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
@@ -59,7 +61,9 @@ function json_api_register_rewrites() {
 }
 
 /**
- * Determine if the rewrite rules should be flushed.
+ * Determines if the rewrite rules should be flushed.
+ *
+ * @since 4.4.0
  */
 function json_api_maybe_flush_rewrites() {
 	$version = get_option( 'json_api_plugin_version', null );
@@ -73,7 +77,9 @@ function json_api_maybe_flush_rewrites() {
 add_action( 'init', 'json_api_maybe_flush_rewrites', 999 );
 
 /**
- * Register the default JSON API filters.
+ * Registers the default JSON API filters.
+ *
+ * @since 4.4.0
  *
  * @internal This will live in default-filters.php
  *
@@ -133,7 +139,9 @@ function json_api_default_filters( $server ) {
 add_action( 'wp_json_server_before_serve', 'json_api_default_filters', 10, 1 );
 
 /**
- * Load the JSON API.
+ * Loads the JSON API.
+ *
+ * @since 4.4.0
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_json_server_class filter and serving requests. This would also
@@ -185,7 +193,9 @@ function json_api_loaded() {
 add_action( 'template_redirect', 'json_api_loaded', -100 );
 
 /**
- * Register routes and flush the rewrite rules on activation.
+ * Registers routes and flush the rewrite rules on activation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -209,7 +219,9 @@ function json_api_activation( $network_wide ) {
 register_activation_hook( __FILE__, 'json_api_activation' );
 
 /**
- * Flush the rewrite rules on deactivation.
+ * Flushes the rewrite rules on deactivation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -231,7 +243,9 @@ function json_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'json_api_deactivation' );
 
 /**
- * Register API Javascript helpers.
+ * Registers API Javascript helpers.
+ *
+ * @since 4.4.0
  *
  * @see wp_register_scripts()
  */
@@ -245,7 +259,9 @@ add_action( 'wp_enqueue_scripts', 'json_register_scripts', -100 );
 add_action( 'admin_enqueue_scripts', 'json_register_scripts', -100 );
 
 /**
- * Add the API URL to the WP RSD endpoint.
+ * Adds the API URL to the WP RSD endpoint.
+ *
+ * @since 4.4.0
  */
 function json_output_rsd() {
 	?>
@@ -255,7 +271,9 @@ function json_output_rsd() {
 add_action( 'xmlrpc_rsd_apis', 'json_output_rsd' );
 
 /**
- * Output API link tag into page header.
+ * Outputs API link tag into page header.
+ *
+ * @since 4.4.0
  *
  * @see get_json_url()
  */
@@ -271,7 +289,9 @@ function json_output_link_wp_head() {
 add_action( 'wp_head', 'json_output_link_wp_head', 10, 0 );
 
 /**
- * Send a Link header for the API.
+ * Sends a Link header for the API.
+ *
+ * @since 4.4.0
  */
 function json_output_link_header() {
 	if ( headers_sent() ) {
@@ -289,11 +309,13 @@ function json_output_link_header() {
 add_action( 'template_redirect', 'json_output_link_header', 11, 0 );
 
 /**
- * Add 'show_in_json' {@see register_post_type()} argument.
+ * Sets up the 'show_in_json' post type argument.
  *
- * Adds the 'show_in_json' post type argument to {@see register_post_type()}.
- * This value controls whether the post type is available via API endpoints,
- * and defaults to the value of $publicly_queryable.
+ * Adds the 'show_in_json' post type argument to register_post_type(). This value
+ * controls whether the post type is available via API endpoints, and defaults to
+ * the value of $publicly_queryable.
+ *
+ * @since 4.4.0
  *
  * @global array $wp_post_types Post types list.
  *
@@ -323,11 +345,13 @@ function json_register_post_type( $post_type, $args ) {
 add_action( 'registered_post_type', 'json_register_post_type', 10, 2 );
 
 /**
- * Check for errors when using cookie-based authentication.
+ * Checks for errors when using cookie-based authentication.
  *
  * WordPress' built-in cookie authentication is always active
  * for logged in users. However, the API has to check nonces
  * for each request to ensure users are not vulnerable to CSRF.
+ *
+ * @since 4.4.0
  *
  * @global mixed $wp_json_auth_cookie
  *
@@ -378,10 +402,11 @@ function json_cookie_check_errors( $result ) {
 add_filter( 'json_authentication_errors', 'json_cookie_check_errors', 100 );
 
 /**
- * Collect cookie authentication status.
+ * Collects cookie authentication status.
  *
- * Collects errors from {@see wp_validate_auth_cookie} for
- * use by {@see json_cookie_check_errors}.
+ * Collects errors from wp_validate_auth_cookie for use by json_cookie_check_errors.
+ *
+ * @since 4.4.0
  *
  * @see current_action()
  * @global mixed $wp_json_auth_cookie
@@ -405,7 +430,9 @@ add_action( 'auth_cookie_bad_hash',     'json_cookie_collect_status' );
 add_action( 'auth_cookie_valid',        'json_cookie_collect_status' );
 
 /**
- * Get the URL prefix for any API resource.
+ * Retrieves the URL prefix for any API resource.
+ *
+ * @since 4.4.0
  *
  * @return string Prefix.
  */
@@ -413,7 +440,7 @@ function json_get_url_prefix() {
 	/**
 	 * Filter the JSON URL prefix.
 	 *
-	 * @since 1.0
+	 * @since 4.4.0
 	 *
 	 * @param string $prefix URL prefix. Default 'wp-json'.
 	 */
@@ -421,7 +448,9 @@ function json_get_url_prefix() {
 }
 
 /**
- * Get URL to a JSON endpoint on a site.
+ * Retrieves the URL to a JSON endpoint on a site.
+ *
+ * @since 4.4.0
  *
  * @todo Check if this is even necessary
  *
@@ -462,7 +491,9 @@ function get_json_url( $blog_id = null, $path = '', $scheme = 'json' ) {
 }
 
 /**
- * Get URL to a JSON endpoint.
+ * Retrieves the URL to a JSON endpoint.
+ *
+ * @since 4.4.0
  *
  * @param string $path   Optional. JSON route. Default empty.
  * @param string $scheme Optional. Sanitization scheme. Default 'json'.
@@ -473,13 +504,14 @@ function json_url( $path = '', $scheme = 'json' ) {
 }
 
 /**
- * Ensure a JSON response is a response object.
+ * Ensures a JSON response is a response object.
  *
- * This ensures that the response is consistent, and implements
- * {@see WP_JSON_ResponseInterface}, allowing usage of
- * `set_status`/`header`/etc without needing to double-check the object. Will
- * also allow {@see WP_Error} to indicate error responses, so users should
- * immediately check for this value.
+ * This ensures that the response is consistent, and implements WP_JSON_ResponseInterface,
+ * allowing usage of `set_status`/`header`/etc without needing to double-check the object.
+ * Will also allow WP_Error to indicate error responses, so users should immediately check
+ * for this value.
+ *
+ * @since 4.4.0
  *
  * @param WP_Error|WP_JSON_ResponseInterface|mixed $response Response to check.
  * @return WP_Error|WP_JSON_ResponseInterface WP_Error if present, WP_JSON_ResponseInterface
@@ -498,7 +530,9 @@ function json_ensure_response( $response ) {
 }
 
 /**
- * Check if we have permission to interact with the post object.
+ * Checks if we have permission to interact with the post object.
+ *
+ * @since 4.4.0
  *
  * @param WP_Post $post Post object.
  * @param string $capability Permission to check.
@@ -562,7 +596,9 @@ function json_check_post_permission( $post, $capability = 'read' ) {
 }
 
 /**
- * Parse an RFC3339 timestamp into a DateTime.
+ * Parses an RFC3339 timestamp into a DateTime.
+ *
+ * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp.
  * @param bool   $force_utc Force UTC timezone instead of using the timestamp's TZ.
@@ -583,7 +619,9 @@ function json_parse_date( $date, $force_utc = false ) {
 }
 
 /**
- * Get a local date with its GMT equivalent, in MySQL datetime format.
+ * Retrieves a local date with its GMT equivalent, in MySQL datetime format.
+ *
+ * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp
  * @param bool   $force_utc Whether a UTC timestamp should be forced.
@@ -604,10 +642,12 @@ function json_get_date_with_gmt( $date, $force_utc = false ) {
 }
 
 /**
- * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339.
  *
  * Explicitly strips timezones, as datetimes are not saved with any timezone
  * information. Including any information on the offset could be misleading.
+ *
+ * @since 4.4.0
  *
  * @param string $date_string
  *
@@ -621,10 +661,11 @@ function json_mysql_to_rfc3339( $date_string ) {
 }
 
 /**
- * Retrieve the avatar url for a user who provided a user ID or email address.
+ * Retrieves the avatar url for a user who provided a user ID or email address.
  *
- * {@see get_avatar()} doesn't return just the URL, so we have to
- * extract it here.
+ * get_avatar() doesn't return just the URL, so we have to extract it here.
+ *
+ * @since 4.4.0
  *
  * @param string $email Email address.
  * @return string URL for the user's avatar, empty string otherwise.
@@ -643,7 +684,9 @@ function json_get_avatar_url( $email ) {
 }
 
 /**
- * Get the timezone object for the site.
+ * Retrieves the timezone object for the site.
+ *
+ * @since 4.4.0
  *
  * @return DateTimeZone DateTimeZone instance.
  */
@@ -673,7 +716,9 @@ function json_get_timezone() {
 }
 
 /**
- * Handle {@see _deprecated_function()} errors.
+ * Handle _deprecated_function() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -691,7 +736,9 @@ function json_handle_deprecated_function( $function, $replacement, $version ) {
 }
 
 /**
- * Handle {@see _deprecated_function} errors.
+ * Handles _deprecated_argument() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -709,7 +756,9 @@ function json_handle_deprecated_argument( $function, $message, $version ) {
 }
 
 /**
- * Send Cross-Origin Resource Sharing headers with API requests
+ * Sends Cross-Origin Resource Sharing headers with API requests.
+ *
+ * @since 4.4.0
  *
  * @param mixed $value Response data
  * @return mixed Response data
@@ -727,10 +776,12 @@ function json_send_cors_headers( $value ) {
 }
 
 /**
- * Handle OPTIONS requests for the server
+ * Handles OPTIONS requests for the server.
  *
  * This is handled outside of the server code, as it doesn't obey normal route
  * mapping.
+ *
+ * @since 4.4.0
  *
  * @param mixed $response Current response, either response or `null` to indicate pass-through
  * @param WP_JSON_Server $handler ResponseHandler instance (usually WP_JSON_Server)
@@ -774,14 +825,16 @@ function json_handle_options_request( $response, $handler ) {
 
 if ( ! function_exists( 'json_last_error_msg' ) ):
 /**
- * Returns the error string of the last json_encode() or json_decode() call
+ * Returns the error string of the last json_encode() or json_decode() call.
  *
- * @internal This is a compatibility function for PHP <5.5
+ * @since 4.4.0
+ *
+ * @internal This is a compatibility function for PHP <5.5.
  *
  * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
  */
 function json_last_error_msg() {
-	// see https://core.trac.wordpress.org/ticket/27799
+	// See https://core.trac.wordpress.org/ticket/27799.
 	if ( ! function_exists( 'json_last_error' ) ) {
 		return false;
 	}
