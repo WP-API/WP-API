@@ -650,12 +650,15 @@ function rest_handle_options_request( $response, $handler, $request ) {
 }
 
 /**
- * Send the "Allow" header to state all methods that can be sen
- * to the current route
+ * Send the "Allow" header to state all methods that can be sent
+ * to the current route.
  *
- * @param  WP_REST_Response  $response Current response being served.
- * @param  WP_REST_Server    $server ResponseHandler instance (usually WP_REST_Server)
- * @param  WP_REST_Request   $request The request that was used to make current response.
+ * @param  WP_REST_Response $response Current response being served.
+ * @param  WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
+ * @param  WP_REST_Request  $request  The request that was used to make current response.
+ *
+ * @return WP_REST_Response If the route is set and has allowed methods, returns response with Allow header set.
+ * 							Otherwise the original response is returned.
  */
 function rest_send_allow_header( $response, $server, $request ) {
 
