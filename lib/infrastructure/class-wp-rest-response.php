@@ -15,31 +15,41 @@
  * @see WP_HTTP_Response
  */
 class WP_REST_Response extends WP_HTTP_Response {
+
 	/**
-	 * Links related to the response
+	 * Links related to the response.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var array
 	 */
 	protected $links = array();
 
 	/**
-	 * The route that was to create the response
+	 * The route that was to create the response.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var string
 	 */
 	protected $matched_route = '';
 
 	/**
-	 * The handler that was used to create the response
+	 * The handler that was used to create the response.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var null|array
 	 */
 	protected $matched_handler = null;
 
 	/**
-	 * Add a link to the response
+	 * Adds a link to the response.
 	 *
 	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @link http://tools.ietf.org/html/rfc5988
 	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
@@ -47,7 +57,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param string $rel        Link relation. Either an IANA registered type,
 	 *                           or an absolute URL.
 	 * @param string $href       Target URI for the link.
-	 * @param array  $attributes Link parameters to send along with the URL.
+	 * @param array  $attributes Optional. Link parameters to send along with the URL. Default empty array.
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
@@ -66,12 +76,14 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Remove a link from the response.
+	 * Removes a link from the response.
 	 *
-	 * @param  string $rel  Link relation. Either an IANA registered type, or
-	 *                      an absolute URL.
-	 * @param  string $href Optional. Only remove links for the relation
-	 *                      matching the given href. Default null.
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param  string $rel  Link relation. Either an IANA registered type, or an absolute URL.
+	 * @param  string $href Optional. Only remove links for the relation matching the given href.
+	 *                      Default null.
 	 */
 	public function remove_link( $rel, $href = null ) {
 		if ( ! isset( $this->links[ $rel ] ) ) {
@@ -90,12 +102,15 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Add multiple links to the response.
+	 * Adds multiple links to the response.
 	 *
 	 * Link data should be an associative array with link relation as the key.
 	 * The value can either be an associative array of link attributes
 	 * (including `href` with the URL for the response), or a list of these
 	 * associative arrays.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @param array $links Map of link relation to list of links.
 	 */
@@ -113,25 +128,32 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Get links for the response
+	 * Retrieves links for the response.
 	 *
-	 * @return array
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array List of links.
 	 */
 	public function get_links() {
 		return $this->links;
 	}
 
 	/**
-	 * Set a single link header
+	 * Sets a single link header.
 	 *
 	 * @internal The $rel parameter is first, as this looks nicer when sending multiple
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @link http://tools.ietf.org/html/rfc5988
 	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $rel Link relation. Either an IANA registered type, or an absolute URL
-	 * @param string $link Target IRI for the link
-	 * @param array $other Other parameters to send, as an assocative array
+	 * @param string $rel   Link relation. Either an IANA registered type, or an absolute URL
+	 * @param string $link  Target IRI for the link
+	 * @param array  $other Optional. Other parameters to send, as an assocative array.
+	 *                      Default empty array.
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
@@ -146,54 +168,72 @@ class WP_REST_Response extends WP_HTTP_Response {
 	}
 
 	/**
-	 * Get the route that was used to
+	 * Retrieves the route that was used.
 	 *
-	 * @return string
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return string The matched route.
 	 */
 	public function get_matched_route() {
 		return $this->matched_route;
 	}
 
 	/**
-	 * Set the route (regex for path) that caused the response
+	 * Sets the route (regex for path) that caused the response.
 	 *
-	 * @param string $route
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $route Route name.
 	 */
 	public function set_matched_route( $route ) {
 		$this->matched_route = $route;
 	}
 
 	/**
-	 * Get the handler that was used to generate the response
+	 * Retrieves the handler that was used to generate the response.
 	 *
-	 * @return null|array
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return null|array The handler that was used to create the response.
 	 */
 	public function get_matched_handler() {
 		return $this->matched_handler;
 	}
 
 	/**
-	 * Get the handler that was responsible for generting the response
+	 * Retrieves the handler that was responsible for generating the response.
 	 *
-	 * @param array $handler
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $handler The matched handler.
 	 */
 	public function set_matched_handler( $handler ) {
 		$this->matched_handler = $handler;
 	}
 
 	/**
-	 * Check if the response is an error, i.e. >= 400 response code
+	 * Checks if the response is an error, i.e. >= 400 response code.
 	 *
-	 * @return boolean
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return bool Whether the response is an error.
 	 */
 	public function is_error() {
 		return $this->get_status() >= 400;
 	}
 
 	/**
-	 * Get a WP_Error object from the response's
+	 * Retrieves a WP_Error object from the response.
 	 *
-	 * @return WP_Error|null on not an errored response
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return WP_Error|null WP_Error or null on not an errored response.
 	 */
 	public function as_error() {
 		if ( ! $this->is_error() ) {
