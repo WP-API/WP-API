@@ -8,7 +8,7 @@
  */
 
 /**
- * Core class used to implement an HTTP request object.
+ * Core class used to implement a REST request object.
  *
  * Contains data from the request, to be passed to the callback.
  *
