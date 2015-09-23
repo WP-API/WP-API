@@ -1,18 +1,19 @@
 <?php
 /**
- * WordPress REST API
- *
- * Contains the WP_REST_Server class.
+ * REST API: WP_REST_Server class
  *
  * @package WordPress
+ * @subpackage REST_API
+ * @since 4.4.0
  */
 
+/** Admin bootstrap */
 require_once( ABSPATH . 'wp-admin/includes/admin.php' );
 
 /**
- * WordPress REST API server handler
+ * Core class used to implement the WordPress REST API server.
  *
- * @package WordPress
+ * @since 4.4.0
  */
 class WP_REST_Server {
 	/**
