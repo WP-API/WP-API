@@ -23,71 +23,94 @@
 class WP_REST_Request implements ArrayAccess {
 
 	/**
-	 * HTTP method
+	 * HTTP method.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var string
 	 */
 	protected $method = '';
 
 	/**
-	 * Parameters passed to the request
+	 * Parameters passed to the request.
 	 *
 	 * These typically come from the `$_GET`, `$_POST` and `$_FILES`
 	 * superglobals when being created from the global scope.
 	 *
-	 * @var array Contains GET, POST and FILES keys mapping to arrays of data
+	 * @since 4.4.0
+	 * @access protected
+	 * @var array Contains GET, POST and FILES keys mapping to arrays of data.
 	 */
 	protected $params;
 
 	/**
-	 * HTTP headers for the request
+	 * HTTP headers for the request.
 	 *
-	 * @var array Map of key to value. Key is always lowercase, as per HTTP specification
+	 * @since 4.4.0
+	 * @access protected
+	 * @var array Map of key to value. Key is always lowercase, as per HTTP specification.
 	 */
 	protected $headers = array();
 
 	/**
-	 * Body data
+	 * Body data.
 	 *
-	 * @var string Binary data from the request
+	 * @since 4.4.0
+	 * @access protected
+	 * @var string Binary data from the request.
 	 */
 	protected $body = null;
 
 	/**
-	 * Route matched for the request
+	 * Route matched for the request.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var string
 	 */
 	protected $route;
 
 	/**
-	 * Attributes (options) for the route that was matched
+	 * Attributes (options) for the route that was matched.
 	 *
 	 * This is the options array used when the route was registered, typically
 	 * containing the callback as well as the valid methods for the route.
 	 *
-	 * @return array Attributes for the request
+	 * @since 4.4.0
+	 * @access protected
+	 * @var array Attributes for the request.
 	 */
 	protected $attributes = array();
 
 	/**
-	 * Have we parsed the JSON data yet?
+	 * Used to determine if the JSON data has been parsed yet.
 	 *
 	 * Allows lazy-parsing of JSON data where possible.
 	 *
-	 * @var boolean
+	 * @since 4.4.0
+	 * @access protected
+	 * @var bool
 	 */
 	protected $parsed_json = false;
 
 	/**
-	 * Have we parsed body data yet?
+	 * Used to determine if the body data has been parsed yet.
 	 *
-	 * @var boolean
+	 * @since 4.4.0
+	 * @access protected
+	 * @var bool
 	 */
 	protected $parsed_body = false;
 
 	/**
-	 * Constructor
+	 * Constructor.
+	 *
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $method     Optional. Request method. Default empty.
+	 * @param string $route      Optional. Request route. Default empty.
+	 * @param array  $attributes Optional. Request attributes. Default empty array.
 	 */
 	public function __construct( $method = '', $route = '', $attributes = array() ) {
 		$this->params = array(
@@ -108,34 +131,43 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get HTTP method for the request
+	 * Retrieves the HTTP method for the request.
 	 *
-	 * @return string HTTP method
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return string HTTP method.
 	 */
 	public function get_method() {
 		return $this->method;
 	}
 
 	/**
-	 * Set HTTP method for the request
+	 * Sets HTTP method for the request.
 	 *
-	 * @param string $method HTTP method
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $method HTTP method.
 	 */
 	public function set_method( $method ) {
 		$this->method = strtoupper( $method );
 	}
 
 	/**
-	 * Get all headers from the request
+	 * Retrieves all headers from the request.
 	 *
-	 * @return array Map of key to value. Key is always lowercase, as per HTTP specification
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Map of key to value. Key is always lowercase, as per HTTP specification.
 	 */
 	public function get_headers() {
 		return $this->headers;
 	}
 
 	/**
-	 * Canonicalize header name
+	 * Canonicalizes the header name.
 	 *
 	 * Ensures that header names are always treated the same regardless of
 	 * source. Header names are always case insensitive.
@@ -147,8 +179,12 @@ class WP_REST_Request implements ArrayAccess {
 	 * @link http://wiki.nginx.org/Pitfalls#Missing_.28disappearing.29_HTTP_headers
 	 * @link http://nginx.org/en/docs/http/ngx_http_core_module.html#underscores_in_headers
 	 *
-	 * @param string $key Header name
-	 * @return string Canonicalized name
+	 * @since 4.4.0
+	 * @access public
+	 * @static
+	 *
+	 * @param string $key Header name.
+	 * @return string Canonicalized name.
 	 */
 	public static function canonicalize_header_name( $key ) {
 		$key = strtolower( $key );
@@ -158,14 +194,17 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get header from request
+	 * Retrieves the given header from the request.
 	 *
 	 * If the header has multiple values, they will be concatenated with a comma
 	 * as per the HTTP specification. Be aware that some non-compliant headers
 	 * (notably cookie headers) cannot be joined this way.
 	 *
-	 * @param string $key Header name, will be canonicalized to lowercase
-	 * @return string|null String value if set, null otherwise
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Header name, will be canonicalized to lowercase.
+	 * @return string|null String value if set, null otherwise.
 	 */
 	public function get_header( $key ) {
 		$key = $this->canonicalize_header_name( $key );
@@ -178,10 +217,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get header values from request
+	 * Retrieves header values from the request.
 	 *
-	 * @param string $key Header name, will be canonicalized to lowercase
-	 * @return array|null List of string values if set, null otherwise
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Header name, will be canonicalized to lowercase.
+	 * @return array|null List of string values if set, null otherwise.
 	 */
 	public function get_header_as_array( $key ) {
 		$key = $this->canonicalize_header_name( $key );
@@ -194,10 +236,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set header on request
+	 * Sets the header on request.
 	 *
-	 * @param string $key Header name
-	 * @param string|string[] $value Header value, or list of values
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key   Header name.
+	 * @param string $value Header value, or list of values.
 	 */
 	public function set_header( $key, $value ) {
 		$key = $this->canonicalize_header_name( $key );
@@ -207,10 +252,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Append a header value for the given header
+	 * Appends a header value for the given header.
 	 *
-	 * @param string $key Header name
-	 * @param string|string[] $value Header value, or list of values
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key   Header name.
+	 * @param string $value Header value, or list of values.
 	 */
 	public function add_header( $key, $value ) {
 		$key = $this->canonicalize_header_name( $key );
@@ -224,19 +272,25 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Remove all values for a header
+	 * Removes all values for a header.
 	 *
-	 * @param string $key Header name
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Header name.
 	 */
 	public function remove_header( $key ) {
 		unset( $this->headers[ $key ] );
 	}
 
 	/**
-	 * Set headers on the request
+	 * Sets headers on the request.
 	 *
-	 * @param array $headers Map of header name to value
-	 * @param boolean $override If true, replace the request's headers. Otherwise, merge with existing.
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $headers  Map of header name to value.
+	 * @param bool  $override If true, replace the request's headers. Otherwise, merge with existing.
 	 */
 	public function set_headers( $headers, $override = true ) {
 		if ( true === $override ) {
@@ -249,9 +303,12 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get the content-type of the request
+	 * Retrieves the content-type of the request.
 	 *
-	 * @return array Map containing 'value' and 'parameters' keys
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Map containing 'value' and 'parameters' keys.
 	 */
 	public function get_content_type() {
 		$value = $this->get_header( 'content-type' );
