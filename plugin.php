@@ -47,7 +47,9 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
 
 
 /**
- * Register a REST API route
+ * Registers a REST API route.
+ *
+ * @since 4.4.0
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
  * @param string $route The base URL for route you are adding.
@@ -93,7 +95,9 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 }
 
 /**
- * Register a new field on an existing WordPress object type
+ * Registers a new field on an existing WordPress object type.
+ *
+ * @since 4.4.0
  *
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
@@ -142,8 +146,13 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
 }
 
 /**
- * Add the extra Post Type registration arguments we need
+ * Adds extra post type registration arguments.
+ *
  * These attributes will eventually be committed to core.
+ *
+ * @since 4.4.0
+ *
+ * @global array $wp_post_types Registered post types.
  */
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;
@@ -164,8 +173,13 @@ function _add_extra_api_post_type_arguments() {
 add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 
 /**
- * Add the extra Taxonomy registration arguments we need.
+ * Adds extra taxonomy registration arguments.
+ *
  * These attributes will eventually be committed to core.
+ *
+ * @since 4.4.0
+ *
+ * @global array $wp_taxonomies Registered taxonomies.
  */
 function _add_extra_api_taxonomy_arguments() {
 	global $wp_taxonomies;
@@ -185,7 +199,9 @@ function _add_extra_api_taxonomy_arguments() {
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
 /**
- * Register default REST API routes
+ * Registers default REST API routes.
+ *
+ * @since 4.4.0
  */
 function create_initial_rest_routes() {
 
@@ -273,7 +289,9 @@ function create_initial_rest_routes() {
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
 /**
- * Register rewrite rules for the API.
+ * Registers rewrite rules for the API.
+ *
+ * @since 4.4.0
  *
  * @global WP $wp Current WordPress environment instance.
  */
@@ -286,7 +304,9 @@ function rest_api_init() {
 add_action( 'init', 'rest_api_init' );
 
 /**
- * Add rewrite rules.
+ * Adds REST rewrite rules.
+ *
+ * @since 4.4.0
  */
 function rest_api_register_rewrites() {
 	add_rewrite_rule( '^' . rest_get_url_prefix() . '/?$','index.php?rest_route=/','top' );
@@ -294,7 +314,9 @@ function rest_api_register_rewrites() {
 }
 
 /**
- * Determine if the rewrite rules should be flushed.
+ * Determines if the rewrite rules should be flushed.
+ *
+ * @since 4.4.0
  */
 function rest_api_maybe_flush_rewrites() {
 	$version = get_option( 'rest_api_plugin_version', null );
@@ -308,7 +330,9 @@ function rest_api_maybe_flush_rewrites() {
 add_action( 'init', 'rest_api_maybe_flush_rewrites', 999 );
 
 /**
- * Register the default REST API filters.
+ * Registers the default REST API filters.
+ *
+ * @since 4.4.0
  *
  * @internal This will live in default-filters.php
  *
@@ -336,7 +360,9 @@ function rest_api_default_filters( $server ) {
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 
 /**
- * Load the REST API.
+ * Loads the REST API.
+ *
+ * @since 4.4.0
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_rest_server_class filter and serving requests. This would also
@@ -372,6 +398,8 @@ function rest_api_loaded() {
 	 * This filter allows you to adjust the server class used by the API, using a
 	 * different class to handle requests.
 	 *
+	 * @since 4.4.0
+	 *
 	 * @param string $class_name The name of the server class. Default 'WP_REST_Server'.
 	 */
 	$wp_rest_server_class = apply_filters( 'wp_rest_server_class', 'WP_REST_Server' );
@@ -383,6 +411,8 @@ function rest_api_loaded() {
 	 * Endpoint objects should be created and register their hooks on this
 	 * action rather than another action to ensure they're only loaded when
 	 * needed.
+	 *
+	 * @since 4.4.0
 	 *
 	 * @param WP_REST_Server $wp_rest_server Server object.
 	 */
@@ -397,7 +427,9 @@ function rest_api_loaded() {
 add_action( 'parse_request', 'rest_api_loaded' );
 
 /**
- * Register routes and flush the rewrite rules on activation.
+ * Registers routes and flush the rewrite rules on activation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -421,7 +453,9 @@ function rest_api_activation( $network_wide ) {
 register_activation_hook( __FILE__, 'rest_api_activation' );
 
 /**
- * Flush the rewrite rules on deactivation.
+ * Flushes the rewrite rules on deactivation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -443,7 +477,9 @@ function rest_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'rest_api_deactivation' );
 
 /**
- * Get the URL prefix for any API resource.
+ * Retrieves the URL prefix for any API resource.
+ *
+ * @since 4.4.0
  *
  * @return string Prefix.
  */
@@ -457,7 +493,9 @@ function rest_get_url_prefix() {
 }
 
 /**
- * Get URL to a REST endpoint on a site.
+ * Retrieves the URL to a REST endpoint on a site.
+ *
+ * @since 4.4.0
  *
  * @todo Check if this is even necessary
  *
@@ -487,6 +525,8 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 	 *
 	 * Use this filter to adjust the url returned by the `get_rest_url` function.
 	 *
+	 * @since 4.4.0
+	 *
 	 * @param string $url     REST URL.
 	 * @param string $path    REST route.
 	 * @param int    $blod_ig Blog ID.
@@ -496,7 +536,9 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 }
 
 /**
- * Get URL to a REST endpoint.
+ * Retrieves the URL to a REST endpoint.
+ *
+ * @since 4.4.0
  *
  * @param string $path   Optional. REST route. Default empty.
  * @param string $scheme Optional. Sanitization scheme. Default 'json'.
@@ -508,7 +550,10 @@ function rest_url( $path = '', $scheme = 'json' ) {
 
 /**
  * Do a REST request.
- * Used primarily to route internal requests through WP_REST_Server
+ *
+ * Used primarily to route internal requests through WP_REST_Server.
+ *
+ * @since 4.4.0
  *
  * @param WP_REST_Request|string $request
  * @return WP_REST_Response
@@ -520,9 +565,9 @@ function rest_do_request( $request ) {
 }
 
 /**
- * Ensure request arguments are a request object.
+ * Ensures request arguments are a request object (for consistency).
  *
- * This ensures that the request is consistent.
+ * @since 4.4.0
  *
  * @param array|WP_REST_Request $request Request to check.
  * @return WP_REST_Request
@@ -536,13 +581,14 @@ function rest_ensure_request( $request ) {
 }
 
 /**
- * Ensure a REST response is a response object.
+ * Ensures a REST response is a response object.
  *
- * This ensures that the response is consistent, and implements
- * {@see WP_HTTP_ResponseInterface}, allowing usage of
- * `set_status`/`header`/etc without needing to double-check the object. Will
- * also allow {@see WP_Error} to indicate error responses, so users should
- * immediately check for this value.
+ * This ensures that the response is consistent, and implements WP_HTTP_ResponseInterface},
+ * allowing usage of `set_status`/`header`/etc without needing to double-check the object.
+ * Will also allow WP_Error to indicate error responses, so users should immediately check
+ * for this value.
+ *
+ * @since 4.4.0
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
  * @return WP_Error|WP_HTTP_ResponseInterface|WP_REST_Response WP_Error if response generated an error, WP_HTTP_ResponseInterface if response is a already an instance, otherwise returns a new WP_REST_Response instance.
@@ -560,7 +606,9 @@ function rest_ensure_response( $response ) {
 }
 
 /**
- * Handle {@see _deprecated_function()} errors.
+ * Handles _deprecated_function() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -577,7 +625,9 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
 }
 
 /**
- * Handle {@see _deprecated_function} errors.
+ * Handles _deprecated_argument() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -594,7 +644,9 @@ function rest_handle_deprecated_argument( $function, $replacement, $version ) {
 }
 
 /**
- * Send Cross-Origin Resource Sharing headers with API requests
+ * Sends Cross-Origin Resource Sharing headers with API requests.
+ *
+ * @since 4.4.0
  *
  * @param mixed $value Response data
  * @return mixed Response data
@@ -612,10 +664,12 @@ function rest_send_cors_headers( $value ) {
 }
 
 /**
- * Handle OPTIONS requests for the server
+ * Handles OPTIONS requests for the server.
  *
  * This is handled outside of the server code, as it doesn't obey normal route
  * mapping.
+ *
+ * @since 4.4.0
  *
  * @param mixed $response Current response, either response or `null` to indicate pass-through.
  * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server).
@@ -650,12 +704,14 @@ function rest_handle_options_request( $response, $handler, $request ) {
 }
 
 /**
- * Send the "Allow" header to state all methods that can be sen
- * to the current route
+ * Sends the "Allow" header to state all methods that can be sent
+ * to the current route.
  *
- * @param  WP_REST_Response  $response Current response being served.
- * @param  WP_REST_Server    $server ResponseHandler instance (usually WP_REST_Server)
- * @param  WP_REST_Request   $request The request that was used to make current response.
+ * @since 4.4.0
+ *
+ * @param WP_REST_Response $response Current response being served.
+ * @param WP_REST_Server   $server ResponseHandler instance (usually WP_REST_Server)
+ * @param WP_REST_Request  $request The request that was used to make current response.
  */
 function rest_send_allow_header( $response, $server, $request ) {
 
@@ -696,7 +752,9 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 if ( ! function_exists( 'json_last_error_msg' ) ) :
 	/**
-	 * Returns the error string of the last json_encode() or json_decode() call
+	 * Returns the error string of the last json_encode() or json_decode() call.
+	 *
+	 * @since 4.4.0
 	 *
 	 * @internal This is a compatibility function for PHP <5.5
 	 *
@@ -748,7 +806,9 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 endif;
 
 /**
- * Is the variable a list? (Numeric-indexed array)
+ * Determines if the variable a list? (Numeric-indexed array).
+ *
+ * @since 4.4.0
  *
  * @param mixed $data Variable to check.
  * @return boolean
