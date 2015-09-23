@@ -795,10 +795,13 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Match the request to a callback and call it
+	 * Matches the request to a callback and call it.
 	 *
-	 * @param WP_REST_Request $request Request to attempt dispatching
-	 * @return WP_REST_Response Response returned by the callback
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param WP_REST_Request $request Request to attempt dispatching.
+	 * @return WP_REST_Response Response returned by the callback.
 	 */
 	public function dispatch( $request ) {
 		/**
@@ -807,11 +810,15 @@ class WP_REST_Server {
 		 * Allow hijacking the request before dispatching by returning a non-empty. The returned value
 		 * will be used to serve the request instead.
 		 *
-		 * @param mixed           $result  Response to replace the requested version with. Can be anything a normal endpoint can return, or null to not hijack the request.
+		 * @since 4.4.0
+		 *
+		 * @param mixed           $result  Response to replace the requested version with. Can be anything
+		 *                                 a normal endpoint can return, or null to not hijack the request.
 		 * @param WP_REST_Server  $this    Server instance.
 		 * @param WP_REST_Request $request Request used to generate the response.
 		 */
 		$result = apply_filters( 'rest_pre_dispatch', null, $this, $request );
+
 		if ( ! empty( $result ) ) {
 			return $result;
 		}
@@ -863,7 +870,7 @@ class WP_REST_Server {
 				}
 
 				if ( ! is_wp_error( $response ) ) {
-					// check permission specified on the route.
+					// Check permission specified on the route.
 					if ( ! empty( $handler['permission_callback'] ) ) {
 						$permission = call_user_func( $handler['permission_callback'], $request );
 
@@ -881,12 +888,14 @@ class WP_REST_Server {
 					 *
 					 * Allow plugins to override dispatching the request.
 					 *
-					 * @param boolean         $dispatch_result Dispatch result, will be used if not empty.
+					 * @since 4.4.0
+					 *
+					 * @param bool            $dispatch_result Dispatch result, will be used if not empty.
 					 * @param WP_REST_Request $request         Request used to generate the response.
 					 */
 					$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request );
 
-					// Allow plugins to halt the request via this filter
+					// Allow plugins to halt the request via this filter.
 					if ( null !== $dispatch_result ) {
 						$response = $dispatch_result;
 					} else {
@@ -911,18 +920,24 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Returns if an error occurred during most recent JSON encode/decode
-	 * Strings to be translated will be in format like "Encoding error: Maximum stack depth exceeded"
+	 * Returns if an error occurred during most recent JSON encode/decode.
 	 *
-	 * @return boolean|string Boolean false or string error message
+	 * Strings to be translated will be in format like
+	 * "Encoding error: Maximum stack depth exceeded".
+	 *
+	 * @since 4.4.0
+	 * @access protected
+	 *
+	 * @return bool|string Boolean false or string error message.
 	 */
 	protected function get_json_last_error( ) {
-		// see https://core.trac.wordpress.org/ticket/27799
+		// See https://core.trac.wordpress.org/ticket/27799.
 		if ( ! function_exists( 'json_last_error' ) ) {
 			return false;
 		}
 
 		$last_error_code = json_last_error();
+
 		if ( ( defined( 'JSON_ERROR_NONE' ) && JSON_ERROR_NONE === $last_error_code ) || empty( $last_error_code ) ) {
 			return false;
 		}
@@ -931,16 +946,19 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Get the site index.
+	 * Retrieves the site index.
 	 *
 	 * This endpoint describes the capabilities of the site.
 	 *
 	 * @todo Should we generate text documentation too based on PHPDoc?
 	 *
+	 * @since 4.4.0
+	 * @access public
+	 *
 	 * @return array Index entity
 	 */
 	public function get_index( $request ) {
-		// General site data
+		// General site data.
 		$available = array(
 			'name'           => get_option( 'blogname' ),
 			'description'    => get_option( 'blogdescription' ),
@@ -951,6 +969,7 @@ class WP_REST_Server {
 		);
 
 		$response = new WP_REST_Response( $available );
+
 		$response->add_link( 'help', 'http://v2.wp-api.org/' );
 
 		/**
@@ -960,16 +979,22 @@ class WP_REST_Server {
 		 * about supported authentication schemes, supported namespaces, routes
 		 * available on the API, and a small amount of data about the site.
 		 *
+		 * @since 4.4.0
+		 *
 		 * @param WP_REST_Response $response Response data.
 		 */
 		return apply_filters( 'rest_index', $response );
 	}
 
 	/**
-	 * Get the index for a namespace.
+	 * Retrieves the index for a namespace.
 	 *
-	 * @param WP_REST_Request $request
-	 * @return array|WP_REST_Response
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param WP_REST_Request $request REST request instance.
+	 * @return WP_REST_Response|WP_Error WP_REST_Response instance if the index was found,
+	 *                                   WP_Error if the namespace isn't set.
 	 */
 	public function get_namespace_index( $request ) {
 		$namespace = $request['namespace'];
@@ -996,6 +1021,8 @@ class WP_REST_Server {
 		 * This typically is just the route data for the namespace, but you can
 		 * add any data you'd like here.
 		 *
+		 * @since 4.4.0
+		 *
 		 * @param WP_REST_Response $response Response data.
 		 * @param WP_REST_Request  $request  Request data. The namespace is passed as the 'namespace' parameter.
 		 */
@@ -1003,15 +1030,19 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Get the publicly-visible data for routes.
+	 * Retrieves the publicly-visible data for routes.
 	 *
-	 * @param array $routes Routes to get data for
-	 * @param string $context Context for data. One of 'view', 'help'.
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array  $routes  Routes to get data for
+	 * @param string $context Optional. Context for data. Accepts 'view' or 'help'. Default 'view'.
 	 * @return array Route data to expose in indexes.
 	 */
 	public function get_data_for_routes( $routes, $context = 'view' ) {
 		$available = array();
-		// Find the available routes
+
+		// Find the available routes.
 		foreach ( $routes as $route => $callbacks ) {
 			$data = $this->get_data_for_route( $route, $callbacks, $context );
 			if ( empty( $data ) ) {
@@ -1020,6 +1051,8 @@ class WP_REST_Server {
 
 			/**
 			 * Filter the REST endpoint data.
+			 *
+			 * @since 4.4.0
 			 *
 			 * @param WP_REST_Request $request Request data. The namespace is passed as the 'namespace' parameter.
 			 */
@@ -1033,6 +1066,8 @@ class WP_REST_Server {
 		 * developers to investigate the site and find out how to use it. It
 		 * acts as a form of self-documentation.
 		 *
+		 * @since 4.4.0
+		 *
 		 * @param array $available Map of route to route data.
 		 * @param array $routes    Internal route data as an associative array.
 		 */
@@ -1040,11 +1075,14 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Get publicly-visible data for the route.
+	 * Retrieves publicly-visible data for the route.
 	 *
-	 * @param string $route Route to get data for.
-	 * @param array $callbacks Callbacks to convert to data.
-	 * @param string $context Context for the data.
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $route     Route to get data for.
+	 * @param array  $callbacks Callbacks to convert to data.
+	 * @param string $context   Optional. Context for the data. Accepts 'view' or 'help'. Default 'view'.
 	 * @return array|null Data for the route, or null if no publicly-visible data.
 	 */
 	public function get_data_for_route( $route, $callbacks, $context = 'view' ) {
@@ -1053,11 +1091,14 @@ class WP_REST_Server {
 			'methods' => array(),
 			'endpoints' => array(),
 		);
+
 		if ( isset( $this->route_options[ $route ] ) ) {
 			$options = $this->route_options[ $route ];
+
 			if ( isset( $options['namespace'] ) ) {
 				$data['namespace'] = $options['namespace'];
 			}
+
 			if ( isset( $options['schema'] ) && 'help' === $context ) {
 				$data['schema'] = call_user_func( $options['schema'] );
 			}
@@ -1066,7 +1107,7 @@ class WP_REST_Server {
 		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
 		foreach ( $callbacks as $callback ) {
-			// Skip to the next route if any callback is hidden
+			// Skip to the next route if any callback is hidden.
 			if ( empty( $callback['show_in_index'] ) ) {
 				continue;
 			}
@@ -1091,7 +1132,7 @@ class WP_REST_Server {
 
 			$data['endpoints'][] = $endpoint_data;
 
-			// For non-variable routes, generate links
+			// For non-variable routes, generate links.
 			if ( strpos( $route, '{' ) === false ) {
 				$data['_links'] = array(
 					'self' => rest_url( $route ),
@@ -1100,7 +1141,7 @@ class WP_REST_Server {
 		}
 
 		if ( empty( $data['methods'] ) ) {
-			// No methods supported, hide the route
+			// No methods supported, hide the route.
 			return null;
 		}
 
@@ -1108,33 +1149,45 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Send a HTTP status code
+	 * Sends an HTTP status code.
 	 *
-	 * @param int $code HTTP status
+	 * @since 4.4.0
+	 * @access protected
+	 *
+	 * @param int $code HTTP status.
 	 */
 	protected function set_status( $code ) {
 		status_header( $code );
 	}
 
 	/**
-	 * Send a HTTP header
+	 * Sends an HTTP header.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @param string $key Header key
 	 * @param string $value Header value
 	 */
 	public function send_header( $key, $value ) {
-		// Sanitize as per RFC2616 (Section 4.2):
-		//   Any LWS that occurs between field-content MAY be replaced with a
-		//   single SP before interpreting the field value or forwarding the
-		//   message downstream.
+		/*
+		 * Sanitize as per RFC2616 (Section 4.2):
+		 *
+		 * Any LWS that occurs between field-content MAY be replaced with a
+		 * single SP before interpreting the field value or forwarding the
+		 * message downstream.
+		 */
 		$value = preg_replace( '/\s+/', ' ', $value );
 		header( sprintf( '%s: %s', $key, $value ) );
 	}
 
 	/**
-	 * Send multiple HTTP headers
+	 * Sends multiple HTTP headers.
 	 *
-	 * @param array Map of header name to header value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $headers Map of header name to header value.
 	 */
 	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
@@ -1143,15 +1196,22 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Retrieve the raw request entity (body)
+	 * Retrieves the raw request entity (body).
 	 *
-	 * @return string
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @global string $HTTP_RAW_POST_DATA Raw post data.
+	 *
+	 * @return string Raw request data.
 	 */
 	public function get_raw_data() {
 		global $HTTP_RAW_POST_DATA;
 
-		// A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
-		// but we can do it ourself.
+		/*
+		 * A bug in PHP < 5.2.2 makes $HTTP_RAW_POST_DATA not set by default,
+		 * but we can do it ourself.
+		 */
 		if ( ! isset( $HTTP_RAW_POST_DATA ) ) {
 			$HTTP_RAW_POST_DATA = file_get_contents( 'php://input' );
 		}
@@ -1160,14 +1220,17 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Prepares response data to be serialized to JSON
+	 * Prepares response data to be serialized to JSON.
 	 *
 	 * This supports the JsonSerializable interface for PHP 5.2-5.3 as well.
 	 *
+	 * @since 4.4.0
+	 * @access public
+	 *
 	 * @codeCoverageIgnore This is a compatibility shim.
 	 *
-	 * @param mixed $data Native representation
-	 * @return array|string Data ready for `json_encode()`
+	 * @param mixed $data Native representation.
+	 * @return array|string Data ready for `json_encode()`.
 	 */
 	public function prepare_response( $data ) {
 		if ( ! defined( 'WP_REST_SERIALIZE_COMPATIBLE' ) || WP_REST_SERIALIZE_COMPATIBLE === false ) {
@@ -1180,11 +1243,11 @@ class WP_REST_Server {
 			case 'double':
 			case 'string':
 			case 'NULL':
-				// These values can be passed through
+				// These values can be passed through.
 				return $data;
 
 			case 'array':
-				// Arrays must be mapped in case they also return objects
+				// Arrays must be mapped in case they also return objects.
 				return array_map( array( $this, 'prepare_response' ), $data );
 
 			case 'object':
@@ -1194,8 +1257,7 @@ class WP_REST_Server {
 					$data = get_object_vars( $data );
 				}
 
-				// Now, pass the array (or whatever was returned from
-				// jsonSerialize through.)
+				// Now, pass the array (or whatever was returned from jsonSerialize through.).
 				return $this->prepare_response( $data );
 
 			default:
@@ -1204,15 +1266,18 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Extract headers from a PHP-style $_SERVER array
+	 * Extracts headers from a PHP-style $_SERVER array.
 	 *
-	 * @param array $server Associative array similar to $_SERVER
-	 * @return array Headers extracted from the input
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $server Associative array similar to `$_SERVER`.
+	 * @return array Headers extracted from the input.
 	 */
 	public function get_headers( $server ) {
 		$headers = array();
 
-		// CONTENT_* headers are not prefixed with HTTP_
+		// CONTENT_* headers are not prefixed with HTTP_.
 		$additional = array( 'CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true );
 
 		foreach ( $server as $key => $value ) {
