@@ -15,29 +15,41 @@
  * @see JsonSerializable
  */
 interface WP_HTTP_ResponseInterface extends JsonSerializable {
+
 	/**
-	 * Get headers associated with the response
+	 * Retrieves headers associated with the response.
 	 *
-	 * @return array Map of header name to header value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Map of header name to header value.
 	 */
 	public function get_headers();
 
 	/**
-	 * Get the HTTP return code for the response
+	 * Retrieves the HTTP return code for the response.
 	 *
-	 * @return integer 3-digit HTTP status code
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return int 3-digit HTTP status code.
 	 */
 	public function get_status();
 
 	/**
-	 * Get the response data
+	 * Retrieves the response data.
 	 *
-	 * @return mixed
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return mixed Response data.
 	 */
 	public function get_data();
 
 	/**
-	 * Get the response data for JSON serialization
+	 * @todo: Remove since it's commented out?
+	 *
+	 * Retrieves the response data for JSON serialization.
 	 *
 	 * It is expected that in most implementations, this will return the same as
 	 * {@see get_data()}, however this may be different if you want to do custom
