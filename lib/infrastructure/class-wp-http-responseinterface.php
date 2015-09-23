@@ -1,5 +1,19 @@
 <?php
+/**
+ * REST API: WP_HTTP_ResponseInterface interface
+ *
+ * @package WordPress
+ * @subpackage REST_API
+ * @since 4.4.0
+ */
 
+/**
+ * Core interface used as a base for preparing HTTP responses.
+ *
+ * @since 4.4.0
+ *
+ * @see JsonSerializable
+ */
 interface WP_HTTP_ResponseInterface extends JsonSerializable {
 	/**
 	 * Get headers associated with the response
