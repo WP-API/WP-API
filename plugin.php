@@ -471,7 +471,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 		$path = '/';
 	}
 
-	if ( get_option( 'permalink_structure' ) ) {
+	if ( is_multisite() && get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
 		$url .= '/' . ltrim( $path, '/' );
 	} else {
