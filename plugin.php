@@ -16,35 +16,68 @@
  */
 define( 'REST_API_VERSION', '2.0-beta4' );
 
-/**
- * Include our files for the API.
- */
+/** v1 Compatibility */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
+
+/** JsonSerializable interface (Compatibility shim for PHP <5.4) */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
+/** WP_REST_Server class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-server.php' );
 
+/** WP_HTTP_ResponseInterface interface */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
+
+/** WP_HTTP_Response class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.php' );
+
+/** WP_REST_Response class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-response.php' );
+
+/** WP_REST_Request class */
 require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-request.php' );
 
+/** WP_REST_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
+
+/** WP_REST_Posts_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
+
+/** WP_REST_Attachments_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
+
+/** WP_REST_Post_Types_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
+
+/** WP_REST_Post_Statuses_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
+
+/** WP_REST_Revisions_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
+
+/** WP_REST_Taxonomies_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
+
+/** WP_REST_Terms_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
+
+/** WP_REST_Users_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
+
+/** WP_REST_Comments_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
+
+/** WP_REST_Meta_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
+
+/** WP_REST_Meta_Posts_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+
+/** WP_REST_Posts_Terms_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
+/** REST extras */
 include_once( dirname( __FILE__ ) . '/extras.php' );
-
 
 /**
  * Registers a REST API route.
