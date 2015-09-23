@@ -336,11 +336,14 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get the parameter priority order
+	 * Retrieves the parameter priority order.
 	 *
-	 * Used when checking parameters in {@see get_param}.
+	 * Used when checking parameters in get_param().
 	 *
-	 * @return string[] List of types to check, in order of priority
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array List of types to check, in order of priority.
 	 */
 	protected function get_parameter_order() {
 		$order = array();
@@ -366,9 +369,10 @@ class WP_REST_Request implements ArrayAccess {
 		/**
 		 * Filter the parameter order.
 		 *
-		 * The order affects which parameters are checked when using
-		 * {@see get_param} and family. This acts similarly to PHP's
-		 * `request_order` setting.
+		 * The order affects which parameters are checked when using get_param() and family.
+		 * This acts similarly to PHP's `request_order` setting.
+		 *
+		 * @since 4.4.0
 		 *
 		 * @param array           $order {
 		 *    An array of types to check, in order of priority.
@@ -381,16 +385,19 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get a parameter from the request
+	 * Retrieves a parameter from the request.
 	 *
-	 * @param string $key Parameter name
-	 * @return mixed|null Value if set, null otherwise
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Parameter name.
+	 * @return mixed|null Value if set, null otherwise.
 	 */
 	public function get_param( $key ) {
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
-			// Do we have the parameter for this type?
+			// Determine if we have the parameter for this type.
 			if ( isset( $this->params[ $type ][ $key ] ) ) {
 				return $this->params[ $type ][ $key ];
 			}
@@ -400,10 +407,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set a parameter on the request
+	 * Sets a parameter on the request.
 	 *
-	 * @param string $key Parameter name
-	 * @param mixed $value Parameter value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key   Parameter name.
+	 * @param mixed  $value Parameter value.
 	 */
 	public function set_param( $key, $value ) {
 		switch ( $this->method ) {
@@ -418,10 +428,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get merged parameters from the request
+	 * Retrieves merged parameters from the request.
 	 *
-	 * The equivalent of {@see get_param}, but returns all parameters for the
-	 * request. Handles merging all the available values into a single array.
+	 * The equivalent of get_param(), but returns all parameters for the request.
+	 * Handles merging all the available values into a single array.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @return array Map of key to value
 	 */
@@ -438,9 +451,12 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get parameters from the route itself
+	 * Retrieves parameters from the route itself.
 	 *
 	 * These are parsed from the URL using the regex.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @return array Parameter map of key to value
 	 */
@@ -449,20 +465,26 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set parameters from the route
+	 * Sets parameters from the route.
 	 *
 	 * Typically, this is set after parsing the URL.
 	 *
-	 * @param array $params Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $params Parameter map of key to value.
 	 */
 	public function set_url_params( $params ) {
 		$this->params['URL'] = $params;
 	}
 
 	/**
-	 * Get parameters from the query string
+	 * Retrieves parameters from the query string.
 	 *
-	 * These are the parameters you'd typically find in `$_GET`
+	 * These are the parameters you'd typically find in `$_GET`.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @return array Parameter map of key to value
 	 */
@@ -471,42 +493,54 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set parameters from the query string
+	 * Sets parameters from the query string.
 	 *
-	 * Typically, this is set from `$_GET`
+	 * Typically, this is set from `$_GET`.
 	 *
-	 * @param array $params Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $params Parameter map of key to value.
 	 */
 	public function set_query_params( $params ) {
 		$this->params['GET'] = $params;
 	}
 
 	/**
-	 * Get parameters from the body
+	 * Retrieves parameters from the body.
 	 *
-	 * These are the parameters you'd typically find in `$_POST`
+	 * These are the parameters you'd typically find in `$_POST`.
 	 *
-	 * @return array Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_body_params() {
 		return $this->params['POST'];
 	}
 
 	/**
-	 * Set parameters from the body
+	 * Sets parameters from the body.
 	 *
-	 * Typically, this is set from `$_POST`
+	 * Typically, this is set from `$_POST`.
 	 *
-	 * @param array $params Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $params Parameter map of key to value.
 	 */
 	public function set_body_params( $params ) {
 		$this->params['POST'] = $params;
 	}
 
 	/**
-	 * Get multipart file parameters from the body
+	 * Retrieves multipart file parameters from the body.
 	 *
-	 * These are the parameters you'd typically find in `$_FILES`
+	 * These are the parameters you'd typically find in `$_FILES`.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @return array Parameter map of key to value
 	 */
@@ -515,20 +549,26 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set multipart file parameters from the body
+	 * Sets multipart file parameters from the body.
 	 *
-	 * Typically, this is set from `$_FILES`
+	 * Typically, this is set from `$_FILES`.
 	 *
-	 * @param array $params Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $params Parameter map of key to value.
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
 	}
 
 	/**
-	 * Get default parameters
+	 * Retrieves the default parameters.
 	 *
-	 * These are the parameters set in the route registration
+	 * These are the parameters set in the route registration.
+	 *
+	 * @since 4.4.0
+	 * @access public
 	 *
 	 * @return array Parameter map of key to value
 	 */
@@ -537,74 +577,93 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set default parameters
+	 * Sets default parameters.
 	 *
-	 * These are the parameters set in the route registration
+	 * These are the parameters set in the route registration.
 	 *
-	 * @param array $params Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $params Parameter map of key to value.
 	 */
 	public function set_default_params( $params ) {
 		$this->params['defaults'] = $params;
 	}
 
 	/**
-	 * Get body content
+	 * Retrieves the request body content.
 	 *
-	 * @return string Binary data from the request body
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return string Binary data from the request body.
 	 */
 	public function get_body() {
 		return $this->body;
 	}
 
 	/**
-	 * Set body content
+	 * Sets body content.
 	 *
-	 * @param string $data Binary data from the request body
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $data Binary data from the request body.
 	 */
 	public function set_body( $data ) {
 		$this->body = $data;
 
-		// Enable lazy parsing
+		// Enable lazy parsing.
 		$this->parsed_json = false;
 		$this->parsed_body = false;
 		$this->params['JSON'] = null;
 	}
 
 	/**
-	 * Get parameters from a JSON-formatted body
+	 * Retrieves the parameters from a JSON-formatted body.
 	 *
-	 * @return array Parameter map of key to value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_json_params() {
-		// Ensure the parameters have been parsed out
+		// Ensure the parameters have been parsed out.
 		$this->parse_json_params();
 
 		return $this->params['JSON'];
 	}
 
 	/**
-	 * Parse the JSON parameters
+	 * Parses the JSON parameters.
 	 *
 	 * Avoids parsing the JSON data until we need to access it.
+	 *
+	 * @since 4.4.0
+	 * @access protected
 	 */
 	protected function parse_json_params() {
 		if ( $this->parsed_json ) {
 			return;
 		}
+
 		$this->parsed_json = true;
 
-		// Check that we actually got JSON
+		// Check that we actually got JSON.
 		$content_type = $this->get_content_type();
+
 		if ( empty( $content_type ) || 'application/json' !== $content_type['value'] ) {
 			return;
 		}
 
 		$params = json_decode( $this->get_body(), true );
 
-		// Check for a parsing error
-		//
-		// Note that due to WP's JSON compatibility functions, json_last_error
-		// might not be defined: https://core.trac.wordpress.org/ticket/27799
+		/*
+		 * Check for a parsing error.
+		 *
+		 * Note that due to WP's JSON compatibility functions, json_last_error
+		 * might not be defined: https://core.trac.wordpress.org/ticket/27799
+		 */
 		if ( null === $params && ( ! function_exists( 'json_last_error' ) || JSON_ERROR_NONE !== json_last_error() ) ) {
 			return;
 		}
@@ -613,84 +672,111 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Parse body parameters.
+	 * Parses the request body parameters.
 	 *
 	 * Parses out URL-encoded bodies for request methods that aren't supported
 	 * natively by PHP. In PHP 5.x, only POST has these parsed automatically.
+	 *
+	 * @since 4.4.0
+	 * @access protected
 	 */
 	protected function parse_body_params() {
 		if ( $this->parsed_body ) {
 			return;
 		}
+
 		$this->parsed_body = true;
 
-		// Check that we got URL-encoded. Treat a missing content-type as
-		// URL-encoded for maximum compatibility
+		/*
+		 * Check that we got URL-encoded. Treat a missing content-type as
+		 * URL-encoded for maximum compatibility
+		 */
 		$content_type = $this->get_content_type();
+
 		if ( ! empty( $content_type ) && 'application/x-www-form-urlencoded' !== $content_type['value'] ) {
 			return;
 		}
 
 		parse_str( $this->get_body(), $params );
 
-		// Amazingly, parse_str follows magic quote rules. Sigh.
-		// NOTE: Do not refactor to use `wp_unslash`.
+		/*
+		 * Amazingly, parse_str follows magic quote rules. Sigh.
+		 *
+		 * NOTE: Do not refactor to use `wp_unslash`.
+		 */
 		// @codeCoverageIgnoreStart
 		if ( get_magic_quotes_gpc() ) {
 			$params = stripslashes_deep( $params );
 		}
 		// @codeCoverageIgnoreEnd
 
-		// Add to the POST parameters stored internally. If a user has already
-		// set these manually (via `set_body_params`), don't override them.
+		/*
+		 * Add to the POST parameters stored internally. If a user has already
+		 * set these manually (via `set_body_params`), don't override them.
+		 */
 		$this->params['POST'] = array_merge( $params, $this->params['POST'] );
 	}
 
 	/**
-	 * Get route that matched the request
+	 * Retrieves the route that matched the request.
 	 *
-	 * @return string Route matching regex
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return string Route matching regex.
 	 */
 	public function get_route() {
 		return $this->route;
 	}
 
 	/**
-	 * Set route that matched the request
+	 * Sets the route that matched the request.
 	 *
-	 * @param string $route Route matching regex
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $route Route matching regex.
 	 */
 	public function set_route( $route ) {
 		$this->route = $route;
 	}
 
 	/**
-	 * Get attributes for the request
+	 * Retrieves the attributes for the request.
 	 *
 	 * These are the options for the route that was matched.
 	 *
-	 * @return array Attributes for the request
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return array Attributes for the request.
 	 */
 	public function get_attributes() {
 		return $this->attributes;
 	}
 
 	/**
-	 * Set attributes for the request
+	 * Sets the attributes for the request.
 	 *
-	 * @param array $attributes Attributes for the request
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param array $attributes Attributes for the request.
 	 */
 	public function set_attributes( $attributes ) {
 		$this->attributes = $attributes;
 	}
 
 	/**
-	 * Sanitize (where possible) the params on the request.
+	 * Sanitizes (where possible) the params on the request.
 	 *
 	 * This is primarily based off the sanitize_callback param on each registered
 	 * argument.
 	 *
-	 * @return null
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return true|null True if there are no parameters to sanitize, null otherwise.
 	 */
 	public function sanitize_params() {
 
@@ -717,16 +803,20 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Check whether this request is valid according to its attributes
+	 * Checks whether this request is valid according to its attributes.
 	 *
-	 * @return bool|WP_Error
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return bool|WP_Error True if there are no parameters to validate or if all pass validation,
+	 *                       WP_Error if required parameters are missing.
 	 */
 	public function has_valid_params() {
 
 		$attributes = $this->get_attributes();
 		$required = array();
 
-		// No arguments set, skip validation
+		// No arguments set, skip validation.
 		if ( empty( $attributes['args'] ) ) {
 			return true;
 		}
@@ -743,8 +833,11 @@ class WP_REST_Request implements ArrayAccess {
 			return new WP_Error( 'rest_missing_callback_param', sprintf( __( 'Missing parameter(s): %s' ), implode( ', ', $required ) ), array( 'status' => 400, 'params' => $required ) );
 		}
 
-		// check the validation callbacks for each registered arg.
-		// This is done after required checking as required checking is cheaper.
+		/*
+		 * Check the validation callbacks for each registered arg.
+		 *
+		 * This is done after required checking as required checking is cheaper.
+		 */
 		$invalid_params = array();
 
 		foreach ( $attributes['args'] as $key => $arg ) {
@@ -773,10 +866,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Check if a parameter is set
+	 * Checks if a parameter is set.
 	 *
-	 * @param string $key Parameter name
-	 * @return boolean
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Parameter name.
+	 * @return bool Whether the parameter is set.
 	 */
 	// @codingStandardsIgnoreStart
 	public function offsetExists( $offset ) {
@@ -793,10 +889,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Get a parameter from the request
+	 * Retrieves a parameter from the request.
 	 *
-	 * @param string $key Parameter name
-	 * @return mixed|null Value if set, null otherwise
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Parameter name.
+	 * @return mixed|null Value if set, null otherwise.
 	 */
 	// @codingStandardsIgnoreStart
 	public function offsetGet( $offset ) {
@@ -805,10 +904,13 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Set a parameter on the request
+	 * Sets a parameter on the request.
 	 *
-	 * @param string $key Parameter name
-	 * @param mixed $value Parameter value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Parameter name.
+	 * @param mixed $value Parameter value.
 	 */
 	// @codingStandardsIgnoreStart
 	public function offsetSet( $offset, $value ) {
@@ -817,17 +919,20 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Remove a parameter from the request
+	 * Removes a parameter from the request.
 	 *
-	 * @param string $key Parameter name
-	 * @param mixed $value Parameter value
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @param string $key Parameter name.
+	 * @param mixed $value Parameter value.
 	 */
 	// @codingStandardsIgnoreStart
 	public function offsetUnset( $offset ) {
 	// @codingStandardsIgnoreEnd
 		$order = $this->get_parameter_order();
 
-		// Remove the offset from every group
+		// Remove the offset from every group.
 		foreach ( $order as $type ) {
 			unset( $this->params[ $type ][ $offset ] );
 		}
