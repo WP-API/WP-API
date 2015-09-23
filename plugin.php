@@ -661,34 +661,32 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 	$matched_route = $response->get_matched_route();
 
-	if ( ! $matched_route ) {
-		return $response;
-	}
+	if ( $matched_route ) {
+		$routes = $server->get_routes();
 
-	$routes = $server->get_routes();
+		$allowed_methods = array();
 
-	$allowed_methods = array();
+		// get the allowed methods across the routes
+		foreach ( $routes[ $matched_route ] as $_handler ) {
+			foreach ( $_handler['methods'] as $handler_method => $value ) {
 
-	// get the allowed methods across the routes
-	foreach ( $routes[ $matched_route ] as $_handler ) {
-		foreach ( $_handler['methods'] as $handler_method => $value ) {
+				if ( ! empty( $_handler['permission_callback'] ) ) {
 
-			if ( ! empty( $_handler['permission_callback'] ) ) {
+					$permission = call_user_func( $_handler['permission_callback'], $request );
 
-				$permission = call_user_func( $_handler['permission_callback'], $request );
-
-				$allowed_methods[ $handler_method ] = true === $permission;
-			} else {
-				$allowed_methods[ $handler_method ] = true;
+					$allowed_methods[ $handler_method ] = true === $permission;
+				} else {
+					$allowed_methods[ $handler_method ] = true;
+				}
 			}
 		}
-	}
 
-	// strip out all the methods that are not allowed (false values)
-	$allowed_methods = array_filter( $allowed_methods );
+		// strip out all the methods that are not allowed (false values)
+		$allowed_methods = array_filter( $allowed_methods );
 
-	if ( $allowed_methods ) {
-		$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
+		if ( $allowed_methods ) {
+			$response->header( 'Allow', implode( ', ', array_map( 'strtoupper', array_keys( $allowed_methods ) ) ) );
+		}	
 	}
 
 	return $response;
