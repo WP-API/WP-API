@@ -8,7 +8,7 @@
  */
 
 /**
- * Core class used to process HTTP responses.
+ * Core class used to prepare HTTP responses.
  *
  * @since 4.4.0
  *
