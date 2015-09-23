@@ -1,7 +1,14 @@
 <?php
+/**
+ * REST API: WP_REST_Request class
+ *
+ * @package WordPress
+ * @subpackage REST_API
+ * @since 4.4.0
+ */
 
 /**
- * Request object
+ * Core class used to implement an HTTP request object.
  *
  * Contains data from the request, to be passed to the callback.
  *
@@ -9,9 +16,12 @@
  * used in that manner. It does not use ArrayObject (as we cannot rely on SPL),
  * so be aware it may have non-array behaviour in some cases.
  *
- * @package WordPress
+ * @since 4.4.0
+ *
+ * @see ArrayAccess
  */
 class WP_REST_Request implements ArrayAccess {
+
 	/**
 	 * HTTP method
 	 *
