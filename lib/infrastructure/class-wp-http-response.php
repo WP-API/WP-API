@@ -1,5 +1,19 @@
 <?php
+/**
+ * REST API: WP_HTTP_Response class
+ *
+ * @package WordPress
+ * @subpackage REST_API
+ * @since 4.4.0
+ */
 
+/**
+ * Core class used to process HTTP responses.
+ *
+ * @since 4.4.0
+ *
+ * @see WP_HTTP_ResponseInterface
+ */
 class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	/**
 	 * @var mixed
