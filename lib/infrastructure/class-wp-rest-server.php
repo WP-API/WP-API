@@ -16,37 +16,43 @@ require_once( ABSPATH . 'wp-admin/includes/admin.php' );
  * @since 4.4.0
  */
 class WP_REST_Server {
+
 	/**
 	 * GET transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const METHOD_GET    = 'GET';
+	const METHOD_GET = 'GET';
 
 	/**
 	 * POST transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const METHOD_POST   = 'POST';
+	const METHOD_POST = 'POST';
 
 	/**
 	 * PUT transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const METHOD_PUT    = 'PUT';
+	const METHOD_PUT = 'PUT';
 
 	/**
 	 * PATCH transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const METHOD_PATCH  = 'PATCH';
+	const METHOD_PATCH = 'PATCH';
 
 	/**
 	 * DELETE transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
 	const METHOD_DELETE = 'DELETE';
@@ -54,55 +60,73 @@ class WP_REST_Server {
 	/**
 	 * Alias for GET transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const READABLE   = 'GET';
+	const READABLE = 'GET';
 
 	/**
 	 * Alias for POST transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const CREATABLE  = 'POST';
+	const CREATABLE = 'POST';
 
 	/**
 	 * Alias for GET, PUT, PATCH transport methods together.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const EDITABLE   = 'POST, PUT, PATCH';
+	const EDITABLE = 'POST, PUT, PATCH';
 
 	/**
 	 * Alias for DELETE transport method.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
-	const DELETABLE  = 'DELETE';
+	const DELETABLE = 'DELETE';
 
 	/**
 	 * Alias for GET, POST, PUT, PATCH & DELETE transport methods together.
 	 *
+	 * @since 4.4.0
 	 * @var string
 	 */
 	const ALLMETHODS = 'GET, POST, PUT, PATCH, DELETE';
 
 	/**
 	 * Does the endpoint accept raw JSON entities?
+	 *
+	 * @since 4.4.0
+	 * @var int
 	 */
 	const ACCEPT_RAW = 64;
 
 	/**
 	 * Does the endpoint accept encoded JSON?
+	 *
+	 * @since 4.4.0
+	 * @var int
 	 */
 	const ACCEPT_JSON = 128;
 
 	/**
 	 * Should we hide this endpoint from the index?
+	 *
+	 * @since 4.4.0
+	 * @var int
 	 */
 	const HIDDEN_ENDPOINT = 256;
 
 	/**
-	 * Map of HTTP verbs to constants
+	 * Maps HTTP verbs to constants.
+	 *
+	 * @since 4.4.0
+	 * @access public
+	 * @static
 	 * @var array
 	 */
 	public static $method_map = array(
@@ -115,32 +139,41 @@ class WP_REST_Server {
 	);
 
 	/**
-	 * Namespaces registered to the server
+	 * Namespaces registered to the server.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var array
 	 */
 	protected $namespaces = array();
 
 	/**
-	 * Endpoints registered to the server
+	 * Endpoints registered to the server.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var array
 	 */
 	protected $endpoints = array();
 
 	/**
-	 * Options defined for the routes
+	 * Options defined for the routes.
 	 *
+	 * @since 4.4.0
+	 * @access protected
 	 * @var array
 	 */
 	protected $route_options = array();
 
 	/**
-	 * Instantiate the server
+	 * Instantiates the REST server.
+	 *
+	 * @sincd 4.4.0
+	 * @access public
 	 */
 	public function __construct() {
 		$this->endpoints = array(
-			// Meta endpoints
+			// Meta endpoints.
 			'/' => array(
 				'callback' => array( $this, 'get_index' ),
 				'methods' => 'GET',
@@ -155,16 +188,20 @@ class WP_REST_Server {
 
 
 	/**
-	 * Check the authentication headers if supplied
+	 * Checks the authentication headers if supplied.
 	 *
-	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful or no authentication provided
+	 * @since 4.4.0
+	 * @access public
+	 *
+	 * @return WP_Error|null WP_Error indicates unsuccessful login, null indicates successful
+	 *                       or no authentication provided
 	 */
 	public function check_authentication() {
 		/**
 		 * Pass an authentication error to the API
 		 *
-		 * This is used to pass a {@see WP_Error} from an authentication method
-		 * back to the API.
+		 * This is used to pass a WP_Error from an authentication method back to
+		 * the API.
 		 *
 		 * Authentication methods should check first if they're being used, as
 		 * multiple authentication methods can be enabled on a site (cookies,
@@ -174,10 +211,12 @@ class WP_REST_Server {
 		 * callbacks should ensure the value is `null` before checking for
 		 * errors.
 		 *
-		 * A {@see WP_Error} instance can be returned if an error occurs, and
-		 * this should match the format used by API methods internally (that is,
-		 * the `status` data should be used). A callback can return `true` to
-		 * indicate that the authentication method was used, and it succeeded.
+		 * A WP_Error instance can be returned if an error occurs, and this should
+		 * match the format used by API methods internally (that is, the `status`
+		 * data should be used). A callback can return `true` to indicate that
+		 * the authentication method was used, and it succeeded.
+		 *
+		 * @since 4.4.0
 		 *
 		 * @param WP_Error|null|boolean WP_Error if authentication error, null if authentication
 		 *                              method wasn't used, true if authentication succeeded.
@@ -186,14 +225,17 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Convert an error to a response object
+	 * Converts an error to a response object.
 	 *
 	 * This iterates over all error codes and messages to change it into a flat
 	 * array. This enables simpler client behaviour, as it is represented as a
-	 * list in JSON rather than an object/map
+	 * list in JSON rather than an object/map.
 	 *
-	 * @param WP_Error $error
-	 * @return array List of associative arrays with code and message keys
+	 * @since 4.4.0
+	 * @access protected
+	 *
+	 * @param WP_Error $error WP_Error instance.
+	 * @return array List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
 		$error_data = $error->get_error_data();
