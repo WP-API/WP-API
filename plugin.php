@@ -86,9 +86,10 @@ include_once( dirname( __FILE__ ) . '/extras.php' );
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
  * @param string $route     The base URL for route you are adding.
- * @param array $args       Either an array of options for the endpoint, or an array of arrays for multiple methods.
- * @param boolean $override If the route already exists, should we override it? True overrides, false merges
- *                          (with newer overriding if duplicate keys exist).
+ * @param array  $args      Optional. Either an array of options for the endpoint, or an array of arrays for
+ *                          multiple methods. Default empty array.
+ * @param bool   $override  Optional. If the route already exists, should we override it? True overrides,
+ *                          false merges (with newer overriding if duplicate keys exist). Default false.
  */
 function register_rest_route( $namespace, $route, $args = array(), $override = false ) {
 
