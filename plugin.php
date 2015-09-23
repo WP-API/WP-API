@@ -514,12 +514,14 @@ function rest_get_url_prefix() {
 /**
  * Retrieves the URL to a REST endpoint on a site.
  *
+ * Note: The returned URL is NOT escaped.
+ *
  * @since 4.4.0
  *
  * @todo Check if this is even necessary
  *
- * @param int    $blog_id Optional. Blog ID. Default null of null returns URL for current blog.
- * @param string $path    Optional. REST route. Default empty.
+ * @param int    $blog_id Optional. Blog ID. Default of null returns URL for current blog.
+ * @param string $path    Optional. REST route. Default '/'.
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
  */
@@ -556,6 +558,8 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 
 /**
  * Retrieves the URL to a REST endpoint.
+ *
+ * Note: The returned URL is NOT escaped.
  *
  * @since 4.4.0
  *
@@ -600,12 +604,11 @@ function rest_ensure_request( $request ) {
 }
 
 /**
- * Ensures a REST response is a response object.
+ * Ensures a REST response is a response object (for consistency).
  *
- * This ensures that the response is consistent, and implements WP_HTTP_ResponseInterface},
- * allowing usage of `set_status`/`header`/etc without needing to double-check the object.
- * Will also allow WP_Error to indicate error responses, so users should immediately check
- * for this value.
+ * This implements WP_HTTP_ResponseInterface, allowing usage of `set_status`/`header`/etc
+ * without needing to double-check the object. Will also allow WP_Error to indicate error
+ * responses, so users should immediately check for this value.
  *
  * @since 4.4.0
  *
@@ -668,8 +671,8 @@ function rest_handle_deprecated_argument( $function, $replacement, $version ) {
  *
  * @since 4.4.0
  *
- * @param mixed $value Response data
- * @return mixed Response data
+ * @param mixed $value Response data.
+ * @return mixed Response data.
  */
 function rest_send_cors_headers( $value ) {
 	$origin = get_http_origin();
@@ -729,7 +732,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
  * @since 4.4.0
  *
  * @param WP_REST_Response $response Current response being served.
- * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server)
+ * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
  * @param WP_REST_Request  $request  The request that was used to make current response.
  */
 function rest_send_allow_header( $response, $server, $request ) {
@@ -777,7 +780,8 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 	 *
 	 * @internal This is a compatibility function for PHP <5.5
 	 *
-	 * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
+	 * @return bool|string Returns the error message on success, "No Error" if no error has occurred,
+	 *                     or false on failure.
 	 */
 	function json_last_error_msg() {
 		// See https://core.trac.wordpress.org/ticket/27799.
@@ -825,7 +829,9 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 endif;
 
 /**
- * Determines if the variable a list? (Numeric-indexed array).
+ * Determines if the variable a list.
+ *
+ * A list would be defined as a numeric-indexed array.
  *
  * @since 4.4.0
  *
