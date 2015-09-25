@@ -168,7 +168,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
-
 		/**
 		 * Filter a comment before it is inserted via the REST API.
 		 *
@@ -269,7 +268,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( empty( $comment ) ) {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
 		}
-
 
 		/**
 		 * Filter whether a comment is trashable.
