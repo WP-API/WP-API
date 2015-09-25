@@ -201,7 +201,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request          The request sent to the API.
 		 * @param bool            $creating         True when creating a comment, false when updating.
 		 */
-		do_action( 'rest_insert_comment', $data, $request, true );
+		do_action( 'rest_insert_comment', $prepared_comment, $request, true );
 
 		return $response;
 	}
@@ -253,7 +253,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		) );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-comments-controller.php */
-		do_action( 'rest_insert_comment', $data, $request, false );
+		do_action( 'rest_insert_comment', $prepared_args, $request, false );
 
 		return rest_ensure_response( $response );
 	}
