@@ -319,11 +319,11 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after meta is added to an object or updated via the REST API.
 		 *
-		 * @param array           $data      The inserted meta data.
-		 * @param WP_REST_Request $request   The request sent to the API.
-		 * @param bool            $creating  True when adding meta, false when updating.
+		 * @param array           $value    The inserted meta data.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param bool            $creating True when adding meta, false when updating.
 		 */
-		do_action( 'rest_insert_meta', $data, $request, false );
+		do_action( 'rest_insert_meta', $value, $request, false );
 
 		return rest_ensure_response( $response );
 	}
