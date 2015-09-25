@@ -386,6 +386,32 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $this->subscriber_id, $data['author'] );
 	}
 
+	public function test_create_item_current_user() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post' => $this->post_id,
+			'content' => "Well sir, there's nothing on earth like a genuine, bona fide, electrified, six-car Monorail!",
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $this->subscriber_id, $data['author'] );
+
+		// Check author data matches
+		$author = get_user_by( 'id', $this->subscriber_id );
+		$comment = get_comment( $data['id'] );
+		$this->assertEquals( $author->display_name, $comment->comment_author );
+		$this->assertEquals( $author->user_email, $comment->comment_author_email );
+		$this->assertEquals( $author->user_url, $comment->comment_author_url );
+	}
+
 	public function test_create_comment_other_user() {
 		wp_set_current_user( $this->admin_id );
 

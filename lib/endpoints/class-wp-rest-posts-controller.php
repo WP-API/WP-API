@@ -1144,12 +1144,21 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// If we have a featured image, add that
+		$links['http://v2.wp-api.org/attachment'] = array();
+		if ( $featured_image = get_post_thumbnail_id( $post->ID ) ) {
+			$image_url = rest_url( 'wp/v2/media/' . $featured_image );
+			$links['http://v2.wp-api.org/attachment'][] = array(
+				'href'       => $image_url,
+				'embeddable' => true,
+				'featured'   => true,
+			);
+		}
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
-			$links['http://v2.wp-api.org/attachment'] = array(
+			$links['http://v2.wp-api.org/attachment'][] = array(
 				'href'       => $attachments_url,
-				'embeddable' => true,
 			);
 		}
 

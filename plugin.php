@@ -16,43 +16,80 @@
  */
 define( 'REST_API_VERSION', '2.0-beta4' );
 
-/**
- * Include our files for the API.
- */
+/** v1 Compatibility */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
+
+/** JsonSerializable interface (Compatibility shim for PHP <5.4) */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-jsonserializable.php' );
 
+/** WP_REST_Server class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-server.php' );
 
+/** WP_HTTP_ResponseInterface interface */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-responseinterface.php' );
+
+/** WP_HTTP_Response class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-http-response.php' );
+
+/** WP_REST_Response class */
 include_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-response.php' );
+
+/** WP_REST_Request class */
 require_once( dirname( __FILE__ ) . '/lib/infrastructure/class-wp-rest-request.php' );
 
+/** WP_REST_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
+
+/** WP_REST_Posts_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
+
+/** WP_REST_Attachments_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
+
+/** WP_REST_Post_Types_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
+
+/** WP_REST_Post_Statuses_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
+
+/** WP_REST_Revisions_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
+
+/** WP_REST_Taxonomies_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
+
+/** WP_REST_Terms_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
+
+/** WP_REST_Users_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
+
+/** WP_REST_Comments_Controller class */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
+
+/** WP_REST_Meta_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
+
+/** WP_REST_Meta_Posts_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+
+/** WP_REST_Posts_Terms_Controller class */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
+/** REST extras */
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
-
 /**
- * Register a REST API route
+ * Registers a REST API route.
+ *
+ * @since 4.4.0
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
- * @param string $route The base URL for route you are adding.
- * @param array $args Either an array of options for the endpoint, or an array of arrays for multiple methods
- * @param boolean $override If the route already exists, should we override it? True overrides, false merges (with newer overriding if duplicate keys exist)
+ * @param string $route     The base URL for route you are adding.
+ * @param array  $args      Optional. Either an array of options for the endpoint, or an array of arrays for
+ *                          multiple methods. Default empty array.
+ * @param bool   $override  Optional. If the route already exists, should we override it? True overrides,
+ *                          false merges (with newer overriding if duplicate keys exist). Default false.
  */
 function register_rest_route( $namespace, $route, $args = array(), $override = false ) {
 
@@ -81,9 +118,11 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 	if ( $namespace ) {
 		$full_route = '/' . trim( $namespace, '/' ) . '/' . trim( $route, '/' );
 	} else {
-		// Non-namespaced routes are not allowed, with the exception of the main
-		// and namespace indexes. If you really need to register a
-		// non-namespaced route, call `WP_REST_Server::register_route` directly.
+		/*
+		 * Non-namespaced routes are not allowed, with the exception of the main
+		 * and namespace indexes. If you really need to register a
+		 * non-namespaced route, call `WP_REST_Server::register_route` directly.
+		 */
 		_doing_it_wrong( 'register_rest_route', 'Routes must be namespaced with plugin name and version', 'WPAPI-2.0' );
 
 		$full_route = '/' . trim( $route, '/' );
@@ -93,34 +132,28 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 }
 
 /**
- * Register a new field on an existing WordPress object type
+ * Registers a new field on an existing WordPress object type.
+ *
+ * @since 4.4.0
  *
  * @global array $wp_rest_additional_fields Holds registered fields, organized
  *                                          by object type.
  *
- * @param  string|array $object_type Object(s) the field is being registered
+ * @param string|array $object_type Object(s) the field is being registered
  *                                   to, "post"|"term"|"comment" etc.
- * @param  string $attribute         The attribute name.
- * @param  array  $args {
+ * @param string $attribute         The attribute name.
+ * @param array  $args {
  *     Optional. An array of arguments used to handle the registered field.
  *
- *     @type string|array|null $get_callback    Optional. The callback function
- *                                              used to retrieve the field
- *                                              value. Default is 'null', the
- *                                              field will not be returned in
+ *     @type string|array|null $get_callback    Optional. The callback function used to retrieve the field
+ *                                              value. Default is 'null', the field will not be returned in
  *                                              the response.
- *     @type string|array|null $update_callback Optional. The callback function
- *                                              used to set and update the
- *                                              field value. Default is 'null',
- *                                              the value cannot be set or
+ *     @type string|array|null $update_callback Optional. The callback function used to set and update the
+ *                                              field value. Default is 'null', the value cannot be set or
  *                                              updated.
- *     @type string|array|null schema           Optional. The callback function
- *                                              used to create the schema for
- *                                              this field. Default is 'null',
- *                                              no schema entry will be
- *                                              returned.
+ *     @type string|array|null schema           Optional. The callback function used to create the schema for
+ *                                              this field. Default is 'null', no schema entry will be returned.
  * }
- * @return bool|wp_error
  */
 function register_api_field( $object_type, $attribute, $args = array() ) {
 
@@ -142,8 +175,13 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
 }
 
 /**
- * Add the extra Post Type registration arguments we need
+ * Adds extra post type registration arguments.
+ *
  * These attributes will eventually be committed to core.
+ *
+ * @since 4.4.0
+ *
+ * @global array $wp_post_types Registered post types.
  */
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;
@@ -164,8 +202,13 @@ function _add_extra_api_post_type_arguments() {
 add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
 
 /**
- * Add the extra Taxonomy registration arguments we need.
+ * Adds extra taxonomy registration arguments.
+ *
  * These attributes will eventually be committed to core.
+ *
+ * @since 4.4.0
+ *
+ * @global array $wp_taxonomies Registered taxonomies.
  */
 function _add_extra_api_taxonomy_arguments() {
 	global $wp_taxonomies;
@@ -185,7 +228,9 @@ function _add_extra_api_taxonomy_arguments() {
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 
 /**
- * Register default REST API routes
+ * Registers default REST API routes.
+ *
+ * @since 4.4.0
  */
 function create_initial_rest_routes() {
 
@@ -222,27 +267,19 @@ function create_initial_rest_routes() {
 		}
 	}
 
-	/*
-	 * Post types
-	 */
+	// Post types.
 	$controller = new WP_REST_Post_Types_Controller;
 	$controller->register_routes();
 
-	/*
-	 * Post statuses
-	 */
+	// Post statuses.
 	$controller = new WP_REST_Post_Statuses_Controller;
 	$controller->register_routes();
 
-	/*
-	 * Taxonomies
-	 */
+	// Taxonomies.
 	$controller = new WP_REST_Taxonomies_Controller;
 	$controller->register_routes();
 
-	/*
-	 * Terms
-	 */
+	// Terms.
 	foreach ( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
 		$class = ! empty( $taxonomy->rest_controller_class ) ? $taxonomy->rest_controller_class : 'WP_REST_Terms_Controller';
 
@@ -257,24 +294,22 @@ function create_initial_rest_routes() {
 		$controller->register_routes();
 	}
 
-	/*
-	 * Users
-	 */
+	// Users.
 	$controller = new WP_REST_Users_Controller;
 	$controller->register_routes();
 
-	/**
-	 * Comments
-	 */
+	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
-
 }
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
 /**
- * Register rewrite rules for the API.
+ * Registers rewrite rules for the API.
  *
+ * @since 4.4.0
+ *
+ * @see rest_api_register_rewrites()
  * @global WP $wp Current WordPress environment instance.
  */
 function rest_api_init() {
@@ -286,7 +321,11 @@ function rest_api_init() {
 add_action( 'init', 'rest_api_init' );
 
 /**
- * Add rewrite rules.
+ * Adds REST rewrite rules.
+ *
+ * @since 4.4.0
+ *
+ * @see add_rewrite_rule()
  */
 function rest_api_register_rewrites() {
 	add_rewrite_rule( '^' . rest_get_url_prefix() . '/?$','index.php?rest_route=/','top' );
@@ -294,7 +333,9 @@ function rest_api_register_rewrites() {
 }
 
 /**
- * Determine if the rewrite rules should be flushed.
+ * Determines if the rewrite rules should be flushed.
+ *
+ * @since 4.4.0
  */
 function rest_api_maybe_flush_rewrites() {
 	$version = get_option( 'rest_api_plugin_version', null );
@@ -303,12 +344,13 @@ function rest_api_maybe_flush_rewrites() {
 		flush_rewrite_rules();
 		update_option( 'rest_api_plugin_version', REST_API_VERSION );
 	}
-
 }
 add_action( 'init', 'rest_api_maybe_flush_rewrites', 999 );
 
 /**
- * Register the default REST API filters.
+ * Registers the default REST API filters.
+ *
+ * @since 4.4.0
  *
  * @internal This will live in default-filters.php
  *
@@ -336,7 +378,9 @@ function rest_api_default_filters( $server ) {
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 
 /**
- * Load the REST API.
+ * Loads the REST API.
+ *
+ * @since 4.4.0
  *
  * @todo Extract code that should be unit tested into isolated methods such as
  *       the wp_rest_server_class filter and serving requests. This would also
@@ -372,6 +416,8 @@ function rest_api_loaded() {
 	 * This filter allows you to adjust the server class used by the API, using a
 	 * different class to handle requests.
 	 *
+	 * @since 4.4.0
+	 *
 	 * @param string $class_name The name of the server class. Default 'WP_REST_Server'.
 	 */
 	$wp_rest_server_class = apply_filters( 'wp_rest_server_class', 'WP_REST_Server' );
@@ -380,9 +426,10 @@ function rest_api_loaded() {
 	/**
 	 * Fires when preparing to serve an API request.
 	 *
-	 * Endpoint objects should be created and register their hooks on this
-	 * action rather than another action to ensure they're only loaded when
-	 * needed.
+	 * Endpoint objects should be created and register their hooks on this action rather
+	 * than another action to ensure they're only loaded when needed.
+	 *
+	 * @since 4.4.0
 	 *
 	 * @param WP_REST_Server $wp_rest_server Server object.
 	 */
@@ -397,7 +444,9 @@ function rest_api_loaded() {
 add_action( 'parse_request', 'rest_api_loaded' );
 
 /**
- * Register routes and flush the rewrite rules on activation.
+ * Registers routes and flush the rewrite rules on activation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -421,7 +470,9 @@ function rest_api_activation( $network_wide ) {
 register_activation_hook( __FILE__, 'rest_api_activation' );
 
 /**
- * Flush the rewrite rules on deactivation.
+ * Flushes the rewrite rules on deactivation.
+ *
+ * @since 4.4.0
  *
  * @param bool $network_wide ?
  */
@@ -443,7 +494,9 @@ function rest_api_deactivation( $network_wide ) {
 register_deactivation_hook( __FILE__, 'rest_api_deactivation' );
 
 /**
- * Get the URL prefix for any API resource.
+ * Retrieves the URL prefix for any API resource.
+ *
+ * @since 4.4.0
  *
  * @return string Prefix.
  */
@@ -451,18 +504,24 @@ function rest_get_url_prefix() {
 	/**
 	 * Filter the REST URL prefix.
 	 *
+	 * @since 4.4.0
+	 *
 	 * @param string $prefix URL prefix. Default 'wp-json'.
 	 */
 	return apply_filters( 'rest_url_prefix', 'wp-json' );
 }
 
 /**
- * Get URL to a REST endpoint on a site.
+ * Retrieves the URL to a REST endpoint on a site.
+ *
+ * Note: The returned URL is NOT escaped.
+ *
+ * @since 4.4.0
  *
  * @todo Check if this is even necessary
  *
- * @param int    $blog_id Blog ID. Optional. The ID of the multisite blog to get URL for. Default null of null returns URL for current blog.
- * @param string $path    Optional. REST route. Default empty.
+ * @param int    $blog_id Optional. Blog ID. Default of null returns URL for current blog.
+ * @param string $path    Optional. REST route. Default '/'.
  * @param string $scheme  Optional. Sanitization scheme. Default 'json'.
  * @return string Full URL to the endpoint.
  */
@@ -471,7 +530,7 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 		$path = '/';
 	}
 
-	if ( get_option( 'permalink_structure' ) ) {
+	if ( is_multisite() && get_blog_option( $blog_id, 'permalink_structure' ) || get_option( 'permalink_structure' ) ) {
 		$url = get_home_url( $blog_id, rest_get_url_prefix(), $scheme );
 		$url .= '/' . ltrim( $path, '/' );
 	} else {
@@ -487,6 +546,8 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 	 *
 	 * Use this filter to adjust the url returned by the `get_rest_url` function.
 	 *
+	 * @since 4.4.0
+	 *
 	 * @param string $url     REST URL.
 	 * @param string $path    REST route.
 	 * @param int    $blod_ig Blog ID.
@@ -496,7 +557,11 @@ function get_rest_url( $blog_id = null, $path = '/', $scheme = 'json' ) {
 }
 
 /**
- * Get URL to a REST endpoint.
+ * Retrieves the URL to a REST endpoint.
+ *
+ * Note: The returned URL is NOT escaped.
+ *
+ * @since 4.4.0
  *
  * @param string $path   Optional. REST route. Default empty.
  * @param string $scheme Optional. Sanitization scheme. Default 'json'.
@@ -508,10 +573,13 @@ function rest_url( $path = '', $scheme = 'json' ) {
 
 /**
  * Do a REST request.
- * Used primarily to route internal requests through WP_REST_Server
+ *
+ * Used primarily to route internal requests through WP_REST_Server.
+ *
+ * @since 4.4.0
  *
  * @param WP_REST_Request|string $request
- * @return WP_REST_Response
+ * @return WP_REST_Response REST response.
  */
 function rest_do_request( $request ) {
 	global $wp_rest_server;
@@ -520,12 +588,12 @@ function rest_do_request( $request ) {
 }
 
 /**
- * Ensure request arguments are a request object.
+ * Ensures request arguments are a request object (for consistency).
  *
- * This ensures that the request is consistent.
+ * @since 4.4.0
  *
  * @param array|WP_REST_Request $request Request to check.
- * @return WP_REST_Request
+ * @return WP_REST_Request REST request instance.
  */
 function rest_ensure_request( $request ) {
 	if ( $request instanceof WP_REST_Request ) {
@@ -536,16 +604,17 @@ function rest_ensure_request( $request ) {
 }
 
 /**
- * Ensure a REST response is a response object.
+ * Ensures a REST response is a response object (for consistency).
  *
- * This ensures that the response is consistent, and implements
- * {@see WP_HTTP_ResponseInterface}, allowing usage of
- * `set_status`/`header`/etc without needing to double-check the object. Will
- * also allow {@see WP_Error} to indicate error responses, so users should
- * immediately check for this value.
+ * This implements WP_HTTP_ResponseInterface, allowing usage of `set_status`/`header`/etc
+ * without needing to double-check the object. Will also allow WP_Error to indicate error
+ * responses, so users should immediately check for this value.
+ *
+ * @since 4.4.0
  *
  * @param WP_Error|WP_HTTP_ResponseInterface|mixed $response Response to check.
- * @return WP_Error|WP_HTTP_ResponseInterface|WP_REST_Response WP_Error if response generated an error, WP_HTTP_ResponseInterface if response is a already an instance, otherwise returns a new WP_REST_Response instance.
+ * @return mixed WP_Error if response generated an error, WP_HTTP_ResponseInterface if response
+ *               is a already an instance, otherwise returns a new WP_REST_Response instance.
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -560,7 +629,9 @@ function rest_ensure_response( $response ) {
 }
 
 /**
- * Handle {@see _deprecated_function()} errors.
+ * Handles _deprecated_function() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -577,7 +648,9 @@ function rest_handle_deprecated_function( $function, $replacement, $version ) {
 }
 
 /**
- * Handle {@see _deprecated_function} errors.
+ * Handles _deprecated_argument() errors.
+ *
+ * @since 4.4.0
  *
  * @param string $function    Function name.
  * @param string $replacement Replacement function name.
@@ -594,10 +667,12 @@ function rest_handle_deprecated_argument( $function, $replacement, $version ) {
 }
 
 /**
- * Send Cross-Origin Resource Sharing headers with API requests
+ * Sends Cross-Origin Resource Sharing headers with API requests.
  *
- * @param mixed $value Response data
- * @return mixed Response data
+ * @since 4.4.0
+ *
+ * @param mixed $value Response data.
+ * @return mixed Response data.
  */
 function rest_send_cors_headers( $value ) {
 	$origin = get_http_origin();
@@ -612,15 +687,17 @@ function rest_send_cors_headers( $value ) {
 }
 
 /**
- * Handle OPTIONS requests for the server
+ * Handles OPTIONS requests for the server.
  *
  * This is handled outside of the server code, as it doesn't obey normal route
  * mapping.
  *
- * @param mixed $response Current response, either response or `null` to indicate pass-through.
- * @param WP_REST_Server $handler ResponseHandler instance (usually WP_REST_Server).
- * @param WP_REST_Request $request The request that was used to make current response.
- * @return WP_REST_Response $response Modified response, either response or `null` to indicate pass-through.
+ * @since 4.4.0
+ *
+ * @param mixed           $response Current response, either response or `null` to indicate pass-through.
+ * @param WP_REST_Server  $handler  ResponseHandler instance (usually WP_REST_Server).
+ * @param WP_REST_Request $request  The request that was used to make current response.
+ * @return WP_REST_Response Modified response, either response or `null` to indicate pass-through.
  */
 function rest_handle_options_request( $response, $handler, $request ) {
 	if ( ! empty( $response ) || $request->get_method() !== 'OPTIONS' ) {
@@ -650,12 +727,13 @@ function rest_handle_options_request( $response, $handler, $request ) {
 }
 
 /**
- * Send the "Allow" header to state all methods that can be sen
- * to the current route
+ * Sends the "Allow" header to state all methods that can be sent to the current route.
  *
- * @param  WP_REST_Response  $response Current response being served.
- * @param  WP_REST_Server    $server ResponseHandler instance (usually WP_REST_Server)
- * @param  WP_REST_Request   $request The request that was used to make current response.
+ * @since 4.4.0
+ *
+ * @param WP_REST_Response $response Current response being served.
+ * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
+ * @param WP_REST_Request  $request  The request that was used to make current response.
  */
 function rest_send_allow_header( $response, $server, $request ) {
 
@@ -669,7 +747,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 	$allowed_methods = array();
 
-	// get the allowed methods across the routes
+	// Get the allowed methods across the routes.
 	foreach ( $routes[ $matched_route ] as $_handler ) {
 		foreach ( $_handler['methods'] as $handler_method => $value ) {
 
@@ -684,7 +762,7 @@ function rest_send_allow_header( $response, $server, $request ) {
 		}
 	}
 
-	// strip out all the methods that are not allowed (false values)
+	// Strip out all the methods that are not allowed (false values).
 	$allowed_methods = array_filter( $allowed_methods );
 
 	if ( $allowed_methods ) {
@@ -696,21 +774,24 @@ function rest_send_allow_header( $response, $server, $request ) {
 
 if ( ! function_exists( 'json_last_error_msg' ) ) :
 	/**
-	 * Returns the error string of the last json_encode() or json_decode() call
+	 * Retrieves the error string of the last json_encode() or json_decode() call.
+	 *
+	 * @since 4.4.0
 	 *
 	 * @internal This is a compatibility function for PHP <5.5
 	 *
-	 * @return boolean|string Returns the error message on success, "No Error" if no error has occurred, or FALSE on failure.
+	 * @return bool|string Returns the error message on success, "No Error" if no error has occurred,
+	 *                     or false on failure.
 	 */
 	function json_last_error_msg() {
-		// see https://core.trac.wordpress.org/ticket/27799
+		// See https://core.trac.wordpress.org/ticket/27799.
 		if ( ! function_exists( 'json_last_error' ) ) {
 			return false;
 		}
 
 		$last_error_code = json_last_error();
 
-		// just in case JSON_ERROR_NONE is not defined
+		// Just in case JSON_ERROR_NONE is not defined.
 		$error_code_none = defined( 'JSON_ERROR_NONE' ) ? JSON_ERROR_NONE : 0;
 
 		switch ( true ) {
@@ -748,10 +829,14 @@ if ( ! function_exists( 'json_last_error_msg' ) ) :
 endif;
 
 /**
- * Is the variable a list? (Numeric-indexed array)
+ * Determines if the variable a list.
+ *
+ * A list would be defined as a numeric-indexed array.
+ *
+ * @since 4.4.0
  *
  * @param mixed $data Variable to check.
- * @return boolean
+ * @return bool Whether the variable is a list.
  */
 function rest_is_list( $data ) {
 	if ( ! is_array( $data ) ) {
