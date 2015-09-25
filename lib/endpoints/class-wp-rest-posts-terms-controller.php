@@ -187,8 +187,6 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_remove_term', $previous_item, $post, $request );
 
-
-
 		return $previous_item;
 	}
 
