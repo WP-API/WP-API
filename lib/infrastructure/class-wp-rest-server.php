@@ -168,7 +168,7 @@ class WP_REST_Server {
 	/**
 	 * Instantiates the REST server.
 	 *
-	 * @sincd 4.4.0
+	 * @since 4.4.0
 	 * @access public
 	 */
 	public function __construct() {
