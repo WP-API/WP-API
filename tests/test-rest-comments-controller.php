@@ -21,6 +21,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function setUp() {
 		parent::setUp();
 
+		// Don't fail on flood.
+		remove_filter( 'check_comment_flood', 'check_comment_flood_db' );
+
 		$this->admin_id = $this->factory->user->create( array(
 			'role' => 'administrator',
 		));
