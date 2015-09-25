@@ -90,11 +90,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		/**
 		 * Fires after a single attachment is created or updated via the REST API.
 		 *
-		 * @param object          $data     Inserted attachment data.
-		 * @param WP_REST_Request $request  The request sent to the API.
-		 * @param bool            $creating True when creating an attachment, false when updating.
+		 * @param object          $attachment Inserted attachment.
+		 * @param WP_REST_Request $request    The request sent to the API.
+		 * @param bool            $creating   True when creating an attachment, false when updating.
 		 */
-		do_action( 'rest_insert_attachment', $data, $request, true );
+		do_action( 'rest_insert_attachment', $attachment, $request, true );
 
 		return $response;
 
