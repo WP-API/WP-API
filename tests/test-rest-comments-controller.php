@@ -401,7 +401,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'user_url' => 'http://simpsons.wikia.com/wiki/Lyle_Lanley',
 		));
 
-
 		wp_set_current_user( $user_id );
 
 		$params = array(
