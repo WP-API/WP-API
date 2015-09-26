@@ -66,13 +66,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array( 'hide_empty' => false );
+		$prepared_args = array(
+			'order'      => $request['order'],
+			'orderby'    => $request['orderby'],
+			'hide_empty' => $request['hide_empty'],
+			'number'     => $request['per_page'],
+			'search'     => $request['search'],
+		);
 
-		$prepared_args['number']  = $request['per_page'];
 		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
-		$prepared_args['search']  = $request['search'];
-		$prepared_args['order']   = $request['order'];
-		$prepared_args['orderby'] = $request['orderby'];
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
