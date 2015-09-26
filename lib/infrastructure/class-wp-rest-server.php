@@ -829,7 +829,6 @@ class WP_REST_Server {
 		foreach ( $this->get_routes() as $route => $handlers ) {
 			foreach ( $handlers as $handler ) {
 				$callback  = $handler['callback'];
-				$supported = $handler['methods'];
 				$response = null;
 
 				if ( empty( $handler['methods'][ $method ] ) ) {
