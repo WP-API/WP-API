@@ -331,6 +331,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_create_item_assign_different_user() {
 		$subscriber_id = $this->factory->user->create( array(
 			'role' => 'subscriber',
+			'user_email' => 'cbg@androidsdungeon.com',
 		));
 
 		wp_set_current_user( $this->admin_id );
@@ -391,7 +392,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_item_current_user() {
-		wp_set_current_user( $this->subscriber_id );
+		$user_id = $this->factory->user->create( array(
+			'role' => 'subscriber',
+			'user_email' => 'lylelanley@example.com',
+			'first_name' => 'Lyle',
+			'last_name' => 'Lanley',
+			'display_name' => 'Lyle Lanley',
+			'user_url' => 'http://simpsons.wikia.com/wiki/Lyle_Lanley',
+		));
+
+
+		wp_set_current_user( $user_id );
 
 		$params = array(
 			'post' => $this->post_id,
@@ -406,10 +417,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->subscriber_id, $data['author'] );
+		$this->assertEquals( $user_id, $data['author'] );
 
 		// Check author data matches
-		$author = get_user_by( 'id', $this->subscriber_id );
+		$author = get_user_by( 'id', $user_id );
 		$comment = get_comment( $data['id'] );
 		$this->assertEquals( $author->display_name, $comment->comment_author );
 		$this->assertEquals( $author->user_email, $comment->comment_author_email );
