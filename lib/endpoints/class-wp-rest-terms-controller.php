@@ -571,14 +571,19 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'default'               => 'asc',
 			'enum'                  => array( 'asc', 'desc' ),
 		);
-		$query_params['orderby'] = array(
-			'description'        => 'Sort collection by object attribute.',
-			'type'               => 'string',
-			'default'            => 'name',
-			'enum'               => array(
+		$query_params['orderby']    = array(
+			'description'           => 'Sort collection by object attribute.',
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_key',
+			'default'               => 'name',
+			'enum'                  => array(
 				'id',
 				'name',
 				'slug',
+				'term_group',
+				'term_id',
+				'description',
+				'count',
 			),
 		);
 		$query_params['per_page']   = array(
