@@ -580,6 +580,28 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
+		$query_params['per_page']   = array(
+			'description'           => 'Number of terms to query at a time with pagination.',
+			'type'                  => 'integer',
+			'sanitize_callback'     => 'absint',
+			'default'               => 10,
+		);
+		$query_params['page']     = array(
+			'description'           => 'Number of the desired page within the paginated query results.',
+			'type'                  => 'integer',
+			'sanitize_callback'     => 'absint',
+			'default'               => 1,
+		);
+		$query_params['hide_empty'] = array(
+			'description'           => 'Whether to hide terms not assigned to any posts.',
+			'type'                  => 'boolean',
+			'default'               => true,
+		);
+		$query_params['search']     = array(
+			'description'           => 'Search keyword.',
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_text_field',
+		);
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
