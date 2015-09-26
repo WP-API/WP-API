@@ -360,10 +360,12 @@ abstract class WP_REST_Controller {
 	/**
 	 * Get an array of endpoint arguments from the item schema for the controller.
 	 *
-	 * @param $add_required_flag Whether to use the 'required' flag from the schema proprties.
-	 *                           This is because update requests will not have any required params
-	 *                           Where as create requests will.
-	 * @return array
+	 * @param string $method HTTP method of the request. The arguments
+	 *                       for `CREATABLE` requests are checked for required
+	 *                       values and may fall-back to a given default, this
+	 *                       is not done on `EDITABLE` requests. Default is
+	 *                       WP_REST_Server::CREATABLE.
+	 * @return array $endpoint_args
 	 */
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 
@@ -373,7 +375,7 @@ abstract class WP_REST_Controller {
 
 		foreach ( $schema_properties as $field_id => $params ) {
 
-			// Anything marked as readonly should not be a arg
+			// Arguments specified as `readonly` are not allowed to be set.
 			if ( ! empty( $params['readonly'] ) ) {
 				continue;
 			}
