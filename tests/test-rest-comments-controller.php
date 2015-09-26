@@ -328,6 +328,29 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
+	public function test_create_item_assign_different_user() {
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'author' => $this->subscriber_id,
+			'content' => 'Worst Comment Ever!',
+			'date'    => '2014-11-07T10:14:25',
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( $this->subscriber_id, $data['author'] );
+	}
+
 	public function test_create_comment_without_type() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->admin_id );
@@ -361,29 +384,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$collection_response = $this->server->dispatch( $collection );
 		$collection_data = $collection_response->get_data();
 		$this->assertEquals( $comment_id, $collection_data[0]['id'] );
-	}
-
-	public function test_create_item_assign_different_user() {
-		wp_set_current_user( $this->admin_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
-		$params = array(
-			'post'    => $this->post_id,
-			'author_name'  => 'Comic Book Guy',
-			'author_email' => 'cbg@androidsdungeon.com',
-			'author_url'   => 'http://androidsdungeon.com',
-			'author' => $this->subscriber_id,
-			'content' => 'Worst Comment Ever!',
-			'date'    => '2014-11-07T10:14:25',
-		);
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
-		$request->add_header( 'content-type', 'application/json' );
-		$request->set_body( wp_json_encode( $params ) );
-		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
-
-		$data = $response->get_data();
-		$this->assertEquals( $this->subscriber_id, $data['author'] );
 	}
 
 	public function test_create_item_current_user() {
