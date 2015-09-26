@@ -329,6 +329,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_item_assign_different_user() {
+		$subscriber_id = $this->factory->user->create( array(
+			'role' => 'subscriber',
+		));
+
 		wp_set_current_user( $this->admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$params = array(
@@ -336,7 +340,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
 			'author_url'   => 'http://androidsdungeon.com',
-			'author' => $this->subscriber_id,
+			'author' => $subscriber_id,
 			'content' => 'Worst Comment Ever!',
 			'date'    => '2014-11-07T10:14:25',
 		);
@@ -348,7 +352,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $this->subscriber_id, $data['author'] );
+		$this->assertEquals( $subscriber_id, $data['author'] );
 	}
 
 	public function test_create_comment_without_type() {
