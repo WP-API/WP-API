@@ -190,6 +190,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$data->add_links( $this->prepare_links( $post ) );
 
+		/**
+		 * Filter an attachment returned from the API.
+		 *
+		 * Allows modification of the attachment right before it is returned.
+		 *
+		 * @param array           $data     Key value array of attachment data: alt_text, caption, description,
+		 *                                  media_type, media_details, post, source_url. Piossibly media_details.
+		 * @param WP_Post         $post     The attachment post.
+		 * @param WP_REST_Request $request  Request used to generate the response.
+		 */
 		return apply_filters( 'rest_prepare_attachment', $data, $post, $request );
 	}
 

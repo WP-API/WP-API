@@ -24,7 +24,9 @@ add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 
 
 /**
- * Register API Javascript helpers.
+ * Registers REST API JavaScript helpers.
+ *
+ * @since 4.4.0
  *
  * @see wp_register_scripts()
  */
@@ -36,7 +38,11 @@ function rest_register_scripts() {
 }
 
 /**
- * Add the API URL to the WP RSD endpoint.
+ * Adds the REST API URL to the WP RSD endpoint.
+ *
+ * @since 4.4.0
+ *
+ * @see get_rest_url()
  */
 function rest_output_rsd() {
 	$api_root = get_rest_url();
@@ -50,7 +56,9 @@ function rest_output_rsd() {
 }
 
 /**
- * Output API link tag into page header.
+ * Outputs the REST API link tag into page header.
+ *
+ * @since 4.4.0
  *
  * @see get_rest_url()
  */
@@ -65,7 +73,9 @@ function rest_output_link_wp_head() {
 }
 
 /**
- * Send a Link header for the API.
+ * Sends a Link header for the REST API.
+ *
+ * @since 4.4.0
  */
 function rest_output_link_header() {
 	if ( headers_sent() ) {
@@ -82,19 +92,19 @@ function rest_output_link_header() {
 }
 
 /**
- * Check for errors when using cookie-based authentication.
+ * Checks for errors when using cookie-based authentication.
  *
  * WordPress' built-in cookie authentication is always active
  * for logged in users. However, the API has to check nonces
  * for each request to ensure users are not vulnerable to CSRF.
  *
+ * @since 4.4.0
+ *
  * @global mixed $wp_rest_auth_cookie
  *
- * @param WP_Error|mixed $result Error from another authentication handler,
- *                               null if we should handle it, or another
- *                               value if not
- * @return WP_Error|mixed|bool WP_Error if the cookie is invalid, the $result,
- *                             otherwise true.
+ * @param WP_Error|mixed $result Error from another authentication handler, null if we should handle it,
+ *                               or another value if not.
+ * @return WP_Error|mixed|bool WP_Error if the cookie is invalid, the $result, otherwise true.
  */
 function rest_cookie_check_errors( $result ) {
 	if ( ! empty( $result ) ) {
@@ -106,14 +116,15 @@ function rest_cookie_check_errors( $result ) {
 	/*
 	 * Is cookie authentication being used? (If we get an auth
 	 * error, but we're still logged in, another authentication
-	 * must have been used.)
+	 * must have been used).
 	 */
 	if ( true !== $wp_rest_auth_cookie && is_user_logged_in() ) {
 		return $result;
 	}
 
-	// Is there a nonce?
+	// Determine if there is a nonce.
 	$nonce = null;
+
 	if ( isset( $_REQUEST['_wp_rest_nonce'] ) ) {
 		$nonce = $_REQUEST['_wp_rest_nonce'];
 	} elseif ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) {
@@ -128,6 +139,7 @@ function rest_cookie_check_errors( $result ) {
 
 	// Check the nonce.
 	$result = wp_verify_nonce( $nonce, 'wp_rest' );
+
 	if ( ! $result ) {
 		return new WP_Error( 'rest_cookie_invalid_nonce', __( 'Cookie nonce is invalid' ), array( 'status' => 403 ) );
 	}
@@ -136,10 +148,11 @@ function rest_cookie_check_errors( $result ) {
 }
 
 /**
- * Collect cookie authentication status.
+ * Collects cookie authentication status.
  *
- * Collects errors from {@see wp_validate_auth_cookie} for
- * use by {@see rest_cookie_check_errors}.
+ * Collects errors from wp_validate_auth_cookie for use by rest_cookie_check_errors.
+ *
+ * @since 4.4.0
  *
  * @see current_action()
  * @global mixed $wp_rest_auth_cookie
@@ -158,12 +171,14 @@ function rest_cookie_collect_status() {
 }
 
 /**
- * Retrieve the avatar urls in various sizes based on a given email address.
+ * Retrieves the avatar urls in various sizes based on a given email address.
  *
- * {@see get_avatar_url()}
+ * @since 4.4.0
+ *
+ * @see get_avatar_url()
  *
  * @param string $email Email address.
- * @return array $urls  Gravatar url for each size.
+ * @return array $urls Gravatar url for each size.
  */
 function rest_get_avatar_urls( $email ) {
 	$avatar_sizes = rest_get_avatar_sizes();
@@ -177,29 +192,35 @@ function rest_get_avatar_urls( $email ) {
 }
 
 /**
- * Return the pixel sizes for avatars.
+ * Retrieves the pixel sizes for avatars.
  *
- * @return array
+ * @since 4.4.0
+ *
+ * @return array List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
  */
 function rest_get_avatar_sizes() {
 	/**
 	 * Filter the REST avatar sizes.
 	 *
-	 * Use this filter to adjust the array of sizes returned by
-	 * the `rest_get_avatar_sizes` function.
+	 * Use this filter to adjust the array of sizes returned by the
+	 * `rest_get_avatar_sizes` function.
 	 *
-	 * @param array $sizes {
-	 *    An array of int values that are the pixel sizes for avatars.
-	 *    Default: [ 24, 48, 96 ].
+	 * @since 4.4.0
+	 *
+	 * @param array $sizes An array of int values that are the pixel sizes for avatars.
+	 *                     Default `[ 24, 48, 96 ]`.
 	 */
 	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
 }
 
 /**
- * Parse an RFC3339 timestamp into a DateTime.
+ * Parses an RFC3339 timestamp into a DateTime.
+ *
+ * @since 4.4.0
  *
  * @param string $date      RFC3339 timestamp.
- * @param bool   $force_utc Force UTC timezone instead of using the timestamp's TZ.
+ * @param bool   $force_utc Optional. Whether to force UTC timezone instead of using
+ *                          the timestamp's timezone. Default false.
  * @return DateTime DateTime instance.
  */
 function rest_parse_date( $date, $force_utc = false ) {
@@ -217,10 +238,14 @@ function rest_parse_date( $date, $force_utc = false ) {
 }
 
 /**
- * Get a local date with its GMT equivalent, in MySQL datetime format.
+ * Retrieves a local date with its GMT equivalent, in MySQL datetime format.
  *
- * @param string $date      RFC3339 timestamp
- * @param bool   $force_utc Whether a UTC timestamp should be forced.
+ * @since 4.4.0
+ *
+ * @see rest_parse_date()
+ *
+ * @param string $date      RFC3339 timestamp.
+ * @param bool   $force_utc Whether a UTC timestamp should be forced. Default false.
  * @return array|null Local and UTC datetime strings, in MySQL datetime format (Y-m-d H:i:s),
  *                    null on failure.
  */
@@ -238,12 +263,14 @@ function rest_get_date_with_gmt( $date, $force_utc = false ) {
 }
 
 /**
- * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339.
  *
  * Explicitly strips timezones, as datetimes are not saved with any timezone
  * information. Including any information on the offset could be misleading.
  *
- * @param string $date
+ * @since 4.4.0
+ *
+ * @param string $date Date string to parse and format.
  * @return string Date formatted for ISO8601/RFC3339.
  */
 function rest_mysql_to_rfc3339( $date_string ) {
@@ -255,7 +282,9 @@ function rest_mysql_to_rfc3339( $date_string ) {
 
 
 /**
- * Get the timezone object for the site.
+ * Retrieves the timezone object for the site.
+ *
+ * @since 4.4.0
  *
  * @return DateTimeZone DateTimeZone instance.
  */
@@ -269,7 +298,7 @@ function rest_get_timezone() {
 	$tzstring = get_option( 'timezone_string' );
 
 	if ( ! $tzstring ) {
-		// Create a UTC+- zone if no timezone string exists
+		// Create a UTC+- zone if no timezone string exists.
 		$current_offset = get_option( 'gmt_offset' );
 		if ( 0 === $current_offset ) {
 			$tzstring = 'UTC';
@@ -285,23 +314,25 @@ function rest_get_timezone() {
 }
 
 /**
- * Retrieve the avatar url for a user who provided a user ID or email address.
+ * Retrieves the avatar url for a user who provided a user ID or email address.
  *
- * @deprecated WPAPI-2.0
- * {@see get_avatar()} doesn't return just the URL, so we have to
- * extract it here.
+ * get_avatar() doesn't return just the URL, so we have to extract it here.
+ *
+ * @since 4.4.0
+ * @deprecated WPAPI-2.0 rest_get_avatar_urls()
+ * @see rest_get_avatar_urls()
  *
  * @param string $email Email address.
  * @return string URL for the user's avatar, empty string otherwise.
  */
 function rest_get_avatar_url( $email ) {
 	_deprecated_function( 'rest_get_avatar_url', 'WPAPI-2.0', 'rest_get_avatar_urls' );
-	/**
-	 * Use the WP Core `get_avatar_url()` function introduced in 4.2.
-	 */
+
+	// Use the WP Core `get_avatar_url()` function introduced in 4.2.
 	if ( function_exists( 'get_avatar_url' ) ) {
 		return esc_url_raw( get_avatar_url( $email ) );
 	}
+
 	$avatar_html = get_avatar( $email );
 
 	// Strip the avatar url from the get_avatar img tag.

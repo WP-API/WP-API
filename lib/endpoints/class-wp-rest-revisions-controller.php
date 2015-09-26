@@ -164,7 +164,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare the revision for the REST response
 	 *
-	 * @param mixed $item WordPress representation of the revision.
+	 * @param WP_Post $post Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return array
 	 */
