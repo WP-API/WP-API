@@ -80,12 +80,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( 0 === $request['parent'] ) {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
-		    } else {
+			} else {
 				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
 				if ( $parent ) {
 					$prepared_args['parent'] = $parent->term_id;
 				}
-		    }
+			}
 		}
 
 		$query_result = get_terms( $this->taxonomy, $prepared_args );
