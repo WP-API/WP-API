@@ -77,9 +77,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
-		    if ( 0 === $request['parent'] ) {
-		    	// Only query top-level terms.
-		        $prepared_args['parent'] = 0;
+			if ( 0 === $request['parent'] ) {
+				// Only query top-level terms.
+				$prepared_args['parent'] = 0;
 		    } else {
 				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
 				if ( $parent ) {
