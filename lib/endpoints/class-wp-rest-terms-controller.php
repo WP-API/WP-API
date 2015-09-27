@@ -566,12 +566,25 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
+		$query_params['context'] = array(
+			'description'        => 'Change the response format based on request context.',
+			'default'            => 'view',
+			'sanitize_callback'  => 'sanitize_key',
+			'type'               => 'string',
+			'enum'               => array(
+				'embed',
+				'view',
+			),
+		);
 		$query_params['order']      = array(
 			'description'           => 'Order sort attribute ascending or descending.',
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'asc',
-			'enum'                  => array( 'asc', 'desc' ),
+			'enum'                  => array(
+				'asc',
+				'desc',
+			),
 		);
 		$query_params['orderby']    = array(
 			'description'           => 'Sort collection by object attribute.',
