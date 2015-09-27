@@ -175,7 +175,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertErrorResponse( 'rest_upload_hash_mismatch', $response, 412 );
 	}
 
 	public function test_create_item_invalid_upload_files_capability() {

@@ -77,10 +77,16 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
+
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
-			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
-			if ( $parent ) {
-				$prepared_args['parent'] = $parent->term_id;
+			if ( 0 === $request['parent'] ) {
+				// Only query top-level terms.
+				$prepared_args['parent'] = 0;
+			} else {
+				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+				if ( $parent ) {
+					$prepared_args['parent'] = $parent->term_id;
+				}
 			}
 		}
 
