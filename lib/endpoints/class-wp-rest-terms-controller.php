@@ -603,7 +603,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$query_params['hide_empty'] = array(
 			'description'           => 'Whether to hide terms not assigned to any posts.',
 			'type'                  => 'boolean',
-			'default'               => true,
+			'default'               => false,
 		);
 		$query_params['search']     = array(
 			'description'           => 'Search keyword.',
