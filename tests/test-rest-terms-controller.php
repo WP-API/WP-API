@@ -32,6 +32,20 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->check_get_taxonomy_terms_response( $response );
 	}
 
+	public function test_get_items_hide_empty_arg() {
+		$post_id = $this->factory->post->create();
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'The Be Sharps' ) );
+		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/tag' );
+		$request->set_param( 'hide_empty', true );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 'Season 5', $data[0]['name'] );
+		$this->assertEquals( 'The Be Sharps', $data[1]['name'] );
+	}
+
 	public function test_get_items_orderby_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
