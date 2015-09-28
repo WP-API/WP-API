@@ -752,7 +752,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$query_params['context'] = array(
 			'default'            => 'view',
 			'description'        => 'Change the response format based on request context.',
-			'enum'               => array( 'view', 'edit' ),
+			'enum'               => array( 'embed', 'view', 'edit' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
 		);
