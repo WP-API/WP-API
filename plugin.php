@@ -180,7 +180,7 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
  * These attributes will eventually be committed to core.
  *
  * @since 4.4.0
- * 
+ *
  * @param array  $args      Array of arguments for registering a post type.
  * @param string $post_type Post type key.
  */
