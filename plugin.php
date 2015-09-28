@@ -180,26 +180,32 @@ function register_api_field( $object_type, $attribute, $args = array() ) {
  * These attributes will eventually be committed to core.
  *
  * @since 4.4.0
- *
- * @global array $wp_post_types Registered post types.
+ * 
+ * @param array  $args      Array of arguments for registering a post type.
+ * @param string $post_type Post type key.
  */
-function _add_extra_api_post_type_arguments() {
-	global $wp_post_types;
+function _add_extra_api_post_type_arguments( $args, $post_type ) {
+	if ( 'post' === $post_type ) {
+		$args['show_in_rest'] = true;
+		$args['rest_base'] = 'posts';
+		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+	}
 
-	$wp_post_types['post']->show_in_rest = true;
-	$wp_post_types['post']->rest_base = 'posts';
-	$wp_post_types['post']->rest_controller_class = 'WP_REST_Posts_Controller';
+	if ( 'page' === $post_type ) {
+		$args['show_in_rest'] = true;
+		$args['rest_base'] = 'pages';
+		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+	}
 
-	$wp_post_types['page']->show_in_rest = true;
-	$wp_post_types['page']->rest_base = 'pages';
-	$wp_post_types['page']->rest_controller_class = 'WP_REST_Posts_Controller';
+	if ( 'attachment' === $post_type ) {
+		$args['show_in_rest'] = true;
+		$args['rest_base'] = 'media';
+		$args['rest_controller_class'] = 'WP_REST_Attachments_Controller';
+	}
 
-	$wp_post_types['attachment']->show_in_rest = true;
-	$wp_post_types['attachment']->rest_base = 'media';
-	$wp_post_types['attachment']->rest_controller_class = 'WP_REST_Attachments_Controller';
-
+	return $args;
 }
-add_action( 'init', '_add_extra_api_post_type_arguments', 11 );
+add_filter( 'register_post_type_args', '_add_extra_api_post_type_arguments', 10, 2 );
 
 /**
  * Adds extra taxonomy registration arguments.
