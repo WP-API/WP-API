@@ -282,4 +282,31 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		update_option( 'permalink_structure', '' );
 		$this->assertEquals( 'http://' . WP_TESTS_DOMAIN . '/?rest_route=/', get_rest_url() );
 	}
+
+
+	/**
+	 * Testing the `rest_url_prefix` filter.
+	 *
+	 */
+	public function test_rest_get_url_prefix( ) {
+
+		//standard test
+		$this->assertSame( 'wp-json', rest_get_url_prefix() );
+
+		//filtered
+		add_filter( 'rest_url_prefix', array( $this, 'rest_url_prefix_callback' ) );
+		$this->assertSame( 'non-standard-prefix', rest_get_url_prefix() );
+	}
+
+	/**
+	 * Callback for the `rest_url_prefix` tests.
+	 *
+	 * @param $default_value
+	 *
+	 * @return string
+	 */
+	public function rest_url_prefix_callback( $default_value ) {
+		return 'non-standard-prefix';
+	}
+
 }
