@@ -296,6 +296,9 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		//filtered
 		add_filter( 'rest_url_prefix', array( $this, 'rest_url_prefix_callback' ) );
 		$this->assertSame( 'non-standard-prefix', rest_get_url_prefix() );
+
+		//run clean up for the filter
+		remove_filter( 'rest_url_prefix', array( $this, 'rest_url_prefix_callback' ) );
 	}
 
 	/**
