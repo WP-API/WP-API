@@ -331,6 +331,8 @@ class WP_REST_Server {
 		 */
 		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
+		$jsonp_callback = null;
+
 		if ( ! $enabled ) {
 			echo $this->json_error( 'rest_disabled', __( 'The REST API is disabled on this site.' ), 404 );
 			return false;
@@ -342,7 +344,13 @@ class WP_REST_Server {
 			}
 
 			// Check for invalid characters (only alphanumeric allowed)
-			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/[^\w\.]/', $_GET['_jsonp'] ) ) {
+			if ( is_string( $_GET['_jsonp'] ) ) {
+				$jsonp_callback = preg_replace( '/[^\w\.]/', '', wp_unslash( $_GET['_jsonp'] ), -1, $illegal_char_count );
+				if ( $illegal_char_count !== 0 ) {
+					$jsonp_callback = null;
+				}
+			}
+			if ( null === $jsonp_callback ) {
 				echo $this->json_error( 'rest_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
@@ -447,10 +455,10 @@ class WP_REST_Server {
 				$result = wp_json_encode( $result->data[0] );
 			}
 
-			if ( isset( $_GET['_jsonp'] ) ) {
+			if ( $jsonp_callback ) {
 				// Prepend '/**/' to mitigate possible JSONP Flash attacks
 				// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
-				echo '/**/' . $_GET['_jsonp'] . '(' . $result . ')';
+				echo '/**/' . $jsonp_callback . '(' . $result . ')';
 			} else {
 				echo $result;
 			}
