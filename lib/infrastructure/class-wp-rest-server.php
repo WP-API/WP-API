@@ -440,7 +440,7 @@ class WP_REST_Server {
 
 		if ( ! $served ) {
 			if ( 'HEAD' === $request->get_method() ) {
-				return;
+				return null;
 			}
 
 			// Embed links inside the request.
@@ -463,6 +463,7 @@ class WP_REST_Server {
 				echo $result;
 			}
 		}
+		return null;
 	}
 
 	/**
