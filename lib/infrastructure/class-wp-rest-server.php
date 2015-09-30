@@ -235,7 +235,7 @@ class WP_REST_Server {
 	 * @access protected
 	 *
 	 * @param WP_Error $error WP_Error instance.
-	 * @return array List of associative arrays with code and message keys.
+	 * @return WP_REST_Response List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
 		$error_data = $error->get_error_data();
@@ -474,7 +474,12 @@ class WP_REST_Server {
 	 *
 	 * @param WP_REST_Response $response Response object
 	 * @param bool             $embed    Whether links should be embedded.
-	 * @return array
+	 * @return array {
+	 *     Data with sub-requests embedded.
+	 *
+	 *     @type array [$_links]    Links.
+	 *     @type array [$_embedded] Embeddeds.
+	 * }
 	 */
 	public function response_to_data( $response, $embed ) {
 		$data  = $this->prepare_response( $response->get_data() );
@@ -538,7 +543,12 @@ class WP_REST_Server {
 	 * @access protected
 	 *
 	 * @param array $data Data from the request.
-	 * @return array Data with sub-requests embedded.
+	 * @return array {
+	 *     Data with sub-requests embedded.
+	 *
+	 *     @type array [$_links]    Links.
+	 *     @type array [$_embedded] Embeddeds.
+	 * }
 	 */
 	protected function embed_links( $data ) {
 		if ( empty( $data['_links'] ) ) {
@@ -654,6 +664,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
+	 * @param string $namespace  Namespace.
 	 * @param string $route      The REST route.
 	 * @param array  $route_args Route arguments.
 	 * @param bool   $override   Optional. Whether the route should be overriden if it already exists.
@@ -963,6 +974,9 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
+	 * @param array $request {
+	 *     @type string $context
+	 * }
 	 * @return array Index entity
 	 */
 	public function get_index( $request ) {
