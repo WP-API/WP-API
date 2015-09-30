@@ -164,7 +164,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 			}
 			$header .= '; ' . $key . '=' . $value;
 		}
-		return $this->header( 'Link', $header, false );
+		$this->header( 'Link', $header, false );
 	}
 
 	/**
