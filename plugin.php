@@ -359,15 +359,8 @@ add_action( 'init', 'rest_api_maybe_flush_rewrites', 999 );
  * @since 4.4.0
  *
  * @internal This will live in default-filters.php
- *
- * @global WP_REST_Posts      $WP_REST_posts
- * @global WP_REST_Pages      $WP_REST_pages
- * @global WP_REST_Media      $WP_REST_media
- * @global WP_REST_Taxonomies $WP_REST_taxonomies
- *
- * @param WP_REST_Server $server Server object.
  */
-function rest_api_default_filters( $server ) {
+function rest_api_default_filters() {
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 	add_filter( 'deprecated_function_trigger_error', '__return_false' );
