@@ -312,4 +312,36 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 		return 'non-standard-prefix';
 	}
 
+	/**
+	 * Testing the `rest_url` filter
+	 *
+	 */
+	public function test_rest_url_filter() {
+
+		//test the default output
+		$this->assertSame( 'http://example.org/?rest_route=/', get_rest_url() );
+
+		//filtered
+		add_filter( 'rest_url', array( $this, 'rest_url_callback' ), 10, 4 );
+		$this->assertSame( 'http://v2.wp-api.org/?rest_route=/', get_rest_url() );
+
+		//clean up
+		remove_filter( 'rest_url', array( $this, 'rest_url_callback' ), 10, 4 );
+
+	}
+
+	/**
+	 * Callback for the rest_url filter.
+	 *
+	 * @param $url
+	 * @param $path
+	 * @param $blog_id
+	 * @param $scheme
+	 *
+	 * @return string
+	 */
+	public function rest_url_callback( $url, $path, $blog_id, $scheme ) {
+		return 'http://v2.wp-api.org/?rest_route=/';
+	}
+
 }
