@@ -119,7 +119,7 @@ class WP_REST_Request implements ArrayAccess {
 			'POST'  => array(),
 			'FILES' => array(),
 
-			// See parse_json_params
+			// See parse_json_params.
 			'JSON'  => null,
 
 			'defaults' => array(),
@@ -326,7 +326,7 @@ class WP_REST_Request implements ArrayAccess {
 			return null;
 		}
 
-		// Parse type and subtype out
+		// Parse type and subtype out.
 		list( $type, $subtype ) = explode( '/', $value, 2 );
 
 		$data = compact( 'value', 'type', 'subtype', 'parameters' );
@@ -351,7 +351,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		$this->parse_json_params();
 
-		// Ensure we parse the body data
+		// Ensure we parse the body data.
 		$body = $this->get_body();
 		if ( $this->method !== 'POST' && ! empty( $body ) ) {
 			$this->parse_body_params();
@@ -782,7 +782,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		$attributes = $this->get_attributes();
 
-		// No arguments set, skip sanitizing
+		// No arguments set, skip sanitizing.
 		if ( empty( $attributes['args'] ) ) {
 			return true;
 		}
@@ -794,7 +794,7 @@ class WP_REST_Request implements ArrayAccess {
 				continue;
 			}
 			foreach ( $this->params[ $type ] as $key => $value ) {
-				// check if this param has a sanitize_callback added
+				// Check if this param has a sanitize_callback added.
 				if ( isset( $attributes['args'][ $key ] ) && ! empty( $attributes['args'][ $key ]['sanitize_callback'] ) ) {
 					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this, $key );
 				}

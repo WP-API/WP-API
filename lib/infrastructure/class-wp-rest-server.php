@@ -270,8 +270,8 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access protected
 	 *
-	 * @param string $code    WP_Error-style code
-	 * @param string $message Human-readable message
+	 * @param string $code    WP_Error-style code.
+	 * @param string $message Human-readable message.
 	 * @param int    $status  Optional. HTTP status code to send. Default null.
 	 * @return string JSON representation of the error
 	 */
@@ -343,10 +343,10 @@ class WP_REST_Server {
 				return false;
 			}
 
-			// Check for invalid characters (only alphanumeric allowed)
+			// Check for invalid characters (only alphanumeric allowed).
 			if ( is_string( $_GET['_jsonp'] ) ) {
 				$jsonp_callback = preg_replace( '/[^\w\.]/', '', wp_unslash( $_GET['_jsonp'] ), -1, $illegal_char_count );
-				if ( $illegal_char_count !== 0 ) {
+				if ( 0 !== $illegal_char_count ) {
 					$jsonp_callback = null;
 				}
 			}
@@ -472,7 +472,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param WP_REST_Response $response Response object
+	 * @param WP_REST_Response $response Response object.
 	 * @param bool             $embed    Whether links should be embedded.
 	 * @return array {
 	 *     Data with sub-requests embedded.
@@ -633,7 +633,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param WP_REST_Response $response Response object
+	 * @param WP_REST_Response $response Response object.
 	 * @param bool             $embed    Whether links should be embedded.
 	 * @return WP_REST_Response New response with wrapped data
 	 */
@@ -951,7 +951,7 @@ class WP_REST_Server {
 	 *
 	 * @return bool|string Boolean false or string error message.
 	 */
-	protected function get_json_last_error( ) {
+	protected function get_json_last_error() {
 		// See https://core.trac.wordpress.org/ticket/27799.
 		if ( ! function_exists( 'json_last_error' ) ) {
 			return false;
@@ -977,7 +977,9 @@ class WP_REST_Server {
 	 * @access public
 	 *
 	 * @param array $request {
-	 *     @type string $context
+	 *     Request.
+	 *
+	 *     @type string $context Context.
 	 * }
 	 * @return array Index entity
 	 */
@@ -1036,7 +1038,7 @@ class WP_REST_Server {
 		);
 		$response = rest_ensure_response( $data );
 
-		// Link to the root index
+		// Link to the root index.
 		$response->add_link( 'up', rest_url( '/' ) );
 
 		/**
@@ -1059,7 +1061,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param array  $routes  Routes to get data for
+	 * @param array  $routes  Routes to get data for.
 	 * @param string $context Optional. Context for data. Accepts 'view' or 'help'. Default 'view'.
 	 * @return array Route data to expose in indexes.
 	 */
@@ -1190,8 +1192,8 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Header key
-	 * @param string $value Header value
+	 * @param string $key Header key.
+	 * @param string $value Header value.
 	 */
 	public function send_header( $key, $value ) {
 		/*
