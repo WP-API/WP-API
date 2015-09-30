@@ -577,6 +577,8 @@ function rest_url( $path = '', $scheme = 'json' ) {
  *
  * @since 4.4.0
  *
+ * @global WP_REST_Server $wp_rest_server
+ *
  * @param WP_REST_Request|string $request
  * @return WP_REST_Response REST response.
  */
@@ -733,6 +735,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
  * @param WP_REST_Request  $request  The request that was used to make current response.
+ * @return WP_REST_Response Current response being served.
  */
 function rest_send_allow_header( $response, $server, $request ) {
 
