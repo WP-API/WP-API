@@ -52,7 +52,7 @@ function rest_output_rsd() {
 	}
 	?>
 	<api name="WP-API" blogID="1" preferred="false" apiLink="<?php echo esc_url( $api_root ); ?>" />
-<?php
+	<?php
 }
 
 /**
@@ -270,7 +270,7 @@ function rest_get_date_with_gmt( $date, $force_utc = false ) {
  *
  * @since 4.4.0
  *
- * @param string $date Date string to parse and format.
+ * @param string $date_string Date string to parse and format.
  * @return string Date formatted for ISO8601/RFC3339.
  */
 function rest_mysql_to_rfc3339( $date_string ) {
