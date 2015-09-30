@@ -49,7 +49,7 @@ class WP_HTTP_Response implements WP_HTTP_ResponseInterface {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param mixed $data    Response data. Default null
+	 * @param mixed $data    Response data. Default null.
 	 * @param int   $status  Optional. HTTP status code. Default 200.
 	 * @param array $headers Optional. HTTP header map. Default empty array.
 	 */
