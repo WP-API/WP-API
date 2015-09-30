@@ -772,6 +772,8 @@ class WP_REST_Server {
 					$methods = explode( ',', $handler['methods'] );
 				} else if ( is_array( $handler['methods'] ) ) {
 					$methods = $handler['methods'];
+				} else {
+					$methods = array();
 				}
 
 				$handler['methods'] = array();
