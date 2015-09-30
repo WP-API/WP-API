@@ -800,6 +800,7 @@ class WP_REST_Request implements ArrayAccess {
 				}
 			}
 		}
+		return null;
 	}
 
 	/**
