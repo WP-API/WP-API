@@ -871,12 +871,10 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
+	 * @param string $offset Parameter name.
 	 * @return bool Whether the parameter is set.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetExists( $offset ) {
-	// @codingStandardsIgnoreEnd
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
@@ -894,12 +892,10 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
+	 * @param string $offset Parameter name.
 	 * @return mixed|null Value if set, null otherwise.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetGet( $offset ) {
-	// @codingStandardsIgnoreEnd
 		return $this->get_param( $offset );
 	}
 
@@ -909,13 +905,11 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
-	 * @param mixed $value Parameter value.
+	 * @param string $offset Parameter name.
+	 * @param mixed  $value  Parameter value.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetSet( $offset, $value ) {
-	// @codingStandardsIgnoreEnd
-		return $this->set_param( $offset, $value );
+		$this->set_param( $offset, $value );
 	}
 
 	/**
@@ -924,12 +918,9 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
-	 * @param mixed $value Parameter value.
+	 * @param string $offset Parameter name.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetUnset( $offset ) {
-	// @codingStandardsIgnoreEnd
 		$order = $this->get_parameter_order();
 
 		// Remove the offset from every group.
