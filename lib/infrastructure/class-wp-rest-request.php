@@ -446,7 +446,8 @@ class WP_REST_Request implements ArrayAccess {
 		foreach ( $order as $type ) {
 			$params = array_merge( $params, (array) $this->params[ $type ] );
 		}
-
+		
+		unset( $params[0] );
 		return $params;
 	}
 
