@@ -359,15 +359,8 @@ add_action( 'init', 'rest_api_maybe_flush_rewrites', 999 );
  * @since 4.4.0
  *
  * @internal This will live in default-filters.php
- *
- * @global WP_REST_Posts      $WP_REST_posts
- * @global WP_REST_Pages      $WP_REST_pages
- * @global WP_REST_Media      $WP_REST_media
- * @global WP_REST_Taxonomies $WP_REST_taxonomies
- *
- * @param WP_REST_Server $server Server object.
  */
-function rest_api_default_filters( $server ) {
+function rest_api_default_filters() {
 	// Deprecated reporting.
 	add_action( 'deprecated_function_run', 'rest_handle_deprecated_function', 10, 3 );
 	add_filter( 'deprecated_function_trigger_error', '__return_false' );
@@ -584,6 +577,8 @@ function rest_url( $path = '', $scheme = 'json' ) {
  *
  * @since 4.4.0
  *
+ * @global WP_REST_Server $wp_rest_server
+ *
  * @param WP_REST_Request|string $request
  * @return WP_REST_Response REST response.
  */
@@ -740,6 +735,7 @@ function rest_handle_options_request( $response, $handler, $request ) {
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
  * @param WP_REST_Request  $request  The request that was used to make current response.
+ * @return WP_REST_Response Current response being served.
  */
 function rest_send_allow_header( $response, $server, $request ) {
 

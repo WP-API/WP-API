@@ -65,7 +65,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		}
 
 		if ( isset( $attributes['href'] ) ) {
-			// Remove the href attribute, as it's used for the main URL
+			// Remove the href attribute, as it's used for the main URL.
 			unset( $attributes['href'] );
 		}
 
@@ -116,7 +116,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 */
 	public function add_links( $links ) {
 		foreach ( $links as $rel => $set ) {
-			// If it's a single link, wrap with an array for consistent handling
+			// If it's a single link, wrap with an array for consistent handling.
 			if ( isset( $set['href'] ) ) {
 				$set = array( $set );
 			}
@@ -150,8 +150,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @link http://tools.ietf.org/html/rfc5988
 	 * @link http://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $rel   Link relation. Either an IANA registered type, or an absolute URL
-	 * @param string $link  Target IRI for the link
+	 * @param string $rel   Link relation. Either an IANA registered type, or an absolute URL.
+	 * @param string $link  Target IRI for the link.
 	 * @param array  $other Optional. Other parameters to send, as an assocative array.
 	 *                      Default empty array.
 	 */
@@ -164,7 +164,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 			}
 			$header .= '; ' . $key . '=' . $value;
 		}
-		return $this->header( 'Link', $header, false );
+		$this->header( 'Link', $header, false );
 	}
 
 	/**

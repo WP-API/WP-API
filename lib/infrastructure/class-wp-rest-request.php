@@ -119,7 +119,7 @@ class WP_REST_Request implements ArrayAccess {
 			'POST'  => array(),
 			'FILES' => array(),
 
-			// See parse_json_params
+			// See parse_json_params.
 			'JSON'  => null,
 
 			'defaults' => array(),
@@ -326,7 +326,7 @@ class WP_REST_Request implements ArrayAccess {
 			return null;
 		}
 
-		// Parse type and subtype out
+		// Parse type and subtype out.
 		list( $type, $subtype ) = explode( '/', $value, 2 );
 
 		$data = compact( 'value', 'type', 'subtype', 'parameters' );
@@ -351,7 +351,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		$this->parse_json_params();
 
-		// Ensure we parse the body data
+		// Ensure we parse the body data.
 		$body = $this->get_body();
 		if ( $this->method !== 'POST' && ! empty( $body ) ) {
 			$this->parse_body_params();
@@ -782,7 +782,7 @@ class WP_REST_Request implements ArrayAccess {
 
 		$attributes = $this->get_attributes();
 
-		// No arguments set, skip sanitizing
+		// No arguments set, skip sanitizing.
 		if ( empty( $attributes['args'] ) ) {
 			return true;
 		}
@@ -794,12 +794,13 @@ class WP_REST_Request implements ArrayAccess {
 				continue;
 			}
 			foreach ( $this->params[ $type ] as $key => $value ) {
-				// check if this param has a sanitize_callback added
+				// Check if this param has a sanitize_callback added.
 				if ( isset( $attributes['args'][ $key ] ) && ! empty( $attributes['args'][ $key ]['sanitize_callback'] ) ) {
 					$this->params[ $type ][ $key ] = call_user_func( $attributes['args'][ $key ]['sanitize_callback'], $value, $this, $key );
 				}
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -871,12 +872,10 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
+	 * @param string $offset Parameter name.
 	 * @return bool Whether the parameter is set.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetExists( $offset ) {
-	// @codingStandardsIgnoreEnd
 		$order = $this->get_parameter_order();
 
 		foreach ( $order as $type ) {
@@ -894,12 +893,10 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
+	 * @param string $offset Parameter name.
 	 * @return mixed|null Value if set, null otherwise.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetGet( $offset ) {
-	// @codingStandardsIgnoreEnd
 		return $this->get_param( $offset );
 	}
 
@@ -909,13 +906,11 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
-	 * @param mixed $value Parameter value.
+	 * @param string $offset Parameter name.
+	 * @param mixed  $value  Parameter value.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetSet( $offset, $value ) {
-	// @codingStandardsIgnoreEnd
-		return $this->set_param( $offset, $value );
+		$this->set_param( $offset, $value );
 	}
 
 	/**
@@ -924,12 +919,9 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Parameter name.
-	 * @param mixed $value Parameter value.
+	 * @param string $offset Parameter name.
 	 */
-	// @codingStandardsIgnoreStart
 	public function offsetUnset( $offset ) {
-	// @codingStandardsIgnoreEnd
 		$order = $this->get_parameter_order();
 
 		// Remove the offset from every group.

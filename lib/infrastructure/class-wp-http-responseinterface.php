@@ -45,17 +45,4 @@ interface WP_HTTP_ResponseInterface extends JsonSerializable {
 	 * @return mixed Response data.
 	 */
 	public function get_data();
-
-	/**
-	 * @todo: Remove since it's commented out?
-	 *
-	 * Retrieves the response data for JSON serialization.
-	 *
-	 * It is expected that in most implementations, this will return the same as
-	 * {@see get_data()}, however this may be different if you want to do custom
-	 * JSON data handling.
-	 *
-	 * @return mixed Any JSON-serializable value
-	 */
-	// public function jsonSerialize();
 }

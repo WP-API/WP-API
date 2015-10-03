@@ -235,7 +235,7 @@ class WP_REST_Server {
 	 * @access protected
 	 *
 	 * @param WP_Error $error WP_Error instance.
-	 * @return array List of associative arrays with code and message keys.
+	 * @return WP_REST_Response List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
 		$error_data = $error->get_error_data();
@@ -270,8 +270,8 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access protected
 	 *
-	 * @param string $code    WP_Error-style code
-	 * @param string $message Human-readable message
+	 * @param string $code    WP_Error-style code.
+	 * @param string $message Human-readable message.
 	 * @param int    $status  Optional. HTTP status code to send. Default null.
 	 * @return string JSON representation of the error
 	 */
@@ -331,6 +331,8 @@ class WP_REST_Server {
 		 */
 		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
 
+		$jsonp_callback = null;
+
 		if ( ! $enabled ) {
 			echo $this->json_error( 'rest_disabled', __( 'The REST API is disabled on this site.' ), 404 );
 			return false;
@@ -341,8 +343,14 @@ class WP_REST_Server {
 				return false;
 			}
 
-			// Check for invalid characters (only alphanumeric allowed)
-			if ( ! is_string( $_GET['_jsonp'] ) || preg_match( '/[^\w\.]/', $_GET['_jsonp'] ) ) {
+			// Check for invalid characters (only alphanumeric allowed).
+			if ( is_string( $_GET['_jsonp'] ) ) {
+				$jsonp_callback = preg_replace( '/[^\w\.]/', '', wp_unslash( $_GET['_jsonp'] ), -1, $illegal_char_count );
+				if ( 0 !== $illegal_char_count ) {
+					$jsonp_callback = null;
+				}
+			}
+			if ( null === $jsonp_callback ) {
 				echo $this->json_error( 'rest_callback_invalid', __( 'The JSONP callback function is invalid.' ), 400 );
 				return false;
 			}
@@ -432,7 +440,7 @@ class WP_REST_Server {
 
 		if ( ! $served ) {
 			if ( 'HEAD' === $request->get_method() ) {
-				return;
+				return null;
 			}
 
 			// Embed links inside the request.
@@ -447,14 +455,15 @@ class WP_REST_Server {
 				$result = wp_json_encode( $result->data[0] );
 			}
 
-			if ( isset( $_GET['_jsonp'] ) ) {
+			if ( $jsonp_callback ) {
 				// Prepend '/**/' to mitigate possible JSONP Flash attacks
 				// http://miki.it/blog/2014/7/8/abusing-jsonp-with-rosetta-flash/
-				echo '/**/' . $_GET['_jsonp'] . '(' . $result . ')';
+				echo '/**/' . $jsonp_callback . '(' . $result . ')';
 			} else {
 				echo $result;
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -463,9 +472,14 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param WP_REST_Response $response Response object
+	 * @param WP_REST_Response $response Response object.
 	 * @param bool             $embed    Whether links should be embedded.
-	 * @return array
+	 * @return array {
+	 *     Data with sub-requests embedded.
+	 *
+	 *     @type array [$_links]    Links.
+	 *     @type array [$_embedded] Embeddeds.
+	 * }
 	 */
 	public function response_to_data( $response, $embed ) {
 		$data  = $this->prepare_response( $response->get_data() );
@@ -529,7 +543,12 @@ class WP_REST_Server {
 	 * @access protected
 	 *
 	 * @param array $data Data from the request.
-	 * @return array Data with sub-requests embedded.
+	 * @return array {
+	 *     Data with sub-requests embedded.
+	 *
+	 *     @type array [$_links]    Links.
+	 *     @type array [$_embedded] Embeddeds.
+	 * }
 	 */
 	protected function embed_links( $data ) {
 		if ( empty( $data['_links'] ) ) {
@@ -614,7 +633,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param WP_REST_Response $response Response object
+	 * @param WP_REST_Response $response Response object.
 	 * @param bool             $embed    Whether links should be embedded.
 	 * @return WP_REST_Response New response with wrapped data
 	 */
@@ -645,6 +664,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
+	 * @param string $namespace  Namespace.
 	 * @param string $route      The REST route.
 	 * @param array  $route_args Route arguments.
 	 * @param bool   $override   Optional. Whether the route should be overriden if it already exists.
@@ -752,6 +772,8 @@ class WP_REST_Server {
 					$methods = explode( ',', $handler['methods'] );
 				} else if ( is_array( $handler['methods'] ) ) {
 					$methods = $handler['methods'];
+				} else {
+					$methods = array();
 				}
 
 				$handler['methods'] = array();
@@ -929,7 +951,7 @@ class WP_REST_Server {
 	 *
 	 * @return bool|string Boolean false or string error message.
 	 */
-	protected function get_json_last_error( ) {
+	protected function get_json_last_error() {
 		// See https://core.trac.wordpress.org/ticket/27799.
 		if ( ! function_exists( 'json_last_error' ) ) {
 			return false;
@@ -954,6 +976,11 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
+	 * @param array $request {
+	 *     Request.
+	 *
+	 *     @type string $context Context.
+	 * }
 	 * @return array Index entity
 	 */
 	public function get_index( $request ) {
@@ -1011,7 +1038,7 @@ class WP_REST_Server {
 		);
 		$response = rest_ensure_response( $data );
 
-		// Link to the root index
+		// Link to the root index.
 		$response->add_link( 'up', rest_url( '/' ) );
 
 		/**
@@ -1034,7 +1061,7 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param array  $routes  Routes to get data for
+	 * @param array  $routes  Routes to get data for.
 	 * @param string $context Optional. Context for data. Accepts 'view' or 'help'. Default 'view'.
 	 * @return array Route data to expose in indexes.
 	 */
@@ -1165,8 +1192,8 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @access public
 	 *
-	 * @param string $key Header key
-	 * @param string $value Header value
+	 * @param string $key Header key.
+	 * @param string $value Header value.
 	 */
 	public function send_header( $key, $value ) {
 		/*
