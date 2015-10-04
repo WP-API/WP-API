@@ -1,7 +1,7 @@
 {
   "name": "wp-api",
   "version": "0.0.0",
-  "license" : "GPL-2.0",
+  "license" : "GPL-2.0+",
   "repository": {
     "type": "git",
     "url": "https://github.com/WP-API/WP-API.git"
