@@ -924,7 +924,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Can we read it?
 	 */
 	public function check_read_permission( $post ) {
-		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
+		if (
+			apply_filters(
+				'rest_post_password_read_denied',
+				(
+					! empty( $post->post_password ) &&
+					! $this->check_update_permission( $post )
+				),
+				$post,
+				$this
+			)
+		) {
 			return false;
 		}
 
