@@ -621,10 +621,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $date ) ) {
-			return rest_mysql_to_rfc3339( $date );
+			return mysql_to_rfc3339( $date );
 		}
 
-		return rest_mysql_to_rfc3339( $date_gmt );
+		return mysql_to_rfc3339( $date_gmt );
 	}
 
 	protected function prepare_password_response( $password ) {
