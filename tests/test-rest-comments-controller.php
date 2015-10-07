@@ -579,7 +579,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $params['post'], $comment['post'] );
 		$this->assertEquals( $params['karma'], $comment['karma'] );
 
-		$this->assertEquals( rest_mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $updated->comment_date ), $comment['date'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $comment['date'] );
 	}
 
@@ -625,7 +625,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
 		$this->assertEquals( $params['date_gmt'], $comment['date_gmt'] );
-		$this->assertEquals( $params['date_gmt'], rest_mysql_to_rfc3339( $updated->comment_date_gmt ) );
+		$this->assertEquals( $params['date_gmt'], mysql_to_rfc3339( $updated->comment_date_gmt ) );
 	}
 
 	public function test_update_comment_invalid_type() {
@@ -802,7 +802,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment->comment_author, $data['author_name'] );
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
-		$this->assertEquals( rest_mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
 
@@ -810,7 +810,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
 			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
 			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
-			$this->assertEquals( rest_mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
+			$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
 			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}

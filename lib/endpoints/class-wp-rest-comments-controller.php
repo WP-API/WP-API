@@ -436,8 +436,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_ip'          => $comment->comment_author_IP,
 			'author_avatar_urls' => rest_get_avatar_urls( $comment->comment_author_email ),
 			'author_user_agent'  => $comment->comment_agent,
-			'date'               => rest_mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'           => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'date'               => mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'           => mysql_to_rfc3339( $comment->comment_date_gmt ),
 			'content'            => array(
 				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 				'raw'      => $comment->comment_content,
