@@ -101,6 +101,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		unset( $prepared_args['number'] );
 		unset( $prepared_args['offset'] );
 		$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
+
+		// wp_count_terms can return a falsy value when the term has no children
+		if ( ! $total_terms ) {
+			$total_terms = 0;
+		}
+
 		$response->header( 'X-WP-Total', (int) $total_terms );
 		$max_pages = ceil( $total_terms / $request['per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
