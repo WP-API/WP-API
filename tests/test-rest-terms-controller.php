@@ -77,6 +77,20 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( count( $categories ), count( $data ) );
 	}
 
+	public function test_get_items_by_parent_non_found() {
+		$parent1 = $this->factory->category->create( array( 'name' => 'Homer' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category' );
+		$request->set_param( 'parent', $parent1 );
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertEquals( array(), $data );
+	}
+
 	public function test_get_items_orderby_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
