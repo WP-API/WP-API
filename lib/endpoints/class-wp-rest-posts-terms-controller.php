@@ -203,7 +203,8 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['term_id'] ) ) {
 			$term_id  = absint( $request['term_id'] );
 
-			if ( ! get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ) ) {
+			$term = get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy );
+			if ( ! $term || $term->taxonomy !== $this->taxonomy ) {
 				return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 			}
 		}
