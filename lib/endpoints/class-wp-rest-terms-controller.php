@@ -32,7 +32,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'methods'     => WP_REST_Server::CREATABLE,
 				'callback'    => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'        => $this->get_endpoint_args_for_item_schema( true ),
+				'args'        => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -47,7 +47,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'methods'    => WP_REST_Server::EDITABLE,
 				'callback'   => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'        => $this->get_endpoint_args_for_item_schema( false ),
+				'args'        => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods'    => WP_REST_Server::DELETABLE,
@@ -66,19 +66,27 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array( 'hide_empty' => false );
+		$prepared_args = array(
+			'order'      => $request['order'],
+			'orderby'    => $request['orderby'],
+			'hide_empty' => $request['hide_empty'],
+			'number'     => $request['per_page'],
+			'search'     => $request['search'],
+		);
 
-		$prepared_args['number']  = $request['per_page'];
 		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
-		$prepared_args['search']  = $request['search'];
-		$prepared_args['order']   = $request['order'];
-		$prepared_args['orderby'] = $request['orderby'];
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
+
 		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
-			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
-			if ( $parent ) {
-				$prepared_args['parent'] = $parent->term_id;
+			if ( 0 === $request['parent'] ) {
+				// Only query top-level terms.
+				$prepared_args['parent'] = 0;
+			} else {
+				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+				if ( $parent ) {
+					$prepared_args['parent'] = $parent->term_id;
+				}
 			}
 		}
 
@@ -564,28 +572,68 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
-		$query_params['order'] = array(
-			'description'        => 'Order sort attribute ascending or descending.',
+		$query_params['context'] = array(
+			'description'        => 'Change the response format based on request context.',
+			'default'            => 'view',
+			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
-			'default'            => 'asc',
-			'enum'               => array( 'asc', 'desc' ),
-		);
-		$query_params['orderby'] = array(
-			'description'        => 'Sort collection by object attribute.',
-			'type'               => 'string',
-			'default'            => 'name',
 			'enum'               => array(
+				'embed',
+				'view',
+			),
+		);
+		$query_params['order']      = array(
+			'description'           => 'Order sort attribute ascending or descending.',
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_key',
+			'default'               => 'asc',
+			'enum'                  => array(
+				'asc',
+				'desc',
+			),
+		);
+		$query_params['orderby']    = array(
+			'description'           => 'Sort collection by object attribute.',
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_key',
+			'default'               => 'name',
+			'enum'                  => array(
 				'id',
 				'name',
 				'slug',
+				'term_group',
+				'term_id',
+				'description',
+				'count',
 			),
+		);
+		$query_params['per_page']   = array(
+			'description'           => 'Number of terms to query at a time with pagination.',
+			'type'                  => 'integer',
+			'sanitize_callback'     => 'absint',
+			'default'               => 10,
+		);
+		$query_params['page']     = array(
+			'description'           => 'Number of the desired page within the paginated query results.',
+			'type'                  => 'integer',
+			'sanitize_callback'     => 'absint',
+			'default'               => 1,
+		);
+		$query_params['hide_empty'] = array(
+			'description'           => 'Whether to hide terms not assigned to any posts.',
+			'type'                  => 'boolean',
+			'default'               => false,
+		);
+		$query_params['search']     = array(
+			'description'           => 'Search keyword.',
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_text_field',
 		);
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
 				'description'        => 'Limit result set to terms assigned to a specific parent term.',
 				'type'               => 'integer',
-				'sanitize_callback'  => 'absint',
 			);
 		}
 		return $query_params;

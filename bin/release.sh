@@ -25,9 +25,6 @@ else
 	VERSION="$TAG"
 fi
 
-echo svn copy "$PLUGINSVN/trunk" "$PLUGINSVN/tags/$VERSION" -m "Tag $VERSION"
-exit 1
-
 if [ -d "$TMPDIR" ]; then
 	# Wipe it clean
 	rm -r "$TMPDIR"

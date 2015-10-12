@@ -22,7 +22,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'methods'  => WP_REST_Server::CREATABLE,
 				'callback' => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'     => $this->get_endpoint_args_for_item_schema( true ),
+				'args'     => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -43,7 +43,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'methods'  => WP_REST_Server::EDITABLE,
 				'callback' => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'     => $this->get_endpoint_args_for_item_schema( false ),
+				'args'     => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods'  => WP_REST_Server::DELETABLE,
@@ -183,6 +183,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
+		/**
+		 * Filter a comment before it is inserted via the REST API.
+		 *
+		 * Allows modification of the comment right before it is inserted via `wp_insert_comment`.
+		 *
+		 * @param array           $prepared_comment The prepared comment data for `wp_insert_comment`.
+		 * @param WP_REST_Request $request          Request used to insert the comment.
+		 */
 		$prepared_comment = apply_filters( 'rest_pre_insert_comment', $prepared_comment, $request );
 
 		$comment_id = wp_insert_comment( $prepared_comment );
@@ -277,12 +285,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter whether the comment type supports trashing.
+		 * Filter whether a comment is trashable.
 		 *
-		 * @param boolean $supports_trash Does the comment type support trashing?
-		 * @param stdClass $comment Comment we're attempting to trash.
+		 * Return false to disable trash support for the post.
+		 *
+		 * @param boolean $supports_trash Whether the post type support trashing.
+		 * @param WP_Post $comment        The comment object being considered for trashing support.
 		 */
-		$supports_trash = apply_filters( 'rest_comment_type_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
+		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
 		$get_request->set_param( 'context', 'edit' );
@@ -460,8 +470,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_ip'          => $comment->comment_author_IP,
 			'author_avatar_urls' => rest_get_avatar_urls( $comment->comment_author_email ),
 			'author_user_agent'  => $comment->comment_agent,
-			'date'               => rest_mysql_to_rfc3339( $comment->comment_date ),
-			'date_gmt'           => rest_mysql_to_rfc3339( $comment->comment_date_gmt ),
+			'date'               => mysql_to_rfc3339( $comment->comment_date ),
+			'date_gmt'           => mysql_to_rfc3339( $comment->comment_date_gmt ),
 			'content'            => array(
 				'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ),
 				'raw'      => $comment->comment_content,

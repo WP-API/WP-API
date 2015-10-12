@@ -360,12 +360,14 @@ abstract class WP_REST_Controller {
 	/**
 	 * Get an array of endpoint arguments from the item schema for the controller.
 	 *
-	 * @param $add_required_flag Whether to use the 'required' flag from the schema proprties.
-	 *                           This is because update requests will not have any required params
-	 *                           Where as create requests will.
-	 * @return array
+	 * @param string $method HTTP method of the request. The arguments
+	 *                       for `CREATABLE` requests are checked for required
+	 *                       values and may fall-back to a given default, this
+	 *                       is not done on `EDITABLE` requests. Default is
+	 *                       WP_REST_Server::CREATABLE.
+	 * @return array $endpoint_args
 	 */
-	public function get_endpoint_args_for_item_schema( $add_required_flag = true ) {
+	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
 
 		$schema                = $this->get_item_schema();
 		$schema_properties     = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
@@ -373,7 +375,7 @@ abstract class WP_REST_Controller {
 
 		foreach ( $schema_properties as $field_id => $params ) {
 
-			// Anything marked as readonly should not be a arg
+			// Arguments specified as `readonly` are not allowed to be set.
 			if ( ! empty( $params['readonly'] ) ) {
 				continue;
 			}
@@ -383,16 +385,22 @@ abstract class WP_REST_Controller {
 				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
 			);
 
-			if ( isset( $params['default'] ) ) {
+			if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
 				$endpoint_args[ $field_id ]['default'] = $params['default'];
 			}
 
-			if ( $add_required_flag && ! empty( $params['required'] ) ) {
+			if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
 			}
 
-			// Merge in any options provided by the schema property
+			// Merge in any options provided by the schema property.
 			if ( isset( $params['arg_options'] ) ) {
+
+				// Only use required / default from arg_options on CREATABLE endpoints.
+				if ( WP_REST_Server::CREATABLE !== $method ) {
+					$params['arg_options'] = array_diff_key( $params['arg_options'], array( 'required' => '', 'default' => '' ) );
+				}
+
 				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
 			}
 		}
@@ -437,7 +445,7 @@ abstract class WP_REST_Controller {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
 		}
 
-		if ( 'string' === $property['type']&& ! is_string( $value ) ) {
+		if ( 'string' === $property['type'] && ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
 		}
 

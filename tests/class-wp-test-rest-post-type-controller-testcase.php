@@ -12,13 +12,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date'] );
 		} else {
-			$this->assertEquals( rest_mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
 		}
 
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified'] );
 		} else {
-			$this->assertEquals( rest_mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+			$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
 		}
 
 		// author
@@ -137,13 +137,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 				$this->assertNull( $data['date_gmt'] );
 			} else {
-				$this->assertEquals( rest_mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+				$this->assertEquals( mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 				$this->assertNull( $data['modified_gmt'] );
 			} else {
-				$this->assertEquals( rest_mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
+				$this->assertEquals( mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
 			}
 		}
 	}

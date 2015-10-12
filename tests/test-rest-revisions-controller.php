@@ -221,13 +221,13 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 		$this->assertEquals( $revision->post_author, $response['author'] );
 		$this->assertEquals( $revision->post_content, $response['content'] );
-		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_date ), $response['date'] );
-		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_date_gmt ), $response['date_gmt'] );
+		$this->assertEquals( mysql_to_rfc3339( $revision->post_date ), $response['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $revision->post_date_gmt ), $response['date_gmt'] );
 		$this->assertEquals( $revision->post_excerpt, $response['excerpt'] );
 		$this->assertEquals( $revision->guid, $response['guid'] );
 		$this->assertEquals( $revision->ID, $response['id'] );
-		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_modified ), $response['modified'] );
-		$this->assertEquals( rest_mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
+		$this->assertEquals( mysql_to_rfc3339( $revision->post_modified ), $response['modified'] );
+		$this->assertEquals( mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
 		$this->assertEquals( $revision->post_name, $response['slug'] );
 		$this->assertEquals( $revision->post_title, $response['title'] );
 
