@@ -189,7 +189,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	protected function validate_request( $request ) {
 		$post = get_post( $request['post_id'] );
-		if ( empty( $request['post_id'] ) || empty( $post ) ) {
+		if ( empty( $request['post_id'] ) || empty( $post ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
 		}
 
