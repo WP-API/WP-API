@@ -80,9 +80,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 
 		$prepared_args = array();
+
 		$prepared_args['order'] = $request['order'];
-		$prepared_args['number'] = $request['per_page'];
-		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+		$prepared_args['per_page'] = $request['per_page'];
 		$orderby_possibles = array(
 			'id'              => 'ID',
 			'name'            => 'display_name',
@@ -90,6 +90,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
+		
+		if ( isset( $request['filter'] ) ) {
+			$prepared_args = array_merge( $prepared_args, $request['filter'] );
+			unset( $prepared_args['filter'] );
+		}
+
+		$prepared_args['number'] = $prepared_args['per_page'];
+		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
