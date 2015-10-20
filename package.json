@@ -1,6 +1,7 @@
 {
   "name": "wp-api",
   "version": "0.0.0",
+  "license" : "GPL-2.0+",
   "repository": {
     "type": "git",
     "url": "https://github.com/WP-API/WP-API.git"
@@ -10,6 +11,6 @@
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-phpcs": "^0.4.0",
-    "phplint": "^1.2.0"
+    "phplint": "^1.6.1"
   }
 }
