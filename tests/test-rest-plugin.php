@@ -148,6 +148,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	 * The rest_route query variable should be registered.
 	 */
 	function test_rest_route_query_var() {
+		rest_api_init();
 		global $wp;
 		$this->assertTrue( in_array( 'rest_route', $wp->public_query_vars ) );
 	}
