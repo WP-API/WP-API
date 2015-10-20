@@ -418,7 +418,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
 		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );
 		$this->assertEquals( $attachment->post_content, $data['description'] );
-		$this->assertTrue( isset( $data['media_details']) );
+		$this->assertTrue( isset( $data['media_details'] ) );
 
 		if ( $attachment->post_parent ) {
 			$this->assertEquals( $attachment->post_parent, $data['post'] );
