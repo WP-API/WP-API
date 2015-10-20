@@ -69,11 +69,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$revisions = wp_get_post_revisions( $request['parent_id'] );
 
-		$struct = array();
+		$response = array();
 		foreach ( $revisions as $revision ) {
-			$struct[] = $this->prepare_item_for_response( $revision, $request );
+			$data = $this->prepare_item_for_response( $revision, $request );
+			$response[] = $this->prepare_response_for_collection( $data );
 		}
-		return $struct;
+		return $response;
 	}
 
 	/**
