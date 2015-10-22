@@ -1529,7 +1529,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$schema['properties']['template'] = array(
 				'description' => 'The theme file to use to display the object.',
 				'type'        => 'string',
-				'enum'        => array_values( get_page_templates() ),
 				'context'     => array( 'view', 'edit' ),
 			);
 		}
