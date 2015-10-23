@@ -27,10 +27,6 @@
 
   (props @danielbachhuber)
 
-- Add Add compat shim for renamed `rest_mysql_to_rfc3339()`
-
-  (props @danielbachhuber)
-
 - Compat shim for `wp_is_numeric_array()`
 
   (props @danielbachhuber)
