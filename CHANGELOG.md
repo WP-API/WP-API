@@ -23,6 +23,22 @@
 
   (props @joehoyle)
 
+- Add Add compat shim for renamed `rest_mysql_to_rfc3339()`
+
+  (props @danielbachhuber)
+
+- Add Add compat shim for renamed `rest_mysql_to_rfc3339()`
+
+  (props @danielbachhuber)
+
+- Compat shim for `wp_is_numeric_array()`
+
+  (props @danielbachhuber)
+
+- Revert Switch to register_post_type_args filter
+
+  (props @joehoyle)
+
 ## 2.0 Beta 4.0
 
 - Show public user information through the user controller.
