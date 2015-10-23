@@ -152,3 +152,19 @@ if ( ! function_exists( 'wp_is_numeric_array' ) ) {
 		return count( $string_keys ) === 0;
 	}
 }
+
+/**
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339.
+ *
+ * Explicitly strips timezones, as datetimes are not saved with any timezone
+ * information. Including any information on the offset could be misleading.
+ *
+ * @deprecated WPAPI-2.0 mysql_to_rfc3339()
+ *
+ * @param string $date_string Date string to parse and format.
+ * @return string Date formatted for ISO8601/RFC3339.
+ */
+function rest_mysql_to_rfc3339( $date_string ) {
+	_deprecated_function( 'rest_mysql_to_rfc3339', 'WPAPI-2.0', 'mysql_to_rfc3339' );
+	return mysql_to_rfc3339( $date_string );
+}
