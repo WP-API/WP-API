@@ -17,6 +17,12 @@
 
   (props @rmccue)
 
+- Load admin functions
+
+  This was removed from the latest beta of WordPress in the REST API infrastructure, a more long term fix is planned.
+
+  (props @joehoyle)
+
 ## 2.0 Beta 4.0
 
 - Show public user information through the user controller.
