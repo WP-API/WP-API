@@ -48,14 +48,14 @@ function json_api_init() {
 	global $wp;
 	$wp->add_query_var( 'json_route' );
 }
-add_action( 'init', 'json_api_init' );
+add_action( 'init', 'json_api_init', 11 ); // Prioritized over core rewrites
 
 /**
  * Add rewrite rules.
  */
 function json_api_register_rewrites() {
 	add_rewrite_rule( '^' . json_get_url_prefix() . '/?$','index.php?json_route=/','top' );
-	add_rewrite_rule( '^' . json_get_url_prefix() . '(.*)?','index.php?json_route=$matches[1]','top' );
+	add_rewrite_rule( '^' . json_get_url_prefix() . '/(.*)?','index.php?json_route=/$matches[1]','top' );
 }
 
 /**
