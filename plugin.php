@@ -14,6 +14,9 @@ if ( ! defined( 'REST_API_VERSION' ) ) {
 	require_once dirname( __FILE__ ) . '/core/rest-api.php';
 }
 
+/** Include admin functions that are used in the endpoints, such as get_page_templates() */
+require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 /** v1 Compatibility */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
 
