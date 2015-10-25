@@ -890,6 +890,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
 
@@ -897,7 +898,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
 			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
 			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
-			$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
 			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}
@@ -906,7 +906,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertArrayNotHasKey( 'author_email', $data );
 			$this->assertArrayNotHasKey( 'author_ip', $data );
 			$this->assertArrayNotHasKey( 'author_user_agent', $data );
-			$this->assertArrayNotHasKey( 'date_gmt', $data );
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
 			$this->assertArrayNotHasKey( 'karma', $data );
 		}
