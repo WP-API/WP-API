@@ -192,7 +192,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$post_request = new WP_REST_Request();
 		$post_request->set_param( 'id', $request['post_id'] );
 
-		$post_check = $this->posts_controller->get_item( $post_request );
+		$post_check = $this->posts_controller->get_item_permissions_check( $post_request );
 		if ( is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
