@@ -4,7 +4,6 @@
  *
  * Contains extra functions from plugin.php go.
  *
- * @since 4.4.0
  * @package WordPress
  * @subpackage JSON API
  */
