@@ -1,12 +1,11 @@
 <?php
-
 /**
- * Extra File where a lot of the extra functions from plugin.php go.
+ * Extra File
+ *
+ * Contains extra functions from plugin.php go.
  *
  * @package WordPress
  * @subpackage JSON API
- *
- * @TODO fix this doc block (Make it better maybe?)
  */
 
 add_action( 'wp_enqueue_scripts', 'rest_register_scripts', -100 );
