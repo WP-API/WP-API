@@ -188,11 +188,14 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|true
 	 */
 	protected function validate_request( $request ) {
+		$post = get_post( $request['post_id'] );
+		if ( empty( $request['post_id'] ) || empty( $post ) || $this->post_type !== $post->post_type ) {
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
 		$post_request = new WP_REST_Request();
 		$post_request->set_param( 'id', $request['post_id'] );
-
-		$post_check = $this->posts_controller->get_item( $post_request );
+		$post_check = $this->posts_controller->get_item_permissions_check( $post_request );
 		if ( is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
