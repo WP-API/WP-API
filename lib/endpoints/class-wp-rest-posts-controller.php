@@ -82,7 +82,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a collection of posts.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
 		$args                   = array();
@@ -153,7 +153,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Get a single post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
@@ -175,7 +175,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Create a single post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
@@ -249,7 +249,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Update a single post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response.
+	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
@@ -318,7 +318,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Delete a single post.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_REST_Response|WP_Error.
+	 * @return WP_REST_Response|WP_Error
 	 */
 	public function delete_item( $request ) {
 		$id = (int) $request['id'];
@@ -392,7 +392,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read /posts.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error.
+	 * @return bool|WP_Error
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -409,7 +409,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error.
+	 * @return bool|WP_Error
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -430,7 +430,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error.
+	 * @return bool|WP_Error
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -455,7 +455,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error.
+	 * @return bool|WP_Error
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -485,7 +485,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error.
+	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
 
@@ -502,8 +502,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
-	 * @param array $prepared_args.
-	 * @return array $query_args.
+	 * @param array $prepared_args
+	 * @return array $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array() ) {
 
@@ -533,7 +533,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Get all the WP Query vars that are allowed for the API request.
 	 *
-	 * @return array.
+	 * @return array
 	 */
 	protected function get_allowed_query_vars() {
 		global $wp;
@@ -589,8 +589,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check the post excerpt and prepare it for single post output.
 	 *
-	 * @param string       $excerpt.
-	 * @return string|null $excerpt.
+	 * @param string       $excerpt
+	 * @return string|null $excerpt
 	 */
 	protected function prepare_excerpt_response( $excerpt ) {
 		if ( post_password_required() ) {
@@ -611,8 +611,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
 	 *
-	 * @param string       $date_gmt.
-	 * @param string|null  $date.
+	 * @param string       $date_gmt
+	 * @param string|null  $date
 	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
@@ -799,9 +799,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Determine validity and normalize provided status param.
 	 *
-	 * @param string $post_status.
-	 * @param object $post_type.
-	 * @return WP_Error|string $post_status.
+	 * @param string $post_status
+	 * @param object $post_type
+	 * @return WP_Error|string $post_status
 	 */
 	protected function handle_status_param( $post_status, $post_type ) {
 		$post_status = $post_status;
@@ -834,9 +834,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Determine validity and normalize provided author param.
 	 *
-	 * @param object|integer $post_author.
-	 * @param object $post_type.
-	 * @return WP_Error|integer $post_author.
+	 * @param object|integer $post_author
+	 * @param object $post_type
+	 * @return WP_Error|integer $post_author
 	 */
 	protected function handle_author_param( $post_author, $post_type ) {
 		if ( is_object( $post_author ) ) {
@@ -864,8 +864,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Determine the featured image based on a request param.
 	 *
-	 * @param int $featured_image.
-	 * @param int $post_id.
+	 * @param int $featured_image
+	 * @param int $post_id
 	 */
 	protected function handle_featured_image( $featured_image, $post_id ) {
 
@@ -886,8 +886,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Set the template for a page.
 	 *
-	 * @param string $template.
-	 * @param integer $post_id.
+	 * @param string $template
+	 * @param integer $post_id
 	 */
 	public function handle_template( $template, $post_id ) {
 		if ( in_array( $template, array_values( get_page_templates() ) ) ) {
@@ -900,7 +900,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check if a given post type should be viewed or managed.
 	 *
-	 * @param object|string $post_type.
+	 * @param object|string $post_type
 	 * @return bool Is post type allowed?
 	 */
 	protected function check_is_post_type_allowed( $post_type ) {
@@ -1007,8 +1007,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Get the base path for a post type's endpoints.
 	 *
-	 * @param object|string $post_type.
-	 * @return string       $base.
+	 * @param object|string $post_type
+	 * @return string       $base
 	 */
 	public function get_post_type_base( $post_type ) {
 		if ( ! is_object( $post_type ) ) {
@@ -1025,7 +1025,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Post $post Post object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_REST_Response $data.
+	 * @return WP_REST_Response $data
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$GLOBALS['post'] = $post;
@@ -1253,7 +1253,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Get the Post's schema, conforming to JSON Schema.
 	 *
-	 * @return array.
+	 * @return array
 	 */
 	public function get_item_schema() {
 
