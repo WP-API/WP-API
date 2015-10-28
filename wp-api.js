@@ -11,7 +11,7 @@
 
 	/**
 	 * ECMAScript 5 shim, from MDN.
-	 * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString.
+	 * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 	 */
 	if ( ! Date.prototype.toISOString ) {
 		pad = function( number ) {
@@ -463,7 +463,7 @@
 	);
 
 	/**
-	 * Backbone model for comments
+	 * Backbone model for comments.
 	 */
 	wp.api.models.Comment = BaseModel.extend( _.extend(
 		/** @lends Comment.prototype */
