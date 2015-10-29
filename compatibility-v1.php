@@ -4,25 +4,25 @@ add_filter( 'json_endpoints', 'json_v1_compatible_routes', 1000 );
 add_filter( 'json_dispatch_request', 'json_v1_compatible_dispatch', 10, 3 );
 
 /**
- * Make version 1 routes compatible with v2
+ * Make version 1 routes compatible with v2.
  *
- * @param array $routes API routes
- * @return array Filtered routes
+ * @param array $routes API routes.
+ * @return array Filtered routes.
  */
 function json_v1_compatible_routes( $routes ) {
 	foreach ( $routes as $key => &$route ) {
-		// Single, with new-style registration
+		// Single, with new-style registration.
 		if ( isset( $route['callback'] ) || empty( $route ) ) {
 			continue;
 		}
 
-		// Multiple, with new-style registration
+		// Multiple, with new-style registration.
 		$first = reset( $route );
 		if ( isset( $first['callback'] ) ) {
 			continue;
 		}
 
-		// Old-style, map to new-style
+		// Old-style, map to new-style.
 		if ( count( $route ) <= 2 && isset( $route[1] ) && ! is_array( $route[1] ) ) {
 			$route = array( $route );
 		}
@@ -42,14 +42,14 @@ function json_v1_compatible_routes( $routes ) {
 }
 
 /**
- * Use Reflection to match request parameters to function parameters
+ * Use Reflection to match request parameters to function parameters.
  *
- * @param mixed $result Result to use
- * @param WP_JSON_Request $request Request object
+ * @param mixed $result Result to use.
+ * @param WP_JSON_Request $request Request object.
  * @return mixed
  */
 function json_v1_compatible_dispatch( $result, $request ) {
-	// Allow other plugins to hijack too
+	// Allow other plugins to hijack too.
 	if ( null !== $result ) {
 		return $result;
 	}
@@ -60,7 +60,7 @@ function json_v1_compatible_dispatch( $result, $request ) {
 		return $result;
 	}
 
-	// Build up the arguments, old-style
+	// Build up the arguments, old-style.
 	$args = array_merge( $request->get_url_params(), $request->get_query_params() );
 	if ( $request->get_method() === 'POST' ) {
 		$args = array_merge( $args, $request->get_body_params() );
@@ -75,10 +75,10 @@ function json_v1_compatible_dispatch( $result, $request ) {
 }
 
 /**
- * Sort parameters by order specified in method declaration
+ * Sort parameters by order specified in method declaration.
  *
  * Takes a callback and a list of available params, then filters and sorts
- * by the parameters the method actually needs, using the Reflection API
+ * by the parameters the method actually needs, using the Reflection API.
  *
  * @param callback $callback
  * @param array $params
@@ -96,10 +96,10 @@ function json_v1_sort_callback_params( $callback, $provided ) {
 
 	foreach ( $wanted as $param ) {
 		if ( isset( $provided[ $param->getName() ] ) ) {
-			// We have this parameters in the list to choose from
+			// We have this parameters in the list to choose from.
 			$ordered_parameters[] = $provided[ $param->getName() ];
 		} elseif ( $param->isDefaultValueAvailable() ) {
-			// We don't have this parameter, but it's optional
+			// We don't have this parameter, but it's optional.
 			$ordered_parameters[] = $param->getDefaultValue();
 		} else {
 			// We don't have this parameter and it wasn't optional, abort!
