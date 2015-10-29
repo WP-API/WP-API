@@ -39,7 +39,7 @@
 
 	/**
 	 * Parse date into ISO8601 format.
-	 * 
+	 *
 	 * @param {Date} date.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
@@ -81,20 +81,20 @@
 	/**
 	 * Array of parseable dates.
 	 *
-	 * @type {string[]}.
+	 * @type {string[]}
 	 */
 	var parseable_dates = [ 'date', 'modified', 'date_gmt', 'modified_gmt' ];
 
 	/**
 	 * Mixin for all content that is time stamped.
 	 *
-	 * @type {{toJSON: toJSON, parse: parse}}.
+	 * @type {{toJSON: toJSON, parse: parse}}
 	 */
 	var TimeStampedMixin = {
 		/**
 		 * Serialize the entity pre-sync.
 		 *
-		 * @returns {*}.
+		 * @returns {*}
 		 */
 		toJSON: function() {
 			var attributes = _.clone( this.attributes );
@@ -113,7 +113,7 @@
 		 * Unserialize the fetched response.
 		 *
 		 * @param {*} response.
-		 * @returns {*}.
+		 * @returns {*}
 		 */
 		parse: function( response ) {
 			// Parse dates into native Date objects.
@@ -138,13 +138,13 @@
 	/**
 	 * Mixin for all hierarchical content types such as posts.
 	 *
-	 * @type {{parent: parent}}.
+	 * @type {{parent: parent}}
 	 */
 	var HierarchicalMixin = {
 		/**
 		 * Get parent object.
 		 *
-		 * @returns {Backbone.Model}.
+		 * @returns {Backbone.Model}
 		 */
 		parent: function() {
 
@@ -193,7 +193,7 @@
 			 * @param {string} method.
 			 * @param {Backbone.Model} model.
 			 * @param {{beforeSend}, *} options.
-			 * @returns {*}.
+			 * @returns {*}
 			 */
 			sync: function( method, model, options ) {
 				options = options || {};
@@ -280,7 +280,7 @@
 			/**
 			 * Return URL for the model.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: function() {
 				var id = this.get( 'id' );
@@ -387,7 +387,7 @@
 			/**
 			 * Return URL for the model.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: function() {
 				var id = this.get( 'id' ) || '';
@@ -493,7 +493,7 @@
 			/**
 			 * Return URL for model.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: function() {
 				var post_id = this.get( 'post' );
@@ -528,7 +528,7 @@
 			/**
 			 * Prevent model from being saved.
 			 *
-			 * @returns {boolean}.
+			 * @returns {boolean}
 			 */
 			save: function () {
 				return false;
@@ -569,7 +569,7 @@
 			/**
 			 * Prevent model from being saved.
 			 *
-			 * @returns {boolean}.
+			 * @returns {boolean}
 			 */
 			save: function() {
 				return false;
@@ -578,7 +578,7 @@
 			/**
 			 * Prevent model from being deleted.
 			 *
-			 * @returns {boolean}.
+			 * @returns {boolean}
 			 */
 			'delete': function() {
 				return false;
@@ -613,7 +613,7 @@
 			 * @param {string} method.
 			 * @param {Backbone.Model} model.
 			 * @param {{success}, *} options.
-			 * @returns {*}.
+			 * @returns {*}
 			 */
 			sync: function( method, model, options ) {
 				options = options || {};
@@ -671,7 +671,7 @@
 			 * Fetches the next page of objects if a new page exists.
 			 *
 			 * @param {data: {page}} options.
-			 * @returns {*}.
+			 * @returns {*}
 			 */
 			more: function( options ) {
 				options = options || {};
@@ -697,7 +697,7 @@
 			/**
 			 * Returns true if there are more pages of objects available.
 			 *
-			 * @returns null|boolean.
+			 * @returns null|boolean
 			 */
 			hasMore: function() {
 				if ( this.state.totalPages === null ||
@@ -800,7 +800,7 @@
 			/**
 			 * Return URL for collection.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: WP_API_Settings.root + '/comments'
 		}
@@ -858,7 +858,7 @@
 			/**
 			 * Return URL for collection.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: function() {
 				return WP_API_Settings.root + '/terms/' + this.taxonomy;
@@ -894,7 +894,7 @@
 			/**
 			 * return URL for collection.
 			 *
-			 * @returns {string}.
+			 * @returns {string}
 			 */
 			url: function() {
 				return WP_API_Settings.root + '/posts/' + this.parent + '/revisions';
