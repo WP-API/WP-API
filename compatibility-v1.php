@@ -46,7 +46,7 @@ function json_v1_compatible_routes( $routes ) {
  *
  * @param mixed $result Result to use.
  * @param WP_JSON_Request $request Request object.
- * @return mixed.
+ * @return mixed
  */
 function json_v1_compatible_dispatch( $result, $request ) {
 	// Allow other plugins to hijack too.
@@ -80,9 +80,9 @@ function json_v1_compatible_dispatch( $result, $request ) {
  * Takes a callback and a list of available params, then filters and sorts
  * by the parameters the method actually needs, using the Reflection API.
  *
- * @param callback $callback.
- * @param array $params.
- * @return array.
+ * @param callback $callback
+ * @param array $params
+ * @return array
  */
 function json_v1_sort_callback_params( $callback, $provided ) {
 	if ( is_array( $callback ) ) {
