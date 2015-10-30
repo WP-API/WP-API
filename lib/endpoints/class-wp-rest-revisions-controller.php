@@ -175,7 +175,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare the revision for the REST response
 	 *
-	 * @param mixed $item WordPress representation of the revision.
+	 * @param WP_Post $post Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return array
 	 */
@@ -237,10 +237,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $date ) ) {
-			return rest_mysql_to_rfc3339( $date );
+			return mysql_to_rfc3339( $date );
 		}
 
-		return rest_mysql_to_rfc3339( $date_gmt );
+		return mysql_to_rfc3339( $date_gmt );
 	}
 
 	/**

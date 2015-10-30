@@ -50,7 +50,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'                => $this->get_endpoint_args_for_item_schema( true ),
+				'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -236,6 +236,14 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$parent_column = $this->get_parent_column();
 		$response->add_link( 'about', rest_url( 'wp/' . $this->parent_base . '/' . $data->$parent_column ), array( 'embeddable' => true ) );
 
+		/**
+		 * Filter a meta value returned from the API.
+		 *
+		 * Allows modification of the meta value right before it is returned.
+		 *
+		 * @param array           $response Key value array of meta data: id, key, value.
+		 * @param WP_REST_Request $request  Request used to generate the response.
+		 */
 		return apply_filters( 'rest_prepare_meta_value', $response, $request );
 	}
 

@@ -2,6 +2,8 @@
 <ruleset name="WP-API">
 	<description>Sniffs for the coding standards of the WP-API plugin</description>
 
+	<exclude-pattern>*/core/*</exclude-pattern>
+
 	<rule ref="WordPress-VIP">
 		<exclude name="WordPress.VIP.FileSystemWritesDisallow" />
 		<exclude name="WordPress.VIP.RestrictedFunctions" />

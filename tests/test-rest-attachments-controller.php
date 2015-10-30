@@ -175,7 +175,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$this->assertNotInstanceOf( 'WP_Error', $response );
 		$response = rest_ensure_response( $response );
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertErrorResponse( 'rest_upload_hash_mismatch', $response, 412 );
 	}
 
 	public function test_create_item_invalid_upload_files_capability() {
@@ -333,6 +333,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->check_post_data( $attachment, $data, 'view' );
+		$this->check_post_data( $attachment, $data, 'embed' );
 	}
 
 	public function test_get_item_schema() {
@@ -417,6 +418,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
 		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );
 		$this->assertEquals( $attachment->post_content, $data['description'] );
+		$this->assertTrue( isset( $data['media_details'] ) );
 
 		if ( $attachment->post_parent ) {
 			$this->assertEquals( $attachment->post_parent, $data['post'] );

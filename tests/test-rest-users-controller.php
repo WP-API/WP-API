@@ -884,12 +884,12 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $user->description, $data['description'] );
 		$this->assertEquals( get_author_posts_url( $user->ID ), $data['link'] );
 		$this->assertArrayHasKey( 'avatar_urls', $data );
+		$this->assertEquals( $user->user_nicename, $data['slug'] );
 
 		if ( 'view' === $context || 'edit' === $context ) {
 			$this->assertEquals( $user->first_name, $data['first_name'] );
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
-			$this->assertEquals( $user->user_nicename, $data['slug'] );
 		}
 
 		if ( 'view' !== $context && 'edit' !== $context ) {
@@ -899,7 +899,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'first_name', $data );
 			$this->assertArrayNotHasKey( 'last_name', $data );
 			$this->assertArrayNotHasKey( 'nickname', $data );
-			$this->assertArrayNotHasKey( 'slug', $data );
 		}
 
 		if ( 'view' === $context ) {

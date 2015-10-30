@@ -21,7 +21,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( true ), array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
 					'password'    => array(
 						'required' => true,
 					),
@@ -45,7 +45,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( false ), array(
+				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ), array(
 					'password'    => array(),
 				) ),
 			),
@@ -99,11 +99,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API
+		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
 		 * @see https://codex.wordpress.org/Class_Reference/WP_User_Query
-		 * @param array $prepared_args Arguments for WP_User_Query
-		 * @param WP_REST_Request $request The current request
+		 *
+		 * @param array           $prepared_args Array of arguments for WP_User_Query.
+		 * @param WP_REST_Request $request       The current request.
 		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -235,13 +236,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
-		 * Fires after a user is created via the REST API
+		 * Fires after a user is created or updated via the REST API.
 		 *
-		 * @param object $user Data used to create user (not a WP_User object)
-		 * @param WP_REST_Request $request Request object.
-		 * @param bool $bool A boolean that is false.
+		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $creating  True when creating user, false when updating user.
 		 */
-		do_action( 'rest_insert_user', $user, $request, false );
+		do_action( 'rest_insert_user', $user, $request, true );
 
 		$response = $this->get_item( array(
 			'id'      => $user_id,
@@ -299,8 +300,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( $user, $request );
 
+		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
-
 		$response = $this->get_item( array(
 			'id'      => $user_id,
 			'context' => 'edit',
@@ -488,11 +489,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$data->add_links( $this->prepare_links( $user ) );
 
 		/**
-		 * Filter user data before returning via the REST API
+		 * Filter user data returned from the REST API.
 		 *
-		 * @param WP_REST_Response $data Response data
-		 * @param object $user User object used to create response
-		 * @param WP_REST_Request $request Request object.
+		 * @param WP_REST_Response $data    Response data.
+		 * @param object           $user    User object used to create response.
+		 * @param WP_REST_Request  $request Request object.
 		 */
 		return apply_filters( 'rest_prepare_user', $data, $user, $request );
 	}
@@ -566,10 +567,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter user data before inserting user via REST API
+		 * Filter user data before inserting user via the REST API.
 		 *
-		 * @param object $prepared_user User object.
-		 * @param WP_REST_Request $request Request object.
+		 * @param object          $prepared_user User object.
+		 * @param WP_REST_Request $request       Request object.
 		 */
 		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
 	}
@@ -590,6 +591,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Multisite super admins can freely edit their blog roles -- they possess all caps.
 		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
 			// The new role must be editable by the logged-in user.
+
+			/** Include admin functions to get access to get_editable_roles() */
+			require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 			$editable_roles = get_editable_roles();
 			if ( empty( $editable_roles[ $role ] ) ) {
 				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
@@ -723,7 +728,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'slug'        => array(
 					'description' => 'An alphanumeric identifier for the object unique to its type.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_title',
 					),
@@ -759,7 +764,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$query_params['context'] = array(
 			'default'            => 'view',
 			'description'        => 'Change the response format based on request context.',
-			'enum'               => array( 'view', 'edit' ),
+			'enum'               => array( 'embed', 'view', 'edit' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
 		);

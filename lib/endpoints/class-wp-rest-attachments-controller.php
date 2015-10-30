@@ -71,6 +71,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $id;
 		}
 
+		/** Include admin functions to get access to wp_generate_attachment_metadata() */
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
 		if ( isset( $request['alt_text'] ) ) {
@@ -202,6 +205,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$data->add_links( $this->prepare_links( $post ) );
 
+		/**
+		 * Filter an attachment returned from the API.
+		 *
+		 * Allows modification of the attachment right before it is returned.
+		 *
+		 * @param array           $data     Key value array of attachment data: alt_text, caption, description,
+		 *                                  media_type, media_details, post, source_url. Piossibly media_details.
+		 * @param WP_Post         $post     The attachment post.
+		 * @param WP_REST_Request $request  Request used to generate the response.
+		 */
 		return apply_filters( 'rest_prepare_attachment', $data, $post, $request );
 	}
 
@@ -248,7 +261,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
@@ -364,8 +377,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Verify hash, if given
-		if ( ! empty( $headers['CONTENT_MD5'] ) ) {
-			$expected = trim( $headers['CONTENT_MD5'] );
+		if ( ! empty( $headers['content_md5'] ) ) {
+			$content_md5 = array_shift( $headers['content_md5'] );
+			$expected = trim( $content_md5 );
 			$actual = md5_file( $files['file']['tmp_name'] );
 			if ( $expected !== $actual ) {
 				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
