@@ -1,12 +1,11 @@
 <?php
-
 /**
- * Extra File where a lot of the extra functions from plugin.php go.
+ * Extra File
+ *
+ * Contains extra functions from plugin.php go.
  *
  * @package WordPress
  * @subpackage JSON API
- *
- * @TODO fix this doc block (Make it better maybe?)
  */
 
 add_action( 'wp_enqueue_scripts', 'rest_register_scripts', -100 );
@@ -131,4 +130,40 @@ function rest_get_avatar_url( $email ) {
 	}
 
 	return '';
+}
+
+if ( ! function_exists( 'wp_is_numeric_array' ) ) {
+	/**
+	 * Determines if the variable is a numeric-indexed array.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @param mixed $data Variable to check.
+	 * @return bool Whether the variable is a list.
+	 */
+	function wp_is_numeric_array( $data ) {
+		if ( ! is_array( $data ) ) {
+			return false;
+		}
+
+		$keys = array_keys( $data );
+		$string_keys = array_filter( $keys, 'is_string' );
+		return count( $string_keys ) === 0;
+	}
+}
+
+/**
+ * Parses and formats a MySQL datetime (Y-m-d H:i:s) for ISO8601/RFC3339.
+ *
+ * Explicitly strips timezones, as datetimes are not saved with any timezone
+ * information. Including any information on the offset could be misleading.
+ *
+ * @deprecated WPAPI-2.0 mysql_to_rfc3339()
+ *
+ * @param string $date_string Date string to parse and format.
+ * @return string Date formatted for ISO8601/RFC3339.
+ */
+function rest_mysql_to_rfc3339( $date_string ) {
+	_deprecated_function( 'rest_mysql_to_rfc3339', 'WPAPI-2.0', 'mysql_to_rfc3339' );
+	return mysql_to_rfc3339( $date_string );
 }
