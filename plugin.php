@@ -14,52 +14,77 @@ if ( ! defined( 'REST_API_VERSION' ) ) {
 	require_once dirname( __FILE__ ) . '/core/rest-api.php';
 }
 
-/** Include admin functions that are used in the endpoints, such as get_page_templates() */
-require_once ABSPATH . 'wp-admin/includes/admin.php';
-
 /** v1 Compatibility */
 include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
 
-/** WP_REST_Controller class */
+/**
+ * WP_REST_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
 
-/** WP_REST_Posts_Controller class */
+/**
+ * WP_REST_Posts_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
 
-/** WP_REST_Attachments_Controller class */
+/**
+ * WP_REST_Attachments_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
 
-/** WP_REST_Post_Types_Controller class */
+/**
+ * WP_REST_Post_Types_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
 
-/** WP_REST_Post_Statuses_Controller class */
+/**
+ * WP_REST_Post_Statuses_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
 
-/** WP_REST_Revisions_Controller class */
+/**
+ * WP_REST_Revisions_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
 
-/** WP_REST_Taxonomies_Controller class */
+/**
+ * WP_REST_Taxonomies_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
 
-/** WP_REST_Terms_Controller class */
+/**
+ * WP_REST_Terms_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
 
-/** WP_REST_Users_Controller class */
+/**
+ * WP_REST_Users_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
 
-/** WP_REST_Comments_Controller class */
+/**
+ * WP_REST_Comments_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
 
-/** WP_REST_Meta_Controller class */
+/**
+ * WP_REST_Meta_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
 
-/** WP_REST_Meta_Posts_Controller class */
+/**
+ * WP_REST_Meta_Posts_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
 
-/** WP_REST_Posts_Terms_Controller class */
+/**
+ * WP_REST_Posts_Terms_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
-/** REST extras */
+/**
+ * REST extras.
+ */
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
 add_filter( 'register_post_type_args', '_add_extra_api_post_type_arguments', 10, 2 );

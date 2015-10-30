@@ -812,7 +812,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The date the object was published as GMT.',
 					'type'         => 'string',
 					'format'       => 'date-time',
-					'context'      => array( 'edit' ),
+					'context'      => array( 'view', 'edit' ),
 				),
 				'karma'             => array(
 					'description'  => 'Karma for the object.',
