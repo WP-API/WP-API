@@ -1276,7 +1276,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => 'The date the object was published, as GMT.',
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'guid'            => array(
 					'description' => 'The globally unique identifier for the object.',
