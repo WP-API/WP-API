@@ -14,9 +14,6 @@ if ( ! defined( 'REST_API_VERSION' ) ) {
 	require_once dirname( __FILE__ ) . '/core/rest-api.php';
 }
 
-/** v1 Compatibility */
-include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-
 /**
  * WP_REST_Controller class.
  */
