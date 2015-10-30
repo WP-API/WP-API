@@ -890,7 +890,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param integer $post_id
 	 */
 	public function handle_template( $template, $post_id ) {
-		if ( in_array( $template, array_values( get_page_templates() ) ) ) {
+		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( get_post( $post_id ) ) ) ) ) {
 			update_post_meta( $post_id, '_wp_page_template', $template );
 		} else {
 			update_post_meta( $post_id, '_wp_page_template', '' );
@@ -1276,7 +1276,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'description' => 'The date the object was published, as GMT.',
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'edit' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'guid'            => array(
 					'description' => 'The globally unique identifier for the object.',
@@ -1529,7 +1529,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$schema['properties']['template'] = array(
 				'description' => 'The theme file to use to display the object.',
 				'type'        => 'string',
-				'enum'        => array_values( get_page_templates() ),
+				'enum'        => array_keys( wp_get_theme()->get_page_templates() ),
 				'context'     => array( 'view', 'edit' ),
 			);
 		}

@@ -15,16 +15,6 @@ if ( ! defined( 'REST_API_VERSION' ) ) {
 }
 
 /**
- * Include admin functions that are used in the endpoints, such as get_page_templates().
- */
-require_once ABSPATH . 'wp-admin/includes/admin.php';
-
-/**
- * v1 Compatibility.
- */
-include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-
-/**
  * WP_REST_Controller class.
  */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
