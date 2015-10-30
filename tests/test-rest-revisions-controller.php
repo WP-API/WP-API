@@ -46,12 +46,10 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertCount( 2, $data );
 
 		// Reverse chron
-		$rev_data = $data[0]->get_data();
-		$this->assertEquals( $this->revision_id2, $rev_data['id'] );
+		$this->assertEquals( $this->revision_id2, $data[0]['id'] );
 		$this->check_get_revision_response( $data[0], $this->revision_2 );
 
-		$rev_data = $data[1]->get_data();
-		$this->assertEquals( $this->revision_id1, $rev_data['id'] );
+		$this->assertEquals( $this->revision_id1, $data[1]['id'] );
 		$this->check_get_revision_response( $data[1], $this->revision_1 );
 	}
 
