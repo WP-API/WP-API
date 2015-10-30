@@ -71,6 +71,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $id;
 		}
 
+		/** Include admin functions to get access to wp_generate_attachment_metadata() */
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
 		if ( isset( $request['alt_text'] ) ) {
@@ -246,7 +249,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
