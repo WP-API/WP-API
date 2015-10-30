@@ -184,17 +184,18 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Validate the API request for relationship requests.
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|true
 	 */
 	protected function validate_request( $request ) {
+		$post = get_post( (int) $request['post_id'] );
 
-		$post_request = new WP_REST_Request();
-		$post_request->set_param( 'id', $request['post_id'] );
+		if ( empty( $post ) || empty( $post->ID ) || $post->post_type !== $this->post_type ) {
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+		}
 
-		$post_check = $this->posts_controller->get_item_permissions_check( $post_request );
-		if ( is_wp_error( $post_check ) ) {
-			return $post_check;
+		if ( ! $this->posts_controller->check_read_permission( $post ) ) {
+			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! empty( $request['term_id'] ) ) {
