@@ -137,6 +137,15 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $term );
 		$response->set_status( 201 );
 
+		/**
+		 * Fires after a term is added to a post via the REST API.
+		 *
+		 * @param array           $term    The added term data.
+		 * @param WP_Post         $post    The post the term was added to.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_insert_term', $term, $post, $request );
+
 		return $term;
 	}
 
@@ -168,6 +177,15 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $remove ) ) {
 			return $remove;
 		}
+
+		/**
+		 * Fires after a term is removed from a post via the REST API.
+		 *
+		 * @param array           $previous_item The removed term data.
+		 * @param WP_Post         $post          The post the term was removed from.
+		 * @param WP_REST_Request $request       The request sent to the API.
+		 */
+		do_action( 'rest_remove_term', $previous_item, $post, $request );
 
 		return $previous_item;
 	}

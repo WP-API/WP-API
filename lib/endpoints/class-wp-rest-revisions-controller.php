@@ -137,6 +137,17 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item( $request ) {
 		$result = wp_delete_post( $request['id'], true );
+
+		/**
+		 * Fires after a revision is deleted via the REST API.
+		 *
+		 * @param (mixed) $result The revision object (if it was deleted or moved to the trash successfully)
+		 *                        or false (failure). If the revision was moved to to the trash, $result represents
+		 *                        its new state; if it was deleted, $result represents its state before deletion.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_revision', $result, $request );
+
 		if ( $result ) {
 			return true;
 		} else {

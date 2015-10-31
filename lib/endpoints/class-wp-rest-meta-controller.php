@@ -324,6 +324,15 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		) );
 		$response = $this->get_item( $request );
 
+		/**
+		 * Fires after meta is added to an object or updated via the REST API.
+		 *
+		 * @param array           $value    The inserted meta data.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param bool            $creating True when adding meta, false when updating.
+		 */
+		do_action( 'rest_insert_meta', $value, $request, false );
+
 		return rest_ensure_response( $response );
 	}
 
@@ -388,6 +397,9 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$data = $response->get_data();
 		$response->header( 'Location', rest_url( $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
 
+		/* This action is documented in lib/endpoints/class-wp-rest-meta-controller.php */
+		do_action( 'rest_insert_meta', $data, $request, true );
+
 		return $response;
 	}
 
@@ -431,6 +443,13 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		if ( ! delete_metadata_by_mid( $this->parent_type, $mid ) ) {
 			return new WP_Error( 'rest_meta_could_not_delete', __( 'Could not delete meta.' ), array( 'status' => 500 ) );
 		}
+
+		/**
+		 * Fires after a meta value is deleted via the REST API.
+		 *
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_meta', $request );
 
 		return rest_ensure_response( array( 'message' => __( 'Deleted meta' ) ) );
 	}

@@ -354,6 +354,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
+		/**
+		 * Fires after a user is deleted via the REST API.
+		 *
+		 * @param WP_User         $user    The user data.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_user', $user, $data, $request );
+
 		return $orig_user;
 	}
 
