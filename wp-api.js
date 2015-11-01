@@ -2,7 +2,7 @@
 	'use strict';
 
 	window.wp = window.wp || {};
-	var pad;
+
 	wp.api = {
 		models: {},
 		collections: {},
@@ -14,11 +14,12 @@
 	 * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 	 */
 	if ( ! Date.prototype.toISOString ) {
-		pad = function( number ) {
+		var pad = function( number ) {
 			var r = String( number );
 			if ( r.length === 1 ) {
 				r = '0' + r;
 			}
+
 			return r;
 		};
 
@@ -29,7 +30,7 @@
 				'T' + pad( this.getUTCHours() ) +
 				':' + pad( this.getUTCMinutes() ) +
 				':' + pad( this.getUTCSeconds() ) +
-				'.' + String( ( this.getUTCMilliseconds()/1000 ).toFixed( 3 ) ).slice( 2, 5 ) +
+				'.' + String( ( this.getUTCMilliseconds() / 1000 ).toFixed( 3 ) ).slice( 2, 5 ) +
 				'Z';
 		};
 	}
@@ -45,19 +46,19 @@
 	wp.api.utils.parseISO8601 = function( date ) {
 		var timestamp, struct, i, k,
 			minutesOffset = 0,
-			numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];;
+			numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];
 
 		// ES5 §15.9.4.2 states that the string should attempt to be parsed as a Date Time String Format string
 		// before falling back to any implementation-specific date parsing, so that’s what we do, even if native
 		// implementations could be faster.
 		//              1 YYYY                2 MM       3 DD           4 HH    5 mm       6 ss        7 msec        8 Z 9 ±    10 tzHH    11 tzmm
-		if ((struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec(date))) {
-			// avoid NaN timestamps caused by “undefined” values being passed to Date.UTC
-			for ( i = 0; ( k = numericKeys[i] ); ++i) {
+		if ( ( struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec( date ) ) ) {
+			// Avoid NaN timestamps caused by “undefined” values being passed to Date.UTC.
+			for ( i = 0; ( k = numericKeys[i] ); ++i ) {
 				struct[k] = +struct[k] || 0;
 			}
 
-			// allow undefined days and months.
+			// Allow undefined days and months.
 			struct[2] = ( +struct[2] || 1 ) - 1;
 			struct[3] = +struct[3] || 1;
 
@@ -77,30 +78,29 @@
 		return timestamp;
 	};
 
-
 	/**
 	 * Array of parseable dates.
 	 *
-	 * @type {string[]}
+	 * @type {string[]}.
 	 */
 	var parseable_dates = [ 'date', 'modified', 'date_gmt', 'modified_gmt' ];
 
 	/**
 	 * Mixin for all content that is time stamped.
 	 *
-	 * @type {{toJSON: toJSON, parse: parse}}
+	 * @type {{toJSON: toJSON, parse: parse}}.
 	 */
 	var TimeStampedMixin = {
 		/**
 		 * Serialize the entity pre-sync.
 		 *
-		 * @returns {*}
+		 * @returns {*}.
 		 */
 		toJSON: function() {
 			var attributes = _.clone( this.attributes );
 
 			// Serialize Date objects back into 8601 strings.
-			_.each( parseable_dates, function ( key ) {
+			_.each( parseable_dates, function( key ) {
 				if ( key in attributes ) {
 					attributes[key] = attributes[key].toISOString();
 				}
@@ -113,9 +113,10 @@
 		 * Unserialize the fetched response.
 		 *
 		 * @param {*} response.
-		 * @returns {*}
+		 * @returns {*}.
 		 */
 		parse: function( response ) {
+
 			// Parse dates into native Date objects.
 			_.each( parseable_dates, function ( key ) {
 				if ( ! ( key in response ) ) {
@@ -138,7 +139,7 @@
 	/**
 	 * Mixin for all hierarchical content types such as posts.
 	 *
-	 * @type {{parent: parent}}
+	 * @type {{parent: parent}}.
 	 */
 	var HierarchicalMixin = {
 		/**
@@ -169,6 +170,7 @@
 			if ( parentModel.collection ) {
 				return parentModel.collection.get( parent );
 			} else {
+
 				// Otherwise, get the object directly.
 				object = new parentModel.constructor( {
 					id: parent
@@ -176,6 +178,7 @@
 
 				// Note that this acts asynchronously.
 				object.fetch();
+
 				return object;
 			}
 		}
@@ -193,7 +196,7 @@
 			 * @param {string} method.
 			 * @param {Backbone.Model} model.
 			 * @param {{beforeSend}, *} options.
-			 * @returns {*}
+			 * @returns {*}.
 			 */
 			sync: function( method, model, options ) {
 				options = options || {};
@@ -223,7 +226,7 @@
 		{
 			idAttribute: 'id',
 
-			urlRoot: WP_API_Settings.root + '/users',
+			urlRoot: WP_API_Settings.root + 'wp/v2/users',
 
 			defaults: {
 				id: null,
@@ -255,7 +258,7 @@
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + '/taxonomies',
+			urlRoot: WP_API_Settings.root + 'wp/v2/taxonomies',
 
 			defaults: {
 				name: '',
@@ -286,7 +289,7 @@
 				var id = this.get( 'id' );
 				id = id || '';
 
-				return WP_API_Settings.root + '/taxonomies/' + this.get( 'taxonomy' ) + '/terms/' + id;
+				return WP_API_Settings.root + 'wp/v2/taxonomies/' + this.get( 'taxonomy' ) + '/terms/' + id;
 			},
 
 			defaults: {
@@ -312,7 +315,7 @@
 		{
 			idAttribute: 'id',
 
-			urlRoot: WP_API_Settings.root + '/posts',
+			urlRoot: WP_API_Settings.root + 'wp/v2/posts',
 
 			defaults: {
 				id: null,
@@ -348,7 +351,7 @@
 		{
 			idAttribute: 'id',
 
-			urlRoot: WP_API_Settings.root + '/pages',
+			urlRoot: WP_API_Settings.root + 'wp/v2/pages',
 
 			defaults: {
 				id: null,
@@ -387,12 +390,12 @@
 			/**
 			 * Return URL for the model.
 			 *
-			 * @returns {string}
+			 * @returns {string}.
 			 */
 			url: function() {
 				var id = this.get( 'id' ) || '';
 
-				return WP_API_Settings.root + '/posts/' + id + '/revisions';
+				return WP_API_Settings.root + 'wp/v2/posts/' + id + '/revisions';
 			},
 
 			defaults: {
@@ -422,7 +425,7 @@
 		{
 			idAttribute: 'id',
 
-			urlRoot: WP_API_Settings.root + '/media',
+			urlRoot: WP_API_Settings.root + 'wp/v2/media',
 
 			defaults: {
 				id: null,
@@ -451,11 +454,12 @@
 			},
 
 			/**
-			 * @class Represent a media item
-			 * @augments Backbone.Model
+			 * @class Represent a media item.
+			 * @augments Backbone.Model.
 			 * @constructs
 			 */
 			initialize: function() {
+
 				// Todo: what of the parent model is a page?
 				this.parentModel = wp.api.models.Post;
 			}
@@ -493,7 +497,7 @@
 			/**
 			 * Return URL for model.
 			 *
-			 * @returns {string}
+			 * @returns {string}.
 			 */
 			url: function() {
 				var post_id = this.get( 'post' );
@@ -502,7 +506,7 @@
 				var id = this.get( 'id' );
 				id = id || '';
 
-				return WP_API_Settings.root + '/posts/' + post_id + '/comments/' + id;
+				return WP_API_Settings.root + 'wp/v2/posts/' + post_id + '/comments/' + id;
 			}
 		}, TimeStampedMixin, HierarchicalMixin )
 	);
@@ -515,7 +519,7 @@
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + '/posts/types',
+			urlRoot: WP_API_Settings.root + 'wp/v2/posts/types',
 
 			defaults: {
 				slug: null,
@@ -528,9 +532,9 @@
 			/**
 			 * Prevent model from being saved.
 			 *
-			 * @returns {boolean}
+			 * @returns {boolean}.
 			 */
-			save: function () {
+			save: function() {
 				return false;
 			},
 
@@ -539,7 +543,7 @@
 			 *
 			 * @returns {boolean}.
 			 */
-			'delete': function () {
+			'delete': function() {
 				return false;
 			}
 		}
@@ -553,7 +557,7 @@
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + '/posts/statuses',
+			urlRoot: WP_API_Settings.root + 'wp/v2/posts/statuses',
 
 			defaults: {
 				slug: null,
@@ -569,7 +573,7 @@
 			/**
 			 * Prevent model from being saved.
 			 *
-			 * @returns {boolean}
+			 * @returns {boolean}.
 			 */
 			save: function() {
 				return false;
@@ -578,7 +582,7 @@
 			/**
 			 * Prevent model from being deleted.
 			 *
-			 * @returns {boolean}
+			 * @returns {boolean}.
 			 */
 			'delete': function() {
 				return false;
@@ -594,7 +598,7 @@
 		{
 
 			/**
-			 * Setup default state
+			 * Setup default state.
 			 */
 			initialize: function() {
 				this.state = {
@@ -613,7 +617,7 @@
 			 * @param {string} method.
 			 * @param {Backbone.Model} model.
 			 * @param {{success}, *} options.
-			 * @returns {*}
+			 * @returns {*}.
 			 */
 			sync: function( method, model, options ) {
 				options = options || {};
@@ -671,7 +675,7 @@
 			 * Fetches the next page of objects if a new page exists.
 			 *
 			 * @param {data: {page}} options.
-			 * @returns {*}
+			 * @returns {*}.
 			 */
 			more: function( options ) {
 				options = options || {};
@@ -697,7 +701,7 @@
 			/**
 			 * Returns true if there are more pages of objects available.
 			 *
-			 * @returns null|boolean
+			 * @returns null|boolean.
 			 */
 			hasMore: function() {
 				if ( this.state.totalPages === null ||
@@ -717,7 +721,7 @@
 	wp.api.collections.Posts = BaseCollection.extend(
 		/** @lends Posts.prototype */
 		{
-			url: WP_API_Settings.root + '/posts',
+			url: WP_API_Settings.root + 'wp/v2/posts',
 
 			model: wp.api.models.Post
 		}
@@ -729,7 +733,7 @@
 	wp.api.collections.Pages = BaseCollection.extend(
 		/** @lends Pages.prototype */
 		{
-			url: WP_API_Settings.root + '/pages',
+			url: WP_API_Settings.root + 'wp/v2/pages',
 
 			model: wp.api.models.Page
 		}
@@ -741,7 +745,7 @@
 	wp.api.collections.Users = BaseCollection.extend(
 		/** @lends Users.prototype */
 		{
-			url: WP_API_Settings.root + '/users',
+			url: WP_API_Settings.root + 'wp/v2/users',
 
 			model: wp.api.models.User
 		}
@@ -753,12 +757,18 @@
 	wp.api.collections.PostStatuses = BaseCollection.extend(
 		/** @lends PostStatuses.prototype */
 		{
-			url: WP_API_Settings.root + '/statuses',
+			url: WP_API_Settings.root + 'wp/v2/statuses',
 
 			model: wp.api.models.PostStatus,
 
 			parse: function( response ) {
-				var responseArray = _.values( response );
+				var responseArray = [];
+
+				for ( var property in response ) {
+					if ( response.hasOwnProperty( property ) ) {
+						responseArray.push( response[property] );
+					}
+				}
 
 				return this.constructor.__super__.parse.call( this, responseArray );
 			}
@@ -771,7 +781,7 @@
 	wp.api.collections.MediaLibrary = BaseCollection.extend(
 		/** @lends MediaLibrary.prototype */
 		{
-			url: WP_API_Settings.root + '/media',
+			url: WP_API_Settings.root + 'wp/v2/media',
 
 			model: wp.api.models.Media
 		}
@@ -785,7 +795,7 @@
 		{
 			model: wp.api.models.Taxonomy,
 
-			url: WP_API_Settings.root + '/taxonomies'
+			url: WP_API_Settings.root + 'wp/v2/taxonomies'
 		}
 	);
 
@@ -800,9 +810,9 @@
 			/**
 			 * Return URL for collection.
 			 *
-			 * @returns {string}
+			 * @returns {string}.
 			 */
-			url: WP_API_Settings.root + '/comments'
+			url: WP_API_Settings.root + 'wp/v2/comments'
 		}
 	);
 
@@ -814,7 +824,7 @@
 		{
 			model: wp.api.models.PostType,
 
-			url: WP_API_Settings.root + '/types',
+			url: WP_API_Settings.root + 'wp/v2/types',
 
 			parse: function( response ) {
 				var responseArray = [];
@@ -843,8 +853,8 @@
 			taxonomy: 'category',
 
 			/**
-			 * @class Represent an array of terms
-			 * @augments Backbone.Collection
+			 * @class Represent an array of terms.
+			 * @augments Backbone.Collection.
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
@@ -858,10 +868,10 @@
 			/**
 			 * Return URL for collection.
 			 *
-			 * @returns {string}
+			 * @returns {string}.
 			 */
 			url: function() {
-				return WP_API_Settings.root + '/terms/' + this.taxonomy;
+				return WP_API_Settings.root + 'wp/v2/terms/' + this.taxonomy;
 			}
 		}
 	);
@@ -869,7 +879,7 @@
 	/**
 	 * Backbone revisions collection.
 	 *
-	 * Usage: new wp.api.collections.Revisions( {}, { parent: POST_ID } )
+	 * Usage: new wp.api.collections.Revisions( {}, { parent: POST_ID } ).
 	 */
 	wp.api.collections.Revisions = BaseCollection.extend(
 		/** @lends Revisions.prototype */
@@ -879,8 +889,8 @@
 			parent: null,
 
 			/**
-			 * @class Represent an array of revisions
-			 * @augments Backbone.Collection
+			 * @class Represent an array of revisions.
+			 * @augments Backbone.Collection.
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
@@ -894,20 +904,20 @@
 			/**
 			 * return URL for collection.
 			 *
-			 * @returns {string}
+			 * @returns {string}.
 			 */
 			url: function() {
-				return WP_API_Settings.root + '/posts/' + this.parent + '/revisions';
+				return WP_API_Settings.root + 'wp/v2/posts/' + this.parent + '/revisions';
 			}
 		}
 	);
 
 	/**
-	 * Todo: Handle schema endpoints
+	 * Todo: Handle schema endpoints.
 	 */
 
 	/**
-	 * Todo: Handle post meta
+	 * Todo: Handle post meta.
 	 */
 
 })( WP_API_Settings, Backbone, _, window, ( void 0 ) );
