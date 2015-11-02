@@ -510,4 +510,19 @@ abstract class WP_REST_Controller {
 
 		return $value;
 	}
+
+	/**
+	 * Sanitize the slug value.
+	 *
+	 * @internal We can't use {@see sanitize_title} directly, as the second
+	 * parameter is the fallback title, which would end up being set to the
+	 * request object.
+	 * @see https://github.com/WP-API/WP-API/issues/1585
+	 *
+	 * @param mixed $title Title value passed in request.
+	 * @return string Sanitized value for the slug.
+	 */
+	public function sanitize_slug( $title ) {
+		return sanitize_title( $title );
+	}
 }

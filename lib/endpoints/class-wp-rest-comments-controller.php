@@ -923,7 +923,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params['post_slug'] = array(
 			'default'           => null,
 			'description'       => 'Limit result set to comments associated with posts of a specific post slug.',
-			'sanitize_callback' => 'sanitize_title',
+			'sanitize_callback' => array( $this, 'sanitize_slug' ),
 			'type'              => 'string',
 		);
 		$query_params['post_parent'] = array(

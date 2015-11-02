@@ -733,7 +733,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'url'         => array(
