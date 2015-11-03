@@ -1276,7 +1276,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'date'            => array(
-					'description' => 'The date the object was published.',
+					'description' => "The date the object was published, in the site's timezone.",
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit', 'embed' ),
@@ -1319,7 +1319,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'modified'        => array(
-					'description' => 'The date the object was last modified.',
+					'description' => "The date the object was last modified, in the site's timezone.",
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
