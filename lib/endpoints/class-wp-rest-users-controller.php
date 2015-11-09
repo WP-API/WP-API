@@ -679,6 +679,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'required'    => true,
 				),
+				'url'         => array(
+					'description' => 'URL of the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
 				'description' => array(
 					'description' => 'Description of the object.',
 					'type'        => 'string',
@@ -743,13 +750,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => 'Any extra capabilities assigned to the user.',
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
-					'readonly'    => true,
-				),
-				'url'         => array(
-					'description' => 'URL of the object.',
-					'type'        => 'string',
-					'format'      => 'uri',
-					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 			),
