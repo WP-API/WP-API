@@ -548,7 +548,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'taxonomy'         => array(
