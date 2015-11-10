@@ -83,3 +83,8 @@ after_script:
 
 git:
   depth: 1
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
