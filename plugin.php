@@ -84,7 +84,7 @@ include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-con
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
-add_filter( 'register_post_type_args', '_add_extra_api_post_type_arguments', 10, 2 );
+add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
@@ -95,29 +95,28 @@ add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
  *
  * @since 4.4.0
  *
- * @param array  $args      Array of arguments for registering a post type.
- * @param string $post_type Post type key.
+ * @global array $wp_taxonomies Registered taxonomies.
  */
-function _add_extra_api_post_type_arguments( $args, $post_type ) {
-	if ( 'post' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'posts';
-		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+function _add_extra_api_post_type_arguments() {
+	global $wp_post_types;
+
+	if ( isset( $wp_post_types['post'] ) ) {
+		$wp_post_types['post']->show_in_rest = true;
+		$wp_post_types['post']->rest_base = 'posts';
+		$wp_post_types['post']->rest_controller_class = 'WP_REST_Posts_Controller';
 	}
 
-	if ( 'page' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'pages';
-		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+	if ( isset( $wp_post_types['page'] ) ) {
+		$wp_post_types['page']->show_in_rest = true;
+		$wp_post_types['page']->rest_base = 'pages';
+		$wp_post_types['page']->rest_controller_class = 'WP_REST_Posts_Controller';
 	}
 
-	if ( 'attachment' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'media';
-		$args['rest_controller_class'] = 'WP_REST_Attachments_Controller';
+	if ( isset( $wp_post_types['attachment'] ) ) {
+		$wp_post_types['attachment']->show_in_rest = true;
+		$wp_post_types['attachment']->rest_base = 'media';
+		$wp_post_types['attachment']->rest_controller_class = 'WP_REST_Attachments_Controller';
 	}
-
-	return $args;
 }
 
 /**
