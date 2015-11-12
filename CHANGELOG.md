@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.3
+
+- Fix potential XSS vulnerability.
+
+  Requests from other origins could potentially run code on the API domain, allowing cross-origin access to authentication cookies or similar.
+
+  Reported by @xknown on 2015-07-23.
+
 ## 1.2.2
 
 - Fix user access security vulnerability.
