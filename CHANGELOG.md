@@ -1,5 +1,40 @@
 # Changelog
 
+## 2.0 Beta 5.0
+
+- Load api-core as a compatibility library
+
+  Now api-core has been merged into WordPress trunk (for 4.4) we should no longer load the infrastructure code
+  when it's already available. This also fixes a fatal error for users who were on trunk.
+
+  (props @rmccue)
+
+- Switch to new mysql_to_rfc3339
+
+  (props @rmccue)
+
+- Double-check term taxonomy
+
+  (props @rmccue)
+
+- Load admin functions
+
+  This was removed from the latest beta of WordPress in the REST API infrastructure, a more long term fix is planned.
+
+  (props @joehoyle)
+
+- Add Add compat shim for renamed `rest_mysql_to_rfc3339()`
+
+  (props @danielbachhuber)
+
+- Compat shim for `wp_is_numeric_array()`
+
+  (props @danielbachhuber)
+
+- Revert Switch to register_post_type_args filter
+
+  (props @joehoyle)
+
 ## 2.0 Beta 4.0
 
 - Show public user information through the user controller.
