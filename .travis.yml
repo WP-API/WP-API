@@ -12,6 +12,7 @@ php:
 env:
     - WP_VERSION=latest WP_MULTISITE=0
     - WP_VERSION=latest WP_MULTISITE=1
+    - WP_VERSION=nightly WP_MULTISITE=0
 
 # Clones WordPress and configures our testing environment.
 before_script:
