@@ -1,9 +1,9 @@
 === WordPress REST API (Version 2) ===
-Contributors: rmccue, rachelbaker
+Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
-Requires at least: 4.3-alpha
-Tested up to: 4.3-beta
-Stable tag: {{TAG}}
+Requires at least: 4.3
+Tested up to: 4.4
+Stable tag: 2.0-beta5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,40 @@ Drop this directory in and activate it.
 For full-flavoured API support, you'll need to be using pretty permalinks to use the plugin, as it uses custom rewrite rules to power the API.
 
 == Changelog ==
+
+= 2.0 Beta 5.0 =
+
+* Load api-core as a compatibility library
+
+  Now api-core has been merged into WordPress trunk (for 4.4) we should no longer load the infrastructure code when it's already available. This also fixes a fatal error for users who were on trunk.
+
+  (props @rmccue)
+
+* Switch to new mysql_to_rfc3339
+
+  (props @rmccue)
+
+* Double-check term taxonomy
+
+  (props @rmccue)
+
+* Load admin functions
+
+  This was removed from the latest beta of WordPress in the REST API infrastructure, a more long term fix is planned.
+
+  (props @joehoyle)
+
+* Add Add compat shim for renamed `rest_mysql_to_rfc3339()`
+
+  (props @danielbachhuber)
+
+* Compat shim for `wp_is_numeric_array()`
+
+  (props @danielbachhuber)
+
+* Revert Switch to register_post_type_args filter
+
+  (props @joehoyle)
 
 = 2.0 Beta 4.0 =
 
