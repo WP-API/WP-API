@@ -30,6 +30,7 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 	 * The json_route query variable should be registered.
 	 */
 	function test_json_route_query_var() {
+		json_api_init();
 		global $wp;
 		$this->assertTrue( in_array( 'json_route', $wp->public_query_vars ) );
 	}
