@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.4
+
+- Compatibilty with WordPress 4.4
+
+  Because WordPress 4.4 also registers rewrite rules for /wp-json/, WP-API v1 needs to register its rewrite rules with higher priority to continue to function as expected.
+
+  (props @danielbachhuber)
+
 ## 1.2.3
 
 - Fix potential XSS vulnerability.
