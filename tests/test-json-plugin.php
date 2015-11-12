@@ -20,10 +20,10 @@ class WP_Test_JSON_Plugin extends WP_UnitTestCase {
 
 	/**
 	 * The json_api_init hook should have been registered with init, and should
-	 * have a default priority of 10.
+	 * have a default priority of 11.
 	 */
 	function test_init_action_added() {
-		$this->assertEquals( 10, has_action( 'init', 'json_api_init' ) );
+		$this->assertEquals( 11, has_action( 'init', 'json_api_init' ) );
 	}
 
 	/**
