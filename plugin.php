@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP REST API
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
- * Version: 1.2.2
+ * Version: 1.2.3
  * Author: WP REST API Team
  * Author URI: http://wp-api.org/
  * Plugin URI: https://github.com/WP-API/WP-API
@@ -13,7 +13,7 @@
  *
  * @var string
  */
-define( 'JSON_API_VERSION', '1.2.2' );
+define( 'JSON_API_VERSION', '1.2.3' );
 
 /**
  * Include our files for the API.
