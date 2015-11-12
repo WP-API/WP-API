@@ -36,6 +36,102 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 
 == Changelog ==
 
+= 2.0 Beta 6.0 =
+
+* Remove global inclusion of wp-admin/includes/admin.php
+
+  For a long time, the REST API loaded wp-admin/includes/admin.php to make use of specific admin utilities. Now, it only loads those admin utilities when it needs them.
+
+  If your custom endpoints make use of admin utilities, you'll need to make sure to load wp-admin/includes/admin.php before you use them.
+
+  (props @joehoyle, [#1696][gh-1696])
+
+* Link directly to the featured image in a Post's links.
+
+  (props @rmccue, [#1563][gh-1563], [#1711][gh-1711])
+
+* Provide object type as callback argument for custom API fields.
+
+  (props @jtsternberg, [#1714][gh-1714])
+
+* Change users schema order to be order of importance instead of alpha.
+
+  (props @rachelbaker, [#1708][gh-1708])
+
+* Clarify documentation for `date` and `modified` attributes.
+
+  (props @danielbachhuber, [#1715][gh-1715])
+
+* Update the wp-api.js client from the client-js repo.
+
+  (props @rachelbaker, [#1709][gh-1709])
+
+* Fix the `format` enum to be an array of strings.
+
+  (props @joehoyle, [#1707][gh-1707])
+
+* Run revisions for collection through `prepare_response_for_collection()`.
+
+  (props @danielbachhuber, @rachelbaker, [#1671][gh-1671])
+
+* Expose `date_gmt` for `view` context of Posts and Comments.
+
+  (props @danielbachhuber, [#1690][gh-1690])
+
+* Fix PHP and JS docblock formatting.
+
+  (props @ahmadawais, [#1699][gh-1698], [#1699][gh-1699], [#1701][gh-1701], [#1700][gh-1700], [#1702][gh-1702], [#1703][gh-1703])
+
+* Include `media_details` attribute for attachments in embed context.
+
+  For image attachments, media_details includes a sizes array of image sizes, which is useful for templating.
+
+  (props @danielbachhuber, [#1667][gh-1667])
+
+* Make `WP_REST_Controller` error messages more helpful by specifying method to subclass.
+
+  (props @danielbachhuber, [#1670][gh-1670])
+
+* Expose `slug` in `embed` context for Users.
+
+  `user_nicename` is a public attribute, used in user URLs, so this is safe data to present.
+
+  (props @danielbachhuber, [#1666][gh-1666])
+
+* Handle falsy value from `wp_count_terms()`, fixing fatal.
+
+  (props @joehoyle, [#1641][gh-1641])
+
+* Correct methods in `WP_REST_SERVER::EDITABLE` description.
+
+  (props @rachelbaker, [#1601][gh-1601])
+
+* Add the embed context to Users collection query params.
+
+  (props @rachelbaker, [#1591][gh-1591])
+
+* Add Terms Controller collection args details.
+
+  (props @rachelbaker, [#1603][gh-1603])
+
+* Set comment author details from current user.
+
+  (props @rmccue, [#1580][gh-1580])
+
+* More hook documentation.
+
+  (props @adamsilverstein, [#1556][gh-1556], [#1560][gh-1560])
+
+* Return the trashed status of deleted posts/comments.
+
+  When a post or a comment is deleted, returns a flag to say whether it's been trashed or properly deleted.
+
+  (props @pento, [#1499][gh-1499])
+
+* In `WP_REST_Posts_Controller::update_item()`, check the post ID based on the proper post type.
+
+  (props @rachelbaker, [#1497][gh-1497])
+
 = 2.0 Beta 5.0 =
 
 * Load api-core as a compatibility library
