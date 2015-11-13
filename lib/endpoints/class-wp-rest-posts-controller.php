@@ -89,7 +89,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
 
-		if ( isset( $request['filter'] ) ) {
+		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
