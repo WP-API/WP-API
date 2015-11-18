@@ -77,6 +77,37 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( count( $categories ), count( $data ) );
 	}
 
+	public function test_get_items_parent_zero_arg_string() {
+		$parent1 = $this->factory->category->create( array( 'name' => 'Homer' ) );
+		$parent2 = $this->factory->category->create( array( 'name' => 'Marge' ) );
+		$child1 = $this->factory->category->create(
+			array(
+				'name'   => 'Bart',
+				'parent' => $parent1,
+			)
+		);
+		$child2 = $this->factory->category->create(
+			array(
+				'name'   => 'Lisa',
+				'parent' => $parent2,
+			)
+		);
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category' );
+		$request->set_param( 'parent', '0' );
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$args = array(
+			'hide_empty' => false,
+			'parent'     => 0,
+		);
+		$categories = get_terms( 'category', $args );
+		$this->assertEquals( count( $categories ), count( $data ) );
+	}
+
 	public function test_get_items_by_parent_non_found() {
 		$parent1 = $this->factory->category->create( array( 'name' => 'Homer' ) );
 
