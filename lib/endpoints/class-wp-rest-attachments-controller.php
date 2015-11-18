@@ -395,6 +395,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$overrides['action'] = 'wp_handle_mock_upload';
 		}
 
+		/** Include admin functions to get access to wp_handle_upload() */
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
 		$file = wp_handle_upload( $files['file'], $overrides );
 
 		if ( isset( $file['error'] ) ) {
