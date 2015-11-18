@@ -71,6 +71,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $id;
 		}
 
+		/** Include admin functions to get access to wp_generate_attachment_metadata() */
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
 		if ( isset( $request['alt_text'] ) ) {
@@ -86,6 +89,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
+
+		/**
+		 * Fires after a single attachment is created or updated via the REST API.
+		 *
+		 * @param object          $attachment Inserted attachment.
+		 * @param WP_REST_Request $request    The request sent to the API.
+		 * @param bool            $creating   True when creating an attachment, false when updating.
+		 */
+		do_action( 'rest_insert_attachment', $attachment, $request, true );
 
 		return $response;
 
@@ -114,6 +126,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'id'      => $data['id'],
 			'context' => 'edit',
 		));
+
+		/* This action is documented in lib/endpoints/class-wp-rest-attachments-controller.php */
+		do_action( 'rest_insert_attachment', $data, $request, false );
 
 		return rest_ensure_response( $response );
 	}
@@ -246,7 +261,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema['properties']['media_details'] = array(
 			'description'     => 'Details about the attachment file, specific to its type.',
 			'type'            => 'object',
-			'context'         => array( 'view', 'edit' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(

@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta4
+ * Version: 2.0-beta6
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -14,55 +14,77 @@ if ( ! defined( 'REST_API_VERSION' ) ) {
 	require_once dirname( __FILE__ ) . '/core/rest-api.php';
 }
 
-/** Include admin functions that are used in the endpoints, such as get_page_templates() */
-require_once ABSPATH . 'wp-admin/includes/admin.php';
-
-/** v1 Compatibility */
-include_once( dirname( __FILE__ ) . '/compatibility-v1.php' );
-
-/** WP_REST_Controller class */
+/**
+ * WP_REST_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
 
-/** WP_REST_Posts_Controller class */
+/**
+ * WP_REST_Posts_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
 
-/** WP_REST_Attachments_Controller class */
+/**
+ * WP_REST_Attachments_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
 
-/** WP_REST_Post_Types_Controller class */
+/**
+ * WP_REST_Post_Types_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
 
-/** WP_REST_Post_Statuses_Controller class */
+/**
+ * WP_REST_Post_Statuses_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
 
-/** WP_REST_Revisions_Controller class */
+/**
+ * WP_REST_Revisions_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
 
-/** WP_REST_Taxonomies_Controller class */
+/**
+ * WP_REST_Taxonomies_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
 
-/** WP_REST_Terms_Controller class */
+/**
+ * WP_REST_Terms_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
 
-/** WP_REST_Users_Controller class */
+/**
+ * WP_REST_Users_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
 
-/** WP_REST_Comments_Controller class */
+/**
+ * WP_REST_Comments_Controller class.
+ */
 require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
 
-/** WP_REST_Meta_Controller class */
+/**
+ * WP_REST_Meta_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
 
-/** WP_REST_Meta_Posts_Controller class */
+/**
+ * WP_REST_Meta_Posts_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
 
-/** WP_REST_Posts_Terms_Controller class */
+/**
+ * WP_REST_Posts_Terms_Controller class.
+ */
 include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
 
-/** REST extras */
+/**
+ * REST extras.
+ */
 include_once( dirname( __FILE__ ) . '/extras.php' );
 
-add_filter( 'register_post_type_args', '_add_extra_api_post_type_arguments', 10, 2 );
+add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
@@ -73,29 +95,28 @@ add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
  *
  * @since 4.4.0
  *
- * @param array  $args      Array of arguments for registering a post type.
- * @param string $post_type Post type key.
+ * @global array $wp_taxonomies Registered taxonomies.
  */
-function _add_extra_api_post_type_arguments( $args, $post_type ) {
-	if ( 'post' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'posts';
-		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+function _add_extra_api_post_type_arguments() {
+	global $wp_post_types;
+
+	if ( isset( $wp_post_types['post'] ) ) {
+		$wp_post_types['post']->show_in_rest = true;
+		$wp_post_types['post']->rest_base = 'posts';
+		$wp_post_types['post']->rest_controller_class = 'WP_REST_Posts_Controller';
 	}
 
-	if ( 'page' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'pages';
-		$args['rest_controller_class'] = 'WP_REST_Posts_Controller';
+	if ( isset( $wp_post_types['page'] ) ) {
+		$wp_post_types['page']->show_in_rest = true;
+		$wp_post_types['page']->rest_base = 'pages';
+		$wp_post_types['page']->rest_controller_class = 'WP_REST_Posts_Controller';
 	}
 
-	if ( 'attachment' === $post_type ) {
-		$args['show_in_rest'] = true;
-		$args['rest_base'] = 'media';
-		$args['rest_controller_class'] = 'WP_REST_Attachments_Controller';
+	if ( isset( $wp_post_types['attachment'] ) ) {
+		$wp_post_types['attachment']->show_in_rest = true;
+		$wp_post_types['attachment']->rest_base = 'media';
+		$wp_post_types['attachment']->rest_controller_class = 'WP_REST_Attachments_Controller';
 	}
-
-	return $args;
 }
 
 /**
@@ -197,4 +218,46 @@ function create_initial_rest_routes() {
 	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
+}
+
+if ( ! function_exists( 'register_api_field' ) ) {
+	/**
+	 * Registers a new field on an existing WordPress object type.
+	 *
+	 * @global array $wp_rest_additional_fields Holds registered fields, organized
+	 *                                          by object type.
+	 *
+	 * @param string|array $object_type Object(s) the field is being registered
+	 *                                  to, "post"|"term"|"comment" etc.
+	 * @param string $attribute         The attribute name.
+	 * @param array  $args {
+	 *     Optional. An array of arguments used to handle the registered field.
+	 *
+	 *     @type string|array|null $get_callback    Optional. The callback function used to retrieve the field
+	 *                                              value. Default is 'null', the field will not be returned in
+	 *                                              the response.
+	 *     @type string|array|null $update_callback Optional. The callback function used to set and update the
+	 *                                              field value. Default is 'null', the value cannot be set or
+	 *                                              updated.
+	 *     @type string|array|null $schema          Optional. The callback function used to create the schema for
+	 *                                              this field. Default is 'null', no schema entry will be returned.
+	 * }
+	 */
+	function register_api_field( $object_type, $attribute, $args = array() ) {
+		$defaults = array(
+			'get_callback'    => null,
+			'update_callback' => null,
+			'schema'          => null,
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		global $wp_rest_additional_fields;
+
+		$object_types = (array) $object_type;
+
+		foreach ( $object_types as $object_type ) {
+			$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
+		}
+	}
 }

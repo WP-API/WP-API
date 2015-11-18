@@ -586,6 +586,45 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
+	public function test_create_comment_two_times() {
+
+		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
+
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content' => 'Worst Comment Ever!',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Shakes fist at sky',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
 	public function test_update_item() {
 		$post_id = $this->factory->post->create();
 
@@ -890,6 +929,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $comment->comment_author_url, $data['author_url'] );
 		$this->assertEquals( wpautop( $comment->comment_content ), $data['content']['rendered'] );
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date ), $data['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
 
@@ -897,7 +937,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
 			$this->assertEquals( $comment->comment_author_IP, $data['author_ip'] );
 			$this->assertEquals( $comment->comment_agent, $data['author_user_agent'] );
-			$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 			$this->assertEquals( $comment->comment_content, $data['content']['raw'] );
 			$this->assertEquals( $comment->comment_karma, $data['karma'] );
 		}
@@ -906,7 +945,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			$this->assertArrayNotHasKey( 'author_email', $data );
 			$this->assertArrayNotHasKey( 'author_ip', $data );
 			$this->assertArrayNotHasKey( 'author_user_agent', $data );
-			$this->assertArrayNotHasKey( 'date_gmt', $data );
 			$this->assertArrayNotHasKey( 'raw', $data['content'] );
 			$this->assertArrayNotHasKey( 'karma', $data );
 		}

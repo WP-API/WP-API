@@ -54,6 +54,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args' => array(
+					'force'    => array(
+						'default' => false,
+					),
 					'reassign' => array(),
 				),
 			),
@@ -354,6 +357,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_delete', __( 'The user cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
+		/**
+		 * Fires after a user is deleted via the REST API.
+		 *
+		 * @param WP_User         $user    The user data.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( 'rest_delete_user', $user, $data, $request );
+
 		return $orig_user;
 	}
 
@@ -583,6 +594,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Multisite super admins can freely edit their blog roles -- they possess all caps.
 		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
 			// The new role must be editable by the logged-in user.
+
+			/** Include admin functions to get access to get_editable_roles() */
+			require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 			$editable_roles = get_editable_roles();
 			if ( empty( $editable_roles[ $role ] ) ) {
 				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give users that role.' ), array( 'status' => 403 ) );
@@ -618,67 +633,20 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'title'      => 'user',
 			'type'       => 'object',
 			'properties' => array(
-				'avatar_urls'  => array(
-					'description' => 'Avatar URLs for the object.',
-					'type'        => 'object',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-					'properties'  => $avatar_properties,
-				),
-				'capabilities'    => array(
-					'description' => 'All capabilities assigned to the user.',
-					'type'        => 'object',
-					'context'     => array( 'view', 'edit' ),
-				),
-				'description' => array(
-					'description' => 'Description of the object.',
-					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'arg_options' => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
-					),
-				),
-				'email'       => array(
-					'description' => 'The email address for the object.',
-					'type'        => 'string',
-					'format'      => 'email',
-					'context'     => array( 'view', 'edit' ),
-					'required'    => true,
-				),
-				'extra_capabilities' => array(
-					'description' => 'Any extra capabilities assigned to the user.',
-					'type'        => 'object',
-					'context'     => array( 'edit' ),
-					'readonly'    => true,
-				),
-				'first_name'  => array(
-					'description' => 'First name for the object.',
-					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
-					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_text_field',
-					),
-				),
 				'id'          => array(
 					'description' => 'Unique identifier for the object.',
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'last_name'   => array(
-					'description' => 'Last name for the object.',
+				'username'    => array(
+					'description' => 'Login name for the user.',
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
+					'required'    => true,
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_text_field',
+						'sanitize_callback' => 'sanitize_user',
 					),
-				),
-				'link'        => array(
-					'description' => 'Author URL to the object.',
-					'type'        => 'string',
-					'format'      => 'uri',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
 				),
 				'name'        => array(
 					'description' => 'Display name for the object.',
@@ -688,12 +656,72 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 						'sanitize_callback' => 'sanitize_text_field',
 					),
 				),
+				'first_name'  => array(
+					'description' => 'First name for the object.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+				'last_name'   => array(
+					'description' => 'Last name for the object.',
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+				'email'       => array(
+					'description' => 'The email address for the object.',
+					'type'        => 'string',
+					'format'      => 'email',
+					'context'     => array( 'view', 'edit' ),
+					'required'    => true,
+				),
+				'url'         => array(
+					'description' => 'URL of the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'description' => array(
+					'description' => 'Description of the object.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'wp_filter_post_kses',
+					),
+				),
+				'link'        => array(
+					'description' => 'Author URL to the object.',
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
+				'avatar_urls'  => array(
+					'description' => 'Avatar URLs for the object.',
+					'type'        => 'object',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+					'properties'  => $avatar_properties,
+				),
 				'nickname'    => array(
 					'description' => 'The nickname for the object.',
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+				'slug'        => array(
+					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'type'        => 'string',
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'sanitize_title',
 					),
 				),
 				'registered_date' => array(
@@ -713,29 +741,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'enum'        => array_keys( $wp_roles->role_objects ),
 				),
-				'slug'        => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
-					'type'        => 'string',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
-					),
+				'capabilities'    => array(
+					'description' => 'All capabilities assigned to the user.',
+					'type'        => 'object',
+					'context'     => array( 'view', 'edit' ),
 				),
-				'url'         => array(
-					'description' => 'URL of the object.',
-					'type'        => 'string',
-					'format'      => 'uri',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
-				'username'    => array(
-					'description' => 'Login name for the user.',
-					'type'        => 'string',
+				'extra_capabilities' => array(
+					'description' => 'Any extra capabilities assigned to the user.',
+					'type'        => 'object',
 					'context'     => array( 'edit' ),
-					'required'    => true,
-					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_user',
-					),
+					'readonly'    => true,
 				),
 			),
 		);
