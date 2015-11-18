@@ -103,6 +103,21 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'foo', (array) $request );
 	}
 
+	public function test_no_zero_param() {
+		register_rest_route( 'no-zero', '/test', array(
+			'methods'  => array( 'GET' ),
+			'callback' => '__return_null',
+			'args'     => array(
+				'foo'  => array(
+					'default'    => 'bar',
+				),
+			),
+		) );
+		$request = new WP_REST_Request( 'GET', '/no-zero/test' );
+		$this->server->dispatch( $request );
+		$this->assertEquals( array( 'foo' => 'bar' ), $request->get_params() );
+	}
+
 	/**
 	 * Pass a capability which the user does not have, this should
 	 * result in a 403 error
@@ -243,10 +258,9 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 500, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
 
-		$this->assertEquals( $code,    $data[0]['code'] );
-		$this->assertEquals( $message, $data[0]['message'] );
+		$this->assertEquals( $code,    $data['code'] );
+		$this->assertEquals( $message, $data['message'] );
 	}
 
 	public function test_error_to_response_with_status() {
@@ -260,18 +274,36 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 400, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
 
-		$this->assertEquals( $code,    $data[0]['code'] );
-		$this->assertEquals( $message, $data[0]['message'] );
+		$this->assertEquals( $code,    $data['code'] );
+		$this->assertEquals( $message, $data['message'] );
+	}
+
+	public function test_error_to_response_to_error() {
+		$code     = 'wp-api-test-error';
+		$message  = 'Test error message for the API';
+		$code2    = 'wp-api-test-error-2';
+		$message2 = 'Another test message';
+		$error   = new WP_Error( $code, $message, array( 'status' => 400 ) );
+		$error->add( $code2, $message2, array( 'status' => 403 ) );
+
+		$response = $this->server->error_to_response( $error );
+		$this->assertInstanceOf( 'WP_REST_Response', $response );
+
+		$this->assertEquals( 400, $response->get_status() );
+
+		$error = $response->as_error();
+		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertEquals( $code, $error->get_error_code() );
+		$this->assertEquals( $message, $error->get_error_message() );
+		$this->assertEquals( $message2, $error->errors[ $code2 ][0] );
+		$this->assertEquals( array( 'status' => 403 ), $error->error_data[ $code2 ] );
 	}
 
 	public function test_rest_error() {
 		$data = array(
-			array(
-				'code'    => 'wp-api-test-error',
-				'message' => 'Message text',
-			),
+			'code'    => 'wp-api-test-error',
+			'message' => 'Message text',
 		);
 		$expected = wp_json_encode( $data );
 		$response = $this->server->json_error( 'wp-api-test-error', 'Message text' );
@@ -289,10 +321,8 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		     ->with( $this->equalTo( 400 ) );
 
 		$data = array(
-			array(
-				'code'    => 'wp-api-test-error',
-				'message' => 'Message text',
-			),
+			'code'    => 'wp-api-test-error',
+			'message' => 'Message text',
 		);
 		$expected = wp_json_encode( $data );
 
@@ -414,9 +444,9 @@ class WP_Test_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $up );
 
 		$up_data = $up[0];
-		$this->assertEquals( 'wp-api-test-error', $up_data[0]['code'] );
-		$this->assertEquals( 'Test message',      $up_data[0]['message'] );
-		$this->assertEquals( 403, $up_data[0]['data']['status'] );
+		$this->assertEquals( 'wp-api-test-error', $up_data['code'] );
+		$this->assertEquals( 'Test message',      $up_data['message'] );
+		$this->assertEquals( 403, $up_data['data']['status'] );
 	}
 
 	/**
