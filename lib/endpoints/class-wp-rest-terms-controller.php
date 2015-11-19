@@ -202,7 +202,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'id' => $term['term_taxonomy_id'],
 		 ) );
 
-		return rest_ensure_response( $response );
+		$response = rest_ensure_response( $response );
+		$response->set_status( 201 );
+		$response->header( 'Location', rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_taxonomy_id'] ) );
+		return $response;
 	}
 
 	/**

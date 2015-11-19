@@ -330,7 +330,9 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'description', 'This term is so awesome.' );
 		$request->set_param( 'slug', 'so-awesome' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 201, $response->get_status() );
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Location', $headers );
 		$data = $response->get_data();
 		$this->assertEquals( 'My Awesome Term', $data['name'] );
 		$this->assertEquals( 'This term is so awesome.', $data['description'] );
@@ -367,7 +369,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'name', 'My Awesome Term' );
 		$request->set_param( 'parent', $parent['term_taxonomy_id'] );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $parent['term_taxonomy_id'], $data['parent'] );
 	}
