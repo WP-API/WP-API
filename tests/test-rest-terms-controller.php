@@ -332,8 +332,8 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 		$headers = $response->get_headers();
-		$this->assertArrayHasKey( 'Location', $headers );
 		$data = $response->get_data();
+		$this->assertContains( '/wp/v2/terms/category/' . $data['id'], $headers['Location'] );
 		$this->assertEquals( 'My Awesome Term', $data['name'] );
 		$this->assertEquals( 'This term is so awesome.', $data['description'] );
 		$this->assertEquals( 'so-awesome', $data['slug'] );
