@@ -1212,7 +1212,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// If we have a featured image, add that.
 		if ( $featured_image = get_post_thumbnail_id( $post->ID ) ) {
 			$image_url = rest_url( 'wp/v2/media/' . $featured_image );
-			$links['http://api.w.org/featuredmedia'] = array(
+			$links['https://api.w.org/featuredmedia'] = array(
 				'href'       => $image_url,
 				'embeddable' => true,
 			);
@@ -1220,14 +1220,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
-			$links['http://api.w.org/attachment'] = array(
+			$links['https://api.w.org/attachment'] = array(
 				'href'       => $attachments_url,
 			);
 		}
 
 		$taxonomies = get_object_taxonomies( $post->post_type );
 		if ( ! empty( $taxonomies ) ) {
-			$links['http://api.w.org/term'] = array();
+			$links['https://api.w.org/term'] = array();
 
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
@@ -1239,7 +1239,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
 				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax_base );
 
-				$links['http://api.w.org/term'][] = array(
+				$links['https://api.w.org/term'][] = array(
 					'href'       => $terms_url,
 					'taxonomy'   => $tax,
 					'embeddable' => true,
@@ -1248,7 +1248,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['http://api.w.org/meta'] = array(
+			$links['https://api.w.org/meta'] = array(
 				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
 				'embeddable' => true,
 			);
