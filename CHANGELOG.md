@@ -1,5 +1,37 @@
 # Changelog
 
+## 2.0 Beta 7.0
+
+- Sync infrastructure from WordPress core as of r35691.
+
+  * Remove `register_api_field()` because it's conceptually tied to `WP_REST_Controller` [#34730](https://core.trac.wordpress.org/ticket/34730)
+  * Update the REST API header links to use api.w.org [#34303](https://core.trac.wordpress.org/ticket/34303)
+  * Require the $namespace argument in `register_rest_route()` [#34416](https://core.trac.wordpress.org/ticket/34416)
+  * Include `enum` and `description` in help data [#34543](https://core.trac.wordpress.org/ticket/34543)
+  * Save `preg_match` iterations in `WP_REST_Server` [#34488](https://core.trac.wordpress.org/ticket/34488)
+  * Don't return route URL in `WP_REST_Request:get_params()` [#34647](https://core.trac.wordpress.org/ticket/34647)
+
+- Restore `register_api_field()` within the plugin.
+
+  (props @danielbachhuber, [#1748](https://github.com/WP-API/WP-API/pull/1748))
+
+- Require admin functions for use of `wp_handle_upload()`, fixing fatal.
+
+  (props @joehoyle, [#1746](https://github.com/WP-API/WP-API/pull/1746))
+
+- Properly handle requesting terms where `parent=0` and `0` is a string.
+
+  (props @danielbachhuber, [#1739](https://github.com/WP-API/WP-API/pull/1739))
+
+- Prevent PHP error notice when `&filter` isn't an array.
+
+  (props @danielbachhuber, [#1734](https://github.com/WP-API/WP-API/pull/1734))
+
+- Change link relations to use api.w.org.
+
+  (props @danielbachhuber, [#1726](https://github.com/WP-API/WP-API/pull/1726))
+
+
 ## 2.0 Beta 6.0
 
 - Remove global inclusion of wp-admin/includes/admin.php
