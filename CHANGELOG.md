@@ -6,7 +6,7 @@
 
   * Remove `register_api_field()` because it's conceptually tied to `WP_REST_Controller` [#34730](https://core.trac.wordpress.org/ticket/34730)
   * Update the REST API header links to use api.w.org [#34303](https://core.trac.wordpress.org/ticket/34303)
-  * Require the $namespace argument in `register_rest_route()` [#34416](https://core.trac.wordpress.org/ticket/34416)
+  * Require the `$namespace` argument in `register_rest_route()` [#34416](https://core.trac.wordpress.org/ticket/34416)
   * Include `enum` and `description` in help data [#34543](https://core.trac.wordpress.org/ticket/34543)
   * Save `preg_match` iterations in `WP_REST_Server` [#34488](https://core.trac.wordpress.org/ticket/34488)
   * Don't return route URL in `WP_REST_Request:get_params()` [#34647](https://core.trac.wordpress.org/ticket/34647)
