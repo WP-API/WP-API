@@ -103,7 +103,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			'properties' => array(
 				'id' => array(
 					'description' => 'Unique identifier for the object.',
-					'type'        => 'int',
+					'type'        => 'integer',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
