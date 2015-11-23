@@ -330,6 +330,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// Get the content-type
 		$type = array_shift( $headers['content_type'] );
 
+		/** Include admin functions to get access to wp_tempnam() and wp_handle_sideload() */
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+
 		// Save the file
 		$tmpfname = wp_tempnam( $filename );
 
