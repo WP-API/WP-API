@@ -323,6 +323,14 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
+	public function test_get_item_incorrect_taxonomy() {
+		register_taxonomy( 'robin', 'post' );
+		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'robin' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/category/' . $term1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/category' );
