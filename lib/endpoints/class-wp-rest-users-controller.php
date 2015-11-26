@@ -125,6 +125,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $users );
 		unset( $prepared_args['number'] );
 		unset( $prepared_args['offset'] );
+		$prepared_args['fields'] = 'ID';
+
 		$count_query = new WP_User_Query( $prepared_args );
 		$total_users = $count_query->get_total();
 		$response->header( 'X-WP-Total', (int) $total_users );

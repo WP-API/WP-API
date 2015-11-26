@@ -30,14 +30,14 @@
 				'T' + pad( this.getUTCHours() ) +
 				':' + pad( this.getUTCMinutes() ) +
 				':' + pad( this.getUTCSeconds() ) +
-				'.' + String( ( this.getUTCMilliseconds() / 1000 ).toFixed( 3 ) ).slice( 2, 5 ) +
+				'.' + String( ( this.getUTCMilliseconds()/1000 ).toFixed( 3 ) ).slice( 2, 5 ) +
 				'Z';
 		};
 	}
 
 	/**
 	 * Parse date into ISO8601 format.
-	 *
+	 * 
 	 * @param {Date} date.
 	 */
 	wp.api.utils.parseISO8601 = function( date ) {
@@ -49,9 +49,9 @@
 		// before falling back to any implementation-specific date parsing, so that’s what we do, even if native
 		// implementations could be faster.
 		//              1 YYYY                2 MM       3 DD           4 HH    5 mm       6 ss        7 msec        8 Z 9 ±    10 tzHH    11 tzmm
-		if ( ( struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec( date ) ) ) {
+		if ((struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec(date))) {
 			// Avoid NaN timestamps caused by “undefined” values being passed to Date.UTC.
-			for ( i = 0; ( k = numericKeys[i] ); ++i ) {
+			for ( i = 0; ( k = numericKeys[i] ); ++i) {
 				struct[k] = +struct[k] || 0;
 			}
 
@@ -97,7 +97,7 @@
 			var attributes = _.clone( this.attributes );
 
 			// Serialize Date objects back into 8601 strings.
-			_.each( parseable_dates, function( key ) {
+			_.each( parseable_dates, function ( key ) {
 				if ( key in attributes ) {
 					attributes[key] = attributes[key].toISOString();
 				}
@@ -124,10 +124,10 @@
 				response[key] = new Date( timestamp );
 			});
 
-			// Parse the author into a User object.
-			if ( 'undefined' !== typeof response.author ) {
-				response.author = new wp.api.models.User( response.author );
-			}
+			// // Parse the author into a User object
+			// if ( 'undefined' !== typeof response.author ) {
+			// 	response.author = new wp.api.models.User( response.author );
+			// }
 
 			return response;
 		}
@@ -184,7 +184,7 @@
 	/**
 	 * Private Backbone base model for all models.
 	 */
-	var BaseModel = Backbone.Model.extend(
+	var BaseModel = wp.api.Model = Backbone.Model.extend(
 		/** @lends BaseModel.prototype  */
 		{
 			/**
@@ -531,7 +531,7 @@
 			 *
 			 * @returns {boolean}.
 			 */
-			save: function() {
+			save: function () {
 				return false;
 			},
 
@@ -540,7 +540,7 @@
 			 *
 			 * @returns {boolean}.
 			 */
-			'delete': function() {
+			'delete': function () {
 				return false;
 			}
 		}
