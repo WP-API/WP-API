@@ -263,8 +263,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
-
-		$post_id = wp_update_post( $post, true );
+		// convert the post object to an array, otherwise wp_update_post will expect non-escaped input
+		$post_id = wp_update_post( (array) $post, true );
 		if ( is_wp_error( $post_id ) ) {
 			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ) ) ) {
 				$post_id->add_data( array( 'status' => 500 ) );
