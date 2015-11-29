@@ -18,6 +18,7 @@
         "composer/installers": "~1.0"
     },
     "require-dev": {
+        "squizlabs/php_codesniffer": "2.3.4",
         "wp-coding-standards/wpcs": "0.6.0"
     },
     "extra": {
