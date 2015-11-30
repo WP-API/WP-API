@@ -368,6 +368,22 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Get the query params for collections of attachments.
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$params = parent::get_collection_params();
+		$params['parent']        = array(
+			'description'        => 'Limit results to attachments from a specified parent.',
+			'type'               => 'integer',
+			'default'            => null,
+			'sanitize_callback'  => 'absint',
+			);
+		return $params;
+	}
+
+	/**
 	 * Handle an upload via multipart/form-data ($_FILES)
 	 *
 	 * @param array $files Data from $_FILES

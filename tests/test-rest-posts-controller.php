@@ -164,7 +164,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
 
 		$attachments_url = rest_url( '/wp/v2/media' );
-		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
+		$attachments_url = add_query_arg( 'parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
 		$term_links = $links['https://api.w.org/term'];
@@ -273,6 +273,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+	}
+
+	public function test_get_item_read_permission_custom_post_status() {
+		register_post_status( 'testpubstatus', array( 'public' => true ) );
+		register_post_status( 'testprivtatus', array( 'public' => false ) );
+		// Public status
+		wp_update_post( array( 'ID' => $this->post_id, 'post_status' => 'testpubstatus' ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		// Private status
+		wp_update_post( array( 'ID' => $this->post_id, 'post_status' => 'testprivtatus' ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 403, $response->get_status() );
 	}
 
 	public function test_prepare_item() {

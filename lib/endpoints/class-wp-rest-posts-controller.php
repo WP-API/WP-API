@@ -15,20 +15,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$base = $this->get_post_type_base( $this->post_type );
 
-		$posts_args = array(
-			'context'               => array(
-				'default'           => 'view',
-			),
-			'page'                  => array(
-				'default'           => 1,
-				'sanitize_callback' => 'absint',
-			),
-			'per_page'              => array(
-				'default'           => 10,
-				'sanitize_callback' => 'absint',
-			),
-			'filter'                => array(),
-		);
+		$posts_args = $this->get_collection_params();
 
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
@@ -88,6 +75,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args                   = array();
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
+		$args['post_parent']    = $request['parent'];
 
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
@@ -947,6 +935,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return true;
 		}
 
+		$post_status_obj = get_post_status_object( $post->post_status );
+		if ( $post_status_obj && $post_status_obj->public ) {
+			return true;
+		}
+
 		// Can we read the parent if we're inheriting?
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
@@ -1219,7 +1212,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
-			$attachments_url = add_query_arg( 'post_parent', $post->ID, $attachments_url );
+			$attachments_url = add_query_arg( 'parent', $post->ID, $attachments_url );
 			$links['https://api.w.org/attachment'] = array(
 				'href'       => $attachments_url,
 			);
@@ -1542,6 +1535,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections of attachments.
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$params = parent::get_collection_params();
+		$params['filter'] = array();
+		return $params;
 	}
 
 }
