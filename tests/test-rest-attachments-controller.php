@@ -46,6 +46,42 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->check_get_posts_response( $response );
 	}
 
+	public function test_get_items_parent() {
+		$post_id = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, $post_id, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$attachment_id2 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		// all attachments
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 2, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		// attachments without a parent
+		$request->set_param( 'parent', 0 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $attachment_id2, $data[0]['id'] );
+		// attachments with parent=post_id
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'parent', $post_id );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $attachment_id, $data[0]['id'] );
+		// attachments with invalid parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 0, count( $data ) );
+	}
+
 	public function test_get_item() {
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',
