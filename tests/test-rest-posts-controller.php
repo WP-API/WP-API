@@ -736,7 +736,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
-		$this->check_create_post_response( $response );
+		$new_data = $response->get_data();
+		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
 	public function test_update_item() {
