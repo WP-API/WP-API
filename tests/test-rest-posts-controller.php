@@ -288,11 +288,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 403, $response->get_status() );
-		// Invalid status status
-		wp_update_post( array( 'ID' => $this->post_id, 'post_status' => 'testinvstatus' ) );
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
 	}
 
 	public function test_prepare_item() {
