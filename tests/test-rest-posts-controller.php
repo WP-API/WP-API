@@ -164,7 +164,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/revisions' ), $links['version-history'][0]['href'] );
 
 		$attachments_url = rest_url( '/wp/v2/media' );
-		$attachments_url = add_query_arg( 'post_parent', $this->post_id, $attachments_url );
+		$attachments_url = add_query_arg( 'parent', $this->post_id, $attachments_url );
 		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
 		$term_links = $links['https://api.w.org/term'];
