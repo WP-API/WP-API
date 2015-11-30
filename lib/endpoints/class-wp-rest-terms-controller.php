@@ -138,7 +138,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
-		if ( ! $term ) {
+		if ( ! $term || $term->taxonomy !== $this->taxonomy ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
 		if ( is_wp_error( $term ) ) {
