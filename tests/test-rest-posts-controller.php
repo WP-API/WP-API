@@ -727,6 +727,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	public function test_create_post_with_quotes_in_title() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'title' => "Rob O'Rourke's Diary",
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( $this->editor_id );
 
@@ -1021,6 +1034,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_invalid_field', $response, 400 );
+	}
+
+	public function test_update_post_with_quotes_in_title() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'title' => "Rob O'Rourke's Diary",
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
 	public function test_delete_item() {
