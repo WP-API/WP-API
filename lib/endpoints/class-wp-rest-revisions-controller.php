@@ -210,8 +210,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
 		if ( is_wp_error( $response ) ) {
 			return $response;
