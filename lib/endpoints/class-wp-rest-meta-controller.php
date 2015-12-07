@@ -399,7 +399,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 
 		$response->set_status( 201 );
 		$data = $response->get_data();
-		$response->header( 'Location', rest_url( $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
+		$response->header( 'Location', rest_url( 'wp/v2' . '/' . $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-meta-controller.php */
 		do_action( 'rest_insert_meta', $data, $request, true );
