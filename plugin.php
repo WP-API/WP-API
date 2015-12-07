@@ -11,7 +11,11 @@
 
 // Do we need the compatibility repo?
 if ( ! defined( 'REST_API_VERSION' ) ) {
-	require_once dirname( __FILE__ ) . '/core/rest-api.php';
+	if ( file_exists( dirname( __FILE__ ) . '/core/rest-api.php' ) ) {
+		require_once dirname( __FILE__ ) . '/core/rest-api.php';
+	} else if ( file_exists( dirname( __FILE__ ) . '/vendor/wp-api/api-core/rest-api.php' ) ) {
+		require_once dirname( __FILE__ ) . '/vendor/wp-api/api-core/rest-api.php';
+	}
 }
 
 /**

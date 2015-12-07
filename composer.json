@@ -15,7 +15,8 @@
         "forum": "https://wordpress.org/support/plugin/json-rest-api"
     },
     "require": {
-        "composer/installers": "~1.0"
+        "composer/installers": "~1.0",
+        "wp-api/api-core": "2.0-beta6"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "2.3.4",
