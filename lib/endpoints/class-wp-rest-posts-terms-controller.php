@@ -288,6 +288,10 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = array();
+
+		$query_params['context']['default'] = 'view';
+		$query_params['context']['enum'] = array( 'view' );
+
 		$query_params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
 			'type'               => 'string',
