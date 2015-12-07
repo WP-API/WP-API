@@ -1555,18 +1555,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
-			$query_params['author'] = array(
+			$params['author'] = array(
 				'description'         => 'Limit result set to posts assigned to a specific author.',
 				'type'                => 'integer',
 			);
 		}
-		$query_params['order'] = array(
+		$params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
 			'type'               => 'string',
 			'default'            => 'asc',
 			'enum'               => array( 'asc', 'desc' ),
 		);
-		$query_params['orderby'] = array(
+		$params['orderby'] = array(
 			'description'        => 'Sort collection by object attribute.',
 			'type'               => 'string',
 			'default'            => 'name',
@@ -1576,7 +1576,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
-		$query_params['status'] = array(
+		$params['status'] = array(
 			'default'           => 'publish',
 			'description'       => 'Limit result set to posts assigned a specific status.',
 			'sanitize_callback' => 'sanitize_key',
