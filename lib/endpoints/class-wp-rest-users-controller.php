@@ -766,13 +766,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
-		$query_params['context'] = array(
-			'default'            => 'view',
-			'description'        => 'Change the response format based on request context.',
-			'enum'               => array( 'embed', 'view', 'edit' ),
-			'sanitize_callback'  => 'sanitize_key',
-			'type'               => 'string',
-		);
+
+		$params['context']['default'] = 'view';
+		$params['context']['enum'] = array( 'embed', 'view', 'edit' );
+
 		$query_params['order'] = array(
 			'default'            => 'asc',
 			'description'        => 'Order sort attribute ascending or descending.',

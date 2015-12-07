@@ -219,6 +219,10 @@ abstract class WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		return array(
+			'context'                => array(
+				'description'        => 'Scope under which the request is made; determines fields present in response.',
+				'type'               => 'string',
+				),
 			'page'                   => array(
 				'description'        => 'Current page of the collection.',
 				'type'               => 'integer',

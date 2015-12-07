@@ -889,6 +889,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
+
+		$query_params['context']['default'] = 'view';
+		$query_params['context']['enum'] = array( 'embed', 'view', 'edit' );
+
 		$query_params['author_email'] = array(
 			'default'           => null,
 			'description'       => 'Limit result set to that from a specific author email.',
