@@ -77,6 +77,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['posts_per_page'] = $request['per_page'];
 		$args['post_parent']    = $request['parent'];
 
+		if ( ! empty( $request['author'] ) ) {
+			$args['post_author'] = $request['author'];
+		}
+		if ( ! empty( $request['search'] ) ) {
+			$args['s'] = $request['search'];
+		}
+		if ( ! empty( $request['status'] ) ) {
+			$args['post_status'] = $request['status'];
+		}
+
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
@@ -1544,8 +1554,56 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
+		if ( post_type_supports( $this->post_type, 'author' ) ) {
+			$query_params['author'] = array(
+				'description'         => 'Limit result set to posts assigned to a specific author.',
+				'type'                => 'integer',
+			);
+		}
+		$query_params['order'] = array(
+			'description'        => 'Order sort attribute ascending or descending.',
+			'type'               => 'string',
+			'default'            => 'asc',
+			'enum'               => array( 'asc', 'desc' ),
+		);
+		$query_params['orderby'] = array(
+			'description'        => 'Sort collection by object attribute.',
+			'type'               => 'string',
+			'default'            => 'name',
+			'enum'               => array(
+				'id',
+				'title',
+				'slug',
+			),
+		);
+		$query_params['status'] = array(
+			'default'           => 'publish',
+			'description'       => 'Limit result set to posts assigned a specific status.',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
+		);
 		$params['filter'] = array();
 		return $params;
+	}
+
+	/**
+	 * Validate whether the user can query private statuses
+	 *
+	 * @param  mixed $value
+	 * @param  WP_REST_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+		if ( 'publish' === $value ) {
+			return true;
+		}
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( current_user_can( $post_type_obj->cap->edit_posts ) ) {
+			return true;
+		}
+		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => 403 ) );
 	}
 
 }
