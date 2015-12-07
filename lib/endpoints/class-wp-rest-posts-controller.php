@@ -73,19 +73,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$args                   = array();
+		$args['author']         = $request['author'];
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
 		$args['post_parent']    = $request['parent'];
-
-		if ( ! empty( $request['author'] ) ) {
-			$args['post_author'] = $request['author'];
-		}
-		if ( ! empty( $request['search'] ) ) {
-			$args['s'] = $request['search'];
-		}
-		if ( ! empty( $request['status'] ) ) {
-			$args['post_status'] = $request['status'];
-		}
+		$args['post_status']    = $request['status'];
+		$args['s']              = $request['search'];
 
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
@@ -1558,6 +1551,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$params['author'] = array(
 				'description'         => 'Limit result set to posts assigned to a specific author.',
 				'type'                => 'integer',
+				'default'             => null,
+				'sanitize_callback'   => 'absint',
 			);
 		}
 		$params['order'] = array(
