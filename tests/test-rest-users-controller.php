@@ -298,7 +298,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
 	}
 
 	public function test_get_current_user() {

@@ -227,7 +227,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_create_item_alt_text() {
