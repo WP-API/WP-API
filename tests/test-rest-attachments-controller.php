@@ -106,9 +106,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$image_src = wp_get_attachment_image_src( $attachment_id, 'rest-api-test' );
+		$original_image_src = wp_get_attachment_image_src( $attachment_id, 'full' );
 		remove_image_size( 'rest-api-test' );
 
 		$this->assertEquals( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
+		$this->assertEquals( $original_image_src[0], $data['media_details']['sizes']['full']['source_url'] );
 	}
 
 	public function test_get_item_sizes_with_no_url() {
