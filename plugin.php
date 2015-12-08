@@ -133,13 +133,13 @@ function _add_extra_api_taxonomy_arguments() {
 
 	if ( isset( $wp_taxonomies['category'] ) ) {
 		$wp_taxonomies['category']->show_in_rest = true;
-		$wp_taxonomies['category']->rest_base = 'category';
+		$wp_taxonomies['category']->rest_base = 'categories';
 		$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 
 	if ( isset( $wp_taxonomies['post_tag'] ) ) {
 		$wp_taxonomies['post_tag']->show_in_rest = true;
-		$wp_taxonomies['post_tag']->rest_base = 'tag';
+		$wp_taxonomies['post_tag']->rest_base = 'tags';
 		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 }

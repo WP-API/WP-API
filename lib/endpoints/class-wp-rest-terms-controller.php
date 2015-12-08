@@ -21,7 +21,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$base = $this->get_taxonomy_base( $this->taxonomy );
 		$query_params = $this->get_collection_params();
-		register_rest_route( 'wp/v2', '/terms/' . $base, array(
+		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -37,7 +37,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 			'schema' => array( $this, 'get_public_item_schema' ),
 		));
-		register_rest_route( 'wp/v2', '/terms/' . $base . '/(?P<id>[\d]+)', array(
+		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -111,7 +111,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_terms / $request['per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
 		if ( $request['page'] > 1 ) {
 			$prev_page = $request['page'] - 1;
 			if ( $prev_page > $max_pages ) {
@@ -204,7 +204,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/terms/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_taxonomy_id'] ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_taxonomy_id'] ) );
 		return $response;
 	}
 
@@ -273,7 +273,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// Get the actual term_id
 		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
-		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/terms/' . $this->get_taxonomy_base( $term->taxonomy ) . '/' . (int) $request['id'] ) );
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_taxonomy_base( $term->taxonomy ) . '/' . (int) $request['id'] ) );
 		$get_request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $get_request );
 
@@ -476,7 +476,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base = '/wp/v2/terms/' . $this->get_taxonomy_base( $term->taxonomy );
+		$base = '/wp/v2/' . $this->get_taxonomy_base( $term->taxonomy );
 		$links = array(
 			'self'       => array(
 				'href'       => rest_url( trailingslashit( $base ) . $term->term_taxonomy_id ),
@@ -490,7 +490,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$parent_term = get_term_by( 'id', (int) $term->parent, $term->taxonomy );
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( sprintf( 'wp/v2/terms/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
+					'href'       => rest_url( sprintf( 'wp/v2/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
 					'embeddable' => true,
 				);
 			}
