@@ -527,7 +527,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 
-		if ( 'post' === $this->post_type && ! isset( $query_args['ignore_sticky_posts'] ) ) {
+		if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {
 			$query_args['ignore_sticky_posts'] = true;
 		}
 
