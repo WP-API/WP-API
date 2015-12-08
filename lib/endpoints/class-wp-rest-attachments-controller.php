@@ -203,7 +203,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					'source_url'    => $full_src[0],
 					);
 			}
-
 		} else {
 			$data['media_details']['sizes'] = new stdClass;
 		}
