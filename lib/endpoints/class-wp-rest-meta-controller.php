@@ -191,7 +191,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$meta = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $meta ) ) {
-			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( absint( $meta->$parent_column ) !== $parent_id ) {
@@ -265,7 +265,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$current = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $current ) ) {
-			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( absint( $current->$parent_column ) !== $parent_id ) {
@@ -427,7 +427,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 		$current = get_metadata_by_mid( $this->parent_type, $mid );
 
 		if ( empty( $current ) ) {
-			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_meta_invalid_id', __( 'Invalid meta id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( absint( $current->$parent_column ) !== (int) $parent_id ) {
