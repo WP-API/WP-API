@@ -64,7 +64,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent = get_post( $request['parent_id'] );
 		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revisions = wp_get_post_revisions( $request['parent_id'] );
@@ -107,12 +107,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent = get_post( $request['parent_id'] );
 		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revision = get_post( $request['id'] );
 		if ( ! $revision || 'revision' !== $revision->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision id.' ), array( 'status' => 404 ) );
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
@@ -259,7 +259,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'author'          => array(
-						'description' => 'The ID for the author of the object.',
+						'description' => 'The id for the author of the object.',
 						'type'        => 'integer',
 						'context'     => array( 'view' ),
 					),
@@ -298,7 +298,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					'context'     => array( 'view' ),
 				),
 				'parent'          => array(
-					'description' => 'The ID for the parent of the object.',
+					'description' => 'The id for the parent of the object.',
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					),

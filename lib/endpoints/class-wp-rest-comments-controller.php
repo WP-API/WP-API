@@ -121,12 +121,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
 		$post = get_post( $comment->comment_post_ID );
 		if ( empty( $post ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		$data = $this->prepare_item_for_response( $comment, $request );
@@ -148,7 +148,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$post = get_post( $request['post'] );
 		if ( empty( $post ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -240,7 +240,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
@@ -293,7 +293,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
 		/**
@@ -758,7 +758,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'author'           => array(
-					'description'  => 'The ID of the user object, if author was a user.',
+					'description'  => 'The id of the user object, if author was a user.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
@@ -848,7 +848,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'parent'           => array(
-					'description'  => 'The ID for the parent of the object.',
+					'description'  => 'The id for the parent of the object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -856,7 +856,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'post'             => array(
-					'description'  => 'The ID of the associated post object.',
+					'description'  => 'The id of the associated post object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
 				),

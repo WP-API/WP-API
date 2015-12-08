@@ -151,7 +151,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		$data = $this->prepare_item_for_response( $post, $request );
@@ -247,7 +247,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Post ID is invalid.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 400 ) );
 		}
 
 		$post = $this->prepare_item_for_database( $request );
@@ -318,7 +318,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
@@ -762,7 +762,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['parent'] ) && ! empty( $request['parent'] ) ) {
 			$parent = get_post( (int) $request['parent'] );
 			if ( empty( $parent ) ) {
-				return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post parent ID.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post parent id.' ), array( 'status' => 400 ) );
 			}
 
 			$prepared_post->post_parent = (int) $parent->ID;
@@ -854,7 +854,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$author = get_userdata( $post_author );
 
 			if ( ! $author ) {
-				return new WP_Error( 'rest_invalid_author', __( 'Invalid author ID.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
 			}
 		}
 
@@ -875,7 +875,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( $result ) {
 				return true;
 			} else {
-				return new WP_Error( 'rest_invalid_featured_image', __( 'Invalid featured image ID.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_invalid_featured_image', __( 'Invalid featured image id.' ), array( 'status' => 400 ) );
 			}
 		} else {
 			return delete_post_thumbnail( $post_id );
@@ -1355,7 +1355,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical ) {
 			$schema['properties']['parent'] = array(
-				'description' => 'The ID for the parent of the object.',
+				'description' => 'The id for the parent of the object.',
 				'type'        => 'integer',
 				'context'     => array( 'view', 'edit' ),
 			);
@@ -1451,7 +1451,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				case 'author':
 					$schema['properties']['author'] = array(
-						'description' => 'The ID for the author of the object.',
+						'description' => 'The id for the author of the object.',
 						'type'        => 'integer',
 						'context'     => array( 'view', 'edit', 'embed' ),
 					);
@@ -1479,7 +1479,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				case 'thumbnail':
 					$schema['properties']['featured_image'] = array(
-						'description' => 'ID of the featured image for the object.',
+						'description' => 'The id of the featured image for the object.',
 						'type'        => 'integer',
 						'context'     => array( 'view', 'edit' ),
 					);

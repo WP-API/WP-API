@@ -45,7 +45,7 @@ class WP_REST_Meta_Posts_Controller extends WP_REST_Meta_Controller {
 		$parent = get_post( (int) $request['parent_id'] );
 
 		if ( empty( $parent ) || empty( $parent->ID ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $this->parent_controller->check_read_permission( $parent ) ) {
@@ -99,7 +99,7 @@ class WP_REST_Meta_Posts_Controller extends WP_REST_Meta_Controller {
 		$parent = get_post( (int) $request['parent_id'] );
 
 		if ( empty( $parent ) || empty( $parent->ID ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $this->parent_controller->check_read_permission( $parent ) ) {
