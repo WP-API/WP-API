@@ -859,6 +859,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The ID of the associated post object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
+					'required'     => true,
 				),
 				'status'           => array(
 					'description'  => 'State of the object.',
