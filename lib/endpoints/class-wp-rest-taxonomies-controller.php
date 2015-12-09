@@ -48,6 +48,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $tax ) ) {
 				continue;
 			}
+			$tax = $this->prepare_response_for_collection( $tax );
 			$data[] = $tax;
 		}
 		return $data;
@@ -110,12 +111,22 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
+		// Wrap the data in a response object.
+		$data = rest_ensure_response( $data );
+
+		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+		$data->add_links( array(
+			'collection'     => array(
+				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
+			),
+		) );
+
 		/**
 		 * Filter a taxonomy returned from the API.
 		 *
 		 * Allows modification of the taxonomy data right before it is returned.
 		 *
-		 * @param array           $data     Key value array of taxonomy data.
+		 * @param array           $data     An array of taxonomy date, prepared for response.
 		 * @param object          $item     The taxonomy object.
 		 * @param WP_REST_Request $request  Request used to generate the response.
 		 */
