@@ -66,8 +66,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
 		$endpoint = new WP_REST_Taxonomies_Controller;
-		$data = $endpoint->prepare_item_for_response( $tax, new WP_REST_Request );
-		$this->check_taxonomy_object( $tax, $data );
+		$response = $endpoint->prepare_item_for_response( $tax, new WP_REST_Request );
+		$this->check_taxonomy_object( $tax, $response->get_data(), $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -103,12 +103,13 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
 	}
 
-	protected function check_taxonomy_object( $tax_obj, $data ) {
+	protected function check_taxonomy_object( $tax_obj, $data, $links ) {
 		$this->assertEquals( $tax_obj->label, $data['name'] );
 		$this->assertEquals( $tax_obj->name, $data['slug'] );
 		$this->assertEquals( $tax_obj->description, $data['description'] );
 		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
+		$this->assertArrayHasKey( 'collection', $links );
 	}
 
 	protected function check_taxonomy_object_response( $response ) {
@@ -117,7 +118,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$category = get_taxonomy( 'category' );
-		$this->check_taxonomy_object( $category, $data );
+		$this->check_taxonomy_object( $category, $data, $response->get_links() );
 	}
 
 	protected function check_taxonomies_for_type_response( $type, $response ) {
