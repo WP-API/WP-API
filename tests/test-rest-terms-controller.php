@@ -522,7 +522,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 
-		$this->check_taxonomy_term( $term, $data );
+		$this->check_taxonomy_term( $term, $data, $response->get_links() );
 	}
 
 	public function test_prepare_taxonomy_term_child() {
@@ -535,7 +535,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 
-		$this->check_taxonomy_term( $term, $data );
+		$this->check_taxonomy_term( $term, $data, $response->get_links() );
 
 		$this->assertEquals( 1, $data['parent'] );
 
@@ -593,7 +593,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( $categories[0]->count, $data[0]['count'] );
 	}
 
-	protected function check_taxonomy_term( $term, $data ) {
+	protected function check_taxonomy_term( $term, $data, $links ) {
 		$this->assertEquals( $term->term_id, $data['id'] );
 		$this->assertEquals( $term->name, $data['name'] );
 		$this->assertEquals( $term->slug, $data['slug'] );
@@ -606,6 +606,9 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$this->assertFalse( isset( $term->parent ) );
 		}
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {
@@ -616,6 +619,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$category = get_term( 1, 'category' );
-		$this->check_taxonomy_term( $category, $data );
+		$this->check_taxonomy_term( $category, $data, $response->get_links() );
 	}
 }
