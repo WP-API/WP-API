@@ -486,7 +486,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			),
 			'about'      => array(
 				'href'       => rest_url( sprintf( 'wp/v2/taxonomies/%s', $this->taxonomy ) ),
-				),
+			),
 		);
 
 		if ( $term->parent ) {
