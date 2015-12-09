@@ -220,6 +220,17 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 }
 
+if ( ! function_exists( 'rest_authorization_required_code' ) ) {
+	/**
+	 * Returns a contextual HTTP error code for authorization failure.
+	 *
+	 * @return integer
+	 */
+	function rest_authorization_required_code() {
+		return is_user_logged_in() ? 403 : 401;
+	}
+}
+
 if ( ! function_exists( 'register_api_field' ) ) {
 	/**
 	 * Registers a new field on an existing WordPress object type.

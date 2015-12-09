@@ -218,7 +218,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $this->posts_controller->check_read_permission( $post ) ) {
-			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['term_id'] ) ) {

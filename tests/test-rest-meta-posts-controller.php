@@ -196,7 +196,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 	}
 
 	public function test_get_item_wrong_post() {
@@ -371,7 +371,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 		$this->assertEmpty( get_post_meta( $post_id, 'testkey' ) );
 	}
 
@@ -674,7 +674,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey' ) );
 	}
 
@@ -957,7 +957,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
 
 		$this->assertEquals( array( 'testvalue' ), get_post_meta( $post_id, 'testkey', false ) );
 	}
