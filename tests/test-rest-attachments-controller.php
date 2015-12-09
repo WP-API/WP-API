@@ -110,7 +110,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		remove_image_size( 'rest-api-test' );
 
 		$this->assertEquals( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
+		$this->assertEquals( 'image/jpeg', $data['media_details']['sizes']['rest-api-test']['mime_type'] );
 		$this->assertEquals( $original_image_src[0], $data['media_details']['sizes']['full']['source_url'] );
+		$this->assertEquals( 'image/jpeg', $data['media_details']['sizes']['full']['mime_type'] );
 	}
 
 	public function test_get_item_sizes_with_no_url() {
@@ -229,7 +231,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_create_item_alt_text() {

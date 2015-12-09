@@ -250,10 +250,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $tag_link );
 		$this->assertNotEmpty( $cat_link );
 
-		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/tag' );
+		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/tags' );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/category' );
+		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/categories' );
 		$this->assertEquals( $category_url, $cat_link['href'] );
 
 		$meta_links = $links['https://api.w.org/meta'];
@@ -307,23 +307,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_list_context_without_permission() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
 			'context' => 'edit',
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_post_context_without_permission() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_query_params( array(
 			'context' => 'edit',
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_post_with_password() {

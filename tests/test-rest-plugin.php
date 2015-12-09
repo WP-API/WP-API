@@ -243,12 +243,12 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 
 		$taxonomy = get_taxonomy( 'category' );
 		$this->assertTrue( $taxonomy->show_in_rest );
-		$this->assertEquals( 'category', $taxonomy->rest_base );
+		$this->assertEquals( 'categories', $taxonomy->rest_base );
 		$this->assertEquals( 'WP_REST_Terms_Controller', $taxonomy->rest_controller_class );
 
 		$taxonomy = get_taxonomy( 'post_tag' );
 		$this->assertTrue( $taxonomy->show_in_rest );
-		$this->assertEquals( 'tag', $taxonomy->rest_base );
+		$this->assertEquals( 'tags', $taxonomy->rest_base );
 		$this->assertEquals( 'WP_REST_Terms_Controller', $taxonomy->rest_controller_class );
 	}
 

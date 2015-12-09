@@ -70,7 +70,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $post_type, $request ) {
 		if ( false === $post_type->public ) {
-			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		$data = array(

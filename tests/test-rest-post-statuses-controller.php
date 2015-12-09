@@ -51,9 +51,10 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item_invalid_access() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/draft' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read_status', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_status', $response, 401 );
 	}
 
 	public function test_get_item_invalid_internal() {

@@ -133,13 +133,13 @@ function _add_extra_api_taxonomy_arguments() {
 
 	if ( isset( $wp_taxonomies['category'] ) ) {
 		$wp_taxonomies['category']->show_in_rest = true;
-		$wp_taxonomies['category']->rest_base = 'category';
+		$wp_taxonomies['category']->rest_base = 'categories';
 		$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 
 	if ( isset( $wp_taxonomies['post_tag'] ) ) {
 		$wp_taxonomies['post_tag']->show_in_rest = true;
-		$wp_taxonomies['post_tag']->rest_base = 'tag';
+		$wp_taxonomies['post_tag']->rest_base = 'tags';
 		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 }
@@ -218,6 +218,17 @@ function create_initial_rest_routes() {
 	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
+}
+
+if ( ! function_exists( 'rest_authorization_required_code' ) ) {
+	/**
+	 * Returns a contextual HTTP error code for authorization failure.
+	 *
+	 * @return integer
+	 */
+	function rest_authorization_required_code() {
+		return is_user_logged_in() ? 403 : 401;
+	}
 }
 
 if ( ! function_exists( 'register_api_field' ) ) {

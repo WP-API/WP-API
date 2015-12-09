@@ -21,7 +21,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$parent = get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
 			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -183,9 +183,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$img_url_basename = wp_basename( $data['source_url'] );
 
 			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
+
+				if ( isset( $size_data['mime-type'] ) ) {
+					$size_data['mime_type'] = $size_data['mime-type'];
+					unset( $size_data['mime-type'] );
+				}
+
 				// Use the same method image_downsize() does
 				$image_src = wp_get_attachment_image_src( $post->ID, $size );
-
 				if ( ! $image_src ) {
 					continue;
 				}
