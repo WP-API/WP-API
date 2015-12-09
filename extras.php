@@ -69,38 +69,6 @@ function rest_get_avatar_sizes() {
 }
 
 /**
- * Retrieves the timezone object for the site.
- *
- * @since 4.4.0
- *
- * @return DateTimeZone DateTimeZone instance.
- */
-function rest_get_timezone() {
-	static $zone = null;
-
-	if ( null !== $zone ) {
-		return $zone;
-	}
-
-	$tzstring = get_option( 'timezone_string' );
-
-	if ( ! $tzstring ) {
-		// Create a UTC+- zone if no timezone string exists.
-		$current_offset = get_option( 'gmt_offset' );
-		if ( 0 === $current_offset ) {
-			$tzstring = 'UTC';
-		} elseif ( $current_offset < 0 ) {
-			$tzstring = 'Etc/GMT' . $current_offset;
-		} else {
-			$tzstring = 'Etc/GMT+' . $current_offset;
-		}
-	}
-	$zone = new DateTimeZone( $tzstring );
-
-	return $zone;
-}
-
-/**
  * Retrieves the avatar url for a user who provided a user ID or email address.
  *
  * get_avatar() doesn't return just the URL, so we have to extract it here.
