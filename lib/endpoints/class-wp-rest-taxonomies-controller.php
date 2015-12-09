@@ -118,8 +118,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data->add_links( array(
 			'collection'     => array(
 				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
-				),
-			) );
+			),
+		) );
 
 		/**
 		 * Filter a taxonomy returned from the API.
