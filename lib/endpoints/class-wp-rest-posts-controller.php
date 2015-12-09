@@ -1237,7 +1237,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				}
 
 				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
-				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/terms/' . $tax_base );
+				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/' . $tax_base );
 
 				$links['https://api.w.org/term'][] = array(
 					'href'       => $terms_url,
