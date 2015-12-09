@@ -75,7 +75,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'type', 'my_custom_int', array(
+		register_rest_field( 'type', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),

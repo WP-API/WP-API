@@ -415,7 +415,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'attachment', 'my_custom_int', array(
+		register_rest_field( 'attachment', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 		) );

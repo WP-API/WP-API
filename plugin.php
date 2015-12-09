@@ -231,7 +231,7 @@ if ( ! function_exists( 'rest_authorization_required_code' ) ) {
 	}
 }
 
-if ( ! function_exists( 'register_api_field' ) ) {
+if ( ! function_exists( 'register_rest_field' ) ) {
 	/**
 	 * Registers a new field on an existing WordPress object type.
 	 *
@@ -254,7 +254,7 @@ if ( ! function_exists( 'register_api_field' ) ) {
 	 *                                              this field. Default is 'null', no schema entry will be returned.
 	 * }
 	 */
-	function register_api_field( $object_type, $attribute, $args = array() ) {
+	function register_rest_field( $object_type, $attribute, $args = array() ) {
 		$defaults = array(
 			'get_callback'    => null,
 			'update_callback' => null,
@@ -270,5 +270,15 @@ if ( ! function_exists( 'register_api_field' ) ) {
 		foreach ( $object_types as $object_type ) {
 			$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
 		}
+	}
+}
+
+if ( ! function_exists( 'register_api_field' ) ) {
+	/**
+	 * Backwards compat shim
+	 */
+	function register_api_field( $object_type, $attributes, $args = array() ) {
+		_deprecated_function( 'register_api_field', 'WPAPI-2.0', 'register_rest_field' );
+		register_rest_field( $object_type, $attributes, $args );
 	}
 }
