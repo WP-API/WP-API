@@ -411,6 +411,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
+		if ( ! is_user_logged_in() && get_option( 'comment_registration' ) ) {
+			return new WP_Error( 'rest_comment_login_required', __( 'Sorry, you must be logged in to comment.' ), array( 'status' => 401 ) );
+		}
+
 		// Limit who can set comment `author`, `karma` or `status` to anything other than the default.
 		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => rest_authorization_required_code() ) );
