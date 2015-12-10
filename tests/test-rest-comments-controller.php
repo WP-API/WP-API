@@ -587,6 +587,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
+	public function test_create_comment_require_login() {
+		wp_set_current_user( 0 );
+		update_option( 'comment_registration', 1 );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_param( 'post', $this->post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 401, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
+	}
+
 	public function test_create_comment_two_times() {
 
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
