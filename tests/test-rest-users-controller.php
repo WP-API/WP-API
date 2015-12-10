@@ -204,6 +204,17 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'search', $yolo_id ); // searching doesn't support display name
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 1, count( $response->get_data() ) );
+		// default to wildcard search
+		$adam_id = $this->factory->user->create( array(
+			'role'          => 'author',
+			'user_nicename' => 'adam',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'search', 'ada' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $adam_id, $data[0]['id'] );
 	}
 
 	public function test_get_item() {

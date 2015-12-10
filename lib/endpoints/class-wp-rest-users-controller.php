@@ -101,6 +101,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$request['context'] = 'embed';
 		}
 
+		if ( '' !== $prepared_args['search'] ) {
+			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
+		}
+
 		/**
 		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
