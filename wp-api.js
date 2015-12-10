@@ -1,13 +1,25 @@
-( function( WP_API_Settings, Backbone, _, window, undefined ) {
+(function( window, undefined ) {
+
+	'use strict';
+
+	function WP_API() {
+		this.models = {};
+		this.collections = {};
+		this.views = {};
+	}
+
+	window.wp = window.wp || {};
+	wp.api = wp.api || new WP_API();
+
+})( window );
+
+(function( window, undefined ) {
+
 	'use strict';
 
 	window.wp = window.wp || {};
-
-	wp.api = {
-		models: {},
-		collections: {},
-		utils: {}
-	};
+	wp.api = wp.api || {};
+	wp.api.utils = wp.api.utils || {};
 
 	/**
 	 * ECMAScript 5 shim, from MDN.
@@ -74,6 +86,15 @@
 
 		return timestamp;
 	};
+
+})( window );
+
+/* global WP_API_Settings:false */
+// Suppress warning about parse function's unused "options" argument:
+/* jshint unused:false */
+(function( wp, WP_API_Settings, Backbone, window, undefined ) {
+
+	'use strict';
 
 	/**
 	 * Array of parseable dates.
@@ -184,8 +205,8 @@
 	/**
 	 * Private Backbone base model for all models.
 	 */
-	var BaseModel = Backbone.Model.extend(
-		/** @lends BaseModel.prototype  */
+	var WPApiBaseModel = Backbone.Model.extend(
+		/** @lends WPApiBaseModel.prototype  */
 		{
 			/**
 			 * Set nonce header before every Backbone sync.
@@ -216,9 +237,13 @@
 	);
 
 	/**
-	 * Backbone model for single users.
+	 * Backbone model for a single user.
+	 *
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.id The user id. Optional. Defaults to 'me', fetching the current user.
 	 */
-	wp.api.models.User = BaseModel.extend(
+	wp.api.models.User = WPApiBaseModel.extend(
 		/** @lends User.prototype  */
 		{
 			idAttribute: 'id',
@@ -226,7 +251,7 @@
 			urlRoot: WP_API_Settings.root + 'wp/v2/users',
 
 			defaults: {
-				id: null,
+				id: 'me',
 				avatar_url: {},
 				capabilities: {},
 				description: '',
@@ -248,9 +273,12 @@
 	);
 
 	/**
-	 * Model for Taxonomy.
+	 * Model for a single taxonomy.
+	 *
+	 * @param {Object} attributes
+	 * @param {string} attributes.slug The taxonomy slug.
 	 */
-	wp.api.models.Taxonomy = BaseModel.extend(
+	wp.api.models.Taxonomy = WPApiBaseModel.extend(
 		/** @lends Taxonomy.prototype  */
 		{
 			idAttribute: 'slug',
@@ -270,24 +298,17 @@
 	);
 
 	/**
-	 * Backbone model for term.
+	 * Backbone model for a single term.
+	 *
+	 * @param {Object} attributes
+	 * @param {int} id attributesm id.
 	 */
-	wp.api.models.Term = BaseModel.extend(
+	wp.api.models.Term = WPApiBaseModel.extend(
 		/** @lends Term.prototype */
 		{
 			idAttribute: 'id',
 
-			/**
-			 * Return URL for the model.
-			 *
-			 * @returns {string}
-			 */
-			url: function() {
-				var id = this.get( 'id' );
-				id = id || '';
-
-				return WP_API_Settings.root + 'wp/v2/taxonomies/' + this.get( 'taxonomy' ) + '/terms/' + id;
-			},
+			urlRoot: WP_API_Settings.root + 'wp/v2/terms/tag',
 
 			defaults: {
 				id: null,
@@ -305,9 +326,12 @@
 	);
 
 	/**
-	 * Backbone model for single posts.
+	 * Backbone model for a single post.
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.id The post id.
 	 */
-	wp.api.models.Post = BaseModel.extend( _.extend(
+	wp.api.models.Post = WPApiBaseModel.extend( _.extend(
 		/** @lends Post.prototype  */
 		{
 			idAttribute: 'id',
@@ -323,7 +347,6 @@
 				modified: new Date(),
 				modified_gmt: new Date(),
 				password: '',
-				slug: '',
 				status: 'draft',
 				type: 'post',
 				title: {},
@@ -341,9 +364,12 @@
 	);
 
 	/**
-	 * Backbone model for pages.
+	 * Backbone model for a single page.
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.id The page id.
 	 */
-	wp.api.models.Page = BaseModel.extend( _.extend(
+	wp.api.models.Page = WPApiBaseModel.extend( _.extend(
 		/** @lends Page.prototype  */
 		{
 			idAttribute: 'id',
@@ -377,23 +403,16 @@
 	);
 
 	/**
-	 * Backbone model for revisions.
+	 * Backbone model for a single post revision.
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.parent The id of the post that this revision belongs to.
+	 * @param {int}    attributes.id     The revision id.
 	 */
-	wp.api.models.Revision = BaseModel.extend( _.extend(
-		/** @lends Revision.prototype */
+	wp.api.models.PostRevision = WPApiBaseModel.extend( _.extend(
+		/** @lends PostRevision.prototype */
 		{
 			idAttribute: 'id',
-
-			/**
-			 * Return URL for the model.
-			 *
-			 * @returns {string}.
-			 */
-			url: function() {
-				var id = this.get( 'id' ) || '';
-
-				return WP_API_Settings.root + 'wp/v2/posts/' + id + '/revisions';
-			},
 
 			defaults: {
 				id: null,
@@ -409,15 +428,30 @@
 				content: {},
 				excerpt: {},
 				_links: {}
+			},
+
+			/**
+			 * Return URL for the model.
+			 *
+			 * @returns {string}.
+			 */
+			url: function() {
+				var id     = this.get( 'id' )     || '',
+					parent = this.get( 'parent' ) || '';
+
+				return WP_API_Settings.root + 'wp/v2/posts/' + parent + '/revisions/' + id;
 			}
 
 		}, TimeStampedMixin, HierarchicalMixin )
 	);
 
 	/**
-	 * Backbone model for media items.
+	 * Backbone model for a single media item.
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.id The media item id.
 	 */
-	wp.api.models.Media = BaseModel.extend( _.extend(
+	wp.api.models.Media = WPApiBaseModel.extend( _.extend(
 		/** @lends Media.prototype */
 		{
 			idAttribute: 'id',
@@ -448,28 +482,23 @@
 				post: null,
 				source_url: '',
 				_links: {}
-			},
-
-			/**
-			 * @class Represent a media item.
-			 * @augments Backbone.Model.
-			 * @constructs
-			 */
-			initialize: function() {
-
-				// Todo: what of the parent model is a page?
-				this.parentModel = wp.api.models.Post;
 			}
-		}, TimeStampedMixin, HierarchicalMixin )
+
+		}, TimeStampedMixin )
 	);
 
 	/**
-	 * Backbone model for comments.
+	 * Backbone model for a single comment.
+	 *
+	 * @param {Object} attributes
+	 * @param {int}    attributes.id The comment id.
 	 */
-	wp.api.models.Comment = BaseModel.extend( _.extend(
+	wp.api.models.Comment = WPApiBaseModel.extend( _.extend(
 		/** @lends Comment.prototype */
 		{
 			idAttribute: 'id',
+
+			urlRoot: WP_API_Settings.root + 'wp/v2/comments',
 
 			defaults: {
 				id: null,
@@ -485,38 +514,26 @@
 				karma: 0,
 				link: '',
 				parent: 0,
-				post: null,
 				status: 'hold',
 				type: '',
 				_links: {}
-			},
-
-			/**
-			 * Return URL for model.
-			 *
-			 * @returns {string}.
-			 */
-			url: function() {
-				var post_id = this.get( 'post' );
-				post_id = post_id || '';
-
-				var id = this.get( 'id' );
-				id = id || '';
-
-				return WP_API_Settings.root + 'wp/v2/posts/' + post_id + '/comments/' + id;
 			}
+
 		}, TimeStampedMixin, HierarchicalMixin )
 	);
 
 	/**
-	 * Backbone model for single post types.
+	 * Backbone model for a single post type.
+	 *
+	 * @param {Object} attributes
+	 * @param {string} attributes.slug The post type slug.
 	 */
-	wp.api.models.PostType = BaseModel.extend(
+	wp.api.models.PostType = WPApiBaseModel.extend(
 		/** @lends PostType.prototype */
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + 'wp/v2/posts/types',
+			urlRoot: WP_API_Settings.root + 'wp/v2/types',
 
 			defaults: {
 				slug: null,
@@ -540,21 +557,24 @@
 			 *
 			 * @returns {boolean}.
 			 */
-			'delete': function() {
+			destroy: function() {
 				return false;
 			}
 		}
 	);
 
 	/**
-	 * Backbone model for a post status.
+	 * Backbone model for a a single post status.
+	 *
+	 * @param {Object} attributes
+	 * @param {string} attributes.slug The post status slug.
 	 */
-	wp.api.models.PostStatus = BaseModel.extend(
+	wp.api.models.PostStatus = WPApiBaseModel.extend(
 		/** @lends PostStatus.prototype */
 		{
 			idAttribute: 'slug',
 
-			urlRoot: WP_API_Settings.root + 'wp/v2/posts/statuses',
+			urlRoot: WP_API_Settings.root + 'wp/v2/statuses',
 
 			defaults: {
 				slug: null,
@@ -581,11 +601,53 @@
 			 *
 			 * @returns {boolean}.
 			 */
-			'delete': function() {
+			destroy: function() {
 				return false;
 			}
 		}
 	);
+
+	/**
+	 * API Schema model. Contains meta information about the API.
+	 */
+	wp.api.models.Schema = WPApiBaseModel.extend(
+		/** @lends Shema.prototype  */
+		{
+			url: WP_API_Settings.root + 'wp/v2',
+
+			defaults: {
+				namespace: '',
+				_links: '',
+				routes: {}
+			},
+
+			/**
+			 * Prevent model from being saved.
+			 *
+			 * @returns {boolean}.
+			 */
+			save: function() {
+				return false;
+			},
+
+			/**
+			 * Prevent model from being deleted.
+			 *
+			 * @returns {boolean}.
+			 */
+			destroy: function() {
+				return false;
+			}
+		}
+	);
+
+
+})( wp, WP_API_Settings, Backbone, window );
+
+/* global WP_API_Settings:false */
+(function( wp, WP_API_Settings, Backbone, _, window, undefined ) {
+
+	'use strict';
 
 	/**
 	 * Contains basic collection functionality such as pagination.
@@ -917,4 +979,4 @@
 	 * Todo: Handle post meta.
 	 */
 
-})( WP_API_Settings, Backbone, _, window, ( void 0 ) );
+})( wp, WP_API_Settings, Backbone, _, window );
