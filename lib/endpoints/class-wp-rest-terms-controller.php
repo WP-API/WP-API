@@ -83,9 +83,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
 			} else {
-				$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
 				if ( $parent ) {
-					$prepared_args['parent'] = $parent->term_id;
+					$prepared_args['parent'] = $request['parent'];
 				}
 			}
 		}
@@ -137,7 +136,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
+		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term || $term->taxonomy !== $this->taxonomy ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -173,7 +172,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set term parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
 			}
 
-			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+			$parent = get_term( (int) $request['parent'], $this->taxonomy );
 
 			if ( ! $parent ) {
 				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 404 ) );
@@ -186,11 +185,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $term ) ) {
 
 			// If we're going to inform the client that the term exists, give them the identifier
-			// they can actually use (term_taxonomy_id) -- NOT term_id.
+			// they can actually use.
 
 			if ( ( $term_id = $term->get_error_data( 'term_exists' ) ) ) {
 				$existing_term = get_term( $term_id, $this->taxonomy );
-				$term->add_data( $existing_term->term_taxonomy_id, 'term_exists' );
+				$term->add_data( $existing_term->term_id, 'term_exists' );
 			}
 
 			return $term;
@@ -199,12 +198,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( $term, $request );
 
 		$response = $this->get_item( array(
-			'id' => $term['term_taxonomy_id'],
+			'id' => $term['term_id'],
 		 ) );
 
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_taxonomy_id'] ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_id'] ) );
 		return $response;
 	}
 
@@ -232,7 +231,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set term parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
 			}
 
-			$parent = get_term_by( 'term_taxonomy_id', (int) $request['parent'], $this->taxonomy );
+			$parent = get_term( (int) $request['parent'], $this->taxonomy );
 
 			if ( ! $parent ) {
 				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 400 ) );
@@ -241,7 +240,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$prepared_args['parent'] = $parent->term_id;
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
+		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -254,10 +253,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$this->update_additional_fields_for_object( get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy ), $request );
+		$this->update_additional_fields_for_object( get_term( (int) $request['id'], $this->taxonomy ), $request );
 
 		$response = $this->get_item( array(
-			'id' => $term->term_taxonomy_id,
+			'id' => $term->term_id,
 		 ) );
 
 		return rest_ensure_response( $response );
@@ -272,7 +271,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 
 		// Get the actual term_id
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
+		$term = get_term( (int) $request['id'], $this->taxonomy );
 		$get_request = new WP_REST_Request( 'GET', rest_url( 'wp/v2/' . $this->get_taxonomy_base( $term->taxonomy ) . '/' . (int) $request['id'] ) );
 		$get_request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $get_request );
@@ -390,7 +389,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $valid;
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', (int) $request['id'], $this->taxonomy );
+		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
 			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 		}
@@ -427,16 +426,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 
-		$parent_id = 0;
-		if ( $item->parent ) {
-			$parent_term = get_term_by( 'id', (int) $item->parent, $item->taxonomy );
-			if ( $parent_term ) {
-				$parent_id = $parent_term->term_taxonomy_id;
-			}
-		}
-
 		$data = array(
-			'id'           => (int) $item->term_taxonomy_id,
+			'id'           => (int) $item->term_id,
 			'count'        => (int) $item->count,
 			'description'  => $item->description,
 			'link'         => get_term_link( $item ),
@@ -446,7 +437,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 		$schema = $this->get_item_schema();
 		if ( ! empty( $schema['properties']['parent'] ) ) {
-			$data['parent'] = (int) $parent_id;
+			$data['parent'] = (int) $item->parent;
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -479,7 +470,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$base = '/wp/v2/' . $this->get_taxonomy_base( $term->taxonomy );
 		$links = array(
 			'self'       => array(
-				'href'       => rest_url( trailingslashit( $base ) . $term->term_taxonomy_id ),
+				'href'       => rest_url( trailingslashit( $base ) . $term->term_id ),
 			),
 			'collection' => array(
 				'href'       => rest_url( $base ),
@@ -490,10 +481,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 
 		if ( $term->parent ) {
-			$parent_term = get_term_by( 'id', (int) $term->parent, $term->taxonomy );
+			$parent_term = get_term( (int) $term->parent, $term->taxonomy );
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( sprintf( 'wp/v2/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_taxonomy_id ) ),
+					'href'       => rest_url( sprintf( 'wp/v2/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_id ) ),
 					'embeddable' => true,
 				);
 			}
