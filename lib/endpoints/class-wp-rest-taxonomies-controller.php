@@ -49,7 +49,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				continue;
 			}
 			$tax = $this->prepare_response_for_collection( $tax );
-			$data[] = $tax;
+			$data[ $tax_type ] = $tax;
 		}
 		return $data;
 	}
