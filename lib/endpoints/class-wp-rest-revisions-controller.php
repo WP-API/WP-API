@@ -221,7 +221,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ) );
 		}
 
-		return $response;
+		/**
+		 * Filter a revision returned from the API.
+		 *
+		 * Allows modification of the revision right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param WP_Post           $post       The original revision object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_revision', $response, $post, $request );
 	}
 
 	/**
