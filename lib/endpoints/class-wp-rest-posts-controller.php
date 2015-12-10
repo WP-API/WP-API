@@ -1172,10 +1172,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Entity meta
 		$links = array(
 			'self' => array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID ),
+				'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
 			),
 			'collection' => array(
-				'href' => rest_url( $base ),
+				'href'   => rest_url( $base ),
+			),
+			'about'      => array(
+				'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
 			),
 		);
 
