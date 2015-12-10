@@ -85,16 +85,25 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object.
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
 		$base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
-		$data->add_links( array(
+		$response->add_links( array(
 			'collection'     => array(
 				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
 			),
 		) );
 
-		return $data;
+		/**
+		 * Filter a post type returned from the API.
+		 *
+		 * Allows modification of the post type data right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param object            $item       The original post type object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_post_type', $response, $post_type, $request );
 	}
 
 	/**
