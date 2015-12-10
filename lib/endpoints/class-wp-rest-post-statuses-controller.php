@@ -97,7 +97,16 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			$data->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) ) );
 		}
 
-		return $data;
+		/**
+		 * Filter a status returned from the API.
+		 *
+		 * Allows modification of the status data right before it is returned.
+		 *
+		 * @param WP_REST_Response  $data     The response object.
+		 * @param object            $status   The original status object.
+		 * @param WP_REST_Request   $request  Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_status', $data, $status, $request );
 	}
 
 	/**
