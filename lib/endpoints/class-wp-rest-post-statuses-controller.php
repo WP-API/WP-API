@@ -26,7 +26,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 						'type'         => 'string',
 						'enum'         => array( 'view' ),
 					),
-				)
+				),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
