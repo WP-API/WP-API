@@ -20,13 +20,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		$base = $this->get_taxonomy_base( $this->taxonomy );
-		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => $query_params,
+				'args'                => $this->get_collection_params(),
 			),
 			array(
 				'methods'     => WP_REST_Server::CREATABLE,
