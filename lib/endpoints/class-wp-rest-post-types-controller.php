@@ -42,7 +42,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $post_type ) ) {
 				continue;
 			}
-			$data[ $obj->name ] = $post_type;
+			$data[ $obj->name ] = $this->prepare_response_for_collection( $post_type );
 		}
 		return $data;
 	}
@@ -83,6 +83,16 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+
+		// Wrap the data in a response object.
+		$data = rest_ensure_response( $data );
+
+		$base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+		$data->add_links( array(
+			'collection'     => array(
+				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
+			),
+		) );
 
 		return $data;
 	}

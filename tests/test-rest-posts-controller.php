@@ -228,6 +228,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id ), $links['self'][0]['href'] );
 		$this->assertEquals( rest_url( '/wp/v2/posts' ), $links['collection'][0]['href'] );
 
+		$this->assertEquals( rest_url( '/wp/v2/types/' . get_post_type( $this->post_id ) ), $links['about'][0]['href'] );
+
 		$replies_url = rest_url( '/wp/v2/comments' );
 		$replies_url = add_query_arg( 'post', $this->post_id, $replies_url );
 		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
