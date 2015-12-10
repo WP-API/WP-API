@@ -1143,9 +1143,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object.
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $post ) );
+		$response->add_links( $this->prepare_links( $post ) );
 
 		/**
 		 * Filter the post data for a response.
@@ -1153,11 +1153,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
 		 * prepared for the response.
 		 *
-		 * @param array           $data    An array of post data, prepared for response.
-		 * @param WP_Post         $post    Post object.
-		 * @param WP_REST_Request $request Request object.
+		 * @param WP_REST_Response   $response   The response object.
+		 * @param WP_Post            $post       Post object.
+		 * @param WP_REST_Request    $request    Request object.
 		 */
-		return apply_filters( 'rest_prepare_' . $this->post_type, $data, $post, $request );
+		return apply_filters( 'rest_prepare_' . $this->post_type, $response, $post, $request );
 	}
 
 	/**

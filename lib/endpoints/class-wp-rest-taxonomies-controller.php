@@ -112,10 +112,10 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object.
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
 		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-		$data->add_links( array(
+		$response->add_links( array(
 			'collection'     => array(
 				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
 			),
@@ -126,11 +126,11 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		 *
 		 * Allows modification of the taxonomy data right before it is returned.
 		 *
-		 * @param array           $data     An array of taxonomy date, prepared for response.
-		 * @param object          $item     The taxonomy object.
-		 * @param WP_REST_Request $request  Request used to generate the response.
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param object            $item       The original taxonomy object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_taxonomy', $data, $taxonomy, $request );
+		return apply_filters( 'rest_prepare_taxonomy', $response, $taxonomy, $request );
 	}
 
 	/**

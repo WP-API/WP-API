@@ -512,11 +512,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $comment ) );
+		$response->add_links( $this->prepare_links( $comment ) );
 
-		return apply_filters( 'rest_prepare_comment', $data, $comment, $request );
+		/**
+		 * Filter a comment returned from the API.
+		 *
+		 * Allows modification of the comment right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param object            $comment    The original comment object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_comment', $response, $comment, $request );
 	}
 
 	/**

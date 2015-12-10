@@ -453,20 +453,20 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $item ) );
+		$response->add_links( $this->prepare_links( $item ) );
 
 		/**
 		 * Filter a term item returned from the API.
 		 *
 		 * Allows modification of the term data right before it is returned.
 		 *
-		 * @param array           $data     Key value array of term data.
-		 * @param object          $item     The term object.
-		 * @param WP_REST_Request $request  Request used to generate the response.
+		 * @param WP_REST_Response  $response  The response object.
+		 * @param object            $item      The original term object.
+		 * @param WP_REST_Request   $request   Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_term', $data, $item, $request );
+		return apply_filters( 'rest_prepare_term', $response, $item, $request );
 	}
 
 	/**
