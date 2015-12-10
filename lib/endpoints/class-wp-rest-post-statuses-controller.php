@@ -11,6 +11,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'args'            => $this->get_collection_params(),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -19,6 +20,13 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'args'            => array(
+					'context'          => array(
+						'default'      => 'view',
+						'type'         => 'string',
+						'enum'         => array( 'view' ),
+					),
+				)
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -158,6 +166,23 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 				),
 			);
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$params = parent::get_collection_params();
+		return array(
+			'context'          => array(
+				'description'  => $params['context']['description'],
+				'type'         => $params['context']['type'],
+				'default'      => 'view',
+				'enum'         => array( 'view' ),
+			),
+		);
 	}
 
 }

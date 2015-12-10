@@ -15,14 +15,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$base = $this->get_post_type_base( $this->post_type );
 
-		$posts_args = $this->get_collection_params();
-
 		register_rest_route( 'wp/v2', '/' . $base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'            => $posts_args,
+				'args'            => $this->get_collection_params(),
 			),
 			array(
 				'methods'         => WP_REST_Server::CREATABLE,
@@ -41,6 +39,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'args'            => array(
 					'context'          => array(
 						'default'      => 'view',
+						'type'         => 'string',
+						'enum'         => array( 'embed', 'view', 'edit' ),
 					),
 				),
 			),

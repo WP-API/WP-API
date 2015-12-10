@@ -19,13 +19,12 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$base     = $this->posts_controller->get_post_type_base( $this->post_type );
 		$tax_base = $this->terms_controller->get_taxonomy_base( $this->taxonomy );
 
-		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', sprintf( '/%s/(?P<post_id>[\d]+)/%s', $base, $tax_base ), array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'                => $query_params,
+				'args'                => $this->get_collection_params(),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
