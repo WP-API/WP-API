@@ -201,7 +201,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 0, count( $response->get_data() ) );
 		$yolo_id = $this->factory->user->create( array( 'display_name' => 'yololololo' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
-		$request->set_param( 'search', $yolo_id ); // searching doesn't support display name
+		$request->set_param( 'search', $yolo_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 1, count( $response->get_data() ) );
 		// default to wildcard search
