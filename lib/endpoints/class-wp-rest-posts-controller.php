@@ -646,7 +646,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Prepare a single post for create or update.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|obj $prepared_post Post object.
+	 * @return WP_Error|object $prepared_post Post object.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post = new stdClass;
@@ -920,7 +920,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * Correctly handles posts with the inherit status.
 	 *
-	 * @param obj $post Post object.
+	 * @param object $post Post object.
 	 * @return bool Can we read it?
 	 */
 	public function check_read_permission( $post ) {
@@ -964,7 +964,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check if we can edit a post.
 	 *
-	 * @param obj $post Post object.
+	 * @param object $post Post object.
 	 * @return bool Can we edit it?
 	 */
 	protected function check_update_permission( $post ) {
@@ -980,7 +980,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check if we can create a post.
 	 *
-	 * @param obj $post Post object.
+	 * @param object $post Post object.
 	 * @return bool Can we create it?.
 	 */
 	protected function check_create_permission( $post ) {
@@ -996,7 +996,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check if we can delete a post.
 	 *
-	 * @param obj $post Post object.
+	 * @param object $post Post object.
 	 * @return bool Can we delete it?
 	 */
 	protected function check_delete_permission( $post ) {

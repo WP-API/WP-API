@@ -375,20 +375,20 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$parent = wp_insert_term( 'test-category', 'category' );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/categories' );
 		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'parent', $parent['term_taxonomy_id'] );
+		$request->set_param( 'parent', $parent['term_id'] );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $parent['term_taxonomy_id'], $data['parent'] );
+		$this->assertEquals( $parent['term_id'], $data['parent'] );
 	}
 
 	public function test_create_item_invalid_parent() {
 		wp_set_current_user( $this->administrator );
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_taxonomy_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_id );
 		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'parent', 9999 );
+		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
 	}
@@ -398,7 +398,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/tags' );
 		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'parent', 9999 );
+		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
 	}
@@ -411,7 +411,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 			'slug'        => 'original-slug',
 			);
 		$term = get_term_by( 'id', $this->factory->category->create( $orig_args ), 'category' );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_taxonomy_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_id );
 		$request->set_param( 'name', 'New Name' );
 		$request->set_param( 'description', 'New Description' );
 		$request->set_param( 'slug', 'new-slug' );
@@ -425,7 +425,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_update_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy/9999999' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -433,7 +433,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_update_item_invalid_term() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/9999999' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$request->set_param( 'name', 'Invalid Term' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
@@ -442,7 +442,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_update_item_incorrect_permissions() {
 		wp_set_current_user( $this->subscriber );
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_taxonomy_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_id );
 		$request->set_param( 'name', 'Incorrect permissions' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
@@ -454,20 +454,20 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_taxonomy_id );
-		$request->set_param( 'parent', $parent->term_taxonomy_id );
+		$request->set_param( 'parent', $parent->term_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( $parent->term_taxonomy_id, $data['parent'] );
+		$this->assertEquals( $parent->term_id, $data['parent'] );
 	}
 
 	public function test_update_item_invalid_parent() {
 		wp_set_current_user( $this->administrator );
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_taxonomy_id );
-		$request->set_param( 'parent', 9999 );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/categories/' . $term->term_id );
+		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
 	}
@@ -477,7 +477,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$term = get_term_by( 'id', $this->factory->tag->create(), 'post_tag' );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/tags/' . $term->term_taxonomy_id );
-		$request->set_param( 'parent', 9999 );
+		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
 	}
@@ -485,7 +485,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_delete_item() {
 		wp_set_current_user( $this->administrator );
 		$term = get_term_by( 'id', $this->factory->category->create( array( 'name' => 'Deleted Category' ) ), 'category' );
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_taxonomy_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -495,14 +495,14 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_delete_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/terms/invalid-taxonomy/9999999' );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/terms/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	public function test_delete_item_invalid_term() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/9999999' );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
 	}
@@ -510,7 +510,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_delete_item_incorrect_permissions() {
 		wp_set_current_user( $this->subscriber );
 		$term = get_term_by( 'id', $this->factory->category->create(), 'category' );
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_taxonomy_id );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}

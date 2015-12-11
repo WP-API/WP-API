@@ -106,11 +106,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$terms = wp_get_object_terms( $post->ID, $this->taxonomy );
 
-		if ( ! in_array( $term_id, wp_list_pluck( $terms, 'term_taxonomy_id' ) ) ) {
+		if ( ! in_array( $term_id, wp_list_pluck( $terms, 'term_id' ) ) ) {
 			return new WP_Error( 'rest_post_not_in_term', __( 'Invalid taxonomy for post id.' ), array( 'status' => 404 ) );
 		}
 
-		$term = $this->terms_controller->prepare_item_for_response( get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ), $request );
+		$term = $this->terms_controller->prepare_item_for_response( get_term( $term_id, $this->taxonomy ), $request );
 
 		$response = rest_ensure_response( $term );
 
@@ -132,14 +132,14 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			return $is_request_valid;
 		}
 
-		$term = get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy );
+		$term = get_term( $term_id, $this->taxonomy );
 		$tt_ids = wp_set_object_terms( $post->ID, $term->term_id, $this->taxonomy, true );
 
 		if ( is_wp_error( $tt_ids ) ) {
 			return $tt_ids;
 		}
 
-		$term = $this->terms_controller->prepare_item_for_response( get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy ), $request );
+		$term = $this->terms_controller->prepare_item_for_response( get_term( $term_id, $this->taxonomy ), $request );
 
 		$response = rest_ensure_response( $term );
 		$response->set_status( 201 );
@@ -226,7 +226,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		if ( ! empty( $request['term_id'] ) ) {
 			$term_id  = absint( $request['term_id'] );
 
-			$term = get_term_by( 'term_taxonomy_id', $term_id, $this->taxonomy );
+			$term = get_term( $term_id, $this->taxonomy );
 			if ( ! $term || $term->taxonomy !== $this->taxonomy ) {
 				return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
 			}
