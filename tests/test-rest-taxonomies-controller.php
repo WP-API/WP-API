@@ -27,7 +27,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_get_taxonomies_with_types() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
-		$request->set_param( 'post_type', 'post' );
+		$request->set_param( 'type', 'post' );
 		$response = $this->server->dispatch( $request );
 		$this->check_taxonomies_for_type_response( 'post', $response );
 	}

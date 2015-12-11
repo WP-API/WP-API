@@ -33,8 +33,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_items( $request ) {
-		if ( ! empty( $request['post_type'] ) ) {
-			$taxonomies = get_object_taxonomies( $request['post_type'], 'objects' );
+		if ( ! empty( $request['type'] ) ) {
+			$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}
@@ -190,7 +190,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$new_params = array();
 		$new_params['context'] = $params['context'];
 		$new_params['context']['default'] = 'view';
-		$new_params['post_type'] = array(
+		$new_params['type'] = array(
 			'description'  => 'Limit results to taxonomies associated with a specific post type.',
 			'type'         => 'string',
 		);
