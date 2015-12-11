@@ -18,7 +18,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		// Check each key in $data against those in $post_types
 		foreach ( $data as $key => $obj ) {
 			$this->assertEquals( $post_types[ $obj['slug'] ]->name, $key );
-			$this->check_post_type_obj( $post_types[ $obj['slug'] ], $obj );
+			$this->check_post_type_obj( $post_types[ $obj['slug'] ], $obj, $obj['_links'] );
 		}
 	}
 
@@ -49,8 +49,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_prepare_item() {
 		$obj = get_post_type_object( 'post' );
 		$endpoint = new WP_REST_Post_Types_Controller;
-		$data = $endpoint->prepare_item_for_response( $obj, new WP_REST_Request );
-		$this->check_post_type_obj( $obj, $data );
+		$response = $endpoint->prepare_item_for_response( $obj, new WP_REST_Request );
+		$this->check_post_type_obj( $obj, $response->get_data(), $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -75,7 +75,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'type', 'my_custom_int', array(
+		register_rest_field( 'type', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -102,11 +102,12 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		return 123;
 	}
 
-	protected function check_post_type_obj( $post_type_obj, $data ) {
+	protected function check_post_type_obj( $post_type_obj, $data, $links ) {
 		$this->assertEquals( $post_type_obj->label, $data['name'] );
 		$this->assertEquals( $post_type_obj->name, $data['slug'] );
 		$this->assertEquals( $post_type_obj->description, $data['description'] );
 		$this->assertEquals( $post_type_obj->hierarchical, $data['hierarchical'] );
+		$this->assertArrayHasKey( 'collection', $links );
 	}
 
 	protected function check_post_type_object_response( $response ) {
@@ -115,7 +116,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$obj = get_post_type_object( 'post' );
-		$this->check_post_type_obj( $obj, $data );
+		$this->check_post_type_obj( $obj, $data, $response->get_links() );
 	}
 
 }

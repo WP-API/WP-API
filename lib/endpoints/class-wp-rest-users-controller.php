@@ -101,6 +101,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$request['context'] = 'embed';
 		}
 
+		if ( '' !== $prepared_args['search'] ) {
+			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
+		}
+
 		/**
 		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
@@ -489,18 +493,18 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $user ) );
+		$response->add_links( $this->prepare_links( $user ) );
 
 		/**
 		 * Filter user data returned from the REST API.
 		 *
-		 * @param WP_REST_Response $data    Response data.
-		 * @param object           $user    User object used to create response.
-		 * @param WP_REST_Request  $request Request object.
+		 * @param WP_REST_Response $response  The response object.
+		 * @param object           $user      User object used to create response.
+		 * @param WP_REST_Request  $request   Request object.
 		 */
-		return apply_filters( 'rest_prepare_user', $data, $user, $request );
+		return apply_filters( 'rest_prepare_user', $response, $user, $request );
 	}
 
 	/**

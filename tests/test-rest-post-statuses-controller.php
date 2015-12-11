@@ -109,7 +109,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'status', 'my_custom_int', array(
+		register_rest_field( 'status', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),

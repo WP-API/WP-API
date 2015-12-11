@@ -411,6 +411,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item_permissions_check( $request ) {
 
+		if ( ! is_user_logged_in() && get_option( 'comment_registration' ) ) {
+			return new WP_Error( 'rest_comment_login_required', __( 'Sorry, you must be logged in to comment.' ), array( 'status' => 401 ) );
+		}
+
 		// Limit who can set comment `author`, `karma` or `status` to anything other than the default.
 		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
 			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -508,11 +512,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
 		// Wrap the data in a response object
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $comment ) );
+		$response->add_links( $this->prepare_links( $comment ) );
 
-		return apply_filters( 'rest_prepare_comment', $data, $comment, $request );
+		/**
+		 * Filter a comment returned from the API.
+		 *
+		 * Allows modification of the comment right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param object            $comment    The original comment object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_comment', $response, $comment, $request );
 	}
 
 	/**

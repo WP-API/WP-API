@@ -42,7 +42,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $post_type ) ) {
 				continue;
 			}
-			$data[ $obj->name ] = $post_type;
+			$data[ $obj->name ] = $this->prepare_response_for_collection( $post_type );
 		}
 		return $data;
 	}
@@ -84,7 +84,26 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
 
-		return $data;
+		// Wrap the data in a response object.
+		$response = rest_ensure_response( $data );
+
+		$base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
+		$response->add_links( array(
+			'collection'     => array(
+				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
+			),
+		) );
+
+		/**
+		 * Filter a post type returned from the API.
+		 *
+		 * Allows modification of the post type data right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param object            $item       The original post type object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_post_type', $response, $post_type, $request );
 	}
 
 	/**
