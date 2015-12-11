@@ -15,13 +15,14 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$data = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
 		$this->assertEquals( count( $taxonomies ), count( $data ) );
-		// Check each key in $data against those in $taxonomies
-		foreach ( array_keys( $data ) as $key ) {
-			$this->assertEquals( $taxonomies[ $key ]->label, $data[ $key ]['name'] );
-			$this->assertEquals( $taxonomies[ $key ]->name, $data[ $key ]['slug'] );
-			$this->assertEquals( $taxonomies[ $key ]->hierarchical, $data[ $key ]['hierarchical'] );
-			$this->assertEquals( $taxonomies[ $key ]->show_tagcloud, $data[ $key ]['show_cloud'] );
-		}
+		$this->assertEquals( 'Categories', $data['category']['name'] );
+		$this->assertEquals( 'category', $data['category']['slug'] );
+		$this->assertEquals( true, $data['category']['hierarchical'] );
+		$this->assertEquals( true, $data['category']['show_cloud'] );
+		$this->assertEquals( 'Tags', $data['post_tag']['name'] );
+		$this->assertEquals( 'post_tag', $data['post_tag']['slug'] );
+		$this->assertEquals( false, $data['post_tag']['hierarchical'] );
+		$this->assertEquals( true, $data['post_tag']['show_cloud'] );
 	}
 
 	public function test_get_taxonomies_with_types() {
@@ -66,8 +67,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
 		$endpoint = new WP_REST_Taxonomies_Controller;
-		$data = $endpoint->prepare_item_for_response( $tax, new WP_REST_Request );
-		$this->check_taxonomy_object( $tax, $data );
+		$response = $endpoint->prepare_item_for_response( $tax, new WP_REST_Request );
+		$this->check_taxonomy_object( $tax, $response->get_data(), $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -103,12 +104,13 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
 	}
 
-	protected function check_taxonomy_object( $tax_obj, $data ) {
+	protected function check_taxonomy_object( $tax_obj, $data, $links ) {
 		$this->assertEquals( $tax_obj->label, $data['name'] );
 		$this->assertEquals( $tax_obj->name, $data['slug'] );
 		$this->assertEquals( $tax_obj->description, $data['description'] );
 		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
+		$this->assertArrayHasKey( 'collection', $links );
 	}
 
 	protected function check_taxonomy_object_response( $response ) {
@@ -117,7 +119,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$category = get_taxonomy( 'category' );
-		$this->check_taxonomy_object( $category, $data );
+		$this->check_taxonomy_object( $category, $data, $response->get_links() );
 	}
 
 	protected function check_taxonomies_for_type_response( $type, $response ) {

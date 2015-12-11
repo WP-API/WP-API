@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta7
+ * Version: 2.0-beta8
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -133,13 +133,13 @@ function _add_extra_api_taxonomy_arguments() {
 
 	if ( isset( $wp_taxonomies['category'] ) ) {
 		$wp_taxonomies['category']->show_in_rest = true;
-		$wp_taxonomies['category']->rest_base = 'category';
+		$wp_taxonomies['category']->rest_base = 'categories';
 		$wp_taxonomies['category']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 
 	if ( isset( $wp_taxonomies['post_tag'] ) ) {
 		$wp_taxonomies['post_tag']->show_in_rest = true;
-		$wp_taxonomies['post_tag']->rest_base = 'tag';
+		$wp_taxonomies['post_tag']->rest_base = 'tags';
 		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 }
@@ -220,7 +220,18 @@ function create_initial_rest_routes() {
 	$controller->register_routes();
 }
 
-if ( ! function_exists( 'register_api_field' ) ) {
+if ( ! function_exists( 'rest_authorization_required_code' ) ) {
+	/**
+	 * Returns a contextual HTTP error code for authorization failure.
+	 *
+	 * @return integer
+	 */
+	function rest_authorization_required_code() {
+		return is_user_logged_in() ? 403 : 401;
+	}
+}
+
+if ( ! function_exists( 'register_rest_field' ) ) {
 	/**
 	 * Registers a new field on an existing WordPress object type.
 	 *
@@ -243,7 +254,7 @@ if ( ! function_exists( 'register_api_field' ) ) {
 	 *                                              this field. Default is 'null', no schema entry will be returned.
 	 * }
 	 */
-	function register_api_field( $object_type, $attribute, $args = array() ) {
+	function register_rest_field( $object_type, $attribute, $args = array() ) {
 		$defaults = array(
 			'get_callback'    => null,
 			'update_callback' => null,
@@ -259,5 +270,15 @@ if ( ! function_exists( 'register_api_field' ) ) {
 		foreach ( $object_types as $object_type ) {
 			$wp_rest_additional_fields[ $object_type ][ $attribute ] = $args;
 		}
+	}
+}
+
+if ( ! function_exists( 'register_api_field' ) ) {
+	/**
+	 * Backwards compat shim
+	 */
+	function register_api_field( $object_type, $attributes, $args = array() ) {
+		_deprecated_function( 'register_api_field', 'WPAPI-2.0', 'register_rest_field' );
+		register_rest_field( $object_type, $attributes, $args );
 	}
 }

@@ -21,7 +21,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$parent = get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
 			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -183,14 +183,30 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$img_url_basename = wp_basename( $data['source_url'] );
 
 			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
+
+				if ( isset( $size_data['mime-type'] ) ) {
+					$size_data['mime_type'] = $size_data['mime-type'];
+					unset( $size_data['mime-type'] );
+				}
+
 				// Use the same method image_downsize() does
 				$image_src = wp_get_attachment_image_src( $post->ID, $size );
-
 				if ( ! $image_src ) {
 					continue;
 				}
 
 				$size_data['source_url'] = $image_src[0];
+			}
+
+			$full_src = wp_get_attachment_image_src( $post->ID, 'full' );
+			if ( ! empty( $full_src ) ) {
+				$data['media_details']['sizes']['full'] = array(
+					'file'          => wp_basename( $full_src[0] ),
+					'width'         => $full_src[1],
+					'height'        => $full_src[2],
+					'mime_type'     => $post->post_mime_type,
+					'source_url'    => $full_src[0],
+					);
 			}
 		} else {
 			$data['media_details']['sizes'] = new stdClass;
@@ -201,21 +217,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 
 		// Wrap the data in a response object
-		$data = rest_ensure_response( $data );
+		$response = rest_ensure_response( $data );
 
-		$data->add_links( $this->prepare_links( $post ) );
+		$response->add_links( $this->prepare_links( $post ) );
 
 		/**
 		 * Filter an attachment returned from the API.
 		 *
 		 * Allows modification of the attachment right before it is returned.
 		 *
-		 * @param array           $data     Key value array of attachment data: alt_text, caption, description,
-		 *                                  media_type, media_details, post, source_url. Piossibly media_details.
-		 * @param WP_Post         $post     The attachment post.
-		 * @param WP_REST_Request $request  Request used to generate the response.
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param WP_Post           $post       The original attachment post.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_attachment', $data, $post, $request );
+		return apply_filters( 'rest_prepare_attachment', $response, $post, $request );
 	}
 
 	/**
@@ -265,7 +280,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
-			'description'     => 'The ID for the associated post of the attachment.',
+			'description'     => 'The id for the associated post of the attachment.',
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
 			);

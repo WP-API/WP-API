@@ -64,7 +64,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent = get_post( $request['parent_id'] );
 		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revisions = wp_get_post_revisions( $request['parent_id'] );
@@ -91,7 +91,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 		$parent_post_type_obj = get_post_type_object( $parent->post_type );
 		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
-			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => 403 ) );
+			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -107,12 +107,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent = get_post( $request['parent_id'] );
 		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revision = get_post( $request['id'] );
 		if ( ! $revision || 'revision' !== $revision->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision ID.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision id.' ), array( 'status' => 404 ) );
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
@@ -221,7 +221,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$response->add_link( 'parent', rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ) );
 		}
 
-		return $response;
+		/**
+		 * Filter a revision returned from the API.
+		 *
+		 * Allows modification of the revision right before it is returned.
+		 *
+		 * @param WP_REST_Response  $response   The response object.
+		 * @param WP_Post           $post       The original revision object.
+		 * @param WP_REST_Request   $request    Request used to generate the response.
+		 */
+		return apply_filters( 'rest_prepare_revision', $response, $post, $request );
 	}
 
 	/**
@@ -259,7 +268,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'author'          => array(
-						'description' => 'The ID for the author of the object.',
+						'description' => 'The id for the author of the object.',
 						'type'        => 'integer',
 						'context'     => array( 'view' ),
 					),
@@ -298,7 +307,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					'context'     => array( 'view' ),
 				),
 				'parent'          => array(
-					'description' => 'The ID for the parent of the object.',
+					'description' => 'The id for the parent of the object.',
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					),

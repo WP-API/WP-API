@@ -51,9 +51,10 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	public function test_get_item_invalid_access() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/draft' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read_status', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_status', $response, 401 );
 	}
 
 	public function test_get_item_invalid_internal() {
@@ -108,7 +109,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'status', 'my_custom_int', array(
+		register_rest_field( 'status', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),

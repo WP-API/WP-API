@@ -1,5 +1,41 @@
 # Changelog
 
+## 2.0 Beta 8.0
+
+- Prevent fatals when uploading attachment by including admin utilities.
+
+  (props @danielbachhuber, [#1756](https://github.com/WP-API/WP-API/pull/1756))
+
+- Return 201 status code when creating a term.
+
+  (props @danielbachhuber, [#1753](https://github.com/WP-API/WP-API/pull/1753))
+
+- Don't permit requesting terms cross routes.
+
+  Clients should only be able to request categories from the category route, and tags from the tag route.
+
+  (props @danielbachhuber, [#1764](https://github.com/WP-API/WP-API/pull/1764))
+
+- Set `fields=>id` when using `WP_User_Query` to fix large memory usage
+
+  (props @joehoyle, [#1770](https://github.com/WP-API/WP-API/pull/1770))
+
+- Fix Post `_link` to attached attachments.
+
+  (props @danielbachhuber, [#1777](https://github.com/WP-API/WP-API/pull/1777))
+
+- Add support for getting a post with a custom public status.
+
+  (props @danielbachhuber, [#1765](https://github.com/WP-API/WP-API/pull/1765))
+
+- Ensure post content doesn't get double-slashed on update.
+
+  (props @joehoyle, [#1772](https://github.com/WP-API/WP-API/pull/1772))
+
+- Change 'int' to 'integer' for `WP_REST_Controller::validate_schema_property()`
+
+  (props @wpsmith, [#1759](https://github.com/WP-API/WP-API/pull/1759))
+
 ## 2.0 Beta 7.0
 
 - Sync infrastructure from WordPress core as of r35691.

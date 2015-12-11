@@ -78,7 +78,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_items_for_post() {
@@ -267,10 +267,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_comment_invalid_context() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $this->approved_id ) );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_comment_invalid_post_id() {
@@ -290,7 +291,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $this->hold_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
 	public function test_get_comment_not_approved_same_user() {
@@ -586,6 +587,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
+	public function test_create_comment_require_login() {
+		wp_set_current_user( 0 );
+		update_option( 'comment_registration', 1 );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->set_param( 'post', $this->post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 401, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
+	}
+
 	public function test_create_comment_two_times() {
 
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
@@ -773,7 +785,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
 	public function test_delete_item() {
@@ -866,7 +878,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'comment', 'my_custom_int', array(
+		register_rest_field( 'comment', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),

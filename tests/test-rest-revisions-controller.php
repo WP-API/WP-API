@@ -58,7 +58,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 		wp_set_current_user( $this->contributor_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
@@ -91,7 +91,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_id1 );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 		wp_set_current_user( $this->contributor_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read', $response, 403 );
@@ -175,7 +175,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'posts-revision', 'my_custom_int', array(
+		register_rest_field( 'posts-revision', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),

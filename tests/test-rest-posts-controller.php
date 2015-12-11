@@ -57,6 +57,57 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_get_item_author_query() {
+		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 2, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'author', $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $this->editor_id, $data[0]['author'] );
+	}
+
+	public function test_get_items_search_query() {
+		for ( $i = 0;  $i < 5;  $i++ ) {
+			$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		}
+		$this->factory->post->create( array( 'post_title' => 'Search Result', 'post_status' => 'publish' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 7, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'Search Result' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Search Result', $data[0]['title']['rendered'] );
+	}
+
+	public function test_get_items_status_query() {
+		wp_set_current_user( 0 );
+		$this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'publish' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 1, count( $response->get_data() ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'draft' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'status', 'draft' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 1, count( $response->get_data() ) );
+	}
+
 	public function test_get_items_status_without_permissions() {
 		$draft_id = $this->factory->post->create( array(
 			'post_status' => 'draft',
@@ -74,6 +125,26 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
+	}
+
+	public function test_get_items_ignore_sticky_posts_by_default() {
+		$post_id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-01 12:00:00', 'post_date_gmt' => '2015-01-01 12:00:00' ) );
+		$post_id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-02 12:00:00', 'post_date_gmt' => '2015-01-02 12:00:00' ) );
+		$post_id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-03 12:00:00', 'post_date_gmt' => '2015-01-03 12:00:00' ) );
+		stick_post( $post_id2 );
+
+		// No stickies by default
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( $this->post_id, $post_id3, $post_id2, $post_id1 ), wp_list_pluck( $data, 'id' ) );
+
+		// Permit stickies
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array( 'ignore_sticky_posts' => false ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( array( $post_id2, $this->post_id, $post_id3, $post_id1 ), wp_list_pluck( $data, 'id' ) );
 	}
 
 	/**
@@ -157,6 +228,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id ), $links['self'][0]['href'] );
 		$this->assertEquals( rest_url( '/wp/v2/posts' ), $links['collection'][0]['href'] );
 
+		$this->assertEquals( rest_url( '/wp/v2/types/' . get_post_type( $this->post_id ) ), $links['about'][0]['href'] );
+
 		$replies_url = rest_url( '/wp/v2/comments' );
 		$replies_url = add_query_arg( 'post', $this->post_id, $replies_url );
 		$this->assertEquals( $replies_url, $links['replies'][0]['href'] );
@@ -179,11 +252,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $tag_link );
 		$this->assertNotEmpty( $cat_link );
 
-		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/tag' );
+		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/tags' );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/terms/category' );
+		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/categories' );
 		$this->assertEquals( $category_url, $cat_link['href'] );
+
+		$meta_links = $links['https://api.w.org/meta'];
+		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/meta' ), $meta_links[0]['href'] );
 	}
 
 	public function test_get_item_links_no_author() {
@@ -233,23 +309,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_list_context_without_permission() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
 			'context' => 'edit',
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_post_context_without_permission() {
+		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$request->set_query_params( array(
 			'context' => 'edit',
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_post_with_password() {
@@ -1155,7 +1233,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_api_field( 'post', 'my_custom_int', array(
+		register_rest_field( 'post', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
