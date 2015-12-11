@@ -9,11 +9,6 @@
  * License: GPL2+
  */
 
-// Do we need the compatibility repo?
-if ( ! defined( 'REST_API_VERSION' ) ) {
-	require_once dirname( __FILE__ ) . '/core/rest-api.php';
-}
-
 /**
  * WP_REST_Controller class.
  */
