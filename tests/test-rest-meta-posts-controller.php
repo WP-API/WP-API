@@ -620,7 +620,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 			'key' => 'testnewkey',
 			'value' => 'testnewvalue',
 		);
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', 99999, $meta_id ) );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d/meta/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $meta_id ) );
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
