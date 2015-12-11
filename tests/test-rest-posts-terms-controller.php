@@ -30,7 +30,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 
 	public function test_get_items_invalid_post() {
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags', 9999 ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -86,7 +86,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
 		wp_set_object_terms( $this->post_id, $tag['term_id'], 'post_tag' );
 
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags/%d', 9999, $tag['term_taxonomy_id'] ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $tag['term_taxonomy_id'] ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -110,7 +110,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	}
 
 	public function test_get_item_invalid_taxonomy_term() {
-		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags/%d', $this->post_id, 9999 ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags/%d', $this->post_id, REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
@@ -168,7 +168,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 
 		wp_set_current_user( $this->admin_id );
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/tags/%d', 9999, $tag['term_id'] ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/tags/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $tag['term_id'] ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
@@ -187,7 +187,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	public function test_create_item_invalid_taxonomy_term() {
 
 		wp_set_current_user( $this->admin_id );
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/tags/%d', $this->post_id, 9999 ) );
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/tags/%d', $this->post_id, REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 404 );
@@ -246,7 +246,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );
 
-		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/tags/%d', 9999, $tag['term_id'] ) );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/tags/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $tag['term_id'] ) );
 		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
