@@ -266,6 +266,7 @@ abstract class WP_REST_Controller {
 		}
 		if ( ! empty( $contexts ) ) {
 			$param_details['enum'] = array_unique( $contexts );
+			rsort( $param_details['enum'] );
 		}
 		return array_merge( $param_details, $args );
 	}

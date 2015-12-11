@@ -35,6 +35,21 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( '/wp/v2/users/me', $routes );
 	}
 
+	public function test_context_param() {
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/' . $this->user );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'embed', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 		wp_set_current_user( $this->user );
 

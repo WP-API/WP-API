@@ -66,13 +66,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments/' . $this->approved_id );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
