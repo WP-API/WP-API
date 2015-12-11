@@ -1,5 +1,119 @@
 # Changelog
 
+## 2.0 Beta 9.0
+
+- BREAKING CHANGE: Move tags and categories to top-level endpoints.
+
+  Tags are now accessible at `/wp/v2/tags`, and categories accessible at `/wp/v2/categories`. Post terms reside at `/wp/v2/posts/<id>/tags` and `/wp/v2/<id>/categories`.
+
+  (props @danielbachhuber, [#1802](https://github.com/WP-API/WP-API/pull/1802))
+
+- BREAKING CHANGE: Return object for requests to `/wp/v2/taxonomies`.
+
+  This is consistent with `/wp/v2/types` and `/wp/v2/statuses`.
+
+  (props @danielbachhuber, [#1825](https://github.com/WP-API/WP-API/pull/1825))
+
+- BREAKING CHANGE: Remove `rest_get_timezone()`.
+
+  `json_get_timezone()` was only ever used in v1. This function causes fatals, and shouldn't be used.
+
+  (props @danielbachhuber, [#1823](https://github.com/WP-API/WP-API/pull/1823))
+
+- BREAKING CHANGE: Rename `register_api_field()` to `register_rest_field()`.
+
+  Introduces a `register_api_field()` function for backwards compat, which calls `_doing_it_wrong()`. However, `register_api_field()` won't ever be committed to WordPress core, so you should update your function calls.
+
+  (props @danielbachhuber, [#1824](https://github.com/WP-API/WP-API/pull/1824))
+
+- BREAKING CHANGE: Change taxonomies' `post_type` argument to `type`.
+
+  It's consistent with how we're exposing post types in the API.
+
+  (props @danielbachhuber, [#1824](https://github.com/WP-API/WP-API/pull/1824))
+
+- Sync infrastructure with shipped in WordPress 4.4.
+
+  * `wp-includes/rest-api/rest-functions.php` is removed, and its functions moved into `wp-includes/rest-api.php`.
+  * Send nocache headers for REST requests. [#34832](https://core.trac.wordpress.org/ticket/34832)
+  * Fix handling of HEAD requests. [#34837](https://core.trac.wordpress.org/ticket/34837)
+  * Mark `WP_REST_Server::get_raw_data()` as static. [#34768](https://core.trac.wordpress.org/ticket/34768)
+  * Unabbreviate error string. [#34818](https://core.trac.wordpress.org/ticket/34818)
+
+- Change terms endpoints to use `term_id` not `tt_id`.
+
+  (props @joehoyle, [#1837](https://github.com/WP-API/WP-API/pull/1837))
+
+- Standardize declaration of `context` param for `GET` requests across controllers.
+
+  However, we're still inconsistent in which controllers expose which params. Follow [#1845](https://github.com/WP-API/WP-API/issues/1845) for further discussion.
+
+  (props @danielbachhuber, [#1795](https://github.com/WP-API/WP-API/pull/1795), [#1835](https://github.com/WP-API/WP-API/pull/1835), [#1838](https://github.com/WP-API/WP-API/pull/1838))
+
+- Link types / taxonomies to their collections, and vice versa.
+
+  Collections link to their type / taxonomy with the `about` relation; types / taxonomies link to their colletion with the `item` relation, which is imperfect and may change in the future.
+
+  (props @danielbachhuber, [#1814](https://github.com/WP-API/WP-API/pull/1814), [#1817](https://github.com/WP-API/WP-API/pull/1817), [#1829](https://github.com/WP-API/WP-API/pull/1829). [#1846](https://github.com/WP-API/WP-API/pull/1846))
+
+- Add missing 'wp/v2' in Location Response header when creating new Post Meta.
+
+  (props @johanmynhardt, [#1790](https://github.com/WP-API/WP-API/pull/1790))
+
+- Expose Post collection query params, including `author`, `order`, `orderby` and `status`.
+
+  (props @danielbachhuber, [#1793](https://github.com/WP-API/WP-API/pull/1793))
+
+- Ignore sticky posts by default.
+
+  (props @danielbachhuber, [#1801](https://github.com/WP-API/WP-API/pull/1801))
+
+- Include `full` image size in attachment `sizes` attribute.
+
+  (props @danielbachhuber, [#1806](https://github.com/WP-API/WP-API/pull/1806))
+
+- In text strings, use `id` instead of `ID`.
+
+  `ID` is an implementation artifact. Our Resources use `id`.
+
+  (props @danielbachhuber, [#1803](https://github.com/WP-API/WP-API/pull/1803))
+
+- Ensure `attachment.sizes[]` use `mime_type` instead of `mime-type`.
+
+  (props @danielbachhuber, [#1809](https://github.com/WP-API/WP-API/pull/1809))
+
+- Introduce `rest_authorization_required_code()`.
+
+  Many controllers returned incorrect HTTP codes, which this also fixes.
+
+  (props @danielbachhuber, [#1808](https://github.com/WP-API/WP-API/pull/1808))
+
+- Respect core's `comment_registration` setting.
+
+  If it's enabled, require users to be logged in to comment.
+
+  (props @danielbachhuber, [#1826](https://github.com/WP-API/WP-API/pull/1826))
+
+- Default to wildcard when searching users.
+
+  (props @danielbachhuber, [#1827](https://github.com/WP-API/WP-API/pull/1827))
+
+- Bring the wp-api.js library up to date for v2 of the REST API.
+
+  (props @adamsilverstein, [#1828](https://github.com/WP-API/WP-API/pull/1828))
+
+- Add `rest_prepare_status` filter.
+
+  (props @danielbachhuber, [#1830](https://github.com/WP-API/WP-API/pull/1830))
+
+- Make `prepare_*` filters more consistent.
+
+  (props @danielbachhuber, [#1831](https://github.com/WP-API/WP-API/pull/1831))
+
+- Add `rest_prepare_post_type` filter for post types.
+
+  (props @danielbachhuber, [#1833](https://github.com/WP-API/WP-API/pull/1833))
+
 ## 2.0 Beta 8.0
 
 - Prevent fatals when uploading attachment by including admin utilities.
