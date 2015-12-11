@@ -35,7 +35,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+					'context'          => $this->get_context_param( array( 'default' => 'embed' ) ),
 				),
 			),
 			array(
@@ -768,7 +768,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
 
-		$params['context']['default'] = 'view';
+		$query_params['context']['default'] = 'view';
 
 		$query_params['order'] = array(
 			'default'            => 'asc',
