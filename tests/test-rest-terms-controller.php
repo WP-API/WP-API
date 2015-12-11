@@ -26,6 +26,22 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( '/wp/v2/tags/(?P<id>[\d]+)', $routes );
 	}
 
+	public function test_context_param() {
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags/' . $tag1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );

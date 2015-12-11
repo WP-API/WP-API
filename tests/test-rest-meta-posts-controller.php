@@ -25,6 +25,23 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertCount( 3, $routes['/wp/v2/posts/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)'] );
 	}
 
+	public function test_context_param() {
+		$post_id = $this->factory->post->create();
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $post_id . '/meta' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'edit', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$meta_id_basic = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $post_id . '/meta/' . $meta_id_basic );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'edit', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 		$post_id = $this->factory->post->create();
 		$meta_id_basic = add_post_meta( $post_id, 'testkey', 'testvalue' );

@@ -18,6 +18,23 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$this->assertArrayHasKey( '/wp/v2/posts/(?P<post_id>[\d]+)/tags/(?P<term_id>[\d]+)', $routes );
 	}
 
+	public function test_context_param() {
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/tags' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$tag = wp_insert_term( 'foo', 'post_tag' );
+		wp_set_object_terms( $this->post_id, 'foo', 'post_tag' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/tags/' . $tag['term_id'] );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 
 		wp_set_object_terms( $this->post_id, 'test-tag', 'post_tag' );

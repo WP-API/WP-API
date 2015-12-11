@@ -37,6 +37,21 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->assertArrayHasKey( '/wp/v2/pages/(?P<parent_id>[\d]+)/revisions/(?P<id>[\d]+)', $routes );
 	}
 
+	public function test_context_param() {
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/revisions' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . $this->post_id . '/revisions/' . $this->revision_1->ID );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 		wp_set_current_user( $this->editor_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $this->post_id . '/revisions' );
