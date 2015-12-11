@@ -29,7 +29,6 @@ matrix:
     env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
   allow_failures:
   - php: hhvm
-  - php: 7.0
   fast_finish: true
 
 cache:
