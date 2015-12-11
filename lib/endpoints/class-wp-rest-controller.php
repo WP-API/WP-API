@@ -244,7 +244,7 @@ abstract class WP_REST_Controller {
 		$schema = $this->get_item_schema();
 		$contexts = array();
 		if ( ! empty( $schema['properties'] ) ) {
-			foreach( $schema['properties'] as $key => $attributes ) {
+			foreach ( $schema['properties'] as $key => $attributes ) {
 				if ( ! empty( $attributes['context'] ) ) {
 					$contexts = array_merge( $contexts, $attributes['context'] );
 				}
