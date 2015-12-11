@@ -308,7 +308,7 @@
 		{
 			idAttribute: 'id',
 
-			urlRoot: WP_API_Settings.root + 'wp/v2/terms/tag',
+			urlRoot: WP_API_Settings.root + 'wp/v2/tags',
 
 			defaults: {
 				id: null,
@@ -902,14 +902,14 @@
 	/**
 	 * Backbone terms collection.
 	 *
-	 * Usage: new wp.api.collections.Terms( {}, { taxonomy: 'taxonomy-slug' } )
+	 * Usage: new wp.api.collections.Terms( {}, { url_base: 'taxonomy-base' } )
 	 */
 	wp.api.collections.Terms = BaseCollection.extend(
 		/** @lends Terms.prototype */
 		{
 			model: wp.api.models.Term,
 
-			taxonomy: 'category',
+			url_base: 'categories',
 
 			/**
 			 * @class Represent an array of terms.
@@ -917,8 +917,8 @@
 			 * @constructs
 			 */
 			initialize: function( models, options ) {
-				if ( 'undefined' !== typeof options && options.taxonomy ) {
-					this.taxonomy = options.taxonomy;
+				if ( 'undefined' !== typeof options && options.url_base ) {
+					this.url_base = options.url_base;
 				}
 
 				BaseCollection.prototype.initialize.apply( this, arguments );
@@ -930,7 +930,7 @@
 			 * @returns {string}.
 			 */
 			url: function() {
-				return WP_API_Settings.root + 'wp/v2/terms/' + this.taxonomy;
+				return WP_API_Settings.root + 'wp/v2/' + this.url_base;
 			}
 		}
 	);
