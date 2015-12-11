@@ -116,6 +116,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 		$response->add_links( array(
 			'collection'     => array(
+				'href'       => rest_url( 'wp/v2/taxonomies' ),
+			),
+			'item'     => array(
 				'href'       => rest_url( sprintf( 'wp/v2/%s', $base ) ),
 			),
 		) );
