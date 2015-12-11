@@ -219,10 +219,7 @@ abstract class WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$params = array(
-			'context'                => array(
-				'description'        => 'Scope under which the request is made; determines fields present in response.',
-				'type'               => 'string',
-				),
+			'context'                => $this->get_context_param(),
 			'page'                   => array(
 				'description'        => 'Current page of the collection.',
 				'type'               => 'integer',
@@ -241,19 +238,34 @@ abstract class WP_REST_Controller {
 				'sanitize_callback'  => 'sanitize_text_field',
 			),
 		);
+	}
+
+	/**
+	 * Get the magical context param.
+	 *
+	 * @param array     $args
+	 * @return array
+	 */
+	public function get_context_param( $args = array() ) {
+		$param_details = array(
+			'description'        => 'Scope under which the request is made; determines fields present in response.',
+			'type'               => 'string',
+		);
 		$schema = $this->get_item_schema();
 		$contexts = array();
-		if ( ! empty( $schema['properties'] ) ) {
-			foreach ( $schema['properties'] as $key => $attributes ) {
-				if ( ! empty( $attributes['context'] ) ) {
-					$contexts = array_merge( $contexts, $attributes['context'] );
-				}
+		if ( empty( $schema['properties'] ) ) {
+			return array_merge( $param_details, $args );
+		}
+		$contexts = array();
+		foreach ( $schema['properties'] as $key => $attributes ) {
+			if ( ! empty( $attributes['context'] ) ) {
+				$contexts = array_merge( $contexts, $attributes['context'] );
 			}
 		}
 		if ( ! empty( $contexts ) ) {
-			$params['context']['enum'] = array_unique( $contexts );
+			$param_details['enum'] = array_unique( $contexts );
 		}
-		return $params;
+		return array_merge( $param_details, $args );
 	}
 
 	/**

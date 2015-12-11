@@ -34,9 +34,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => array(
-						'default'      => 'view',
-					),
+					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
 			array(
@@ -360,11 +358,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_collection_params() {
-		$params = parent::get_collection_params();
-		$new_params = array();
-		$new_params['context'] = $params['context'];
-		$new_params['context']['default'] = 'view';
-		return $new_params;
+		return array(
+			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+		);
 	}
 
 }
