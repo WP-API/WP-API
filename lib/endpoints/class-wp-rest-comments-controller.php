@@ -33,11 +33,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'     => array(
-					'context'          => array(
-						'default'      => 'view',
-						'type'         => 'string',
-						'enum'         => array( 'embed', 'view', 'edit' ),
-					),
+					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
 			array(

@@ -8,6 +8,21 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( '/wp/v2/types/(?P<type>[\w-]+)', $routes );
 	}
 
+	public function test_context_param() {
+		// Collection
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/types' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/types/post' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
 	public function test_get_items() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
 		$response = $this->server->dispatch( $request );

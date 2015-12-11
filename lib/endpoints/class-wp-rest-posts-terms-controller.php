@@ -34,6 +34,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
+				'args'                => array(
+					'context'         => $this->get_context_param( array( 'default' => 'view' ) ),
+				),
 			),
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -287,9 +290,7 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = array();
-
-		$query_params['context']['default'] = 'view';
-
+		$query_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
 		$query_params['order'] = array(
 			'description'        => 'Order sort attribute ascending or descending.',
 			'type'               => 'string',

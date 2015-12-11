@@ -57,11 +57,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'callback'            => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'                => array(
-					'context'          => array(
-						'default'      => 'edit',
-						'type'         => 'string',
-						'enum'         => array( 'edit' ),
-					),
+					'context'          => $this->get_context_param( array( 'default' => 'edit' ) ),
 				),
 			),
 			array(
