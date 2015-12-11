@@ -131,14 +131,10 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
-		return array(
-			'context'          => array(
-				'description'  => $params['context']['description'],
-				'type'         => $params['context']['type'],
-				'default'      => 'edit',
-				'enum'         => array( 'edit' ),
-			),
-		);
+		$new_params = array();
+		$new_params['context'] = $params['context'];
+		$new_params['context']['default'] = 'edit';
+		return $new_params;
 	}
 
 	/**

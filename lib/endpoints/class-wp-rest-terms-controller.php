@@ -585,7 +585,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$query_params = parent::get_collection_params();
 
 		$query_params['context']['default'] = 'view';
-		$query_params['context']['enum'] = array( 'embed', 'view' );
 
 		$query_params['order']      = array(
 			'description'           => 'Order sort attribute ascending or descending.',

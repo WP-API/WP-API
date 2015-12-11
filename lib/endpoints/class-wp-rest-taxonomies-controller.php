@@ -187,17 +187,12 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
-		$new_params = array(
-			'context'          => array(
-				'description'  => $params['context']['description'],
-				'type'         => $params['context']['type'],
-				'default'      => 'view',
-				'enum'         => array( 'view' ),
-			),
-			'post_type'        => array(
-				'description'  => 'Limit results to taxonomies associated with a specific post type.',
-				'type'         => 'string',
-			),
+		$new_params = array();
+		$new_params['context'] = $params['context'];
+		$new_params['context']['default'] = 'view';
+		$new_params['post_type'] = array(
+			'description'  => 'Limit results to taxonomies associated with a specific post type.',
+			'type'         => 'string',
 		);
 		return $new_params;
 	}

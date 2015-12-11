@@ -1556,7 +1556,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params = parent::get_collection_params();
 
 		$params['context']['default'] = 'view';
-		$params['context']['enum'] = array( 'embed', 'view', 'edit' );
 
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(

@@ -218,7 +218,7 @@ abstract class WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_collection_params() {
-		return array(
+		$params = array(
 			'context'                => array(
 				'description'        => 'Scope under which the request is made; determines fields present in response.',
 				'type'               => 'string',
@@ -241,6 +241,19 @@ abstract class WP_REST_Controller {
 				'sanitize_callback'  => 'sanitize_text_field',
 			),
 		);
+		$schema = $this->get_item_schema();
+		$contexts = array();
+		if ( ! empty( $schema['properties'] ) ) {
+			foreach( $schema['properties'] as $key => $attributes ) {
+				if ( ! empty( $attributes['context'] ) ) {
+					$contexts = array_merge( $contexts, $attributes['context'] );
+				}
+			}
+		}
+		if ( ! empty( $contexts ) ) {
+			$params['context']['enum'] = array_unique( $contexts );
+		}
+		return $params;
 	}
 
 	/**

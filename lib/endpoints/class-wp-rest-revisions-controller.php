@@ -361,14 +361,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
-		return array(
-			'context'          => array(
-				'description'  => $params['context']['description'],
-				'type'         => $params['context']['type'],
-				'default'      => 'view',
-				'enum'         => array( 'view' ),
-			),
-		);
+		$new_params = array();
+		$new_params['context'] = $params['context'];
+		$new_params['context']['default'] = 'view';
+		return $new_params;
 	}
 
 }

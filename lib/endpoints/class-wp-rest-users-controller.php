@@ -771,7 +771,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$query_params = parent::get_collection_params();
 
 		$params['context']['default'] = 'view';
-		$params['context']['enum'] = array( 'embed', 'view', 'edit' );
 
 		$query_params['order'] = array(
 			'default'            => 'asc',
