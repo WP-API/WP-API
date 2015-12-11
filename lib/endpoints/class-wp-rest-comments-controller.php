@@ -10,13 +10,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		$query_params = $this->get_collection_params();
 		register_rest_route( 'wp/v2', '/comments', array(
 			array(
 				'methods'   => WP_REST_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
-				'args'      => $query_params,
+				'args'      => $this->get_collection_params(),
 			),
 			array(
 				'methods'  => WP_REST_Server::CREATABLE,
@@ -34,8 +33,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'callback' => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'     => array(
-					'context'  => array(
-						'default'  => 'view',
+					'context'          => array(
+						'default'      => 'view',
+						'type'         => 'string',
+						'enum'         => array( 'embed', 'view', 'edit' ),
 					),
 				),
 			),
@@ -904,7 +905,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params = parent::get_collection_params();
 
 		$query_params['context']['default'] = 'view';
-		$query_params['context']['enum'] = array( 'embed', 'view', 'edit' );
 
 		$query_params['author_email'] = array(
 			'default'           => null,

@@ -11,11 +11,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
-				'args'            => array(
-					'post_type'          => array(
-						'sanitize_callback' => 'sanitize_key',
-					),
-				),
+				'args'            => $this->get_collection_params(),
 			),
 			'schema'          => array( $this, 'get_public_item_schema' ),
 		) );
@@ -145,6 +141,19 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 				),
 			);
 		return $this->add_additional_fields_schema( $schema );
+	}
+
+	/**
+	 * Get the query params for collections
+	 *
+	 * @return array
+	 */
+	public function get_collection_params() {
+		$params = parent::get_collection_params();
+		$new_params = array();
+		$new_params['context'] = $params['context'];
+		$new_params['context']['default'] = 'view';
+		return $new_params;
 	}
 
 }
