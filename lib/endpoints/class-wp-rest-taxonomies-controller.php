@@ -21,6 +21,9 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
+				'args'            => array(
+					'context'     => $this->get_context_param( array( 'default' => 'view' ) ),
+				),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -188,8 +191,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
 		$new_params = array();
-		$new_params['context'] = $params['context'];
-		$new_params['context']['default'] = 'view';
+		$new_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
 		$new_params['post_type'] = array(
 			'description'  => 'Limit results to taxonomies associated with a specific post type.',
 			'type'         => 'string',
