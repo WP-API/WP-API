@@ -243,6 +243,8 @@ abstract class WP_REST_Controller {
 	/**
 	 * Get the magical context param.
 	 *
+	 * Ensures consistent description between endpoints, and populates enum from schema.
+	 *
 	 * @param array     $args
 	 * @return array
 	 */
