@@ -218,7 +218,7 @@ abstract class WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_collection_params() {
-		$params = array(
+		return array(
 			'context'                => $this->get_context_param(),
 			'page'                   => array(
 				'description'        => 'Current page of the collection.',
