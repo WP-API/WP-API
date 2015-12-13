@@ -92,8 +92,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$links = $response->get_links();
@@ -142,8 +140,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$headers = $response->get_headers();

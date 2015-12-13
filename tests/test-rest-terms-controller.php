@@ -80,7 +80,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'parent', 0 );
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -111,7 +110,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'parent', '0' );
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -130,7 +128,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'parent', $parent1 );
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -592,8 +589,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$args = array(
@@ -628,8 +623,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
