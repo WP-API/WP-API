@@ -256,16 +256,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );
 
 		$term_links = $links['https://api.w.org/term'];
-		$tag_link = $cat_link = null;
+		$tag_link = $cat_link = $format_link = null;
 		foreach ( $term_links as $link ) {
 			if ( 'post_tag' === $link['attributes']['taxonomy'] ) {
 				$tag_link = $link;
 			} elseif ( 'category' === $link['attributes']['taxonomy'] ) {
 				$cat_link = $link;
+			} else if ( 'post_format' === $link['attributes']['taxonomy'] ) {
+				$format_link = $link;
 			}
 		}
 		$this->assertNotEmpty( $tag_link );
 		$this->assertNotEmpty( $cat_link );
+		$this->assertNull( $format_link );
 
 		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/tags' );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
