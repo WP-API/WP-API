@@ -123,7 +123,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( $post_type_obj->description, $data['description'] );
 		$this->assertEquals( $post_type_obj->hierarchical, $data['hierarchical'] );
 		$this->assertEquals( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
-		$this->assertArrayHasKey( 'item', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 	}
 
 	protected function check_post_type_object_response( $response ) {

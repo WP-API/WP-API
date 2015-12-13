@@ -126,7 +126,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertEquals( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
-		$this->assertArrayHasKey( 'item', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 	}
 
 	protected function check_taxonomy_object_response( $response ) {
