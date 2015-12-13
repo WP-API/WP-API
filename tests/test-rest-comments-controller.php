@@ -570,7 +570,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
