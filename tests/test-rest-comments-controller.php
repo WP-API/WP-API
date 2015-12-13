@@ -555,6 +555,25 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 'approved', $data['status'] );
 	}
 
+	public function test_create_comment_no_post_id() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content'      => 'Worst Comment Ever!',
+			'status'       => 'approved',
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$response = rest_ensure_response( $response );
+		$this->assertEquals( 201, $response->get_status() );
+	}
+
 	public function test_create_item_duplicate() {
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 		$original_id = $this->factory->comment->create(
