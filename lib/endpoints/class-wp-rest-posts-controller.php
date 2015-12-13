@@ -1231,7 +1231,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
-				if ( false === $taxonomy_obj->public ) {
+				if ( false === $taxonomy_obj->public || 'post_format' === $tax ) {
 					continue;
 				}
 
