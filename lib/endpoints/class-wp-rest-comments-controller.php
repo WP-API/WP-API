@@ -121,9 +121,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
-		$post = get_post( $comment->comment_post_ID );
-		if ( empty( $post ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
+		if ( ! empty( $comment->comment_post_ID ) ) {
+			$post = get_post( $comment->comment_post_ID );
+			if ( empty( $post ) ) {
+				return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
+			}
 		}
 
 		$data = $this->prepare_item_for_response( $comment, $request );
@@ -141,11 +143,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
-		}
-
-		$post = get_post( $request['post'] );
-		if ( empty( $post ) ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -423,14 +420,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_status', __( 'Sorry, you cannot set status for comments.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		// If the post id isn't specified, presume we can create.
-		if ( ! isset( $request['post'] ) ) {
-			return true;
-		}
-
-		$post = get_post( (int) $request['post'] );
-
-		if ( $post ) {
+		if ( ! empty( $request['post'] ) && $post = get_post( (int) $request['post'] ) ) {
 
 			if ( ! $this->check_read_post_permission( $post ) ) {
 				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -869,6 +859,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => 'The id of the associated post object.',
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
+					'arg_options'  => array(
+						'default'           => 0,
+					),
 				),
 				'status'           => array(
 					'description'  => 'State of the object.',
