@@ -61,8 +61,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -102,7 +100,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 
 		$data = $response->get_data();
 		$this->assertEquals( $meta_id, $data['id'] );
@@ -117,8 +114,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -273,8 +268,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -328,8 +321,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$data = $response->get_data();
 		$this->assertArrayHasKey( 'id', $data );
@@ -483,7 +474,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -504,7 +494,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -523,8 +512,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -550,8 +537,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -582,8 +567,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -844,7 +827,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -867,7 +849,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_body_params( $data );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -882,8 +863,6 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 
 		$this->assertEquals( 200, $response->get_status() );
 

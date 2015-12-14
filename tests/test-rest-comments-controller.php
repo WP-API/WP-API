@@ -335,7 +335,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -365,7 +364,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -391,7 +389,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -429,7 +426,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $user_id, $data['author'] );
@@ -459,7 +455,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 0, $data['author'] );
@@ -482,7 +477,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertErrorResponse( 'rest_comment_invalid_author', $response, 403 );
 	}
 
@@ -504,7 +498,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertErrorResponse( 'rest_comment_invalid_karma', $response, 403 );
 	}
 
@@ -526,7 +519,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 403 );
 	}
 
@@ -548,7 +540,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -579,7 +570,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 409, $response->get_status() );
 	}
 
@@ -598,7 +588,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
@@ -632,7 +621,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 201, $response->get_status() );
 
 		$params = array(
@@ -648,7 +636,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 400, $response->get_status() );
 	}
 
@@ -672,7 +659,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -705,7 +691,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -731,7 +716,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -752,7 +736,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$comment = $response->get_data();
@@ -814,7 +797,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $comment_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $this->post_id, $data['data']['post'] );
@@ -833,7 +815,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request['force'] = true;
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $this->post_id, $data['data']['post'] );
@@ -846,7 +827,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$response = $this->server->dispatch( $request );
-		$response = rest_ensure_response( $response );
 		$this->assertErrorResponse( 'rest_comment_invalid_id', $response, 404 );
 	}
 
