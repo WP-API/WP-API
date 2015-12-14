@@ -908,7 +908,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$post_type = get_post_type_object( $post_type );
 		}
 
-		if ( ! empty( $post_type ) && $post_type->show_in_rest ) {
+		if ( ! empty( $post_type ) && ! empty( $post_type->show_in_rest ) ) {
 			return true;
 		}
 
@@ -1231,7 +1231,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
-				if ( false === $taxonomy_obj->public ) {
+				if ( false === $taxonomy_obj->public || 'post_format' === $tax ) {
 					continue;
 				}
 

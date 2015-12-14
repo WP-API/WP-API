@@ -126,12 +126,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertEquals( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
-		$this->assertArrayHasKey( 'item', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 	}
 
 	protected function check_taxonomy_object_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$category = get_taxonomy( 'category' );
@@ -139,8 +137,6 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	protected function check_taxonomies_for_type_response( $type, $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-		$response = rest_ensure_response( $response );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );

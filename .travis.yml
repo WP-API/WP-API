@@ -12,8 +12,6 @@ matrix:
   - php: 5.6
     env: WP_TRAVISCI=travis:phpunit WP_VERSION=latest
   - php: 5.6
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.3.1
-  - php: 5.6
     env: WP_TRAVISCI=travis:phpvalidate
   - php: 5.6
     env: WP_TRAVISCI=travis:codecoverage
@@ -31,7 +29,6 @@ matrix:
     env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
   allow_failures:
   - php: hhvm
-  - php: 7.0
   fast_finish: true
 
 cache:
