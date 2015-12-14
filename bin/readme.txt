@@ -1,8 +1,8 @@
 === WordPress REST API (Version 2) ===
 Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
-Requires at least: 4.3
-Tested up to: 4.4
+Requires at least: 4.4
+Tested up to: 4.5-alpha
 Stable tag: 2.0-beta9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
