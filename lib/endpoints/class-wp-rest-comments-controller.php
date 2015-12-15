@@ -69,9 +69,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comments = array();
 		foreach ( $query_result as $comment ) {
-			$post = get_post( $comment->comment_post_ID );
-			if ( ! $this->check_read_post_permission( $post ) || ! $this->check_read_permission( $comment ) ) {
-
+			if ( ! $this->check_read_permission( $comment ) ) {
 				continue;
 			}
 
@@ -353,8 +351,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( isset( $request['post'] ) ) {
 			$post = get_post( (int) $request['post'] );
 
-			if ( $post && ! $this->check_read_post_permission( $post ) ) {
+			if ( ! empty( $request['post'] ) && $post && ! $this->check_read_post_permission( $post ) ) {
 				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ) );
+			} else if ( 0 === $request['post'] && ! current_user_can( 'moderate_comments' ) ) {
+				return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read comments without a post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -382,12 +382,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( ! $this->check_read_permission( $comment ) ) {
 			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read this comment.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		$post = get_post( $comment->comment_post_ID );
-
-		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
@@ -575,7 +569,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args = array(
 			'number'  => $request['per_page'],
-			'post_id' => $request['post'] ? $request['post'] : '',
+			'post_id' => $request['post'],
 			'parent'  => isset( $request['parent'] ) ? $request['parent'] : '',
 			'search'  => $request['search'],
 			'orderby' => $this->normalize_query_param( $order_by ),
@@ -1043,6 +1037,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 === get_current_user_id() ) {
 			return false;
+		}
+
+		if ( empty( $comment->comment_post_ID ) && ! current_user_can( 'moderate_comments' ) ) {
+			return false;
+		}
+
+		$post = get_post( $comment->comment_post_ID );
+		if ( $comment->comment_post_ID && $post ) {
+			if ( ! $this->check_read_post_permission( $post ) ) {
+				return false;
+			}
 		}
 
 		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {
