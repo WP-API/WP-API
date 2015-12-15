@@ -96,6 +96,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
+	public function test_get_items_edit_context() {
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+	}
+
 	public function test_get_items_for_post() {
 		$second_post_id = $this->factory->post->create();
 		$this->factory->comment->create_post_comments( $second_post_id, 2 );
