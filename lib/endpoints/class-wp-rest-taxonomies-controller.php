@@ -43,10 +43,10 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		}
 		$data = array();
 		foreach ( $taxonomies as $tax_type => $value ) {
-			$tax = $this->prepare_item_for_response( $value, $request );
-			if ( is_wp_error( $tax ) ) {
+			if ( empty( $value->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $value->cap->manage_terms ) ) ) {
 				continue;
 			}
+			$tax = $this->prepare_item_for_response( $value, $request );
 			$tax = $this->prepare_response_for_collection( $tax );
 			$data[ $tax_type ] = $tax;
 		}
@@ -77,8 +77,13 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
 		$tax_obj = get_taxonomy( $request['taxonomy'] );
 
-		if ( $tax_obj && empty( $tax_obj->show_in_rest ) ) {
-			return false;
+		if ( $tax_obj ) {
+			if ( empty( $tax_obj->show_in_rest ) ) {
+				return false;
+			}
+			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->manage_terms ) ) {
+				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
 		}
 
 		return true;
@@ -92,9 +97,6 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array Taxonomy data
 	 */
 	public function prepare_item_for_response( $taxonomy, $request ) {
-		if ( empty( $taxonomy->show_in_rest ) ) {
-			return new WP_Error( 'rest_cannot_read_taxonomy', __( 'Cannot view taxonomy' ), array( 'status' => 403 ) );
-		}
 
 		$data = array(
 			'name'         => $taxonomy->label,
@@ -149,37 +151,37 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				'description'      => array(
 					'description'  => 'A human-readable description of the object.',
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'hierarchical'     => array(
 					'description'  => 'Whether or not the type should have children.',
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'labels'           => array(
 					'description'  => 'Human-readable labels for the type for various contexts.',
 					'type'         => 'object',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					),
 				'name'             => array(
 					'description'  => 'The title for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'slug'             => array(
 					'description'  => 'An alphanumeric identifier for the object.',
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'show_cloud'       => array(
 					'description'  => 'Whether or not the term cloud should be displayed.',
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					),
 				'types'            => array(
 					'description'  => 'Types associated with taxonomy.',
 					'type'         => 'array',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				),
 			);
