@@ -120,6 +120,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 2, $comments );
 	}
 
+	public function test_get_items_private_post_no_permissions() {
+		wp_set_current_user( 0 );
+		$post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
+	}
+
 	public function test_get_items_for_post_type() {
 		wp_set_current_user( $this->admin_id );
 		$second_post_id = $this->factory->post->create();
