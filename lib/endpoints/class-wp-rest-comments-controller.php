@@ -354,7 +354,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$post = get_post( (int) $request['post'] );
 
 			if ( $post && ! $this->check_read_post_permission( $post ) ) {
-				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ) );
+				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
