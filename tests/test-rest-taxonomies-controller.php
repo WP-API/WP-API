@@ -15,13 +15,13 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies/post_tag' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -33,11 +33,17 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'Categories', $data['category']['name'] );
 		$this->assertEquals( 'category', $data['category']['slug'] );
 		$this->assertEquals( true, $data['category']['hierarchical'] );
-		$this->assertEquals( true, $data['category']['show_cloud'] );
 		$this->assertEquals( 'Tags', $data['post_tag']['name'] );
 		$this->assertEquals( 'post_tag', $data['post_tag']['slug'] );
 		$this->assertEquals( false, $data['post_tag']['hierarchical'] );
-		$this->assertEquals( true, $data['post_tag']['show_cloud'] );
+	}
+
+	public function test_get_items_invalid_permission_for_context() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEmpty( $response->get_data() );
 	}
 
 	public function test_get_taxonomies_with_types() {
@@ -50,7 +56,24 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
 		$response = $this->server->dispatch( $request );
-		$this->check_taxonomy_object_response( $response );
+		$this->check_taxonomy_object_response( 'view', $response );
+	}
+
+	public function test_get_item_edit_context() {
+		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->check_taxonomy_object_response( 'edit', $response );
+	}
+
+	public function test_get_item_invalid_permission_for_context() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_get_invalid_taxonomy() {
@@ -82,8 +105,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_prepare_item() {
 		$tax = get_taxonomy( 'category' );
 		$endpoint = new WP_REST_Taxonomies_Controller;
-		$response = $endpoint->prepare_item_for_response( $tax, new WP_REST_Request );
-		$this->check_taxonomy_object( $tax, $response->get_data(), $response->get_links() );
+		$request = new WP_REST_Request;
+		$request->set_param( 'context', 'edit' );
+		$response = $endpoint->prepare_item_for_response( $tax, $request );
+		$this->check_taxonomy_object( 'edit', $tax, $response->get_data(), $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -119,21 +144,27 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		return array_values( array_filter( $taxonomies, array( $this, 'is_public' ) ) );
 	}
 
-	protected function check_taxonomy_object( $tax_obj, $data, $links ) {
+	protected function check_taxonomy_object( $context, $tax_obj, $data, $links ) {
 		$this->assertEquals( $tax_obj->label, $data['name'] );
 		$this->assertEquals( $tax_obj->name, $data['slug'] );
 		$this->assertEquals( $tax_obj->description, $data['description'] );
-		$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertEquals( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
+		if ( 'edit' === $context ) {
+			$this->assertEquals( $tax_obj->labels, $data['labels'] );
+			$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
+		} else {
+			$this->assertFalse( isset( $data['labels'] ) );
+			$this->assertFalse( isset( $data['show_cloud'] ) );
+		}
 	}
 
-	protected function check_taxonomy_object_response( $response ) {
+	protected function check_taxonomy_object_response( $context, $response ) {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$category = get_taxonomy( 'category' );
-		$this->check_taxonomy_object( $category, $data, $response->get_links() );
+		$this->check_taxonomy_object( $context, $category, $data, $response->get_links() );
 	}
 
 	protected function check_taxonomies_for_type_response( $type, $response ) {
