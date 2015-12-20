@@ -122,7 +122,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_posts / (int) $query_args['posts_per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+		$request_params = $request->get_query_params();
+		if ( ! empty( $request_params['filter'] ) ) {
+			// Normalize the pagination params.
+			unset( $request_params['filter']['posts_per_page'] );
+			unset( $request_params['filter']['paged'] );
+		}
+		$base = add_query_arg( $request_params, rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
