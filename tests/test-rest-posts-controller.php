@@ -225,12 +225,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// With filter params.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_query_params( array(
-			'filter' => array(
-				'posts_per_page' => 5,
-				'paged'          => 2,
-			)
-		) );
+		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => 5, 'paged' => 2 ) ) );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
