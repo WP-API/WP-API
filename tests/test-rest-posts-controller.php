@@ -222,6 +222,27 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+
+		// With filter params.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'filter' => array(
+				'posts_per_page' => 5,
+				'paged'          => 2,
+			)
+		) );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 11, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 1,
+			), rest_url( '/wp/v2/posts' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg( array(
+			'page'    => 3,
+			), rest_url( '/wp/v2/posts' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
 	public function test_get_item() {
