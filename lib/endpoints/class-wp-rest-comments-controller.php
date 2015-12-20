@@ -173,9 +173,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! isset( $prepared_comment['comment_author_url'] ) ) {
 			$prepared_comment['comment_author_url'] = '';
 		}
-		if ( isset( $prepared_comment['comment_author_IP'] ) ) {
-			$prepared_comment['comment_author_IP'] = ( filter_var( $prepared_comment['comment_author_IP'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) ? $prepared_comment['comment_author_IP'] : '127.0.0.1';
-		} else {
+		if ( ! isset( $prepared_comment['comment_author_IP'] ) ) {
 			$prepared_comment['comment_author_IP'] = '127.0.0.1';
 		}
 		$prepared_comment['comment_agent'] = '';
@@ -701,6 +699,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['author_url'] ) ) {
 			$prepared_comment['comment_author_url'] = $request['author_url'];
+		}
+
+		if ( isset( $request['author_ip'] ) ) {
+			if ( filter_var( $request['author_ip'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+				$prepared_comment['comment_author_IP'] = $request['author_ip'];
+			} else {
+				return new WP_Error( 'rest_invalid_author_ip', __( 'The IP address you provided is invalid.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		if ( isset( $request['type'] ) ) {
