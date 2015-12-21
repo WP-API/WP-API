@@ -146,6 +146,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_comment ) ) {
+			return $prepared_comment;
+		}
 
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
@@ -244,6 +247,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_args = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_args ) ) {
+			return $prepared_args;
+		}
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
@@ -705,7 +711,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( filter_var( $request['author_ip'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
 				$prepared_comment['comment_author_IP'] = $request['author_ip'];
 			} else {
-				return new WP_Error( 'rest_invalid_author_ip', __( 'The IP address you provided is invalid.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_comment_invalid_author_ip', __( 'The IP address you provided is invalid.' ), array( 'status' => 400 ) );
 			}
 		}
 
