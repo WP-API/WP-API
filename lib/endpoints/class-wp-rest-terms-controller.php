@@ -91,6 +91,20 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/**
+		 * Filter the query arguments, before passing them to `get_terms()`.
+		 *
+		 * Enables adding extra arguments or setting defaults for a terms
+		 * collection request.
+		 *
+		 * @see https://developer.wordpress.org/reference/functions/get_terms/
+		 *
+		 * @param array           $prepared_args Array of arguments to be
+		 *                                       passed to get_terms.
+		 * @param WP_REST_Request $request       The current request.
+		 */
+		$prepared_args = apply_filters( 'rest_terms_query', $prepared_args, $request );
+
 		$query_result = get_terms( $this->taxonomy, $prepared_args );
 		$response = array();
 		foreach ( $query_result as $term ) {
