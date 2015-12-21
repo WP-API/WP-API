@@ -111,24 +111,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $posts );
 		$count_query = new WP_Query();
+
+		// Store paged value for pagination headers then unset for count query.
+		$page = (int) $query_args['paged'];
 		unset( $query_args['paged'] );
+
 		$query_result = $count_query->query( $query_args );
 		$total_posts = $count_query->found_posts;
 		$response->header( 'X-WP-Total', (int) $total_posts );
-		$max_pages = ceil( $total_posts / $request['per_page'] );
+		$max_pages = ceil( $total_posts / (int) $query_args['posts_per_page'] );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
-		if ( $request['page'] > 1 ) {
-			$prev_page = $request['page'] - 1;
+		$request_params = $request->get_query_params();
+		if ( ! empty( $request_params['filter'] ) ) {
+			// Normalize the pagination params.
+			unset( $request_params['filter']['posts_per_page'] );
+			unset( $request_params['filter']['paged'] );
+		}
+		$base = add_query_arg( $request_params, rest_url( '/wp/v2/' . $this->get_post_type_base( $this->post_type ) ) );
+
+		if ( $page > 1 ) {
+			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
 				$prev_page = $max_pages;
 			}
 			$prev_link = add_query_arg( 'page', $prev_page, $base );
 			$response->link_header( 'prev', $prev_link );
 		}
-		if ( $max_pages > $request['page'] ) {
-			$next_page = $request['page'] + 1;
+		if ( $max_pages > $page ) {
+			$next_page = $page + 1;
 			$next_link = add_query_arg( 'page', $next_page, $base );
 			$response->link_header( 'next', $next_link );
 		}
