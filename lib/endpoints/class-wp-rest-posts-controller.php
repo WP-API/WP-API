@@ -558,7 +558,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		$valid_vars = apply_filters( 'query_vars', $wp->public_query_vars );
 
-		if ( current_user_can( 'edit_posts' ) ) {
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( current_user_can( $post_type_obj->cap->edit_posts ) ) {
 			/**
 			 * Filter the allowed 'private' query vars for authorized users.
 			 *
