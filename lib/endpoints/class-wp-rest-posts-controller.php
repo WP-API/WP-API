@@ -1595,7 +1595,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
 		);
-		$params['filter'] = array();
+		$params['filter'] = array(
+			'description'       => 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.',
+			);
 		return $params;
 	}
 
