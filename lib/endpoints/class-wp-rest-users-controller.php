@@ -466,22 +466,22 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $user, $request ) {
 		$data = array(
-			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
-			'capabilities'       => $user->allcaps,
-			'description'        => $user->description,
-			'email'              => $user->user_email,
-			'extra_capabilities' => $user->caps,
-			'first_name'         => $user->first_name,
 			'id'                 => $user->ID,
-			'last_name'          => $user->last_name,
-			'link'               => get_author_posts_url( $user->ID ),
+			'username'           => $user->user_login,
 			'name'               => $user->display_name,
+			'first_name'         => $user->first_name,
+			'last_name'          => $user->last_name,
+			'email'              => $user->user_email,
+			'url'                => $user->user_url,
+			'description'        => $user->description,
+			'link'               => get_author_posts_url( $user->ID ),
+			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
 			'nickname'           => $user->nickname,
+			'slug'               => $user->user_nicename,
 			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
 			'roles'              => $user->roles,
-			'slug'               => $user->user_nicename,
-			'url'                => $user->user_url,
-			'username'           => $user->user_login,
+			'capabilities'       => $user->allcaps,
+			'extra_capabilities' => $user->caps,
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
