@@ -1597,7 +1597,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$params['filter'] = array(
 			'description'       => 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.',
-			);
+		);
 		return $params;
 	}
 
