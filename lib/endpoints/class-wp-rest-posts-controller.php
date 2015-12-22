@@ -908,7 +908,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$post_type = get_post_type_object( $post_type );
 		}
 
-		if ( ! empty( $post_type ) && $post_type->show_in_rest ) {
+		if ( ! empty( $post_type ) && property_exists( $post_type, 'show_in_rest') && $post_type->show_in_rest ) {
 			return true;
 		}
 
