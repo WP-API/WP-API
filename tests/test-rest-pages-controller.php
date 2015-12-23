@@ -56,11 +56,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'filter', array( 'post_status' => 'draft' ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
+		$this->assertCount( 1, $data );
 		$this->assertEquals( $page_id, $data[0]['id'] );
 		// But they are accessible to authorized users
 		wp_set_current_user( $this->editor_id );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
+		$this->assertCount( 1, $data );
 		$this->assertEquals( $draft_id, $data[0]['id'] );
 	}
 
