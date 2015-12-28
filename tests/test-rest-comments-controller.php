@@ -360,6 +360,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 	}
 
+	public function test_create_item_invalid_date() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Reverend Lovejoy',
+			'author_email' => 'lovejoy@example.com',
+			'author_url'   => 'http://timothylovejoy.jr',
+			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+			'date'         => rand_str(),
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_create_item_assign_different_user() {
 		$subscriber_id = $this->factory->user->create( array(
 			'role' => 'subscriber',
