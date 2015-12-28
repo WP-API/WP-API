@@ -230,7 +230,7 @@ abstract class WP_REST_Controller {
 				'description'        => 'Maximum number of items to be returned in result set.',
 				'type'               => 'integer',
 				'default'            => 10,
-				'sanitize_callback'  => 'absint',
+				'sanitize_callback'  => 'intval',
 			),
 			'search'                 => array(
 				'description'        => 'Limit results to those matching a string.',
