@@ -441,7 +441,7 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Validate an parameter value that's based on a property from the item schema.
+	 * Validate a parameter value that's based on a property from the item schema.
 	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
@@ -501,7 +501,7 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Sanitize an parameter value that's based on a property from the item schema.
+	 * Sanitize a parameter value that's based on a property from the item schema.
 	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
@@ -519,7 +519,7 @@ abstract class WP_REST_Controller {
 		$property = $schema['properties'][ $parameter ];
 
 		if ( 'integer' === $property['type'] ) {
-			return intval( $value );
+			return (int) $value;
 		}
 
 		if ( isset( $property['format'] ) ) {
