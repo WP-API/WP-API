@@ -1006,17 +1006,30 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_update_post_with_invalid_modified_date() {
+	public function test_update_post_ignore_readonly() {
 		wp_set_current_user( $this->editor_id );
+
+		$new_content = rand_str();
+		$expected_modified = current_time( 'mysql' );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
-			'modified' => rand_str(),
+			'modified' => '2010-06-01T02:00:00Z',
+			'content'  => $new_content,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		// The readonly modified param should be ignored, request should be a success.
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+
+		$this->assertEquals( $new_content, $data['content']['raw'] );
+		$this->assertEquals( $new_content, $new_post->post_content );
+
+		// The modified date should equal the current time.
+		$this->assertEquals( mysql_to_rfc3339( $expected_modified ), $data['modified'] );
+		$this->assertEquals( $expected_modified, $new_post->post_modified );
 	}
 
 	public function test_update_post_with_invalid_date() {
