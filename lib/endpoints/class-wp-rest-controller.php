@@ -437,7 +437,14 @@ abstract class WP_REST_Controller {
 			}
 		}
 
-		return $endpoint_args;
+		/**
+		 * Filter item schema arguments for endpoint.
+		 *
+		 * @param array  $endpoint_args Array of arguments for WP_User_Query.
+		 * @param string $method        The current method.
+		 * @param array  $schema        The current item's schema, conforming to JSON Schema.
+		 */
+		return apply_filters( 'rest_get_endpoint_args_for_item_schema', $endpoint_args, $method, $schema );
 	}
 
 	/**
