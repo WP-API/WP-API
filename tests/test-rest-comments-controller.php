@@ -813,6 +813,38 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
 	}
 
+	public function test_update_item_invalid_date() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'content' => rand_str(),
+			'date'    => rand_str(),
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_update_item_invalid_date_gmt() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'content'  => rand_str(),
+			'date_gmt' => rand_str(),
+		);
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_update_comment_invalid_id() {
 		wp_set_current_user( 0 );
 
