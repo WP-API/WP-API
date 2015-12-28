@@ -1327,12 +1327,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'modified_gmt'    => array(
 					'description' => 'The date the object was last modified, as GMT.',
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
+					'readonly'    => true,
 				),
 				'password'        => array(
 					'description' => 'A password to protect access to the post.',
