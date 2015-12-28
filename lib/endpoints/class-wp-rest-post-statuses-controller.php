@@ -54,7 +54,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	/**
 	 * Get a specific post status
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request|array $request
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {

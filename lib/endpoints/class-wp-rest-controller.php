@@ -23,7 +23,7 @@ abstract class WP_REST_Controller {
 	/**
 	 * Get one item from the collection.
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request|array $request Full data about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {

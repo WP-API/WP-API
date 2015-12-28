@@ -160,7 +160,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Get a single user
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param WP_REST_Request|array $request Full details about the request.
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_item( $request ) {

@@ -187,7 +187,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieve custom field object.
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request|array $request
 	 * @return WP_REST_Request|WP_Error Meta object data on success, WP_Error otherwise
 	 */
 	public function get_item( $request ) {
