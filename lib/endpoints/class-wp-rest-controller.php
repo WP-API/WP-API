@@ -501,7 +501,7 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Sanitize an parameter value that's based on a property from the item schema.
+	 * Sanitize a parameter value that's based on a property from the item schema.
 	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
