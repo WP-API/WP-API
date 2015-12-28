@@ -629,7 +629,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		foreach ( $avatar_sizes as $size ) {
 			$avatar_properties[ $size ] = array(
 				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
-				'type'        => 'uri',
+				'type'        => 'string',
+				'format'      => 'uri',
 				'context'     => array( 'embed', 'view', 'edit' ),
 			);
 		}
