@@ -519,7 +519,7 @@ abstract class WP_REST_Controller {
 		$property = $schema['properties'][ $parameter ];
 
 		if ( 'integer' === $property['type'] ) {
-			return intval( $value );
+			return (int) $value;
 		}
 
 		if ( isset( $property['format'] ) ) {
