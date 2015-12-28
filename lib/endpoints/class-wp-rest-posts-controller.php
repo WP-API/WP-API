@@ -722,16 +722,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
-			} else {
-				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
 			}
 		} elseif ( ! empty( $request['date_gmt'] ) ) {
 			$date_data = rest_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
-			} else {
-				return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ), array( 'status' => 400 ) );
 			}
 		}
 		// Post slug.
