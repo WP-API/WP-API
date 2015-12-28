@@ -769,19 +769,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
-	public function test_create_post_invalid_date() {
-		wp_set_current_user( $this->editor_id );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
-		$params = $this->set_post_data( array(
-			'date' => rand_str(),
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-	}
-
 	public function test_create_post_custom_date_with_timezone() {
 		wp_set_current_user( $this->editor_id );
 
