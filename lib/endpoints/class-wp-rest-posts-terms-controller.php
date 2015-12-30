@@ -41,12 +41,12 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 			array(
 				'methods'             => WP_REST_Server::CREATABLE,
 				'callback'            => array( $this, 'create_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'permission_callback' => array( $this, 'manage_item_permissions_check' ),
 			),
 			array(
 				'methods'         => WP_REST_Server::DELETABLE,
 				'callback'        => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'create_item_permissions_check' ),
+				'permission_callback' => array( $this, 'manage_item_permissions_check' ),
 				'args'            => array(
 					'force'       => array(
 						'default' => false,
@@ -265,12 +265,12 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to create a post/term relationship.
+	 * Check if a given request has access to manage a post/term relationship.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
 	 * @return bool|WP_Error
 	 */
-	public function create_item_permissions_check( $request ) {
+	public function manage_item_permissions_check( $request ) {
 
 		$post_request = new WP_REST_Request();
 		$post_request->set_param( 'id', $request['post_id'] );
