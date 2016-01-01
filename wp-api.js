@@ -134,6 +134,7 @@
 		 * @returns {*}.
 		 */
 		parse: function( response ) {
+			var authorAttributes;
 
 			// Parse dates into native Date objects.
 			_.each( parseable_dates, function ( key ) {
@@ -147,7 +148,13 @@
 
 			// Parse the author into a User object.
 			if ( 'undefined' !== typeof response.author ) {
-				response.author = new wp.api.models.User( response.author );
+				if ( response._embedded && response._embedded.author ) {
+					authorAttributes = _.findWhere( response._embedded.author, { id: response.author } );
+				}
+				if ( ! authorAttributes ) {
+					authorAttributes = { id: response.author };
+				}
+				response.author = new wp.api.models.User( authorAttributes );
 			}
 
 			return response;
