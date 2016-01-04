@@ -82,14 +82,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$this->update_additional_fields_for_object( $attachment, $request );
 
-		$attachment_location = rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id );
-		$get_request = new WP_REST_Request( 'GET', $attachment_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', $attachment_location );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
 
 		/**
 		 * Fires after a single attachment is created or updated via the REST API.
@@ -123,8 +122,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
-		$attachment_location = rest_url( '/wp/v2/' . $this->get_post_type_base( get_post_type( $data['id'] ) ) . '/' . $data['id'] );
-		$get_request = new WP_REST_Request( 'GET', $attachment_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $data['id'] );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
