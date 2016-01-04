@@ -28,13 +28,13 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$post_types = get_post_types( array( 'public' => true ), 'objects' );
+		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 		$this->assertEquals( count( $post_types ), count( $data ) );
-		// Check each key in $data against those in $post_types
-		foreach ( $data as $key => $obj ) {
-			$this->assertEquals( $post_types[ $obj['slug'] ]->name, $key );
-			$this->check_post_type_obj( 'view', $post_types[ $obj['slug'] ], $obj, $obj['_links'] );
-		}
+		$this->assertEquals( $post_types['post']->name, $data['post']['slug'] );
+		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
+		$this->assertEquals( $post_types['page']->name, $data['page']['slug'] );
+		$this->check_post_type_obj( 'view', $post_types['page'], $data['page'], $data['page']['_links'] );
+		$this->assertFalse( isset( $data['revision'] ) );
 	}
 
 	public function test_get_items_invalid_permission_for_context() {

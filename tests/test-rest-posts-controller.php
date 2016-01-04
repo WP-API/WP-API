@@ -240,6 +240,24 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
+	public function test_get_items_private_filter_query_var() {
+		// Private query vars inaccessible to unauthorized users
+		wp_set_current_user( 0 );
+		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array( 'post_status' => 'draft' ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $this->post_id, $data[0]['id'] );
+		// But they are accessible to authorized users
+		wp_set_current_user( $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $draft_id, $data[0]['id'] );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
@@ -1028,8 +1046,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $new_content, $new_post->post_content );
 
 		// The modified date should equal the current time.
-		$this->assertEquals( mysql_to_rfc3339( $expected_modified ), $data['modified'] );
-		$this->assertEquals( $expected_modified, $new_post->post_modified );
+		$this->assertEquals( date( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), date( 'Y-m-d', strtotime( $data['modified'] ) ) );
+		$this->assertEquals( date( 'Y-m-d', strtotime( $expected_modified ) ), date( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
 	}
 
 	public function test_update_post_with_invalid_date() {
