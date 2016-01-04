@@ -173,11 +173,21 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 	}
 
 	public function test_create_item_invalid_permission() {
-
+		$subscriber_id = $this->factory->user->create( array( 'role' => 'subscriber' ) );
+		$author_id = $this->factory->user->create( array( 'role' => 'author' ) );
 		$tag = wp_insert_term( 'test-tag', 'post_tag' );
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/tags/%d', $this->post_id, $tag['term_id'] ) );
+		// Logged out
+		wp_set_current_user( 0 );
 		$response = $this->server->dispatch( $request );
-
+		$this->assertErrorResponse( 'rest_cannot_assign', $response, 401 );
+		// Can't assign tags on a post
+		wp_set_current_user( $subscriber_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_assign', $response, 403 );
+		// Can assign tags, but can't edit this particular post
+		wp_set_current_user( $author_id );
+		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
@@ -231,7 +241,7 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_assign', $response, 401 );
 	}
 
 	public function test_delete_item_invalid_taxonomy() {
