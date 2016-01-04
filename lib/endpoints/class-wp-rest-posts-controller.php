@@ -232,14 +232,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_post', $post, $request, true );
 
-		$post_location = rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id );
-		$get_request = new WP_REST_Request( 'GET', $post_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $post_id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', $post_location );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 
 		return $response;
 	}
@@ -307,7 +306,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
 		do_action( 'rest_insert_post', $post, $request, false );
 
-		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $post_id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
