@@ -199,9 +199,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
 
-		$comment_location = rest_url( '/wp/v2/comments/' . $comment_id );
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
-		$get_request = new WP_REST_Request( 'GET', $comment_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $comment_id );
 		$get_request->set_param( 'context', $context );
 		$response = $this->get_item( $get_request );
@@ -210,7 +209,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', $comment_location );
+		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
 
 		/**
 		 * Fires after a comment is created or updated via the REST API.
@@ -265,7 +264,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_comment( $id ), $request );
 
-		$get_request = new WP_REST_Request( 'GET', rest_url( 'v2/comments/' . $id ) );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
