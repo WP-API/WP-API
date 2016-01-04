@@ -310,7 +310,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
 		$get_request->set_param( 'id', $post_id );
 		$get_request->set_param( 'context', 'edit' );
-		return $this->get_item( $get_request );
+		$response = $this->get_item( $get_request );
+		return rest_ensure_response( $response );
 	}
 
 	/**
