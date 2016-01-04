@@ -272,6 +272,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function manage_item_permissions_check( $request ) {
 
+		$taxonomy_obj = get_taxonomy( $this->taxonomy );
+		if ( ! current_user_can( $taxonomy_obj->cap->assign_terms ) ) {
+			return new WP_Error( 'rest_cannot_assign', __( 'Sorry, you are not allowed to assign terms.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$post_request = new WP_REST_Request();
 		$post_request->set_param( 'id', $request['post_id'] );
 		$post_check = $this->posts_controller->update_item_permissions_check( $post_request );
@@ -292,13 +297,13 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 		$query_params = array();
 		$query_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
 		$query_params['order'] = array(
-			'description'        => 'Order sort attribute ascending or descending.',
+			'description'        => __( 'Order sort attribute ascending or descending.' ),
 			'type'               => 'string',
 			'default'            => 'asc',
 			'enum'               => array( 'asc', 'desc' ),
 		);
 		$query_params['orderby'] = array(
-			'description'        => 'Sort collection by object attribute.',
+			'description'        => __( 'Sort collection by object attribute.' ),
 			'type'               => 'string',
 			'default'            => 'name',
 			'enum'               => array(
