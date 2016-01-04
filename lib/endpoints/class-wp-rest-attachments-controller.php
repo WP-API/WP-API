@@ -243,7 +243,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema = parent::get_item_schema();
 
 		$schema['properties']['alt_text'] = array(
-			'description'     => 'Alternative text to display when attachment is not displayed.',
+			'description'     => __( 'Alternative text to display when attachment is not displayed.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'arg_options'     => array(
@@ -251,7 +251,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['caption'] = array(
-			'description'     => 'The caption for the attachment.',
+			'description'     => __( 'The caption for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -259,7 +259,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['description'] = array(
-			'description'     => 'The description for the attachment.',
+			'description'     => __( 'The description for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -267,25 +267,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['media_type'] = array(
-			'description'     => 'Type of attachment.',
+			'description'     => __( 'Type of attachment.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
-			'description'     => 'Details about the attachment file, specific to its type.',
+			'description'     => __( 'Details about the attachment file, specific to its type.' ),
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
-			'description'     => 'The id for the associated post of the attachment.',
+			'description'     => __( 'The id for the associated post of the attachment.' ),
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['source_url'] = array(
-			'description'     => 'URL to the original attachment file.',
+			'description'     => __( 'URL to the original attachment file.' ),
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit', 'embed' ),
@@ -390,7 +390,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
 		$params['parent']        = array(
-			'description'        => 'Limit results to attachments from a specified parent.',
+			'description'        => __( 'Limit results to attachments from a specified parent.' ),
 			'type'               => 'integer',
 			'default'            => null,
 			'sanitize_callback'  => 'absint',
