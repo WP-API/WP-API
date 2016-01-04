@@ -628,7 +628,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$avatar_sizes = rest_get_avatar_sizes();
 		foreach ( $avatar_sizes as $size ) {
 			$avatar_properties[ $size ] = array(
-				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'context'     => array( 'embed', 'view', 'edit' ),
@@ -643,13 +643,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id'          => array(
-					'description' => 'Unique identifier for the object.',
+					'description' => __( 'Unique identifier for the object.' ),
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'username'    => array(
-					'description' => 'Login name for the user.',
+					'description' => __( 'Login name for the user.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'required'    => true,
@@ -658,7 +658,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'name'        => array(
-					'description' => 'Display name for the object.',
+					'description' => __( 'Display name for the object.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -666,7 +666,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'first_name'  => array(
-					'description' => 'First name for the object.',
+					'description' => __( 'First name for the object.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -674,7 +674,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'last_name'   => array(
-					'description' => 'Last name for the object.',
+					'description' => __( 'Last name for the object.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -682,21 +682,21 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'email'       => array(
-					'description' => 'The email address for the object.',
+					'description' => __( 'The email address for the object.' ),
 					'type'        => 'string',
 					'format'      => 'email',
 					'context'     => array( 'view', 'edit' ),
 					'required'    => true,
 				),
 				'url'         => array(
-					'description' => 'URL of the object.',
+					'description' => __( 'URL of the object.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'description' => array(
-					'description' => 'Description of the object.',
+					'description' => __( 'Description of the object.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -704,21 +704,21 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'link'        => array(
-					'description' => 'Author URL to the object.',
+					'description' => __( 'Author URL to the object.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'avatar_urls'  => array(
-					'description' => 'Avatar URLs for the object.',
+					'description' => __( 'Avatar URLs for the object.' ),
 					'type'        => 'object',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 					'properties'  => $avatar_properties,
 				),
 				'nickname'    => array(
-					'description' => 'The nickname for the object.',
+					'description' => __( 'The nickname for the object.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -726,7 +726,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'slug'        => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -734,29 +734,29 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'registered_date' => array(
-					'description' => 'Registration date for the user.',
+					'description' => __( 'Registration date for the user.' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'roles'           => array(
-					'description' => 'Roles assigned to the user.',
+					'description' => __( 'Roles assigned to the user.' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'role'            => array(
-					'description' => 'Role assigned to the user.',
+					'description' => __( 'Role assigned to the user.' ),
 					'type'        => 'string',
 					'enum'        => array_keys( $wp_roles->role_objects ),
 				),
 				'capabilities'    => array(
-					'description' => 'All capabilities assigned to the user.',
+					'description' => __( 'All capabilities assigned to the user.' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'extra_capabilities' => array(
-					'description' => 'Any extra capabilities assigned to the user.',
+					'description' => __( 'Any extra capabilities assigned to the user.' ),
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
@@ -778,14 +778,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query_params['order'] = array(
 			'default'            => 'asc',
-			'description'        => 'Order sort attribute ascending or descending.',
+			'description'        => __( 'Order sort attribute ascending or descending.' ),
 			'enum'               => array( 'asc', 'desc' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
 		);
 		$query_params['orderby'] = array(
 			'default'            => 'name',
-			'description'        => 'Sort collection by object attribute.',
+			'description'        => __( 'Sort collection by object attribute.' ),
 			'enum'               => array( 'id', 'name', 'registered_date' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',

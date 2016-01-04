@@ -735,7 +735,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$avatar_sizes = rest_get_avatar_sizes();
 		foreach ( $avatar_sizes as $size ) {
 			$avatar_properties[ $size ] = array(
-				'description' => 'Avatar URL with image size of ' . $size . ' pixels.',
+				'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
 				'type'        => 'string',
 				'format'      => 'uri',
 				'context'     => array( 'embed', 'view', 'edit' ),
@@ -748,37 +748,37 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
+					'description'  => __( 'Unique identifier for the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'author'           => array(
-					'description'  => 'The id of the user object, if author was a user.',
+					'description'  => __( 'The id of the user object, if author was a user.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'author_avatar_urls' => array(
-					'description'   => 'Avatar URLs for the object author.',
+					'description'   => __( 'Avatar URLs for the object author.' ),
 					'type'          => 'object',
 					'context'       => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 					'properties'  => $avatar_properties,
 				),
 				'author_email'     => array(
-					'description'  => 'Email address for the object author.',
+					'description'  => __( 'Email address for the object author.' ),
 					'type'         => 'string',
 					'format'       => 'email',
 					'context'      => array( 'edit' ),
 				),
 				'author_ip'     => array(
-					'description'  => 'IP address for the object author.',
+					'description'  => __( 'IP address for the object author.' ),
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
 				),
 				'author_name'     => array(
-					'description'  => 'Display name for the object author.',
+					'description'  => __( 'Display name for the object author.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -787,29 +787,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'author_url'       => array(
-					'description'  => 'URL for the object author.',
+					'description'  => __( 'URL for the object author.' ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'author_user_agent'     => array(
-					'description'  => 'User agent for the object author.',
+					'description'  => __( 'User agent for the object author.' ),
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
 				),
 				'content'          => array(
-					'description'     => 'The content for the object.',
+					'description'     => __( 'The content for the object.' ),
 					'type'            => 'object',
 					'context'         => array( 'view', 'edit', 'embed' ),
 					'properties'      => array(
 						'raw'         => array(
-							'description'     => 'Content for the object, as it exists in the database.',
+							'description'     => __( 'Content for the object, as it exists in the database.' ),
 							'type'            => 'string',
 							'context'         => array( 'edit' ),
 						),
 						'rendered'    => array(
-							'description'     => 'Content for the object, transformed for display.',
+							'description'     => __( 'Content for the object, transformed for display.' ),
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
 						),
@@ -820,31 +820,31 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'date'             => array(
-					'description'  => 'The date the object was published.',
+					'description'  => __( 'The date the object was published.' ),
 					'type'         => 'string',
 					'format'       => 'date-time',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'         => array(
-					'description'  => 'The date the object was published as GMT.',
+					'description'  => __( 'The date the object was published as GMT.' ),
 					'type'         => 'string',
 					'format'       => 'date-time',
 					'context'      => array( 'view', 'edit' ),
 				),
 				'karma'             => array(
-					'description'  => 'Karma for the object.',
+					'description'  => __( 'Karma for the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'edit' ),
 				),
 				'link'             => array(
-					'description'  => 'URL to the object.',
+					'description'  => __( 'URL to the object.' ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'parent'           => array(
-					'description'  => 'The id for the parent of the object.',
+					'description'  => __( 'The id for the parent of the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -852,7 +852,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'post'             => array(
-					'description'  => 'The id of the associated post object.',
+					'description'  => __( 'The id of the associated post object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit' ),
 					'arg_options'  => array(
@@ -860,7 +860,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'status'           => array(
-					'description'  => 'State of the object.',
+					'description'  => __( 'State of the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					'arg_options'  => array(
@@ -868,7 +868,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'type'             => array(
-					'description'  => 'Type of Comment for the object.',
+					'description'  => __( 'Type of Comment for the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -893,74 +893,74 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['author_email'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to that from a specific author email.',
+			'description'       => __( 'Limit result set to that from a specific author email.' ),
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
 			'type'              => 'string',
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to that of a particular comment karma.',
+			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['parent'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to that of a specific comment parent id.',
+			'description'       => __( 'Limit result set to that of a specific comment parent id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post']   = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments assigned to a specific post id.',
+			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_author'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments associated with posts of a specific post author id.',
+			'description'       => __( 'Limit result set to comments associated with posts of a specific post author id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_slug'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments associated with posts of a specific post slug.',
+			'description'       => __( 'Limit result set to comments associated with posts of a specific post slug.' ),
 			'sanitize_callback' => 'sanitize_title',
 			'type'              => 'string',
 		);
 		$query_params['post_parent'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments associated with posts of a specific post parent id.',
+			'description'       => __( 'Limit result set to comments associated with posts of a specific post parent id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_status'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments associated with posts of a specific post status.',
+			'description'       => __( 'Limit result set to comments associated with posts of a specific post status.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['post_type'] = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments associated with posts of a specific post type.',
+			'description'       => __( 'Limit result set to comments associated with posts of a specific post type.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',
-			'description'       => 'Limit result set to comments assigned a specific status.',
+			'description'       => __( 'Limit result set to comments assigned a specific status.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['type'] = array(
 			'default'           => 'comment',
-			'description'       => 'Limit result set to comments assigned a specific type.',
+			'description'       => __( 'Limit result set to comments assigned a specific type.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['user']   = array(
 			'default'           => null,
-			'description'       => 'Limit result set to comments assigned to a specific user id.',
+			'description'       => __( 'Limit result set to comments assigned to a specific user id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);

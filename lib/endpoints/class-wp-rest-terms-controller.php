@@ -526,19 +526,19 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'id'               => array(
-					'description'  => 'Unique identifier for the object.',
+					'description'  => __( 'Unique identifier for the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 				),
 				'count'            => array(
-					'description'  => 'Number of published posts for the object.',
+					'description'  => __( 'Number of published posts for the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
 				),
 				'description'      => array(
-					'description'  => 'A human-readable description of the object.',
+					'description'  => __( 'A human-readable description of the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'arg_options'  => array(
@@ -546,14 +546,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 				'link'             => array(
-					'description'  => 'URL to the object.',
+					'description'  => __( 'URL to the object.' ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 				),
 				'name'             => array(
-					'description'  => 'The title for the object.',
+					'description'  => __( 'The title for the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
@@ -562,7 +562,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'required'     => true,
 				),
 				'slug'             => array(
-					'description'  => 'An alphanumeric identifier for the object unique to its type.',
+					'description'  => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
@@ -570,7 +570,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 				'taxonomy'         => array(
-					'description'  => 'Type attribution for the object.',
+					'description'  => __( 'Type attribution for the object.' ),
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
 					'context'      => array( 'view', 'embed' ),
@@ -581,7 +581,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$schema['properties']['parent'] = array(
-					'description'  => 'The id for the parent of the object.',
+					'description'  => __( 'The id for the parent of the object.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
 					);
@@ -600,7 +600,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$query_params['context']['default'] = 'view';
 
 		$query_params['order']      = array(
-			'description'           => 'Order sort attribute ascending or descending.',
+			'description'           => __( 'Order sort attribute ascending or descending.' ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'asc',
@@ -610,7 +610,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['orderby']    = array(
-			'description'           => 'Sort collection by object attribute.',
+			'description'           => __( 'Sort collection by object attribute.' ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'name',
@@ -625,31 +625,31 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['per_page']   = array(
-			'description'           => 'Number of terms to query at a time with pagination.',
+			'description'           => __( 'Number of terms to query at a time with pagination.' ),
 			'type'                  => 'integer',
 			'sanitize_callback'     => 'absint',
 			'default'               => 10,
 		);
 		$query_params['page']     = array(
-			'description'           => 'Number of the desired page within the paginated query results.',
+			'description'           => __( 'Number of the desired page within the paginated query results.' ),
 			'type'                  => 'integer',
 			'sanitize_callback'     => 'absint',
 			'default'               => 1,
 		);
 		$query_params['hide_empty'] = array(
-			'description'           => 'Whether to hide terms not assigned to any posts.',
+			'description'           => __( 'Whether to hide terms not assigned to any posts.' ),
 			'type'                  => 'boolean',
 			'default'               => false,
 		);
 		$query_params['search']     = array(
-			'description'           => 'Search keyword.',
+			'description'           => __( 'Search keyword.' ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_text_field',
 		);
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
-				'description'        => 'Limit result set to terms assigned to a specific parent term.',
+				'description'        => __( 'Limit result set to terms assigned to a specific parent term.' ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
 			);
