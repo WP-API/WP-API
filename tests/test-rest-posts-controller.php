@@ -1028,8 +1028,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $new_content, $new_post->post_content );
 
 		// The modified date should equal the current time.
-		$this->assertEquals( mysql_to_rfc3339( $expected_modified ), $data['modified'] );
-		$this->assertEquals( $expected_modified, $new_post->post_modified );
+		$this->assertEquals( date( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), date( 'Y-m-d', strtotime( $data['modified'] ) ) );
+		$this->assertEquals( date( 'Y-m-d', strtotime( $expected_modified ) ), date( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
 	}
 
 	public function test_update_post_with_invalid_date() {
