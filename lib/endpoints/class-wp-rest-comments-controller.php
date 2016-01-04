@@ -199,17 +199,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
 
+		$comment_location = rest_url( '/wp/v2/comments/' . $comment_id );
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
-		$response = $this->get_item( array(
-			'id'      => $comment_id,
-			'context' => $context,
-		) );
+		$get_request = new WP_REST_Request( 'GET', $comment_location );
+		$get_request->set_param( 'id', $comment_id );
+		$get_request->set_param( 'context', $context );
+		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
+		$response->header( 'Location', $comment_location );
 
 		/**
 		 * Fires after a comment is created or updated via the REST API.
@@ -264,10 +265,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_comment( $id ), $request );
 
-		$response = $this->get_item( array(
-			'id'      => $id,
-			'context' => 'edit',
-		) );
+		$get_request = new WP_REST_Request( 'GET', rest_url( 'v2/comments/' . $id ) );
+		$get_request->set_param( 'id', $id );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->get_item( $get_request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-comments-controller.php */
 		do_action( 'rest_insert_comment', $prepared_args, $request, false );
