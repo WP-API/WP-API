@@ -56,7 +56,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	/**
 	 * Get a specific taxonomy
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request|array $request
 	 * @return array|WP_Error
 	 */
 	public function get_item( $request ) {

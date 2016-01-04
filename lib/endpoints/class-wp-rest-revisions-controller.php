@@ -94,7 +94,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Get one revision from the collection
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
+	 * @param WP_REST_Request|array $request Full data about the request.
 	 * @return WP_Error|array
 	 */
 	public function get_item( $request ) {

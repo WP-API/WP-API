@@ -152,7 +152,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Get a single term from a taxonomy
 	 *
-	 * @param WP_REST_Request $request Full details about the request
+	 * @param WP_REST_Request|array $request Full details about the request
 	 * @return WP_REST_Request|WP_Error
 	 */
 	public function get_item( $request ) {
