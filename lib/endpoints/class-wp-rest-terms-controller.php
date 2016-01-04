@@ -218,14 +218,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( $term, $request );
 
-		$term_location = rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_id'] );
-		$get_request = new WP_REST_Request( 'GET', $term_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $term['term_id'] );
 		$response = $this->get_item( $get_request );
 
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', $term_location );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_id'] ) );
 		return $response;
 	}
 
@@ -274,8 +273,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$this->update_additional_fields_for_object( get_term( (int) $request['id'], $this->taxonomy ), $request );
 
-		$term_location = rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . (int) $request['id'] );
-		$get_request = new WP_REST_Request( 'GET', $term_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', (int) $request['id'] );
 		$response = $this->get_item( $get_request );
 
