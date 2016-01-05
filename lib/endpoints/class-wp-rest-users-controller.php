@@ -189,10 +189,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$response = $this->get_item( array(
-			'id'      => $current_user_id,
-			'context' => $request['context'],
-		));
+		$get_request = new WP_REST_Request;
+		$get_request->set_param( 'id', $current_user_id );
+		$get_request->set_param( 'context', $request['context'] );
+		$response = $this->get_item( $get_request );
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
@@ -255,10 +255,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_user', $user, $request, true );
 
-		$response = $this->get_item( array(
-			'id'      => $user_id,
-			'context' => 'edit',
-		));
+		$get_request = new WP_REST_Request;
+		$get_request->set_param( 'id', $user_id );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
@@ -313,10 +313,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
-		$response = $this->get_item( array(
-			'id'      => $user_id,
-			'context' => 'edit',
-		));
+
+		$get_request = new WP_REST_Request;
+		$get_request->set_param( 'id', $user_id );
+		$get_request->set_param( 'context', 'edit' );
+		$response = $this->get_item( $get_request );
 
 		return rest_ensure_response( $response );
 	}
