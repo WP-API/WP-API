@@ -222,6 +222,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+
+		// With filter params.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => 5, 'paged' => 2 ) ) );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 51, $headers['X-WP-Total'] );
+		$this->assertEquals( 11, $headers['X-WP-TotalPages'] );
+		$prev_link = add_query_arg( array(
+			'page'    => 1,
+			), rest_url( '/wp/v2/posts' ) );
+		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
+		$next_link = add_query_arg( array(
+			'page'    => 3,
+			), rest_url( '/wp/v2/posts' ) );
+		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+	}
+
+	public function test_get_items_private_filter_query_var() {
+		// Private query vars inaccessible to unauthorized users
+		wp_set_current_user( 0 );
+		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array( 'post_status' => 'draft' ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $this->post_id, $data[0]['id'] );
+		// But they are accessible to authorized users
+		wp_set_current_user( $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $draft_id, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
@@ -766,8 +800,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
+
 		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T12:00:00', $data['modified'] );
+
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
+		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );
 	}
 
 	public function test_create_post_with_db_error() {
@@ -979,6 +1017,58 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
 			'format' => 'testformat',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_update_post_ignore_readonly() {
+		wp_set_current_user( $this->editor_id );
+
+		$new_content = rand_str();
+		$expected_modified = current_time( 'mysql' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'modified' => '2010-06-01T02:00:00Z',
+			'content'  => $new_content,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		// The readonly modified param should be ignored, request should be a success.
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+
+		$this->assertEquals( $new_content, $data['content']['raw'] );
+		$this->assertEquals( $new_content, $new_post->post_content );
+
+		// The modified date should equal the current time.
+		$this->assertEquals( date( 'Y-m-d', strtotime( mysql_to_rfc3339( $expected_modified ) ) ), date( 'Y-m-d', strtotime( $data['modified'] ) ) );
+		$this->assertEquals( date( 'Y-m-d', strtotime( $expected_modified ) ), date( 'Y-m-d', strtotime( $new_post->post_modified ) ) );
+	}
+
+	public function test_update_post_with_invalid_date() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'date' => rand_str(),
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_update_post_with_invalid_date_gmt() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'date_gmt' => rand_str(),
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );

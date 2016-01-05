@@ -14,13 +14,13 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/types/post' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -28,25 +28,50 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$post_types = get_post_types( array( 'public' => true ), 'objects' );
+		$post_types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 		$this->assertEquals( count( $post_types ), count( $data ) );
-		// Check each key in $data against those in $post_types
-		foreach ( $data as $key => $obj ) {
-			$this->assertEquals( $post_types[ $obj['slug'] ]->name, $key );
-			$this->check_post_type_obj( $post_types[ $obj['slug'] ], $obj, $obj['_links'] );
-		}
+		$this->assertEquals( $post_types['post']->name, $data['post']['slug'] );
+		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
+		$this->assertEquals( $post_types['page']->name, $data['page']['slug'] );
+		$this->check_post_type_obj( 'view', $post_types['page'], $data['page'], $data['page']['_links'] );
+		$this->assertFalse( isset( $data['revision'] ) );
+	}
+
+	public function test_get_items_invalid_permission_for_context() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEmpty( $response->get_data() );
 	}
 
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
 		$response = $this->server->dispatch( $request );
-		$this->check_post_type_object_response( $response );
+		$this->check_post_type_object_response( 'view', $response );
 	}
 
 	public function test_get_item_invalid_type() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types/invalid' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_type_invalid', $response, 404 );
+	}
+
+	public function test_get_item_edit_context() {
+		$editor_id = $this->factory->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->check_post_type_object_response( 'edit', $response );
+	}
+
+	public function test_get_item_invalid_permission_for_context() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/types/post' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
 	}
 
 	public function test_create_item() {
@@ -64,8 +89,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	public function test_prepare_item() {
 		$obj = get_post_type_object( 'post' );
 		$endpoint = new WP_REST_Post_Types_Controller;
-		$response = $endpoint->prepare_item_for_response( $obj, new WP_REST_Request );
-		$this->check_post_type_obj( $obj, $response->get_data(), $response->get_links() );
+		$request = new WP_REST_Request;
+		$request->set_param( 'context', 'edit' );
+		$response = $endpoint->prepare_item_for_response( $obj, $request );
+		$this->check_post_type_obj( 'edit', $obj, $response->get_data(), $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -117,20 +144,25 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		return 123;
 	}
 
-	protected function check_post_type_obj( $post_type_obj, $data, $links ) {
+	protected function check_post_type_obj( $context, $post_type_obj, $data, $links ) {
 		$this->assertEquals( $post_type_obj->label, $data['name'] );
 		$this->assertEquals( $post_type_obj->name, $data['slug'] );
 		$this->assertEquals( $post_type_obj->description, $data['description'] );
 		$this->assertEquals( $post_type_obj->hierarchical, $data['hierarchical'] );
 		$this->assertEquals( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
+		if ( 'edit' === $context ) {
+			$this->assertEquals( $post_type_obj->labels, $data['labels'] );
+		} else {
+			$this->assertFalse( isset( $data['labels'] ) );
+		}
 	}
 
-	protected function check_post_type_object_response( $response ) {
+	protected function check_post_type_object_response( $context, $response ) {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$obj = get_post_type_object( 'post' );
-		$this->check_post_type_obj( $obj, $data, $response->get_links() );
+		$this->check_post_type_obj( $context, $obj, $data, $response->get_links() );
 	}
 
 }
