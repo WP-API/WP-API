@@ -300,7 +300,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 */
 		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
-		$get_request = new WP_REST_Request( 'GET', rest_url( '/wp/v2/comments/' . $id ) );
+		$get_request = new WP_REST_Request;
+		$get_request->set_param( 'id', $id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $comment, $get_request );
 
