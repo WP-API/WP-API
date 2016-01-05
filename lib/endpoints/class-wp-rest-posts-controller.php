@@ -748,7 +748,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post password.
-		if ( isset( $request['password'] ) ) {
+		if ( isset( $request['password'] ) && '' !== $request['password'] ) {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
