@@ -756,6 +756,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( '0', $data['password'] );
 	}
 
+	public function test_create_post_with_empty_string_password_and_sticky() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'password' => '',
+			'sticky'   => true,
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( '', $data['password'] );
+	}
+
 	public function test_create_post_with_password_and_sticky_fails() {
 		wp_set_current_user( $this->editor_id );
 
