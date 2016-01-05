@@ -189,8 +189,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$user_location = rest_url( sprintf( '/wp/v2/users/%d', $current_user_id ) );
-		$get_request = new WP_REST_Request( 'GET', $user_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $current_user_id );
 		$get_request->set_param( 'context', $request['context'] );
 		$response = $this->get_item( $get_request );
@@ -199,7 +198,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $response );
-		$response->header( 'Location', $user_location );
+		$response->header( 'Location', rest_url( sprintf( '/wp/v2/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -256,14 +255,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_user', $user, $request, true );
 
-		$user_location = rest_url( '/wp/v2/users/' . $user_id );
-		$get_request = new WP_REST_Request( 'GET', $user_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $user_id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', $user_location );
+		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
 		return $response;
 	}
@@ -316,8 +314,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
 
-		$user_location = rest_url( '/wp/v2/users/' . $user_id );
-		$get_request = new WP_REST_Request( 'GET', $user_location );
+		$get_request = new WP_REST_Request;
 		$get_request->set_param( 'id', $user_id );
 		$get_request->set_param( 'context', 'edit' );
 		$response = $this->get_item( $get_request );
