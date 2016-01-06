@@ -361,6 +361,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 		$orig_user->set_data( $data );
 
+		/** Include admin user functions to get access to wp_delete_user() */
+		require_once ABSPATH . 'wp-admin/includes/user.php';
+
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
