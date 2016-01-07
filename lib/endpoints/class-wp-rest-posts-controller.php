@@ -70,6 +70,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$args                   = array();
 		$args['author']         = $request['author'];
+		$args['orderby']        = $request['orderby'];
+		$args['post__in']       = $request['include'];
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
 		$args['post_parent']    = $request['parent'];
@@ -539,6 +541,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_args['ignore_sticky_posts'] = true;
 		}
 
+		if ( 'include' === $query_args['orderby'] ) {
+			$query_args['orderby'] = 'post__in';
+		}
+
 		return $query_args;
 	}
 
@@ -578,7 +584,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars.
-		$rest_valid = array( 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
+		$rest_valid = array( 'post__in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
@@ -1572,6 +1578,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'sanitize_callback'   => 'absint',
 			);
 		}
+		$params['include'] = array(
+			'description'        => __( 'Limit result set to specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$params['order'] = array(
 			'description'        => __( 'Order sort attribute ascending or descending.' ),
 			'type'               => 'string',
@@ -1584,6 +1596,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'default'            => 'name',
 			'enum'               => array(
 				'id',
+				'include',
 				'title',
 				'slug',
 			),
