@@ -72,7 +72,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
-	public function test_get_item_author_query() {
+	public function test_get_items_author_query() {
 		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );
