@@ -70,6 +70,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$args                   = array();
 		$args['author']         = $request['author'];
+		$args['order']          = $request['order'];
+		$args['orderby']        = $request['orderby'];
 		$args['paged']          = $request['page'];
 		$args['posts_per_page'] = $request['per_page'];
 		$args['post_parent']    = $request['parent'];
@@ -1575,7 +1577,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['order'] = array(
 			'description'        => __( 'Order sort attribute ascending or descending.' ),
 			'type'               => 'string',
-			'default'            => 'asc',
+			'default'            => 'desc',
 			'enum'               => array( 'asc', 'desc' ),
 		);
 		$params['orderby'] = array(
