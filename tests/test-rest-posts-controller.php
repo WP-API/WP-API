@@ -72,7 +72,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
-	public function test_get_item_author_query() {
+	public function test_get_items_author_query() {
 		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );
@@ -157,6 +157,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		foreach ( $all_data as $post ) {
 			$this->assertNotEquals( $draft_id, $post['id'] );
 		}
+	}
+
+	public function test_get_items_order_and_orderby() {
+		$this->factory->post->create( array( 'post_title' => 'Apple Pie', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Sauce', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Cobbler', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Coffee Cake', 'post_status' => 'publish' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'search', 'Apple' );
+		// order defaults to 'desc'
+		$request->set_param( 'orderby', 'title' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Apple Sauce', $data[0]['title']['rendered'] );
+		// order=>desc
+		$request->set_param( 'order', 'asc' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Apple Cobbler', $data[0]['title']['rendered'] );
 	}
 
 	public function test_get_items_ignore_sticky_posts_by_default() {
