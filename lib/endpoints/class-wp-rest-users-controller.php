@@ -803,7 +803,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'id',
 				'include',
 				'name',
-				'registered_date'
+				'registered_date',
 			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
