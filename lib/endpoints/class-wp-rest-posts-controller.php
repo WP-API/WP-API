@@ -1583,9 +1583,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['orderby'] = array(
 			'description'        => __( 'Sort collection by object attribute.' ),
 			'type'               => 'string',
-			'default'            => 'name',
+			'default'            => 'date',
 			'enum'               => array(
 				'id',
+				'date',
 				'title',
 				'slug',
 			),
