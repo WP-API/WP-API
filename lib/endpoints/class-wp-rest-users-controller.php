@@ -80,11 +80,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 
 		$prepared_args = array();
+		$prepared_args['include'] = $request['include'];
 		$prepared_args['order'] = $request['order'];
 		$prepared_args['number'] = $request['per_page'];
 		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
 		$orderby_possibles = array(
 			'id'              => 'ID',
+			'include'         => 'include',
 			'name'            => 'display_name',
 			'registered_date' => 'registered',
 		);
@@ -781,6 +783,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['include'] = array(
+			'description'        => __( 'Limit result set to specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$query_params['order'] = array(
 			'default'            => 'asc',
 			'description'        => __( 'Order sort attribute ascending or descending.' ),
@@ -791,7 +799,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$query_params['orderby'] = array(
 			'default'            => 'name',
 			'description'        => __( 'Sort collection by object attribute.' ),
-			'enum'               => array( 'id', 'name', 'registered_date' ),
+			'enum'               => array(
+				'id',
+				'include',
+				'name',
+				'registered_date',
+			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
 		);
