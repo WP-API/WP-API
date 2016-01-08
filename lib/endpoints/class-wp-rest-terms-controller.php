@@ -69,6 +69,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array(
+			'include'    => $request['include'],
 			'order'      => $request['order'],
 			'orderby'    => $request['orderby'],
 			'hide_empty' => $request['hide_empty'],
@@ -577,6 +578,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['include'] = array(
+			'description'        => __( 'Limit result set to specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$query_params['order']      = array(
 			'description'           => __( 'Order sort attribute ascending or descending.' ),
 			'type'                  => 'string',
@@ -594,6 +601,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'default'               => 'name',
 			'enum'                  => array(
 				'id',
+				'include',
 				'name',
 				'slug',
 				'term_group',
