@@ -572,17 +572,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array           $prepared_args
 	 */
 	protected function prepare_items_query( $request ) {
-		$order_by = sanitize_key( $request['orderby'] );
 
 		$prepared_args = array(
-			'number'  => $request['per_page'],
-			'post_id' => $request['post'] ? $request['post'] : '',
-			'parent'  => isset( $request['parent'] ) ? $request['parent'] : '',
-			'search'  => $request['search'],
-			'orderby' => $this->normalize_query_param( $order_by ),
-			'order'   => $request['order'],
-			'status'  => 'approve',
-			'type'    => 'comment',
+			'comment__in' => $request['include'],
+			'number'      => $request['per_page'],
+			'post_id'     => $request['post'] ? $request['post'] : '',
+			'parent'      => isset( $request['parent'] ) ? $request['parent'] : '',
+			'search'      => $request['search'],
+			'orderby'     => $this->normalize_query_param( $request['orderby'] ),
+			'order'       => $request['order'],
+			'status'      => 'approve',
+			'type'        => 'comment',
 		);
 
 		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
@@ -625,6 +625,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				break;
 			case 'parent':
 				$normalized = $prefix . 'parent';
+				break;
+			case 'include':
+				$normalized = 'comment__in';
 				break;
 			default:
 				$normalized = $prefix . $query_param;
@@ -899,11 +902,33 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'sanitize_email',
 			'type'              => 'string',
 		);
+		$query_params['include'] = array(
+			'description'        => __( 'Limit result set to specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$query_params['karma'] = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+		);
+		$query_params['order']      = array(
+			'description'           => __( 'Order sort attribute ascending or descending.' ),
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_key',
+			'default'               => 'asc',
+			'enum'                  => array(
+				'asc',
+				'desc',
+			),
+		);
+		$query_params['orderby']    = array(
+			'description'           => __( 'Sort collection by object attribute.' ),
+			'type'                  => 'string',
+			'sanitize_callback'     => 'sanitize_key',
+			'default'               => 'date_gmt',
 		);
 		$query_params['parent'] = array(
 			'default'           => null,

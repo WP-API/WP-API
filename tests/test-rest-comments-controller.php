@@ -120,6 +120,30 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 2, $comments );
 	}
 
+	public function test_get_items_include_query() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+		);
+		$id1 = $this->factory->comment->create( $args );
+		$id2 = $this->factory->comment->create( $args );
+		$id3 = $this->factory->comment->create( $args );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		// Orderby=>desc
+		$request->set_param( 'include', array( $id3, $id1 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( $id1, $data[0]['id'] );
+		// Orderby=>include
+		$request->set_param( 'orderby', 'include' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( $id3, $data[0]['id'] );
+	}
+
 	public function test_get_items_private_post_no_permissions() {
 		wp_set_current_user( 0 );
 		$post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
