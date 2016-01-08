@@ -67,14 +67,29 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_logged_in_editor() {
 		wp_set_current_user( $this->editor_id );
-		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$draft_post = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$id2 = $this->factory->attachment->create_object( $this->test_file, $draft_post, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$published_post = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->attachment->create_object( $this->test_file, $published_post, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$response = $this->server->dispatch( $request );
+
 		$data = $response->get_data();
-		$this->assertCount( 1, $data );
+		$this->assertCount( 3, $data );
+		$ids = wp_list_pluck( $data, 'id' );
+		$this->assertTrue( in_array( $id1, $ids ) );
+		$this->assertTrue( in_array( $id2, $ids ) );
+		$this->assertTrue( in_array( $id3, $ids ) );
 	}
 
 	public function test_get_items_parent() {
