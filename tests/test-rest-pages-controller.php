@@ -68,6 +68,22 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	}
 
+	public function test_get_items_parent_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		// Filter to parent
+		$request->set_param( 'parent', $id1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $id2, $data[0]['id'] );
+	}
+
 	public function test_get_items_private_filter_query_var() {
 		// Private query vars inaccessible to unauthorized users
 		wp_set_current_user( 0 );
