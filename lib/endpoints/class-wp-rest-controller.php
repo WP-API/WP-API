@@ -186,7 +186,7 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Get the item's schema, conforming to JSON Schema.
+	 * Get the item's schema.
 	 *
 	 * @return array
 	 */
@@ -195,21 +195,13 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Get the item's schema for display / public consumption purposes.
+	 * Get the item's schema in JSON Schema format for display / public consumption purposes.
 	 *
 	 * @return array
 	 */
 	public function get_public_item_schema() {
-
-		$schema = $this->get_item_schema();
-
-		foreach ( $schema['properties'] as &$property ) {
-			if ( isset( $property['arg_options'] ) ) {
-				unset( $property['arg_options'] );
-			}
-		}
-
-		return $schema;
+		$schema_transformer = new WP_REST_Item_Schema_Transformer( $this->get_item_schema() );
+		return $schema_transformer->get_json_schema();
 	}
 
 	/**
@@ -259,11 +251,11 @@ abstract class WP_REST_Controller {
 			return array_merge( $param_details, $args );
 		}
 		$contexts = array();
-		foreach ( $schema['properties'] as $key => $attributes ) {
-			if ( ! empty( $attributes['context'] ) ) {
-				$contexts = array_merge( $contexts, $attributes['context'] );
+			foreach ( $schema['properties'] as $key => $attributes ) {
+				if ( ! empty( $attributes['context'] ) ) {
+					$contexts = array_merge( $contexts, $attributes['context'] );
+				}
 			}
-		}
 		if ( ! empty( $contexts ) ) {
 			$param_details['enum'] = array_unique( $contexts );
 			rsort( $param_details['enum'] );
@@ -400,146 +392,12 @@ abstract class WP_REST_Controller {
 	 * @return array $endpoint_args
 	 */
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
+		$schema_transformer = new WP_REST_Item_Schema_Transformer( $this->get_item_schema() );
 
-		$schema                = $this->get_item_schema();
-		$schema_properties     = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
-		$endpoint_args = array();
-
-		foreach ( $schema_properties as $field_id => $params ) {
-
-			// Arguments specified as `readonly` are not allowed to be set.
-			if ( ! empty( $params['readonly'] ) ) {
-				continue;
-			}
-
-			$endpoint_args[ $field_id ] = array(
-				'validate_callback' => array( $this, 'validate_schema_property' ),
-				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
-			);
-
-			if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
-				$endpoint_args[ $field_id ]['default'] = $params['default'];
-			}
-
-			if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
-				$endpoint_args[ $field_id ]['required'] = true;
-			}
-
-			// Merge in any options provided by the schema property.
-			if ( isset( $params['arg_options'] ) ) {
-
-				// Only use required / default from arg_options on CREATABLE endpoints.
-				if ( WP_REST_Server::CREATABLE !== $method ) {
-					$params['arg_options'] = array_diff_key( $params['arg_options'], array( 'required' => '', 'default' => '' ) );
-				}
-
-				$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
-			}
-		}
-
-		return $endpoint_args;
+		if ( $method === $method = WP_REST_Server::CREATABLE ) {
+			return $schema_transformer->get_create_item_endpoint_args();
+		} else {
+			return $schema_transformer->get_update_item_endpoint_args();
 	}
-
-	/**
-	 * Validate a parameter value that's based on a property from the item schema.
-	 *
-	 * @param  mixed $value
-	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
-	 * @return WP_Error|bool
-	 */
-	public function validate_schema_property( $value, $request, $parameter ) {
-
-		/**
-		 * We don't currently validate against empty values, as lots of checks
-		 * can unintentionally fail, as the callback will often handle an empty
-		 * value it's self.
-		 */
-		if ( ! $value ) {
-			return true;
-		}
-
-		$schema = $this->get_item_schema();
-
-		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
-			return true;
-		}
-
-		$property = $schema['properties'][ $parameter ];
-
-		if ( ! empty( $property['enum'] ) ) {
-			if ( ! in_array( $value, $property['enum'] ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $parameter, implode( ', ', $property['enum'] ) ) );
-			}
-		}
-
-		if ( 'integer' === $property['type'] && ! is_numeric( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
-		}
-
-		if ( 'string' === $property['type'] && ! is_string( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
-		}
-
-		if ( isset( $property['format'] ) ) {
-			switch ( $property['format'] ) {
-				case 'date-time' :
-					if ( ! rest_parse_date( $value ) ) {
-						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
-					}
-					break;
-
-				case 'email' :
-					if ( ! is_email( $value ) ) {
-						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
-					}
-					break;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Sanitize a parameter value that's based on a property from the item schema.
-	 *
-	 * @param  mixed $value
-	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
-	 * @return WP_Error|bool
-	 */
-	public function sanitize_schema_property( $value, $request, $parameter ) {
-
-		$schema = $this->get_item_schema();
-
-		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
-			return true;
-		}
-
-		$property = $schema['properties'][ $parameter ];
-
-		if ( 'integer' === $property['type'] ) {
-			return (int) $value;
-		}
-
-		if ( isset( $property['format'] ) ) {
-			switch ( $property['format'] ) {
-				case 'date-time' :
-					return sanitize_text_field( $value );
-
-				case 'email' :
-					// as sanitize_email is very lossy, we just want to
-					// make sure the string is safe.
-					if ( sanitize_email( $value ) ) {
-						return sanitize_email( $value );
-					}
-					return sanitize_text_field( $value );
-
-				case 'uri' :
-					return esc_url_raw( $value );
-			}
-		}
-
-		return $value;
 	}
 }
