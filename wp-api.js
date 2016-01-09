@@ -847,7 +847,7 @@
 						deferred.resolve( categories );
 					}
 
-					// Return the constructed categories promise.
+					// Return a promise.
 					return deferred.promise();
 				},
 
@@ -955,8 +955,9 @@
 				 * @return {Object} user A wp.api.models.Users model representing the author user.
 				 */
 				getAuthorUser: function() {
-					var user, authorId, embeddeds, attributes;
+					var user, authorId, embeddeds, attributes, deferred;
 
+					deferred  = jQuery.Deferred();
 					authorId  = this.get( 'author' );
 					embeddeds = this.get( '_embedded' ) || {};
 
@@ -980,11 +981,15 @@
 
 					// If we didn’t have an embedded user, fetch the user data.
 					if ( ! user.get( 'name' ) ) {
-						user.fetch();
+						user.fetch( { success: function( user ) {
+							deferred.resolve( user );
+						} } );
+					} else {
+						deferred.resolve( user );
 					}
 
-					// Return the constructed user.
-					return user;
+					// Return a promise.
+					return deferred.promise();
 				}
 			},
 
@@ -1002,8 +1007,9 @@
 				 * @return {Object} media A wp.api.models.Media model representing the featured image.
 				 */
 				getFeaturedImage: function() {
-					var media, featuredImageId, embeddeds, attributes;
+					var media, featuredImageId, embeddeds, attributes, deferred;
 
+					deferred         = jQuery.Deferred();
 					featuredImageId  = this.get( 'featured_image' );
 					embeddeds        = this.get( '_embedded' ) || {};
 
@@ -1027,11 +1033,15 @@
 
 					// If we didn’t have an embedded media, fetch the media data.
 					if ( ! media.get( 'source_url' ) ) {
-						media.fetch();
+						media.fetch( { success: function( media ) {
+							deferred.resolve( media );
+						} } );
+					} else {
+						deferred.resolve( media );
 					}
 
-					// Return the constructed media.
-					return media;
+					// Return a promise.
+					return deferred.promise();
 				}
 			};
 
