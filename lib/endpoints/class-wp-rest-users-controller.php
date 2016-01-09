@@ -169,10 +169,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
 
-		if ( empty( $id ) || empty( $user->ID ) ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user id.' ), array( 'status' => 404 ) );
-		}
-
 		$user = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $user );
 
