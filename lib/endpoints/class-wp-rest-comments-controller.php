@@ -583,6 +583,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'order'       => $request['order'],
 			'status'      => 'approve',
 			'type'        => 'comment',
+			'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
+			'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
 		);
 
 		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
@@ -595,10 +597,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
 				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
 				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
-				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
 				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
 				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
-				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
 			);
 
 			$prepared_args = array_merge( $prepared_args, $protected_args );
