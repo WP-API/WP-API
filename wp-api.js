@@ -838,6 +838,168 @@
 			},
 
 			/**
+			 * Build a helper function to retrieve related model.
+			 *
+			 * @param  {string} parentModel      The parent model.
+			 * @param  {int}    modelId          The model ID if the object to request
+			 * @param  {string} modelName        The model name to use when constructing the model.
+			 * @param  {string} embedSourcePoint Where to check the embedds object for _embed data.
+			 * @param  {string} embedCheckField  Which model field to check to see if the model has data.
+			 *
+			 * @return {Deferred.promise}        A promise which resolves to the constructed model.
+			 */
+			buildModelGetter = function( parentModel, modelId, modelName, embedSourcePoint, embedCheckField ) {
+				var getModel, embeddeds, attributes, deferred;
+
+				deferred  = jQuery.Deferred();
+				embeddeds = parentModel.get( '_embedded' ) || {};
+
+				// Verify that we have a valied author id.
+				if ( ! _.isNumber( modelId ) ) {
+					deferred.reject();
+					return deferred;
+				}
+
+				// If we have embedded object data, use that when constructing the getModel.
+				if ( embeddeds[ embedSourcePoint ] ) {
+					attributes = _.findWhere( embeddeds[ embedSourcePoint ], { id: modelId } );
+				}
+
+				// Otherwise use the modelId.
+				if ( ! attributes ) {
+					attributes = { id: modelId };
+				}
+
+				// Create the new getModel model.
+				getModel = new wp.api.models[ modelName ]( attributes );
+
+				// If we didn’t have an embedded getModel, fetch the getModel data.
+				if ( ! getModel.get( embedCheckField ) ) {
+					getModel.fetch( { success: function( getModel ) {
+						deferred.resolve( getModel );
+					} } );
+				} else {
+					deferred.resolve( getModel );
+				}
+
+				// Return a promise.
+				return deferred.promise();
+			},
+
+			/**
+			 * Build a helper to retrieve a collection.
+			 *
+			 * @param  {string} parentModel         The parent model.
+			 * @param  {string} collectionName      The name to use when constructing the collection.
+			 * @param  {string} embedSourcePoint    Where to check the embedds object for _embed data.
+			 * @param  {string} embedIndex          An addiitonal optional index for the _embed data.
+			 *
+			 * @return {Deferred.promise}           A promise which resolves to the constructed collection.
+			 */
+			buildCollectionGetter = function( parentModel, collectionName, embedSourcePoint, embedIndex ) {
+				/**
+				 * Returns a promise that resolves to the requested collection
+				 *
+				 * Uses the embedded data if available, otherwises fetches the
+				 * data from the server.
+				 *
+				 * @return {Deferred.promise} promise Resolves to a wp.api.collections[ collectionName ]
+				 * collection.
+				 */
+				var postId, embeddeds, getObjects,
+					classProperties = '',
+					properties      = '',
+					deferred        = jQuery.Deferred();
+
+				postId    = parentModel.get( 'id' );
+				embeddeds = parentModel.get( '_embedded' ) || {};
+
+				// Verify that we have a valied post id.
+				if ( ! _.isNumber( postId ) || 0 === postId ) {
+					deferred.reject();
+					return deferred;
+				}
+
+				// If we have embedded getObjects data, use that when constructing the getObjects.
+				if ( ! _.isUndefined( embedSourcePoint ) && ! _.isUndefined( embeddeds[ embedSourcePoint ] ) ) {
+
+					// Some embeds also include an index offset, check for that.
+					if ( _.isUndefined( embedIndex ) ) {
+
+						// Use the embed source point directly.
+						properties = embeddeds[ embedSourcePoint ];
+					} else {
+
+						// Add the index to the embed source point.
+						properties = embeddeds[ embedSourcePoint ][ embedIndex ];
+					}
+				} else {
+
+					// Otherwise use the postId.
+					classProperties = { parent: postId };
+				}
+
+				// Create the new getObjects collection.
+				getObjects = new wp.api.collections[ collectionName ]( properties, classProperties );
+
+				// If we didn’t have embedded getObjects, fetch the getObjects data.
+				if ( _.isUndefined( getObjects.models[0] ) ) {
+					getObjects.fetch( { success: function( getObjects ) {
+
+						// Add a helper 'parent_post' attribute onto the model.
+						setHelperParentPost( getObjects, postId );
+						deferred.resolve( getObjects );
+					} } );
+				} else {
+
+					// Add a helper 'parent_post' attribute onto the model.
+					setHelperParentPost( getObjects, postId );
+					deferred.resolve( getObjects );
+				}
+
+				// Return a promise.
+				return deferred.promise();
+
+			},
+
+			/**
+			 * Set the model post parent.
+			 */
+			setHelperParentPost = function( collection, postId ) {
+
+				// Attach post_parent id to the collection.
+				_.each( collection.models, function( model ) {
+					model.set( 'parent_post', postId );
+				} );
+			},
+
+			/**
+			 * Add a helper funtion to handle post Meta.
+			 */
+			MetaMixin = {
+				getMeta: function() {
+					return buildCollectionGetter( this, 'PostMeta', 'https://api.w.org/meta' );
+				}
+			},
+
+			/**
+			 * Add a helper funtion to handle post Revisions.
+			 */
+			RevisionsMixin = {
+				getRevisions: function() {
+					return buildCollectionGetter( this, 'PostRevisions' );
+				}
+			},
+
+			/**
+			 * Add a helper funtion to handle post Tags.
+			 */
+			TagsMixin = {
+				getTags: function() {
+					return buildCollectionGetter( this, 'PostTags', 'https://api.w.org/term', 1 );
+				}
+			},
+			/**
 			 * Add a helper funtion to handle post Categories.
 			 */
 			CategoriesMixin = {
@@ -848,59 +1010,11 @@
 				 * Uses the embedded data if available, otherwises fetches the
 				 * data from the server.
 				 *
-				 * @return {Deferred.promise} promise Resolves to a wp.api.collections.PostCategories collection containing the post categories.
+				 * @return {Deferred.promise} promise Resolves to a wp.api.collections.PostCategories
+				 * collection containing the post categories.
 				 */
 				getCategories: function() {
-					var postId, embeddeds, categories,
-						self            = this,
-						classProperties = '',
-						properties      = '',
-						deferred        = jQuery.Deferred();
-
-					postId    = this.get( 'id' );
-					embeddeds = this.get( '_embedded' ) || {};
-
-					// Verify that we have a valied post id.
-					if ( ! _.isNumber( postId ) ) {
-						return null;
-					}
-
-					// If we have embedded categories data, use that when constructing the categories.
-					if ( embeddeds['https://api.w.org/term'] ) {
-						properties = embeddeds['https://api.w.org/term'][0];
-					} else {
-
-						// Otherwise use the postId.
-						classProperties = { parent: postId };
-					}
-
-					// Create the new categories collection.
-					categories = new wp.api.collections.PostCategories( properties, classProperties );
-
-					// If we didn’t have embedded categories, fetch the categories data.
-					if ( _.isUndefined( categories.models[0] ) ) {
-						categories.fetch( { success: function( categories ) {
-							self.setCategoryPostParents( categories, postId );
-							deferred.resolve( categories );
-						} } );
-					} else {
-						this.setCategoryPostParents( categories, postId );
-						deferred.resolve( categories );
-					}
-
-					// Return a promise.
-					return deferred.promise();
-				},
-
-				/**
-				 * Set the category post parents when retrieving posts.
-				 */
-				setCategoryPostParents: function( categories, postId ) {
-
-					// Attach post_parent id to the categories.
-					_.each( categories.models, function( category ) {
-						category.set( 'parent_post', postId );
-					} );
+					return buildCollectionGetter( this, 'PostCategories', 'https://api.w.org/term', 0 );
 				},
 
 				/**
@@ -986,51 +1100,8 @@
 			 * Add a helper function to retrieve the author user model.
 			 */
 			AuthorMixin = {
-
-				/**
-				 * Get a user model for an model's author.
-				 *
-				 * Uses the embedded user data if available, otherwises fetches the user
-				 * data from the server.
-				 *
-				 * @return {Object} user A wp.api.models.User model representing the author user.
-				 */
 				getAuthorUser: function() {
-					var user, authorId, embeddeds, attributes, deferred;
-
-					deferred  = jQuery.Deferred();
-					authorId  = this.get( 'author' );
-					embeddeds = this.get( '_embedded' ) || {};
-
-					// Verify that we have a valied author id.
-					if ( ! _.isNumber( authorId ) ) {
-						return null;
-					}
-
-					// If we have embedded author data, use that when constructing the user.
-					if ( embeddeds.author ) {
-						attributes = _.findWhere( embeddeds.author, { id: authorId } );
-					}
-
-					// Otherwise use the authorId.
-					if ( ! attributes ) {
-						attributes = { id: authorId };
-					}
-
-					// Create the new user model.
-					user = new wp.api.models.User( attributes );
-
-					// If we didn’t have an embedded user, fetch the user data.
-					if ( ! user.get( 'name' ) ) {
-						user.fetch( { success: function( user ) {
-							deferred.resolve( user );
-						} } );
-					} else {
-						deferred.resolve( user );
-					}
-
-					// Return a promise.
-					return deferred.promise();
+					return buildModelGetter( this, this.get( 'author' ), 'User', 'author', 'name' );
 				}
 			},
 
@@ -1038,51 +1109,8 @@
 			 * Add a helper function to retrieve the featured image.
 			 */
 			FeaturedImageMixin = {
-
-				/**
-				 * Get a featured image for a post.
-				 *
-				 * Uses the embedded user data if available, otherwises fetches the media
-				 * data from the server.
-				 *
-				 * @return {Object} media A wp.api.models.Media model representing the featured image.
-				 */
 				getFeaturedImage: function() {
-					var media, featuredImageId, embeddeds, attributes, deferred;
-
-					deferred         = jQuery.Deferred();
-					featuredImageId  = this.get( 'featured_image' );
-					embeddeds        = this.get( '_embedded' ) || {};
-
-					// Verify that we have a valid featured image id.
-					if ( ( ! _.isNumber( featuredImageId ) ) || 0 === featuredImageId ) {
-						return null;
-					}
-
-					// If we have embedded featured image data, use that when constructing the user.
-					if ( embeddeds['https://api.w.org/featuredmedia'] ) {
-						attributes = _.findWhere( embeddeds['https://api.w.org/featuredmedia'], { id: featuredImageId } );
-					}
-
-					// Otherwise use the featuredImageId.
-					if ( ! attributes ) {
-						attributes = { id: featuredImageId };
-					}
-
-					// Create the new media model.
-					media = new wp.api.models.Media( attributes );
-
-					// If we didn’t have an embedded media, fetch the media data.
-					if ( ! media.get( 'source_url' ) ) {
-						media.fetch( { success: function( media ) {
-							deferred.resolve( media );
-						} } );
-					} else {
-						deferred.resolve( media );
-					}
-
-					// Return a promise.
-					return deferred.promise();
+					return buildModelGetter( this, this.get( 'featured_image' ), 'Media', 'https://api.w.org/featuredmedia', 'source_url' );
 				}
 			};
 
@@ -1116,6 +1144,21 @@
 		// Add the CategoriesMixin for models that support categories collections.
 		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Categories' ] ) ) {
 			model = model.extend( CategoriesMixin );
+		}
+
+		// Add the MetaMixin for models that support meta collections.
+		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Meta' ] ) ) {
+			model = model.extend( MetaMixin );
+		}
+
+		// Add the TagsMixin for models that support tags collections.
+		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Tags' ] ) ) {
+			model = model.extend( TagsMixin );
+		}
+
+		// Add the RevisionsMixin for models that support revisions collections.
+		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Revisions' ] ) ) {
+			model = model.extend( RevisionsMixin );
 		}
 
 		return model;
