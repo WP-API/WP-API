@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 Beta 1.2
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 2.0 Beta 1.1
 
 - Fix user access security vulnerability.
