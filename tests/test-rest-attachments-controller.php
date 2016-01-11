@@ -36,12 +36,29 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	public function test_get_items() {
-		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+		wp_set_current_user( 0 );
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$draft_post = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$id2 = $this->factory->attachment->create_object( $this->test_file, $draft_post, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$published_post = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->attachment->create_object( $this->test_file, $published_post, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		$ids = wp_list_pluck( $data, 'id' );
+		$this->assertTrue( in_array( $id1, $ids ) );
+		$this->assertFalse( in_array( $id2, $ids ) );
+		$this->assertTrue( in_array( $id3, $ids ) );
 
 		$this->check_get_posts_response( $response );
 	}
@@ -93,6 +110,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		remove_image_size( 'rest-api-test' );
 
 		$this->assertFalse( isset( $data['media_details']['sizes']['rest-api-test']['source_url'] ) );
+	}
+
+	public function test_get_item_private_post() {
+		wp_set_current_user( 0 );
+		$draft_post = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$id1 = $this->factory->attachment->create_object( $this->test_file, $draft_post, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $id1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 403, $response->get_status() );
 	}
 
 	public function test_create_item() {
