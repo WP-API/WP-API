@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 Beta 3.1
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 2.0 Beta 3.0
 
 - Add ability to declare sanitization and default options for schema fields.
