@@ -205,9 +205,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$get_request->set_param( 'context', $context );
 		$response = $this->get_item( $get_request );
 		$response = rest_ensure_response( $response );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
 
