@@ -201,6 +201,39 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
+	public function test_get_items_orderby_id() {
+		$tag0 = $this->factory->tag->create( array( 'name' => 'Cantaloupe' ) );
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		// defaults to orderby=name, order=asc
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'Apple', $data[0]['name'] );
+		$this->assertEquals( 'Banana', $data[1]['name'] );
+		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
+		// orderby=id, with default order=asc
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'Cantaloupe', $data[0]['name'] );
+		$this->assertEquals( 'Apple', $data[1]['name'] );
+		$this->assertEquals( 'Banana', $data[2]['name'] );
+		// orderby=id, order=desc
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'orderby', 'id' );
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'Banana', $data[0]['name'] );
+		$this->assertEquals( 'Apple', $data[1]['name'] );
+		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
+	}
+
 	public function test_get_items_post_args() {
 		$post_id = $this->factory->post->create();
 		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
