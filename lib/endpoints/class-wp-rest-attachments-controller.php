@@ -82,13 +82,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$this->update_additional_fields_for_object( $attachment, $request );
 
-		$get_request = new WP_REST_Request;
+		$resource_path = '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id;
+		$get_request = new WP_REST_Request( 'GET', $resource_path );
 		$get_request->set_param( 'id', $id );
 		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
-		$response = rest_ensure_response( $response );
+		$response = rest_do_request( $get_request );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
+		$response->header( 'Location', rest_url( $resource_path ) );
 
 		/**
 		 * Fires after a single attachment is created or updated via the REST API.
@@ -122,15 +122,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $data['id'] );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
-
 		/* This action is documented in lib/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_insert_attachment', $data, $request, false );
 
-		return rest_ensure_response( $response );
+		$resource_path = '/wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $data['id'];
+		$get_request = new WP_REST_Request( 'GET', $resource_path );
+		$get_request->set_param( 'id', $data['id'] );
+		$get_request->set_param( 'context', 'edit' );
+		return rest_do_request( $get_request );
 	}
 
 	/**
