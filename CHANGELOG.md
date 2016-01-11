@@ -2,6 +2,10 @@
 
 ## 2.0 Beta 10.0
 
+- SECURITY: Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 - BREAKING CHANGE: Removes compatibility repo for WordPress 4.3.
 
   WordPress 4.4 is now the minimum supported WordPress version.
