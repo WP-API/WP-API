@@ -605,7 +605,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'name',
 				'slug',
 				'term_group',
-				'term_id',
 				'description',
 				'count',
 			),
