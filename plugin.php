@@ -521,10 +521,7 @@ function json_check_post_permission( $post, $capability = 'read' ) {
 			// Can we read the parent if we're inheriting?
 			if ( 'inherit' === $post['post_status'] && $post['post_parent'] > 0 ) {
 				$parent = get_post( $post['post_parent'], ARRAY_A );
-
-				if ( json_check_post_permission( $parent, 'read' ) ) {
-					$permission = true;
-				}
+				return json_check_post_permission( $parent, 'read' );
 			}
 
 			// If we don't have a parent, but the status is set to inherit, assume
