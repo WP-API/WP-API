@@ -943,10 +943,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Can we read the parent if we're inheriting?
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
-
-			if ( $this->check_read_permission( $parent ) ) {
-				return true;
-			}
+			return $this->check_read_permission( $parent );
 		}
 
 		// If we don't have a parent, but the status is set to inherit, assume
