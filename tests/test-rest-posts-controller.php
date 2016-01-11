@@ -50,6 +50,26 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
+	public function test_registered_query_params() {
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$keys = array_keys( $data['endpoints'][0]['args'] );
+		sort( $keys );
+		$this->assertEquals( array(
+			'author',
+			'context',
+			'filter',
+			'include',
+			'order',
+			'orderby',
+			'page',
+			'per_page',
+			'search',
+			'status',
+			), $keys );
+	}
+
 	public function test_get_items() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );

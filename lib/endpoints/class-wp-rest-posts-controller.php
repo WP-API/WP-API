@@ -1603,6 +1603,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'slug',
 			),
 		);
+
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( $post_type_obj->hierarchical ) {
+			$params['parent'] = array(
+				'description'       => _( 'Limit result set to that of a specific parent id.' ),
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+				'default'           => null,
+			);
+		}
+
 		$params['status'] = array(
 			'default'           => 'attachment' === $this->post_type ? 'inherit' : 'publish',
 			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
