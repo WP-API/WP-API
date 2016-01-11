@@ -3,7 +3,7 @@ Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
 Requires at least: 4.3
 Tested up to: 4.4
-Stable tag: 2.0-beta6
+Stable tag: 2.0-beta6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,6 +35,12 @@ Drop this directory in and activate it.
 For full-flavoured API support, you'll need to be using pretty permalinks to use the plugin, as it uses custom rewrite rules to power the API.
 
 == Changelog ==
+
+= 2.0 Beta 6.1 =
+
+* Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
 
 = 2.0 Beta 6.0 =
 
