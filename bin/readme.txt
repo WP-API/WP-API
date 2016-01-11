@@ -3,7 +3,7 @@ Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
 Requires at least: 4.4
 Tested up to: 4.5-alpha
-Stable tag: 2.0-beta9
+Stable tag: 2.0-beta10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,10 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 == Changelog ==
 
 = 2.0 Beta 10.0 =
+
+* SECURITY: Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
 
 * BREAKING CHANGE: Removes compatibility repo for WordPress 4.3.
 
