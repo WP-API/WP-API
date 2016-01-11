@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.5
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 1.2.4
 
 - Compatibilty with WordPress 4.4
