@@ -207,9 +207,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$response = rest_ensure_response( $data );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
 
 		if ( ! empty( $data['parent'] ) ) {
 			$response->add_link( 'parent', rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ) );
