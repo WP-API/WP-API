@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 Beta 5.1
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 2.0 Beta 5.0
 
 - Load api-core as a compatibility library
