@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 Beta 7.1
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 2.0 Beta 7.0
 
 - Sync infrastructure from WordPress core as of r35691.
