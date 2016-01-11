@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 Beta 4.1
+
+- Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
 ## 2.0 Beta 4.0
 
 - Show public user information through the user controller.
