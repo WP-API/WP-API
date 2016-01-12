@@ -652,6 +652,41 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( isset( $properties['parent'] ) );
 	}
 
+	public function test_get_additional_field_registration() {
+
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_rest_field( 'category', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+		) );
+
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories' );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
+		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+
+		$category_id = $this->factory->category->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories/' . $category_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertArrayHasKey( 'my_custom_int', $response->data );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
+	public function additional_field_get_callback( $object, $request ) {
+		return 123;
+	}
+
 	public function tearDown() {
 		_unregister_taxonomy( 'batman' );
 		_unregister_taxonomy( 'robin' );
