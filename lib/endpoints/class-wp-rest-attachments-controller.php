@@ -68,6 +68,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->guid = $url;
 		$id = wp_insert_post( $attachment, true );
 		if ( is_wp_error( $id ) ) {
+			if ( in_array( $id->get_error_code(), array( 'db_update_error' ) ) ) {
+				$id->add_data( array( 'status' => 500 ) );
+			} else {
+				$id->add_data( array( 'status' => 400 ) );
+			}
 			return $id;
 		}
 
