@@ -75,6 +75,36 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
+	public function test_registered_query_params() {
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$keys = array_keys( $data['endpoints'][0]['args'] );
+		sort( $keys );
+		$this->assertEquals( array(
+			'author_email',
+			'context',
+			'exclude',
+			'include',
+			'karma',
+			'order',
+			'orderby',
+			'page',
+			'parent',
+			'per_page',
+			'post',
+			'post_author',
+			'post_parent',
+			'post_slug',
+			'post_status',
+			'post_type',
+			'search',
+			'status',
+			'type',
+			'user',
+			), $keys );
+	}
+
 	public function test_get_items() {
 		$this->factory->comment->create_post_comments( $this->post_id, 6 );
 
@@ -142,6 +172,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( $id3, $data[0]['id'] );
+	}
+
+	public function test_get_items_exclude_query() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+		);
+		$id1 = $this->factory->comment->create( $args );
+		$id2 = $this->factory->comment->create( $args );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+		$request->set_param( 'exclude', array( $id2 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
 	}
 
 	public function test_get_items_private_post_no_permissions() {
