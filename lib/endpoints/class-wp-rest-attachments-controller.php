@@ -14,18 +14,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $ret;
 		}
 
-		// Permissions check - Note: "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
+		// "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
-			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
 		}
 
-		// If a user is trying to attach to a post make sure they have permissions. Bail early if post_id is not being passed
+		// Attaching media to a post requires ability to edit said post
 		if ( ! empty( $request['post'] ) ) {
 			$parent = get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
 			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
