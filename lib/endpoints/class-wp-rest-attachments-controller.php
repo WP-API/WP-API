@@ -3,27 +3,42 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Check if a given request has access to create an attachment.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function create_item_permissions_check( $request ) {
+		$ret = parent::create_item_permissions_check( $request );
+		if ( ! $ret || is_wp_error( $ret ) ) {
+			return $ret;
+		}
+
+		// "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
+		}
+
+		// Attaching media to a post requires ability to edit said post
+		if ( ! empty( $request['post'] ) ) {
+			$parent = get_post( (int) $request['post'] );
+			$post_parent_type = get_post_type_object( $parent->post_type );
+			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this post.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Create a single attachment
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-
-		// Permissions check - Note: "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
-		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
-			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
-		}
-
-		// If a user is trying to attach to a post make sure they have permissions. Bail early if post_id is not being passed
-		if ( ! empty( $request['post'] ) ) {
-			$parent = get_post( (int) $request['post'] );
-			$post_parent_type = get_post_type_object( $parent->post_type );
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
-		}
 
 		// Get the file via $_FILES or raw data
 		$files = $request->get_file_params();
