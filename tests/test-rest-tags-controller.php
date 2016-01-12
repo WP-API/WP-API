@@ -585,7 +585,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( $taxonomy->hierarchical ) {
 			$this->assertEquals( $term->parent, $data['parent'] );
 		} else {
-			$this->assertFalse( isset( $term->parent ) );
+			$this->assertFalse( isset( $data['parent'] ) );
 		}
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'collection', $links );
