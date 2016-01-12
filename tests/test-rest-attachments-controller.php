@@ -217,7 +217,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 'image', $data['media_type'] );
 	}
 
 	public function test_create_item_with_files() {
