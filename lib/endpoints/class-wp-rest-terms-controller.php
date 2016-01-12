@@ -105,7 +105,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *                                       passed to get_terms.
 		 * @param WP_REST_Request $request       The current request.
 		 */
-		$prepared_args = apply_filters( 'rest_terms_query', $prepared_args, $request );
+		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
 
 		$query_result = get_terms( $this->taxonomy, $prepared_args );
 		$response = array();
