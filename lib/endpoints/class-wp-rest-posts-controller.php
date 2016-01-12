@@ -638,14 +638,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
-		if ( '0000-00-00 00:00:00' === $date_gmt ) {
-			return null;
-		}
-
+		// Use the date if passed.
 		if ( isset( $date ) ) {
 			return mysql_to_rfc3339( $date );
 		}
 
+		// Return null if $date_gmt is empty/zeros.
+		if ( '0000-00-00 00:00:00' === $date_gmt ) {
+			return null;
+		}
+
+		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
 	}
 

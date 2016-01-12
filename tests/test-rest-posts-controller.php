@@ -624,8 +624,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Confirm dates are null
 		$this->assertNull( $data['date_gmt'] );
 		$this->assertNull( $data['modified_gmt'] );
-		$this->assertNull( $data['date'] );
-		$this->assertNull( $data['modified'] );
 	}
 
 	public function test_create_post_private() {

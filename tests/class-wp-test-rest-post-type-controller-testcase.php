@@ -10,16 +10,14 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
-		} else {
-			$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertNull( $data['date_gmt'] );
 		}
+		$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
 
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-			$this->assertNull( $data['modified'] );
-		} else {
-			$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+			$this->assertNull( $data['modified_gmt'] );
 		}
+		$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
 
 		// author
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
