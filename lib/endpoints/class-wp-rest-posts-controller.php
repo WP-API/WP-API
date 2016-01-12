@@ -74,6 +74,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['orderby']        = $request['orderby'];
 		$args['paged']          = $request['page'];
 		$args['post__in']       = $request['include'];
+		$args['post__not_in']   = $request['exclude'];
 		$args['posts_per_page'] = $request['per_page'];
 		$args['post_parent']    = $request['parent'];
 		$args['post_status']    = $request['status'];
@@ -585,7 +586,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars.
-		$rest_valid = array( 'post__in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
+		$rest_valid = array( 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
@@ -1576,6 +1577,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'sanitize_callback'   => 'absint',
 			);
 		}
+		$params['exclude'] = array(
+			'description'        => __( 'Ensure result set excludes specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
