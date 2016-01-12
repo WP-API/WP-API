@@ -69,6 +69,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array(
+			'exclude'    => $request['exclude'],
 			'include'    => $request['include'],
 			'order'      => $request['order'],
 			'orderby'    => $request['orderby'],
@@ -578,6 +579,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['exclude'] = array(
+			'description'        => __( 'Ensure result set excludes specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
