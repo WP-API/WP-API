@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Unit tests covering WP_REST_Terms_Controller functionality.
+ * Unit tests covering WP_REST_Terms_Controller functionality, used for Categories.
  *
  * @package WordPress
  * @subpackage JSON API
  */
-class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
+class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function setUp() {
 		parent::setUp();
@@ -22,20 +22,18 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$routes = $this->server->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/categories', $routes );
 		$this->assertArrayHasKey( '/wp/v2/categories/(?P<id>[\d]+)', $routes );
-		$this->assertArrayHasKey( '/wp/v2/tags', $routes );
-		$this->assertArrayHasKey( '/wp/v2/tags/(?P<id>[\d]+)', $routes );
 	}
 
 	public function test_context_param() {
 		// Collection
-		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
-		$tag1 = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
-		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags/' . $tag1 );
+		$category1 = $this->factory->category->create( array( 'name' => 'Season 5' ) );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories/' . $category1 );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
@@ -43,7 +41,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_registered_query_params() {
-		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$keys = array_keys( $data['endpoints'][0]['args'] );
@@ -56,6 +54,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 			'order',
 			'orderby',
 			'page',
+			'parent',
 			'per_page',
 			'search',
 			), $keys );
@@ -69,10 +68,10 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_items_hide_empty_arg() {
 		$post_id = $this->factory->post->create();
-		$tag1 = $this->factory->tag->create( array( 'name' => 'Season 5' ) );
-		$tag2 = $this->factory->tag->create( array( 'name' => 'The Be Sharps' ) );
-		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$category1 = $this->factory->category->create( array( 'name' => 'Season 5' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'The Be Sharps' ) );
+		wp_set_object_terms( $post_id, array( $category1, $category2 ), 'category' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'hide_empty', true );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
@@ -155,10 +154,10 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_include_query() {
-		$id1 = $this->factory->tag->create();
-		$id2 = $this->factory->tag->create();
-		$id3 = $this->factory->tag->create();
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$id1 = $this->factory->category->create();
+		$id2 = $this->factory->category->create();
+		$id3 = $this->factory->category->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		// Orderby=>asc
 		$request->set_param( 'include', array( $id3, $id1 ) );
 		$response = $this->server->dispatch( $request );
@@ -174,9 +173,9 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_exclude_query() {
-		$id1 = $this->factory->tag->create();
-		$id2 = $this->factory->tag->create();
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$id1 = $this->factory->category->create();
+		$id2 = $this->factory->category->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
@@ -189,15 +188,15 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_orderby_args() {
-		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
-		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		$category1 = $this->factory->category->create( array( 'name' => 'Apple' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'Banana' ) );
 		/*
 		 * Tests:
 		 * - orderby
 		 * - order
 		 * - per_page
 		 */
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'orderby', 'name' );
 		$request->set_param( 'order', 'desc' );
 		$request->set_param( 'per_page', 1 );
@@ -205,8 +204,8 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'Banana', $data[0]['name'] );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$this->assertEquals( 'Uncategorized', $data[0]['name'] );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'orderby', 'name' );
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'per_page', 2 );
@@ -218,28 +217,30 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_orderby_id() {
-		$tag0 = $this->factory->tag->create( array( 'name' => 'Cantaloupe' ) );
-		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
-		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		$category0 = $this->factory->category->create( array( 'name' => 'Cantaloupe' ) );
+		$category1 = $this->factory->category->create( array( 'name' => 'Apple' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'Banana' ) );
 		// defaults to orderby=name, order=asc
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 		$this->assertEquals( 'Banana', $data[1]['name'] );
 		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
+		$this->assertEquals( 'Uncategorized', $data[3]['name'] );
 		// orderby=id, with default order=asc
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'orderby', 'id' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Cantaloupe', $data[0]['name'] );
-		$this->assertEquals( 'Apple', $data[1]['name'] );
-		$this->assertEquals( 'Banana', $data[2]['name'] );
+		$this->assertEquals( 'Uncategorized', $data[0]['name'] );
+		$this->assertEquals( 'Cantaloupe', $data[1]['name'] );
+		$this->assertEquals( 'Apple', $data[2]['name'] );
+		$this->assertEquals( 'Banana', $data[3]['name'] );
 		// orderby=id, order=desc
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'orderby', 'id' );
 		$request->set_param( 'order', 'desc' );
 		$response = $this->server->dispatch( $request );
@@ -252,17 +253,17 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_items_post_args() {
 		$post_id = $this->factory->post->create();
-		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
-		$tag2 = $this->factory->tag->create( array( 'name' => 'Marvel' ) );
-		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
+		$category1 = $this->factory->category->create( array( 'name' => 'DC' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'Marvel' ) );
+		wp_set_object_terms( $post_id, array( $category1, $category2 ), 'category' );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( 3, count( $data ) ); // includes 'Uncategorized'
 		$this->assertEquals( 'DC', $data[0]['name'] );
 	}
 
@@ -286,20 +287,20 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_items_search_args() {
-		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
-		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		$category1 = $this->factory->category->create( array( 'name' => 'Apple' ) );
+		$category2 = $this->factory->category->create( array( 'name' => 'Banana' ) );
 		/*
 		 * Tests:
 		 * - search
 		 */
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'search', 'App' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Apple', $data[0]['name'] );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'search', 'Garbage' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
@@ -335,27 +336,27 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_terms_pagination_headers() {
-		// Start of the index
-		for ( $i = 0; $i < 50; $i++ ) {
-			$this->factory->tag->create( array(
-				'name'   => "Tag {$i}",
+		// Start of the index + Uncategorized default term
+		for ( $i = 0; $i < 49; $i++ ) {
+			$this->factory->category->create( array(
+				'name'   => "Category {$i}",
 				) );
 		}
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( '/wp/v2/categories' ) );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// 3rd page
-		$this->factory->tag->create( array(
-				'name'   => 'Tag 51',
+		$this->factory->category->create( array(
+				'name'   => 'Category 51',
 				) );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 3 );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
@@ -363,14 +364,14 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( '/wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
 			'page'    => 4,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( '/wp/v2/categories' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 6 );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
@@ -378,11 +379,11 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( '/wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 		// Out of bounds
-		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'page', 8 );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
@@ -390,7 +391,7 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( '/wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
@@ -492,16 +493,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
 	}
 
-	public function test_create_item_parent_non_hierarchical_taxonomy() {
-		wp_set_current_user( $this->administrator );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/tags' );
-		$request->set_param( 'name', 'My Awesome Term' );
-		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
-	}
-
 	public function test_update_item() {
 		wp_set_current_user( $this->administrator );
 		$orig_args = array(
@@ -569,16 +560,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_term_invalid', $response, 400 );
-	}
-
-	public function test_update_item_parent_non_hierarchical_taxonomy() {
-		wp_set_current_user( $this->administrator );
-		$term = get_term_by( 'id', $this->factory->tag->create(), 'post_tag' );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/tags/' . $term->term_taxonomy_id );
-		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_taxonomy_not_hierarchical', $response, 400 );
 	}
 
 	public function test_delete_item() {
@@ -657,15 +638,6 @@ class WP_Test_REST_Terms_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
 		$this->assertEquals( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
-	}
-
-	public function test_get_item_schema_non_hierarchical() {
-		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/tags' );
-		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$properties = $data['schema']['properties'];
-		$this->assertArrayHasKey( 'id', $properties );
-		$this->assertFalse( isset( $properties['parent'] ) );
 	}
 
 	public function test_get_additional_field_registration() {
