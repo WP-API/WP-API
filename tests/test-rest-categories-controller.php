@@ -330,7 +330,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_terms_invalid_taxonomy() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/invalid-taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
@@ -403,7 +403,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	public function test_get_term_invalid_taxonomy() {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/terms/invalid-taxonomy/1' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/invalid-taxonomy/1' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
@@ -449,7 +449,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_create_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/invalid-taxonomy' );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -515,7 +515,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_update_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/terms/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$request->set_param( 'name', 'Invalid Taxonomy' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -575,7 +575,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_delete_item_invalid_taxonomy() {
 		wp_set_current_user( $this->administrator );
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/terms/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/invalid-taxonomy/' . REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
