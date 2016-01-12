@@ -574,15 +574,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $request ) {
 
 		$prepared_args = array(
-			'comment__in' => $request['include'],
-			'number'      => $request['per_page'],
-			'post_id'     => $request['post'] ? $request['post'] : '',
-			'parent'      => isset( $request['parent'] ) ? $request['parent'] : '',
-			'search'      => $request['search'],
-			'orderby'     => $this->normalize_query_param( $request['orderby'] ),
-			'order'       => $request['order'],
-			'status'      => 'approve',
-			'type'        => 'comment',
+			'comment__in'     => $request['include'],
+			'comment__not_in' => $request['exclude'],
+			'number'          => $request['per_page'],
+			'post_id'         => $request['post'] ? $request['post'] : '',
+			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
+			'search'          => $request['search'],
+			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
+			'order'           => $request['order'],
+			'status'          => 'approve',
+			'type'            => 'comment',
 		);
 
 		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
@@ -901,6 +902,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
 			'type'              => 'string',
+		);
+		$query_params['exclude'] = array(
+			'description'        => __( 'Ensure result set excludes specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
