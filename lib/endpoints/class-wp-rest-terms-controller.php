@@ -457,7 +457,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 * @param object            $item      The original term object.
 		 * @param WP_REST_Request   $request   Request used to generate the response.
 		 */
-		return apply_filters( 'rest_prepare_term', $response, $item, $request );
+		return apply_filters( "rest_prepare_{$this->taxonomy}", $response, $item, $request );
 	}
 
 	/**
