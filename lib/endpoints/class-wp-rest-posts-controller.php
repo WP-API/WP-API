@@ -97,7 +97,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Key value array of query var to query value.
 		 * @param WP_REST_Request $request The request used.
 		 */
-		$args = apply_filters( 'rest_post_query', $args, $request );
+		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
 		$query_args = $this->prepare_items_query( $args );
 
 		$posts_query = new WP_Query();
