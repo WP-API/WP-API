@@ -3,12 +3,16 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
-	 * Create a single attachment
+	 * Check if a given request has access to create an attachment.
 	 *
-	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|WP_REST_Response
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
 	 */
-	public function create_item( $request ) {
+	public function create_item_permissions_check( $request ) {
+		$ret = parent::create_item_permissions_check( $request );
+		if ( ! $ret || is_wp_error( $ret ) ) {
+			return $ret;
+		}
 
 		// Permissions check - Note: "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
 		$post_type_obj = get_post_type_object( $this->post_type );
@@ -24,6 +28,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
+
+		return true;
+	}
+
+	/**
+	 * Create a single attachment
+	 *
+	 * @param WP_REST_Request $request Full details about the request
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function create_item( $request ) {
 
 		// Get the file via $_FILES or raw data
 		$files = $request->get_file_params();
