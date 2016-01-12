@@ -53,7 +53,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'args'     => array(
 					'force'    => array(
 						'default'      => false,
-						'description'  => __( 'Whether to bypass trash and force deletion.' )
+						'description'  => __( 'Whether to bypass trash and force deletion.' ),
 					),
 				),
 			),
