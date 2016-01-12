@@ -95,6 +95,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * Enables adding extra arguments or setting defaults for a post
 		 * collection request.
 		 *
+		 * @see https://developer.wordpress.org/reference/classes/wp_user_query/
+		 *
 		 * @param array           $args    Key value array of query var to query value.
 		 * @param WP_REST_Request $request The request used.
 		 */
