@@ -116,7 +116,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
-
 		$page = (int) $query_args['paged'];
 		$total_posts = $posts_query->found_posts;
 
