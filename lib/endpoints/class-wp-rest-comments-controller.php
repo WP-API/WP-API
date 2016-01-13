@@ -82,7 +82,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		foreach ( $query_result as $comment ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! $this->check_read_post_permission( $post ) || ! $this->check_read_permission( $comment ) ) {
-
 				continue;
 			}
 
