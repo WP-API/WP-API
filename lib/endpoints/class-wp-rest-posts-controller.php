@@ -116,17 +116,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$posts[] = $this->prepare_response_for_collection( $data );
 		}
 
-		$response = rest_ensure_response( $posts );
-		$count_query = new WP_Query();
 
-		// Store paged value for pagination headers then unset for count query.
 		$page = (int) $query_args['paged'];
-		unset( $query_args['paged'] );
+		$total_posts = $posts_query->found_posts;
 
-		$query_result = $count_query->query( $query_args );
-		$total_posts = $count_query->found_posts;
-		$response->header( 'X-WP-Total', (int) $total_posts );
+		if ( $total_posts < 1 ) {
+			// Out-of-bounds, run the query again without LIMIT for total count
+			unset( $query_args['paged'] );
+			$count_query = new WP_Query();
+			$query_result = $count_query->query( $query_args );
+			$total_posts = $count_query->found_posts;
+		}
+
 		$max_pages = ceil( $total_posts / (int) $query_args['posts_per_page'] );
+
+		$response = rest_ensure_response( $posts );
+		$response->header( 'X-WP-Total', (int) $total_posts );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
 		$request_params = $request->get_query_params();
