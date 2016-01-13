@@ -64,7 +64,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$prepared_args = $this->prepare_items_query( $request );
 
-
 		/**
 		 * Filter arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
 		 *
