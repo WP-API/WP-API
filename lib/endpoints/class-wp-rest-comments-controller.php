@@ -64,7 +64,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$prepared_args = $this->prepare_items_query( $request );
 
-		$query = new WP_Comment_Query;
 
 		/**
 		 * Filter arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
@@ -76,6 +75,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 */
 		$prepared_args = apply_filters( 'rest_comment_query', $prepared_args, $request );
 
+		$query = new WP_Comment_Query;
 		$query_result = $query->query( $prepared_args );
 
 		$comments = array();
@@ -91,14 +91,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$response = rest_ensure_response( $comments );
-		unset( $prepared_args['number'] );
-		unset( $prepared_args['offset'] );
-		$query = new WP_Comment_Query;
-		$prepared_args['count'] = true;
-		$total_comments = $query->query( $prepared_args );
-		$response->header( 'X-WP-Total', (int) $total_comments );
-		$max_pages = ceil( $total_comments / $request['per_page'] );
-		$response->header( 'X-WP-TotalPages', (int) $max_pages );
+		$response->header( 'X-WP-Total', (int) $query->found_comments );
+		$max_pages = (int) $query->max_num_pages;
+		$response->header( 'X-WP-TotalPages', $max_pages );
 
 		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/comments' ) );
 		if ( $request['page'] > 1 ) {
@@ -595,6 +590,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'order'           => $request['order'],
 			'status'          => 'approve',
 			'type'            => 'comment',
+			'no_found_rows'   => false,
 		);
 
 		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
