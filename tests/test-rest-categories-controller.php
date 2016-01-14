@@ -566,11 +566,21 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		wp_set_current_user( $this->administrator );
 		$term = get_term_by( 'id', $this->factory->category->create( array( 'name' => 'Deleted Category' ) ), 'category' );
 		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_id );
+		$request->set_param( 'force', true );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'Deleted Category', $data['data']['name'] );
 		$this->assertTrue( $data['deleted'] );
+	}
+
+	public function test_delete_item_force_false() {
+		wp_set_current_user( $this->administrator );
+		$term = get_term_by( 'id', $this->factory->category->create( array( 'name' => 'Deleted Category' ) ), 'category' );
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/categories/' . $term->term_id );
+		// force defaults to false
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 501, $response->get_status() );
 	}
 
 	public function test_delete_item_invalid_taxonomy() {

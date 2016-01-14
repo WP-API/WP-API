@@ -11,69 +11,75 @@
 add_action( 'wp_enqueue_scripts', 'rest_register_scripts', -100 );
 add_action( 'admin_enqueue_scripts', 'rest_register_scripts', -100 );
 
-/**
- * Registers REST API JavaScript helpers.
- *
- * @since 4.4.0
- *
- * @see wp_register_scripts()
- */
-function rest_register_scripts() {
-
-	// Use minified scripts if SCRIPT_DEBUG is not on.
-	$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
-
-	wp_register_script( 'wp-api', plugins_url( 'wp-api' . $suffix . '.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
-
-	$settings = array(
-		'root'          => esc_url_raw( get_rest_url() ),
-		'nonce'         => wp_create_nonce( 'wp_rest' ),
-		'versionString' => 'wp/v2/',
-	);
-	wp_localize_script( 'wp-api', 'wpApiSettings', $settings );
-}
-
-/**
- * Retrieves the avatar urls in various sizes based on a given email address.
- *
- * @since 4.4.0
- *
- * @see get_avatar_url()
- *
- * @param string $email Email address.
- * @return array $urls Gravatar url for each size.
- */
-function rest_get_avatar_urls( $email ) {
-	$avatar_sizes = rest_get_avatar_sizes();
-
-	$urls = array();
-	foreach ( $avatar_sizes as $size ) {
-		$urls[ $size ] = get_avatar_url( $email, array( 'size' => $size ) );
-	}
-
-	return $urls;
-}
-
-/**
- * Retrieves the pixel sizes for avatars.
- *
- * @since 4.4.0
- *
- * @return array List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
- */
-function rest_get_avatar_sizes() {
+if ( ! function_exists( 'rest_register_scripts' ) ) {
 	/**
-	 * Filter the REST avatar sizes.
-	 *
-	 * Use this filter to adjust the array of sizes returned by the
-	 * `rest_get_avatar_sizes` function.
+	 * Registers REST API JavaScript helpers.
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $sizes An array of int values that are the pixel sizes for avatars.
-	 *                     Default `[ 24, 48, 96 ]`.
+	 * @see wp_register_scripts()
 	 */
-	return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
+	function rest_register_scripts() {
+
+		// Use minified scripts if SCRIPT_DEBUG is not on.
+		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+
+		wp_register_script( 'wp-api', plugins_url( 'wp-api' . $suffix . '.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
+
+		$settings = array(
+			'root'          => esc_url_raw( get_rest_url() ),
+			'nonce'         => wp_create_nonce( 'wp_rest' ),
+			'versionString' => 'wp/v2/',
+		);
+		wp_localize_script( 'wp-api', 'wpApiSettings', $settings );
+	}
+}
+
+if ( ! function_exists( 'rest_get_avatar_urls' ) ) {
+	/**
+	 * Retrieves the avatar urls in various sizes based on a given email address.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @see get_avatar_url()
+	 *
+	 * @param string $email Email address.
+	 * @return array $urls Gravatar url for each size.
+	 */
+	function rest_get_avatar_urls( $email ) {
+		$avatar_sizes = rest_get_avatar_sizes();
+
+		$urls = array();
+		foreach ( $avatar_sizes as $size ) {
+			$urls[ $size ] = get_avatar_url( $email, array( 'size' => $size ) );
+		}
+
+		return $urls;
+	}
+}
+
+if ( ! function_exists( 'rest_get_avatar_sizes' ) ) {
+	/**
+	 * Retrieves the pixel sizes for avatars.
+	 *
+	 * @since 4.4.0
+	 *
+	 * @return array List of pixel sizes for avatars. Default `[ 24, 48, 96 ]`.
+	 */
+	function rest_get_avatar_sizes() {
+		/**
+		 * Filter the REST avatar sizes.
+		 *
+		 * Use this filter to adjust the array of sizes returned by the
+		 * `rest_get_avatar_sizes` function.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @param array $sizes An array of int values that are the pixel sizes for avatars.
+		 *                     Default `[ 24, 48, 96 ]`.
+		 */
+		return apply_filters( 'rest_avatar_sizes', array( 24, 48, 96 ) );
+	}
 }
 
 /**
