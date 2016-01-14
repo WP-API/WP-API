@@ -96,7 +96,9 @@ if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
 /**
  * WP_REST_Posts_Terms_Controller class.
  */
-include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
+if ( ! class_exists( 'WP_REST_Posts_Terms_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
+}
 
 /**
  * REST extras.
