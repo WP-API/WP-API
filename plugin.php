@@ -139,80 +139,82 @@ function _add_extra_api_taxonomy_arguments() {
 	}
 }
 
-/**
- * Registers default REST API routes.
- *
- * @since 4.4.0
- */
-function create_initial_rest_routes() {
+if ( ! function_exists( 'create_initial_rest_routes' ) ) {
+	/**
+	 * Registers default REST API routes.
+	 *
+	 * @since 4.4.0
+	 */
+	function create_initial_rest_routes() {
 
-	foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
-		$class = ! empty( $post_type->rest_controller_class ) ? $post_type->rest_controller_class : 'WP_REST_Posts_Controller';
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			$class = ! empty( $post_type->rest_controller_class ) ? $post_type->rest_controller_class : 'WP_REST_Posts_Controller';
 
-		if ( ! class_exists( $class ) ) {
-			continue;
-		}
-		$controller = new $class( $post_type->name );
-		if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
-			continue;
-		}
-
-		$controller->register_routes();
-
-		if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
-			$meta_controller = new WP_REST_Meta_Posts_Controller( $post_type->name );
-			$meta_controller->register_routes();
-		}
-		if ( post_type_supports( $post_type->name, 'revisions' ) ) {
-			$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
-			$revisions_controller->register_routes();
-		}
-
-		foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
-
-			if ( empty( $taxonomy->show_in_rest ) ) {
+			if ( ! class_exists( $class ) ) {
+				continue;
+			}
+			$controller = new $class( $post_type->name );
+			if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
 				continue;
 			}
 
-			$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
-			$posts_terms_controller->register_routes();
-		}
-	}
+			$controller->register_routes();
 
-	// Post types.
-	$controller = new WP_REST_Post_Types_Controller;
-	$controller->register_routes();
+			if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
+				$meta_controller = new WP_REST_Meta_Posts_Controller( $post_type->name );
+				$meta_controller->register_routes();
+			}
+			if ( post_type_supports( $post_type->name, 'revisions' ) ) {
+				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
+				$revisions_controller->register_routes();
+			}
 
-	// Post statuses.
-	$controller = new WP_REST_Post_Statuses_Controller;
-	$controller->register_routes();
+			foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
 
-	// Taxonomies.
-	$controller = new WP_REST_Taxonomies_Controller;
-	$controller->register_routes();
+				if ( empty( $taxonomy->show_in_rest ) ) {
+					continue;
+				}
 
-	// Terms.
-	foreach ( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
-		$class = ! empty( $taxonomy->rest_controller_class ) ? $taxonomy->rest_controller_class : 'WP_REST_Terms_Controller';
-
-		if ( ! class_exists( $class ) ) {
-			continue;
-		}
-		$controller = new $class( $taxonomy->name );
-		if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
-			continue;
+				$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
+				$posts_terms_controller->register_routes();
+			}
 		}
 
+		// Post types.
+		$controller = new WP_REST_Post_Types_Controller;
+		$controller->register_routes();
+
+		// Post statuses.
+		$controller = new WP_REST_Post_Statuses_Controller;
+		$controller->register_routes();
+
+		// Taxonomies.
+		$controller = new WP_REST_Taxonomies_Controller;
+		$controller->register_routes();
+
+		// Terms.
+		foreach ( get_taxonomies( array( 'show_in_rest' => true ), 'object' ) as $taxonomy ) {
+			$class = ! empty( $taxonomy->rest_controller_class ) ? $taxonomy->rest_controller_class : 'WP_REST_Terms_Controller';
+
+			if ( ! class_exists( $class ) ) {
+				continue;
+			}
+			$controller = new $class( $taxonomy->name );
+			if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
+				continue;
+			}
+
+			$controller->register_routes();
+		}
+
+		// Users.
+		$controller = new WP_REST_Users_Controller;
+		$controller->register_routes();
+
+		// Comments.
+		$controller = new WP_REST_Comments_Controller;
 		$controller->register_routes();
 	}
-
-	// Users.
-	$controller = new WP_REST_Users_Controller;
-	$controller->register_routes();
-
-	// Comments.
-	$controller = new WP_REST_Comments_Controller;
-	$controller->register_routes();
 }
 
 if ( ! function_exists( 'rest_authorization_required_code' ) ) {
