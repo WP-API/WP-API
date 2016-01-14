@@ -12,62 +12,86 @@
 /**
  * WP_REST_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
+if ( ! class_exists( 'WP_REST_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-controller.php';
+}
 
 /**
  * WP_REST_Posts_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
+if ( ! class_exists( 'WP_REST_Posts_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-controller.php';
+}
 
 /**
  * WP_REST_Attachments_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
+if ( ! class_exists( 'WP_REST_Attachments_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-attachments-controller.php';
+}
 
 /**
  * WP_REST_Post_Types_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
+if ( ! class_exists( 'WP_REST_Post_Types_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-types-controller.php';
+}
 
 /**
  * WP_REST_Post_Statuses_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
+if ( ! class_exists( 'WP_REST_Post_Statuses_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-statuses-controller.php';
+}
 
 /**
  * WP_REST_Revisions_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
+if ( ! class_exists( 'WP_REST_Revisions_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-revisions-controller.php';
+}
 
 /**
  * WP_REST_Taxonomies_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
+if ( ! class_exists( 'WP_REST_Taxonomies_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-taxonomies-controller.php';
+}
 
 /**
  * WP_REST_Terms_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
+if ( ! class_exists( 'WP_REST_Terms_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-terms-controller.php';
+}
 
 /**
  * WP_REST_Users_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
+if ( ! class_exists( 'WP_REST_Users_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-users-controller.php';
+}
 
 /**
  * WP_REST_Comments_Controller class.
  */
-require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
+if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-comments-controller.php';
+}
 
 /**
  * WP_REST_Meta_Controller class.
  */
-include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
+if ( ! class_exists( 'WP_REST_Meta_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
+}
 
 /**
  * WP_REST_Meta_Posts_Controller class.
  */
-include_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
+}
 
 /**
  * WP_REST_Posts_Terms_Controller class.
