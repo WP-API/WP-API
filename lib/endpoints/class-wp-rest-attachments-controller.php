@@ -11,7 +11,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array() ) {
 		$query_args = parent::prepare_items_query( $prepared_args );
-		$query_args['post_status'] = 'inherit';
+		if ( ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ){
+			$query_args['post_status'] = 'inherit';
+		}
 		return $query_args;
 	}
 
@@ -428,8 +430,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'default'            => null,
 			'sanitize_callback'  => 'absint',
 			);
-		unset( $params['status'] );
+		$params['status']['default'] = 'inherit';
+		$params['status']['enum'] = array( 'inherit', 'private', 'trash' );
 		return $params;
+	}
+
+	/**
+	 * Validate whether the user can query private statuses
+	 *
+	 * @param  mixed $value
+	 * @param  WP_REST_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+		if ( 'inherit' === $value ) {
+			return true;
+		}
+		return parent::validate_user_can_query_private_statuses( $value, $request, $parameter );
 	}
 
 	/**
