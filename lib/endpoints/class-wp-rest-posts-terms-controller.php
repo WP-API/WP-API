@@ -48,8 +48,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'manage_item_permissions_check' ),
 				'args'            => array(
-					'force'       => array(
-						'default' => false,
+					'force'    => array(
+						'default'     => false,
+						'description' => __( 'Required to be true, as resource does not support trashing.' ),
 					),
 				),
 			),
