@@ -105,6 +105,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 			return $id;
 		}
+		$attachment = get_post( $id );
 
 		/** Include admin functions to get access to wp_generate_attachment_metadata() */
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -117,10 +118,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$this->update_additional_fields_for_object( $attachment, $request );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
@@ -157,15 +156,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $data['id'] );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$attachment = get_post( $request['id'] );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $attachment, $request );
+		$response = rest_ensure_response( $response );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_insert_attachment', $data, $request, false );
 
-		return rest_ensure_response( $response );
+		return $response;
 	}
 
 	/**
