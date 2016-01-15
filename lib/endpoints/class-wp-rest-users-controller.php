@@ -229,14 +229,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $current_user_id );
-		$get_request->set_param( 'context', $request['context'] );
-		$response = $this->get_item( $get_request );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
+		$user = wp_get_current_user();
+		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->header( 'Location', rest_url( sprintf( '/wp/v2/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
@@ -296,9 +290,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $user_id ) ) {
 				return $user_id;
 			}
-			$user->ID = $user_id;
 		}
 
+		$user = get_user_by( 'id', $user_id );
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
@@ -310,10 +304,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_user', $user, $request, true );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $user_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
@@ -385,17 +377,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $user_id;
 		}
 
+		$user = get_user_by( 'id', $id );
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $user_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
-
-		return rest_ensure_response( $response );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $user, $request );
+		$response = rest_ensure_response( $response );
+		return $response;
 	}
 
 	/**
@@ -443,10 +434,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $id );
-		$get_request->set_param( 'context', 'edit' );
-		$orig_user = $this->prepare_item_for_response( $user, $get_request );
+		$request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $request );
 
 		$data = $orig_user->get_data();
 		$data = array(
