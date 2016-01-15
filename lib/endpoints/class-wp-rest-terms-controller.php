@@ -264,15 +264,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return $term;
 		}
 
+		$term = get_term( $term['term_id'], $this->taxonomy );
 		$this->update_additional_fields_for_object( $term, $request );
-
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $term['term_id'] );
-		$response = $this->get_item( $get_request );
-
+		$request->set_param( 'context', 'view' );
+		$response = $this->prepare_item_for_response( $term, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term['term_id'] ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term->term_id ) );
 		return $response;
 	}
 
@@ -344,12 +342,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$this->update_additional_fields_for_object( get_term( (int) $request['id'], $this->taxonomy ), $request );
-
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', (int) $request['id'] );
-		$response = $this->get_item( $get_request );
-
+		$term = get_term( (int) $request['id'], $this->taxonomy );
+		$this->update_additional_fields_for_object( $term, $request );
+		$request->set_param( 'context', 'view' );
+		$response = $this->prepare_item_for_response( $term, $request );
 		return rest_ensure_response( $response );
 	}
 
@@ -389,12 +385,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
 		}
 
-		// Get the actual term_id
 		$term = get_term( (int) $request['id'], $this->taxonomy );
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', (int) $request['id'] );
-		$get_request->set_param( 'context', 'view' );
-		$response = $this->prepare_item_for_response( $term, $get_request );
+		$request->set_param( 'context', 'view' );
+		$response = $this->prepare_item_for_response( $term, $request );
 
 		$data = $response->get_data();
 		$data = array(
