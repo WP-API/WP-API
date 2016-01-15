@@ -662,7 +662,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param  string|int $comment_approved
 	 * @return string     $status
 	 */
-	protected function prepare_status_response( $comment_approved ) {
+	private function prepare_status_response( $comment_approved ) {
 
 		switch ( $comment_approved ) {
 			case 'hold':
@@ -1025,7 +1025,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @param object     $comment
 	 * @return boolean   $changed
 	 */
-	protected function handle_status_param( $new_status, $comment ) {
+	private function handle_status_param( $new_status, $comment ) {
 		$old_status = wp_get_comment_status( $comment->comment_ID );
 
 		if ( $new_status === $old_status ) {
