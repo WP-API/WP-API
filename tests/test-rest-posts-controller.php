@@ -721,7 +721,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
-	public function test_create_update_post_with_featured_image() {
+	public function test_create_update_post_with_featured_media() {
 
 		$file = DIR_TESTDATA . '/images/canola.jpg';
 		$this->attachment_id = $this->factory->attachment->create_object( $file, 0, array(
@@ -733,23 +733,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data( array(
-			'featured_image' => $this->attachment_id,
+			'featured_media' => $this->attachment_id,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $this->attachment_id, $data['featured_image'] );
+		$this->assertEquals( $this->attachment_id, $data['featured_media'] );
 		$this->assertEquals( $this->attachment_id, (int) get_post_thumbnail_id( $new_post->ID ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $new_post->ID );
 		$params = $this->set_post_data( array(
-			'featured_image' => 0,
+			'featured_media' => 0,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['featured_image'] );
+		$this->assertEquals( 0, $data['featured_media'] );
 		$this->assertEquals( 0, (int) get_post_thumbnail_id( $new_post->ID ) );
 	}
 
@@ -1397,7 +1397,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'date', $properties );
 		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
-		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'featured_media', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'format', $properties );
 		$this->assertArrayHasKey( 'id', $properties );

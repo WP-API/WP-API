@@ -283,8 +283,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
-			$this->handle_featured_image( $request['featured_image'], $post->ID );
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$this->handle_featured_media( $request['featured_media'], $post->ID );
 		}
 
 		if ( ! empty( $schema['properties']['format'] ) && ! empty( $request['format'] ) ) {
@@ -381,8 +381,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			set_post_format( $post, $request['format'] );
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) && isset( $request['featured_image'] ) ) {
-			$this->handle_featured_image( $request['featured_image'], $post_id );
+		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
+			$this->handle_featured_media( $request['featured_media'], $post_id );
 		}
 
 		if ( ! empty( $schema['properties']['sticky'] ) && isset( $request['sticky'] ) ) {
@@ -886,20 +886,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Determine the featured image based on a request param.
+	 * Determine the featured media based on a request param.
 	 *
-	 * @param int $featured_image
+	 * @param int $featured_media
 	 * @param int $post_id
 	 */
-	protected function handle_featured_image( $featured_image, $post_id ) {
+	protected function handle_featured_media( $featured_media, $post_id ) {
 
-		$featured_image = (int) $featured_image;
-		if ( $featured_image ) {
-			$result = set_post_thumbnail( $post_id, $featured_image );
+		$featured_media = (int) $featured_media;
+		if ( $featured_media ) {
+			$result = set_post_thumbnail( $post_id, $featured_media );
 			if ( $result ) {
 				return true;
 			} else {
-				return new WP_Error( 'rest_invalid_featured_image', __( 'Invalid featured image id.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_invalid_featured_media', __( 'Invalid featured media id.' ), array( 'status' => 400 ) );
 			}
 		} else {
 			return delete_post_thumbnail( $post_id );
@@ -1114,8 +1114,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['author'] = (int) $post->post_author;
 		}
 
-		if ( ! empty( $schema['properties']['featured_image'] ) ) {
-			$data['featured_image'] = (int) get_post_thumbnail_id( $post->ID );
+		if ( ! empty( $schema['properties']['featured_media'] ) ) {
+			$data['featured_media'] = (int) get_post_thumbnail_id( $post->ID );
 		}
 
 		if ( ! empty( $schema['properties']['parent'] ) ) {
@@ -1229,9 +1229,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// If we have a featured image, add that.
-		if ( $featured_image = get_post_thumbnail_id( $post->ID ) ) {
-			$image_url = rest_url( 'wp/v2/media/' . $featured_image );
+		// If we have a featured media, add that.
+		if ( $featured_media = get_post_thumbnail_id( $post->ID ) ) {
+			$image_url = rest_url( 'wp/v2/media/' . $featured_media );
 			$links['https://api.w.org/featuredmedia'] = array(
 				'href'       => $image_url,
 				'embeddable' => true,
@@ -1504,8 +1504,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					break;
 
 				case 'thumbnail':
-					$schema['properties']['featured_image'] = array(
-						'description' => __( 'The id of the featured image for the object.' ),
+					$schema['properties']['featured_media'] = array(
+						'description' => __( 'The id of the featured media for the object.' ),
 						'type'        => 'integer',
 						'context'     => array( 'view', 'edit' ),
 					);
