@@ -295,7 +295,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
-		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
+		$post = get_post( $post_id );
+		$this->update_additional_fields_for_object( $post, $request );
 
 		/**
 		 * Fires after a single post is created or updated via the REST API.
@@ -306,10 +307,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_post', $post, $request, true );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $post_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $post->post_type ) . '/' . $post_id ) );
@@ -398,7 +397,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
-		$this->update_additional_fields_for_object( get_post( $post_id ), $request );
+		$post = get_post( $post_id );
+		$this->update_additional_fields_for_object( $post, $request );
 
 		/**
 		 * @TODO: Enable rest_insert_post() action after.
@@ -410,10 +410,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
 		do_action( 'rest_insert_post', $post, $request, false );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $post_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $post, $request );
 		return rest_ensure_response( $response );
 	}
 
@@ -469,9 +467,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_cannot_delete_post', __( 'Sorry, you are not allowed to delete this post.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/' . $this->get_post_type_base( $this->post_type ) . '/' . $post->ID );
 		$request->set_param( 'context', 'edit' );
-		$response = rest_do_request( $request );
+		$response = $this->prepare_item_for_response( $post, $request );
 
 		// If we're forcing, then delete permanently.
 		if ( $force ) {
