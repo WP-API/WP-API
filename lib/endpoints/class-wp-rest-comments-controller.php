@@ -177,6 +177,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
+		if ( '' == $prepared_comment['comment_content'] ) {
+			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 500 ) );
+		}
+
 		/**
 		 * Filter a comment before it is inserted via the REST API.
 		 *
