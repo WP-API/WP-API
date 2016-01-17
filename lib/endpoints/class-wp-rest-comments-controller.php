@@ -184,14 +184,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/**
 		 * Filter a comment before it is inserted via the REST API.
 		 *
-		 * Allows modification of the comment right before it is inserted via `wp_insert_comment`.
+		 * Allows modification of the comment right before it is inserted via `wp_new_comment`.
 		 *
-		 * @param array           $prepared_comment The prepared comment data for `wp_insert_comment`.
+		 * @param array           $prepared_comment The prepared comment data for `wp_new_comment`.
 		 * @param WP_REST_Request $request          Request used to insert the comment.
 		 */
 		$prepared_comment = apply_filters( 'rest_pre_insert_comment', $prepared_comment, $request );
 
-		$comment_id = wp_insert_comment( $prepared_comment );
+		$comment_id = wp_new_comment( $prepared_comment );
 		if ( ! $comment_id ) {
 			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
 		}
