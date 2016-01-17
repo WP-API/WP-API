@@ -181,6 +181,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 500 ) );
 		}
 
+		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
+			if ( 6 > strlen( $prepared_comment['comment_author_email'] ) || '' == $prepared_comment['comment_author'] ) {
+				return new WP_Error( 'rest_require_name_email', __( 'Required fields (name, email) missing.' ), array( 'status' => 500 ) );
+			} elseif ( ! is_email( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_require_valid_email', __( 'Valid email address required.' ), array( 'status' => 500 ) );
+			}
+		}
+
 		/**
 		 * Filter a comment before it is inserted via the REST API.
 		 *
