@@ -235,6 +235,7 @@ abstract class WP_REST_Controller {
 			'search'                 => array(
 				'description'        => __( 'Limit results to those matching a string.' ),
 				'type'               => 'string',
+				'default'            => '',
 				'sanitize_callback'  => 'sanitize_text_field',
 			),
 		);
