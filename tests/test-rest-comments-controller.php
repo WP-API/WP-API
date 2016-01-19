@@ -643,7 +643,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_without_author() {
-		add_filter('comment_flood_filter', '__return_false');
+		add_filter( 'comment_flood_filter', '__return_false' );
 		wp_set_current_user( 0 );
 		update_option( 'require_name_email', 1 );
 
