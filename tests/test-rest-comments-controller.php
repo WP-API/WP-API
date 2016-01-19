@@ -997,7 +997,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}
 
 	public function test_get_item_schema() {
