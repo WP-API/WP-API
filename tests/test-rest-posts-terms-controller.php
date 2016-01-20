@@ -53,6 +53,14 @@ class WP_Test_REST_Posts_Terms_Controller extends WP_Test_REST_Controller_Testca
 		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
+	public function test_get_items_no_permissions() {
+		wp_set_current_user( 0 );
+		$post_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/tags', $post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden', $response, 401 );
+	}
+
 	public function test_get_items_invalid_taxonomy() {
 
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d/%s', $this->public_taxonomy_pages, $this->post_id ) );

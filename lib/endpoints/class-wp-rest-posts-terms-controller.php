@@ -66,18 +66,11 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$post = get_post( absint( $request['post_id'] ) );
-
-		$is_request_valid = $this->validate_request( $request );
-		if ( is_wp_error( $is_request_valid ) ) {
-			return $is_request_valid;
-		}
-
 		$args = array(
 			'order'        => $request['order'],
 			'orderby'      => $request['orderby'],
 		);
-		$terms = wp_get_object_terms( $post->ID, $this->taxonomy, $args );
+		$terms = wp_get_object_terms( $request['post_id'], $this->taxonomy, $args );
 
 		$response = array();
 		foreach ( $terms as $term ) {
@@ -249,7 +242,9 @@ class WP_REST_Posts_Terms_Controller extends WP_REST_Controller {
 
 		$post_check = $this->posts_controller->get_item_permissions_check( $post_request );
 
-		if ( ! $post_check || is_wp_error( $post_check ) ) {
+		if ( ! $post_check ) {
+			return new WP_Error( 'rest_forbidden', __( 'Sorry, you cannot view this post.' ), array( 'status' => rest_authorization_required_code() ) );
+		} else if ( is_wp_error( $post_check ) ) {
 			return $post_check;
 		}
 
