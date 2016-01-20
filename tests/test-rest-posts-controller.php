@@ -359,10 +359,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $cat_link );
 		$this->assertNull( $format_link );
 
-		$tags_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/tags' );
+		$tags_url = add_query_arg( 'post_id', $this->post_id, rest_url( '/wp/v2/tags' ) );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = rest_url( '/wp/v2/posts/' . $this->post_id . '/categories' );
+		$category_url = add_query_arg( 'post_id', $this->post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
 
 		$meta_links = $links['https://api.w.org/meta'];
@@ -943,6 +943,39 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
+	public function test_create_post_with_categories() {
+		wp_set_current_user( $this->editor_id );
+		$category = wp_insert_term( 'Test Category', 'category' );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'password'   => 'testing',
+			'categories' => array(
+				$category['term_id']
+			),
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$this->assertEquals( array( $category['term_id'] ), $data['categories'] );
+	}
+
+	public function test_create_post_with_invalid_categories() {
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'password'   => 'testing',
+			'categories' => array(
+				REST_TESTS_IMPOSSIBLY_HIGH_NUMBER
+			),
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$this->assertEquals( array(), $data['categories'] );
+	}
+
 	public function test_update_item() {
 		wp_set_current_user( $this->editor_id );
 
@@ -1304,6 +1337,41 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
+	public function test_update_post_with_categories() {
+
+		wp_set_current_user( $this->editor_id );
+		$category = wp_insert_term( 'Test Category', 'category' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'title' => "Tester",
+			'categories' => array(
+				$category['term_id'],
+			),
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( array( $category['term_id'] ), $new_data['categories'] );
+	}
+
+	public function test_update_post_with_empty_categories() {
+
+		wp_set_current_user( $this->editor_id );
+		$category = wp_insert_term( 'Test Category', 'category' );
+		wp_set_object_terms( $this->post_id, $category['term_id'], 'category' );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'title' => "Tester",
+			'categories' => array(),
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( array(), $new_data['categories'] );
+	}
+
 	public function test_delete_item() {
 		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
 		wp_set_current_user( $this->editor_id );
@@ -1376,7 +1444,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 20, count( $properties ) );
+		$this->assertEquals( 22, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -1397,6 +1465,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'sticky', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
+		$this->assertArrayHasKey( 'tags', $properties );
+		$this->assertArrayHasKey( 'categories', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
