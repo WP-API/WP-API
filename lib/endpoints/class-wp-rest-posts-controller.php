@@ -403,13 +403,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $post_id );
 		$this->update_additional_fields_for_object( $post, $request );
 
-		/**
-		 * @TODO: Enable rest_insert_post() action after.
-		 * Media Controller has been migrated to new style.
-		 *
-		 * do_action( 'rest_insert_post', $post, $request );
-		 */
-
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
 		do_action( 'rest_insert_post', $post, $request, false );
 
