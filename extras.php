@@ -51,7 +51,7 @@ if ( ! function_exists( 'rest_get_avatar_urls' ) ) {
 
 		$urls = array();
 		foreach ( $avatar_sizes as $size ) {
-			$urls[ $size ] = get_avatar_url( $email, array( 'size' => $size ) );
+			$urls[ $size ] = esc_url( get_avatar_url( $email, array( 'size' => $size ) ) );
 		}
 
 		return $urls;
