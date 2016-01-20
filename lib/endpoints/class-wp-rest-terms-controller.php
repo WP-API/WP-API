@@ -614,6 +614,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'type'                  => 'boolean',
 			'default'               => false,
 		);
+
+		$query_params['post_id'] = array(
+			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
+			'type'                  => 'number',
+			'default'               => false,
+		);
+
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
