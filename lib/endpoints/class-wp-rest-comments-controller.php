@@ -412,7 +412,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return bool|WP_Error
 	 */
 	public function delete_item_permissions_check( $request ) {
-		return $this->update_item_permissions_check( $request );
+		$id = (int) $request['id'];
+		$comment = get_comment( $id );
+		if ( ! $comment ) {
+			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
+		}
+		if ( ! $this->check_edit_permission( $comment ) ) {
+			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you can not delete this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
