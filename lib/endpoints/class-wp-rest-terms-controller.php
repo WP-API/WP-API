@@ -265,6 +265,16 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$term = get_term( $term['term_id'], $this->taxonomy );
+
+		/**
+		 * Fires after a single term is created or updated via the REST API.
+		 *
+		 * @param WP_Term         $term     Inserted Term object.
+		 * @param WP_REST_Request $request   Request object.
+		 * @param bool            $creating  True when creating term, false when updating.
+		 */
+		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
+
 		$this->update_additional_fields_for_object( $term, $request );
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
@@ -343,6 +353,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
+
+		/* This action is documented in lib/endpoints/class-wp-rest-terms-controller.php */
+		do_action( "rest_insert_{$this->taxonomy}", $term, $request, false );
+
 		$this->update_additional_fields_for_object( $term, $request );
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
@@ -400,6 +414,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		if ( ! $retval ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.' ), array( 'status' => 500 ) );
 		}
+
+		/**
+		 * Fires after a single term is deleted via the REST API.
+		 *
+		 * @param WP_Term         $term    The deleted term.
+		 * @param array           $data    The response data.
+		 * @param WP_REST_Request $request The request sent to the API.
+		 */
+		do_action( "rest_delete_{$this->taxonomy}", $term, $data, $request );
 
 		return $response;
 	}
