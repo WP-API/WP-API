@@ -66,6 +66,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'exclude',
 			'filter',
 			'include',
+			'offset',
 			'order',
 			'orderby',
 			'page',
