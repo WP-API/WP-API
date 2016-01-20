@@ -138,10 +138,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $total_posts < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count
-		unset( $query_args['paged'] );
+			unset( $query_args['paged'] );
 			$count_query = new WP_Query();
-		$query_result = $count_query->query( $query_args );
-		$total_posts = $count_query->found_posts;
+			$query_result = $count_query->query( $query_args );
+			$total_posts = $count_query->found_posts;
 		}
 
 		$max_pages = ceil( $total_posts / (int) $query_args['posts_per_page'] );
@@ -421,10 +421,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 		/**
-	 * Check if a given request has access to delete a post.
+		 * Check if a given request has access to delete a post.
 		 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+		 * @param  WP_REST_Request $request Full details about the request.
+		 * @return bool|WP_Error
 		 */
 	public function delete_item_permissions_check( $request ) {
 
