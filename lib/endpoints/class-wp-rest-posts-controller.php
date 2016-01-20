@@ -420,12 +420,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		return rest_ensure_response( $response );
 	}
 
-		/**
-		 * Check if a given request has access to delete a post.
-		 *
-		 * @param  WP_REST_Request $request Full details about the request.
-		 * @return bool|WP_Error
-		 */
+	/**
+	 * Check if a given request has access to delete a post.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
 	public function delete_item_permissions_check( $request ) {
 
 		$post = get_post( $request['id'] );
