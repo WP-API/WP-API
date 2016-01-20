@@ -308,7 +308,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request   Request object.
 		 * @param bool            $creating  True when creating post, false when updating.
 		 */
-		do_action( 'rest_insert_post', $post, $request, true );
+		do_action( "rest_insert_{$this->post_type}", $post, $request, true );
 
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $post, $request );
@@ -404,7 +404,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$this->update_additional_fields_for_object( $post, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
-		do_action( 'rest_insert_post', $post, $request, false );
+		do_action( "rest_insert_{$this->post_type}", $post, $request, false );
 
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $post, $request );
@@ -505,7 +505,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $data    The response data.
 		 * @param WP_REST_Request $request The request sent to the API.
 		 */
-		do_action( 'rest_delete_post', $post, $data, $request );
+		do_action( "rest_delete_{$this->post_type}", $post, $data, $request );
 
 		return $response;
 	}
