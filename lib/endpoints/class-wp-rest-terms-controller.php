@@ -94,7 +94,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'search'     => $request['search'],
 		);
 
-		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
+		if ( ! empty( $request['offset'] ) ) {
+			$prepared_args['offset'] = $request['offset'];
+		} else {
+			$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
+		}
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 
@@ -591,6 +595,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+		);
+		$query_params['offset'] = array(
+			'description'        => __( 'Offset the result set by a specific number of items.' ),
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
 		);
 		$query_params['order']      = array(
 			'description'           => __( 'Order sort attribute ascending or descending.' ),
