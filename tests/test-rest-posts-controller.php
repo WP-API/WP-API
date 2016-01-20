@@ -59,6 +59,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( array(
 			'author',
 			'context',
+			'exclude',
 			'filter',
 			'include',
 			'order',
@@ -124,6 +125,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_exclude_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+		$request->set_param( 'exclude', array( $id2 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
 	}
 
 	public function test_get_items_search_query() {
@@ -577,18 +593,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_create_post_without_permission() {
-		$user = wp_get_current_user();
-		$user->add_cap( 'edit_posts', false );
+		wp_set_current_user( 0 );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$params = $this->set_post_data( array(
 			'status' => 'draft',
-			'author' => $user->ID,
 		) );
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_create', $response, 401 );
 	}
 
 	public function test_create_post_draft() {
@@ -608,8 +622,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Confirm dates are null
 		$this->assertNull( $data['date_gmt'] );
 		$this->assertNull( $data['modified_gmt'] );
-		$this->assertNull( $data['date'] );
-		$this->assertNull( $data['modified'] );
 	}
 
 	public function test_create_post_private() {
@@ -1067,7 +1079,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_update_post_sticky_as_contributor() {
@@ -1081,7 +1093,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_update_post_invalid_id() {

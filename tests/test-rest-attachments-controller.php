@@ -54,6 +54,28 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
+	public function test_registered_query_params() {
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$keys = array_keys( $data['endpoints'][0]['args'] );
+		sort( $keys );
+		$this->assertEquals( array(
+			'author',
+			'context',
+			'exclude',
+			'filter',
+			'include',
+			'order',
+			'orderby',
+			'page',
+			'parent',
+			'per_page',
+			'search',
+			'status',
+			), $keys );
+	}
+
 	public function test_get_items() {
 		wp_set_current_user( 0 );
 		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
@@ -145,6 +167,41 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 0, count( $data ) );
 	}
 
+	public function test_get_items_invalid_status_param_is_discarded() {
+		wp_set_current_user( $this->editor_id );
+		$attachment_id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'status', 'publish' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( 'inherit', $data[0]['status'] );
+	}
+
+	public function test_get_items_private_status() {
+		// Logged out users can't make the request
+		wp_set_current_user( 0 );
+		$attachment_id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_status'    => 'private',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'status', 'private' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		// Properly authorized users can make the request
+		wp_set_current_user( $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( $attachment_id1, $data[0]['id'] );
+	}
+
 	public function test_get_item() {
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',
@@ -217,7 +274,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
 		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 'image', $data['media_type'] );
 	}
 
 	public function test_create_item_with_files() {
@@ -291,7 +350,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->contributor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_create', $response, 403 );
 	}
 
 	public function test_create_item_invalid_edit_permissions() {
@@ -384,7 +443,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'caption', 'This is a better caption.' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_delete_item() {

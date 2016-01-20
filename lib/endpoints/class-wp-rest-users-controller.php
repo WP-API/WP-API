@@ -52,7 +52,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args' => array(
 					'force'    => array(
-						'default' => false,
+						'default'     => false,
+						'description' => __( 'Required to be true, as resource does not support trashing.' ),
 					),
 					'reassign' => array(),
 				),
@@ -80,6 +81,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 
 		$prepared_args = array();
+		$prepared_args['exclude'] = $request['exclude'];
 		$prepared_args['include'] = $request['include'];
 		$prepared_args['order'] = $request['order'];
 		$prepared_args['number'] = $request['per_page'];
@@ -107,7 +109,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
-		 * @see https://codex.wordpress.org/Class_Reference/WP_User_Query
+		 * @see https://developer.wordpress.org/reference/classes/wp_user_query/
 		 *
 		 * @param array           $prepared_args Array of arguments for WP_User_Query.
 		 * @param WP_REST_Request $request       The current request.
@@ -130,13 +132,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// Store pagation values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
 		$page = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
-		unset( $prepared_args['number'] );
-		unset( $prepared_args['offset'] );
 
 		$prepared_args['fields'] = 'ID';
 
-		$count_query = new WP_User_Query( $prepared_args );
-		$total_users = $count_query->get_total();
+		$total_users = $query->get_total();
+		if ( $total_users < 1 ) {
+			// Out-of-bounds, run the query again without LIMIT for total count
+			unset( $prepared_args['number'] );
+			unset( $prepared_args['offset'] );
+			$count_query = new WP_User_Query( $prepared_args );
+			$total_users = $count_query->get_total();
+		}
 		$response->header( 'X-WP-Total', (int) $total_users );
 		$max_pages = ceil( $total_users / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
@@ -157,6 +163,38 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Check if a given request has access to read a user
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function get_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+		$user = get_userdata( $id );
+
+		if ( empty( $id ) || empty( $user->ID ) ) {
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user id.' ), array( 'status' => 404 ) );
+		}
+
+		if ( get_current_user_id() === $id ) {
+			return true;
+		}
+
+		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
+
+		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user with edit context' ), array( 'status' => rest_authorization_required_code() ) );
+		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user with view context' ), array( 'status' => rest_authorization_required_code() ) );
+		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -191,19 +229,28 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_not_logged_in', __( 'You are not currently logged in.' ), array( 'status' => 401 ) );
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $current_user_id );
-		$get_request->set_param( 'context', $request['context'] );
-		$response = $this->get_item( $get_request );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
-
+		$user = wp_get_current_user();
+		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->header( 'Location', rest_url( sprintf( '/wp/v2/users/%d', $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
+	}
+
+	/**
+	 * Check if a given request has access create users
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function create_item_permissions_check( $request ) {
+
+		if ( ! current_user_can( 'create_users' ) ) {
+			return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -243,9 +290,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $user_id ) ) {
 				return $user_id;
 			}
-			$user->ID = $user_id;
 		}
 
+		$user = get_user_by( 'id', $user_id );
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
@@ -257,15 +304,34 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 */
 		do_action( 'rest_insert_user', $user, $request, true );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $user_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/users/' . $user_id ) );
 
 		return $response;
+	}
+
+	/**
+	 * Check if a given request has access update a user
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function update_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+
+		if ( ! current_user_can( 'edit_user', $id ) ) {
+			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit users.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
+			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of users.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -311,17 +377,34 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return $user_id;
 		}
 
+		$user = get_user_by( 'id', $id );
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $user_id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $user, $request );
+		$response = rest_ensure_response( $response );
+		return $response;
+	}
 
-		return rest_ensure_response( $response );
+	/**
+	 * Check if a given request has access delete a user
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool
+	 */
+	public function delete_item_permissions_check( $request ) {
+
+		$id = (int) $request['id'];
+		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
+
+		if ( ! current_user_can( 'delete_user', $id ) ) {
+			return new WP_Error( 'rest_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -351,10 +434,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $id );
-		$get_request->set_param( 'context', 'edit' );
-		$orig_user = $this->prepare_item_for_response( $user, $get_request );
+		$request->set_param( 'context', 'edit' );
+		$orig_user = $this->prepare_item_for_response( $user, $request );
 
 		$data = $orig_user->get_data();
 		$data = array(
@@ -381,92 +462,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		do_action( 'rest_delete_user', $user, $data, $request );
 
 		return $orig_user;
-	}
-
-	/**
-	 * Check if a given request has access to read a user
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
-	 */
-	public function get_item_permissions_check( $request ) {
-
-		$id = (int) $request['id'];
-		$user = get_userdata( $id );
-
-		if ( empty( $id ) || empty( $user->ID ) ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user id.' ), array( 'status' => 404 ) );
-		}
-
-		if ( get_current_user_id() === $id ) {
-			return true;
-		}
-
-		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
-
-		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user with edit context' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user with view context' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this user' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a given request has access create users
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function create_item_permissions_check( $request ) {
-
-		if ( ! current_user_can( 'create_users' ) ) {
-			return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create users.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a given request has access update a user
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function update_item_permissions_check( $request ) {
-
-		$id = (int) $request['id'];
-
-		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit users.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of users.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
-	}
-
-	/**
-	 * Check if a given request has access delete a user
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
-	 */
-	public function delete_item_permissions_check( $request ) {
-
-		$id = (int) $request['id'];
-		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
-
-		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'rest_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
 	}
 
 	/**

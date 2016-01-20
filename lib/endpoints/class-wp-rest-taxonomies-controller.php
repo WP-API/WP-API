@@ -54,20 +54,6 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get a specific taxonomy
-	 *
-	 * @param WP_REST_Request $request
-	 * @return array|WP_Error
-	 */
-	public function get_item( $request ) {
-		$tax_obj = get_taxonomy( $request['taxonomy'] );
-		if ( empty( $tax_obj ) ) {
-			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
-		}
-		return $this->prepare_item_for_response( $tax_obj, $request );
-	}
-
-	/**
 	 * Check if a given request has access a taxonomy
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
@@ -87,6 +73,20 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get a specific taxonomy
+	 *
+	 * @param WP_REST_Request $request
+	 * @return array|WP_Error
+	 */
+	public function get_item( $request ) {
+		$tax_obj = get_taxonomy( $request['taxonomy'] );
+		if ( empty( $tax_obj ) ) {
+			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
+		}
+		return $this->prepare_item_for_response( $tax_obj, $request );
 	}
 
 	/**
