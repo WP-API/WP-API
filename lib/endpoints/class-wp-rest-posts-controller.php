@@ -539,10 +539,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( empty( $query_args['post_status'] ) && 'attachment' === $this->post_type ) {
-			$query_args['post_status'] = 'inherit';
-		}
-
 		if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {
 			$query_args['ignore_sticky_posts'] = true;
 		}
@@ -1626,7 +1622,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$params['status'] = array(
-			'default'           => 'attachment' === $this->post_type ? 'inherit' : 'publish',
+			'default'           => 'publish',
 			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
@@ -1647,7 +1643,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|bool
 	 */
 	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
-		if ( 'publish' === $value || ( 'attachment' === $this->post_type && 'inherit' === $value ) ) {
+		if ( 'publish' === $value ) {
 			return true;
 		}
 		$post_type_obj = get_post_type_object( $this->post_type );

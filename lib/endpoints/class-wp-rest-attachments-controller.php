@@ -3,6 +3,21 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Determine the allowed query_vars for a get_items() response and
+	 * prepare for WP_Query.
+	 *
+	 * @param array $prepared_args
+	 * @return array $query_args
+	 */
+	protected function prepare_items_query( $prepared_args = array() ) {
+		$query_args = parent::prepare_items_query( $prepared_args );
+		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
+			$query_args['post_status'] = 'inherit';
+		}
+		return $query_args;
+	}
+
+	/**
 	 * Check if a given request has access to create an attachment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
@@ -414,7 +429,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'default'            => null,
 			'sanitize_callback'  => 'absint',
 			);
+		$params['status']['default'] = 'inherit';
+		$params['status']['enum'] = array( 'inherit', 'private', 'trash' );
 		return $params;
+	}
+
+	/**
+	 * Validate whether the user can query private statuses
+	 *
+	 * @param  mixed $value
+	 * @param  WP_REST_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+		if ( 'inherit' === $value ) {
+			return true;
+		}
+		return parent::validate_user_can_query_private_statuses( $value, $request, $parameter );
 	}
 
 	/**
