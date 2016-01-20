@@ -335,7 +335,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param array $headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_sideload()}
 	 */
-	protected function upload_from_data( $data, $headers ) {
+	private function upload_from_data( $data, $headers ) {
 		if ( empty( $data ) ) {
 			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}
@@ -456,7 +456,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param array $headers HTTP headers from the request
 	 * @return array|WP_Error Data from {@see wp_handle_upload()}
 	 */
-	protected function upload_from_file( $files, $headers ) {
+	private function upload_from_file( $files, $headers ) {
 		if ( empty( $files ) ) {
 			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
 		}

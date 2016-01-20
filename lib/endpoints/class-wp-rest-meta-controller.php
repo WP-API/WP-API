@@ -139,7 +139,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 *
 	 * @return string
 	 */
-	protected function get_id_column() {
+	private function get_id_column() {
 		return ( 'user' === $this->parent_type ) ? 'umeta_id' : 'meta_id';
 	}
 
@@ -148,7 +148,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 *
 	 * @return string
 	 */
-	protected function get_parent_column() {
+	private function get_parent_column() {
 		return ( 'user' === $this->parent_type ) ? 'user_id' : 'post_id';
 	}
 
