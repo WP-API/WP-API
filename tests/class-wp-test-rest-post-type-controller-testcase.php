@@ -68,9 +68,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 
 		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
-			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image'] );
+			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_media'] );
 		} else {
-			$this->assertFalse( isset( $data['featured_image'] ) );
+			$this->assertFalse( isset( $data['featured_media'] ) );
 		}
 
 		// Check post format.
