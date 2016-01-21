@@ -187,25 +187,6 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
 	}
 
-	public function test_get_items_offset_query() {
-		$id1 = 1;
-		$id2 = $this->factory->category->create();
-		$id3 = $this->factory->category->create();
-		$id4 = $this->factory->category->create();
-		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
-		$request->set_param( 'offset', 1 );
-		$response = $this->server->dispatch( $request );
-		$this->assertCount( 3, $response->get_data() );
-		// 'offset' works with 'per_page'
-		$request->set_param( 'per_page', 2 );
-		$response = $this->server->dispatch( $request );
-		$this->assertCount( 2, $response->get_data() );
-		// 'offset' takes priority over 'page'
-		$request->set_param( 'page', 3 );
-		$response = $this->server->dispatch( $request );
-		$this->assertCount( 2, $response->get_data() );
-	}
-
 	public function test_get_items_orderby_args() {
 		$category1 = $this->factory->category->create( array( 'name' => 'Apple' ) );
 		$category2 = $this->factory->category->create( array( 'name' => 'Banana' ) );
