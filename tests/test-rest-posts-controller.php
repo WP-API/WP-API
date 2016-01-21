@@ -1356,7 +1356,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
-			'title' => "Tester",
+			'title' => 'Tester',
 			'categories' => array(
 				$category['term_id'],
 			),
@@ -1375,7 +1375,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data( array(
-			'title' => "Tester",
+			'title' => 'Tester',
 			'categories' => array(),
 		) );
 		$request->set_body_params( $params );
