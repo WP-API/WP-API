@@ -903,7 +903,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' ),
+			'context'     => array( 'embed', 'view', 'edit' ),
 		);
 
 		register_rest_field( 'user', 'my_custom_int', array(
