@@ -59,6 +59,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array(
 			'context',
 			'include',
+			'offset',
 			'order',
 			'orderby',
 			'page',
@@ -221,6 +222,24 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_offset() {
+		wp_set_current_user( $this->user );
+		// 2 users created in __construct(), plus default user
+		$this->factory->user->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'offset', 1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
+		// 'offset' works with 'per_page'
+		$request->set_param( 'per_page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		// 'offset' takes priority over 'page'
+		$request->set_param( 'page', 3 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
 	}
 
 	public function test_get_items_include_query() {
