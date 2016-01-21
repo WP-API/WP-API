@@ -1601,7 +1601,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 			$schema['properties'][ $base ] = array(
-				'description' => sprintf( __( 'The terms assigned to the objet in the %s taxonomy.' ), $taxonomy->name ),
+				'description' => sprintf( __( 'The terms assigned to the object in the %s taxonomy.' ), $taxonomy->name ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 			);
