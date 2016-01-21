@@ -297,7 +297,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
 			$this->handle_template( $request['template'], $post->ID );
 		}
-		$terms_update = $this->update_item_terms( $post->ID, $request );
+		$terms_update = $this->handle_terms( $post->ID, $request );
 		if ( is_wp_error( $terms_update ) ) {
 			return $terms_update;
 		}
@@ -404,7 +404,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$this->handle_template( $request['template'], $post->ID );
 		}
 
-		$terms_update = $this->update_item_terms( $post->ID, $request );
+		$terms_update = $this->handle_terms( $post->ID, $request );
 		if ( is_wp_error( $terms_update ) ) {
 			return $terms_update;
 		}
@@ -929,7 +929,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param  WP_REST_Request $request The request object with post and terms data.
 	 * @return null|WP_Error   WP_Error on an error assigning any of ther terms.
 	 */
-	protected function update_item_terms( $post_id, $request ) {
+	protected function handle_terms( $post_id, $request ) {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
