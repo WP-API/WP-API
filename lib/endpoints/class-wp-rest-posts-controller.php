@@ -298,6 +298,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
 			$this->handle_template( $request['template'], $post->ID );
 		}
+		$terms_update = $this->handle_terms( $post->ID, $request );
+		if ( is_wp_error( $terms_update ) ) {
+			return $terms_update;
+		}
 
 		$post = get_post( $post_id );
 		$this->update_additional_fields_for_object( $post, $request );
@@ -399,6 +403,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['template'] ) && isset( $request['template'] ) ) {
 			$this->handle_template( $request['template'], $post->ID );
+		}
+
+		$terms_update = $this->handle_terms( $post->ID, $request );
+		if ( is_wp_error( $terms_update ) ) {
+			return $terms_update;
 		}
 
 		$post = get_post( $post_id );
@@ -915,6 +924,29 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Update the post's terms from a REST request.
+	 *
+	 * @param  int             $post_id The post ID to update the terms form.
+	 * @param  WP_REST_Request $request The request object with post and terms data.
+	 * @return null|WP_Error   WP_Error on an error assigning any of ther terms.
+	 */
+	protected function handle_terms( $post_id, $request ) {
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			if ( ! isset( $request[ $base ] ) ) {
+				continue;
+			}
+			$terms = array_map( 'absint', $request[ $base ] );
+			$result = wp_set_object_terms( $post_id, $request[ $base ], $taxonomy->name );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+		}
+	}
+
+	/**
 	 * Check if a given post type should be viewed or managed.
 	 *
 	 * @param object|string $post_type
@@ -1147,6 +1179,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$data[ $base ] = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+		}
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
@@ -1244,12 +1282,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			foreach ( $taxonomies as $tax ) {
 				$taxonomy_obj = get_taxonomy( $tax );
 				// Skip taxonomies that are not public.
-				if ( false === $taxonomy_obj->public || 'post_format' === $tax ) {
+				if ( empty( $taxonomy_obj->show_in_rest ) ) {
 					continue;
 				}
 
 				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
-				$terms_url = rest_url( trailingslashit( $base ) . $post->ID . '/' . $tax_base );
+				$terms_url = add_query_arg(
+					'post_id',
+					$post->ID,
+					rest_url( 'wp/v2/' . $tax_base )
+				);
 
 				$links['https://api.w.org/term'][] = array(
 					'href'       => $terms_url,
@@ -1551,6 +1593,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'description' => __( 'The theme file to use to display the object.' ),
 				'type'        => 'string',
 				'enum'        => array_keys( wp_get_theme()->get_page_templates() ),
+				'context'     => array( 'view', 'edit' ),
+			);
+		}
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$schema['properties'][ $base ] = array(
+				'description' => sprintf( __( 'The terms assigned to the object in the %s taxonomy.' ), $taxonomy->name ),
+				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 			);
 		}
