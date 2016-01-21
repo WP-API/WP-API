@@ -85,7 +85,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$prepared_args['include'] = $request['include'];
 		$prepared_args['order'] = $request['order'];
 		$prepared_args['number'] = $request['per_page'];
-		$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+		if ( ! empty( $request['offset'] ) ) {
+			$prepared_args['offset'] = $request['offset'];
+		} else {
+			$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+		}
 		$orderby_possibles = array(
 			'id'              => 'ID',
 			'include'         => 'include',
@@ -783,6 +787,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+		);
+		$query_params['offset'] = array(
+			'description'        => __( 'Offset the result set by a specific number of items.' ),
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
 		);
 		$query_params['order'] = array(
 			'default'            => 'asc',
