@@ -55,6 +55,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'orderby',
 			'page',
 			'per_page',
+			'post_id',
 			'search',
 			), $keys );
 	}
