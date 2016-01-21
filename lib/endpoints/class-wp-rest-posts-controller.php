@@ -88,6 +88,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$args                   = array();
 		$args['author']         = $request['author'];
+		$args['offset']         = $request['offset'];
 		$args['order']          = $request['order'];
 		$args['orderby']        = $request['orderby'];
 		$args['paged']          = $request['page'];
@@ -582,7 +583,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars.
-		$rest_valid = array( 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
+		$rest_valid = array( 'offset', 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
@@ -1587,6 +1588,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+		);
+		$params['offset'] = array(
+			'description'        => __( 'Offset the result set by a specific number of items.' ),
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
 		);
 		$params['order'] = array(
 			'description'        => __( 'Order sort attribute ascending or descending.' ),
