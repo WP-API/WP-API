@@ -94,13 +94,6 @@ if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
 }
 
 /**
- * WP_REST_Posts_Terms_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Posts_Terms_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-posts-terms-controller.php';
-}
-
-/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
@@ -193,16 +186,6 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 			if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 				$revisions_controller->register_routes();
-			}
-
-			foreach ( get_object_taxonomies( $post_type->name, 'objects' ) as $taxonomy ) {
-
-				if ( empty( $taxonomy->show_in_rest ) ) {
-					continue;
-				}
-
-				$posts_terms_controller = new WP_REST_Posts_Terms_Controller( $post_type->name, $taxonomy->name );
-				$posts_terms_controller->register_routes();
 			}
 		}
 
