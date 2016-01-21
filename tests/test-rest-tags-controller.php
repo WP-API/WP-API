@@ -51,6 +51,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'exclude',
 			'hide_empty',
 			'include',
+			'offset',
 			'order',
 			'orderby',
 			'page',
@@ -114,6 +115,26 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
 		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
 	}
+
+	public function test_get_items_offset_query() {
+		$id1 = $this->factory->tag->create();
+		$id2 = $this->factory->tag->create();
+		$id3 = $this->factory->tag->create();
+		$id4 = $this->factory->tag->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'offset', 1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
+		// 'offset' works with 'per_page'
+		$request->set_param( 'per_page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		// 'offset' takes priority over 'page'
+		$request->set_param( 'page', 3 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+	}
+
 
 	public function test_get_items_orderby_args() {
 		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );

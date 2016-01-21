@@ -94,7 +94,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'search'     => $request['search'],
 		);
 
-		$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
+		if ( ! empty( $request['offset'] ) ) {
+			$prepared_args['offset'] = $request['offset'];
+		} else {
+			$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
+		}
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 
@@ -600,6 +604,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function get_collection_params() {
 		$query_params = parent::get_collection_params();
+		$taxonomy = get_taxonomy( $this->taxonomy );
 
 		$query_params['context']['default'] = 'view';
 
@@ -615,6 +620,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
 		);
+		if ( ! $taxonomy->hierarchical ) {
+			$query_params['offset'] = array(
+				'description'        => __( 'Offset the result set by a specific number of items.' ),
+				'type'               => 'integer',
+				'sanitize_callback'  => 'absint',
+			);
+		}
 		$query_params['order']      = array(
 			'description'           => __( 'Order sort attribute ascending or descending.' ),
 			'type'                  => 'string',
@@ -645,14 +657,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'type'                  => 'boolean',
 			'default'               => false,
 		);
-
-		$query_params['post_id'] = array(
-			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
-			'type'                  => 'number',
-			'default'               => false,
-		);
-
-		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
 				'description'        => __( 'Limit result set to terms assigned to a specific parent term.' ),
@@ -660,6 +664,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'sanitize_callback'  => 'absint',
 			);
 		}
+		$query_params['post_id'] = array(
+			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
+			'type'                  => 'number',
+			'default'               => false,
+		);
 		return $query_params;
 	}
 
