@@ -462,6 +462,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return new WP_Error( 'rest_trash_not_supported', __( 'The comment does not support trashing.' ), array( 'status' => 501 ) );
 			}
 
+			if ( 'trash' === $comment->comment_approved ) {
+				return new WP_Error( 'rest_already_trashed', __( 'The comment has already been trashed.' ), array( 'status' => 410 ) );
+			}
+
 			$result = wp_trash_comment( $comment->comment_ID );
 			$status = 'trashed';
 		}
