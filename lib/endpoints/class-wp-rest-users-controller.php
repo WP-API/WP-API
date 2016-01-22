@@ -121,9 +121,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
 		$query = new WP_User_Query( $prepared_args );
-		if ( is_wp_error( $query ) ) {
-			return $query;
-		}
 
 		$users = array();
 		foreach ( $query->results as $user ) {
