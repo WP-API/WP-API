@@ -327,7 +327,7 @@ abstract class WP_REST_Controller {
 	 * @param array $schema Schema array.
 	 */
 	protected function add_additional_fields_schema( $schema ) {
-		if ( ! $schema || ! isset( $schema['title'] ) ) {
+		if ( empty( $schema['title'] ) ) {
 			return $schema;
 		}
 
