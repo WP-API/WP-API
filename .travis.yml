@@ -76,6 +76,11 @@ after_script:
 git:
   depth: 1
 
+branches:
+  only:
+    - master
+    - develop
+
 notifications:
   email:
     on_success: never

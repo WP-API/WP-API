@@ -49,6 +49,26 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Check if a given request has access to get revisions
+	 *
+	 * @param WP_REST_Request $request Full data about the request.
+	 * @return WP_Error|bool
+	 */
+	public function get_items_permissions_check( $request ) {
+
+		$parent = get_post( $request['parent_id'] );
+		if ( ! $parent ) {
+			return true;
+		}
+		$parent_post_type_obj = get_post_type_object( $parent->post_type );
+		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
+			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get a collection of revisions
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -72,23 +92,13 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to get revisions
+	 * Check if a given request has access to get a specific revision
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
 	 * @return WP_Error|bool
 	 */
-	public function get_items_permissions_check( $request ) {
-
-		$parent = get_post( $request['parent_id'] );
-		if ( ! $parent ) {
-			return true;
-		}
-		$parent_post_type_obj = get_post_type_object( $parent->post_type );
-		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
-			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot view revisions of this post.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		return true;
+	public function get_item_permissions_check( $request ) {
+		return $this->get_items_permissions_check( $request );
 	}
 
 	/**
@@ -114,13 +124,21 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to get a specific revision
+	 * Check if a given request has access to delete a revision
 	 *
-	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
 	 */
-	public function get_item_permissions_check( $request ) {
-		return $this->get_items_permissions_check( $request );
+	public function delete_item_permissions_check( $request ) {
+
+		$response = $this->get_items_permissions_check( $request );
+		if ( ! $response || is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$post = get_post( $request['id'] );
+		$post_type = get_post_type_object( 'revision' );
+		return current_user_can( $post_type->cap->delete_post, $post->ID );
 	}
 
 	/**
@@ -147,24 +165,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		} else {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
-	}
-
-	/**
-	 * Check if a given request has access to delete a revision
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
-	 */
-	public function delete_item_permissions_check( $request ) {
-
-		$response = $this->get_items_permissions_check( $request );
-		if ( ! $response || is_wp_error( $response ) ) {
-			return $response;
-		}
-
-		$post = get_post( $request['id'] );
-		$post_type = get_post_type_object( 'revision' );
-		return current_user_can( $post_type->cap->delete_post, $post->ID );
 	}
 
 	/**
@@ -204,8 +204,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -262,51 +262,51 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'author'          => array(
-						'description' => 'The id for the author of the object.',
+						'description' => __( 'The id for the author of the object.' ),
 						'type'        => 'integer',
 						'context'     => array( 'view' ),
 					),
 				'date'            => array(
-					'description' => 'The date the object was published.',
+					'description' => __( 'The date the object was published.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
 				'date_gmt'        => array(
-					'description' => 'The date the object was published, as GMT.',
+					'description' => __( 'The date the object was published, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
 				'guid'            => array(
-					'description' => 'GUID for the object, as it exists in the database.',
+					'description' => __( 'GUID for the object, as it exists in the database.' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
 				'id'              => array(
-					'description' => 'Unique identifier for the object.',
+					'description' => __( 'Unique identifier for the object.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 				),
 				'modified'        => array(
-					'description' => 'The date the object was last modified.',
+					'description' => __( 'The date the object was last modified.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
 				'modified_gmt'    => array(
-					'description' => 'The date the object was last modified, as GMT.',
+					'description' => __( 'The date the object was last modified, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view' ),
 				),
 				'parent'          => array(
-					'description' => 'The id for the parent of the object.',
+					'description' => __( 'The id for the parent of the object.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view' ),
 					),
 				'slug'            => array(
-					'description' => 'An alphanumeric identifier for the object unique to its type.',
+					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
@@ -324,7 +324,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 				case 'title':
 					$schema['properties']['title'] = array(
-						'description' => 'Title for the object, as it exists in the database.',
+						'description' => __( 'Title for the object, as it exists in the database.' ),
 						'type'        => 'string',
 						'context'     => array( 'view' ),
 					);
@@ -332,7 +332,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 				case 'content':
 					$schema['properties']['content'] = array(
-						'description' => 'Content for the object, as it exists in the database.',
+						'description' => __( 'Content for the object, as it exists in the database.' ),
 						'type'        => 'string',
 						'context'     => array( 'view' ),
 					);
@@ -340,7 +340,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 				case 'excerpt':
 					$schema['properties']['excerpt'] = array(
-						'description' => 'Excerpt for the object, as it exists in the database.',
+						'description' => __( 'Excerpt for the object, as it exists in the database.' ),
 						'type'        => 'string',
 						'context'     => array( 'view' ),
 					);

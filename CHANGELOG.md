@@ -1,5 +1,137 @@
 # Changelog
 
+## 2.0 Beta 10.0
+
+- SECURITY: Ensure media of private posts are private too.
+
+  Reported by @danielbachhuber on 2016-01-08.
+
+- BREAKING CHANGE: Removes compatibility repo for WordPress 4.3.
+
+  WordPress 4.4 is now the minimum supported WordPress version.
+
+  (props @danielbachhuber, [#1848](https://github.com/WP-API/WP-API/pull/1848))
+
+- BREAKING CHANGE: Changes link relation for types and taxonomies.
+
+  In Beta 9, this link relation was introduced as `item`, which isn't correct. The relation has been changed to `https://api.w.org/items`.
+
+  (props @danielbachhuber, [#1853](https://github.com/WP-API/WP-API/pull/1853))
+
+- BREAKING CHANGE: Introduces `edit` context for `wp/v2/types` and `wp/v2/taxonomies`.
+
+  Some fields have moved into this context, which require `edit_posts` and `manage_terms`, respectively.
+
+  (props @danielbachhuber, [#1894](https://github.com/WP-API/WP-API/pull/1894), [#1864](https://github.com/WP-API/WP-API/pull/1864))
+
+- BREAKING CHANGE: Removes `post_format` as a term `_link` for Posts.
+
+  Post formats aren't a custom taxonomy in the eyes of the REST API.
+
+  (props @danielbachhuber, [#1854](https://github.com/WP-API/WP-API/pull/1854))
+
+- Declares `parent` query param for Pages.
+
+  (props @danielbachhuber, [#1975](https://github.com/WP-API/WP-API/pull/1975))
+
+- Permits logged-in users to query for media.
+
+  (props @danielbachhuber, [#1973](https://github.com/WP-API/WP-API/pull/1973))
+
+- Removes duplicated query params from Terms controller.
+
+  (props @danielbachhuber, [#1963](https://github.com/WP-API/WP-API/pull/1963))
+
+- Adds `include` param to `/wp/v2/posts`, `/wp/v2/users`, `/wp/v2/<taxonomy>` and `/wp/v2/comments`.
+
+  (props @danielbachhuber, [#1961](https://github.com/WP-API/WP-API/pull/1961), [#1964](https://github.com/WP-API/WP-API/pull/1964), [#1968](https://github.com/WP-API/WP-API/pull/1968), [#1971](https://github.com/WP-API/WP-API/pull/1971))
+
+- Ensures `GET /wp/v2/posts` respects `order` and `orderby` params.
+
+  (props @danielbachhuber, [#1962](https://github.com/WP-API/WP-API/pull/1962))
+
+- Fixes fatal by loading `wp-admin/includes/user.php` to expose `wp_delete_user()`.
+
+  (props @danielbachhuber, [#1958](https://github.com/WP-API/WP-API/pull/1958))
+
+- Permits making a post sticky when also supplying an empty password.
+
+  (props @westonruter, [#1949](https://github.com/WP-API/WP-API/pull/1949))
+
+- Uses `WP_REST_Request` internally across controllers.
+
+  (props @danielbachhuber, [#1933](https://github.com/WP-API/WP-API/pull/1933), [#1939](https://github.com/WP-API/WP-API/pull/1939), [#1934](https://github.com/WP-API/WP-API/pull/1934), [#1938](https://github.com/WP-API/WP-API/pull/1938))
+
+- Cleans up permissions checks in `WP_REST_Terms_Controller`.
+
+  (props @danielbachhuber, [#1941](https://github.com/WP-API/WP-API/pull/1941))
+
+- Uses `show_in_rest` to determine publicness for post types.
+
+  (props @danielbachhuber, [#1942](https://github.com/WP-API/WP-API/pull/1942))
+
+- Makes `description` strings available for translation.
+
+  (props @danielbachhuber, [#1944](https://github.com/WP-API/WP-API/pull/1944))
+
+- Checks `assign_terms` cap for taxonomy when managing post terms.
+
+  (props @danielbachhuber, [#1940](https://github.com/WP-API/WP-API/pull/1940))
+
+- Defer to `edit_posts` of the custom post type when accessing private query vars.
+
+  (props @danielbachhuber, [#1886](https://github.com/WP-API/WP-API/pull/1886))
+
+- Allows Terms collection params to be filtered.
+
+  (props @rachelbaker, [#1882](https://github.com/WP-API/WP-API/pull/1882))
+
+- Renames post terms create/delete permissions callback.
+
+  (props @wpsmith, [#1923](https://github.com/WP-API/WP-API/pull/1923))
+
+- Fixes invalid use of 'uri' as schema `type`.
+
+  (props @wpsmith, [#1913](https://github.com/WP-API/WP-API/pull/1913))
+
+- Casts integer with (int) over intval for speed.
+
+  (props @wpsmith, [#1907](https://github.com/WP-API/WP-API/pull/1907))
+
+- Fixes PHP Doc typo for `validate_schema_property` and `sanitize_schema_property`.
+
+  (props @wpsmith, @danielbachhuber, [#1909](https://github.com/WP-API/WP-API/pull/1909), [#1910](https://github.com/WP-API/WP-API/pull/1910))
+
+- Adds a helpful description to the `filter` argument.
+
+  (props @danielbachhuber, [#1885](https://github.com/WP-API/WP-API/pull/1885))
+
+- Changes order of Users response to match schema order.
+
+  (props @rachelbaker, [#1879](https://github.com/WP-API/WP-API/pull/1879))
+
+- Adjusts Posts pagination headers for `filter` params.
+
+  (props @rachelbaker, [#1878](https://github.com/WP-API/WP-API/pull/1878))
+
+- Uses proper status code when failing to get comments of private post.
+
+  (props @danielbachhuber, [#1866](https://github.com/WP-API/WP-API/pull/1867))
+
+- Fixes invalid capability for comments get items permissions callback.
+
+  `manage_comments` doesn't exist; `moderate_comments` does.
+
+  (props @danielbachhuber, [#1866](https://github.com/WP-API/WP-API/pull/1866))
+
+- Permits creating comments without an assigned post.
+
+  (props @danielbachhuber, [#1857](https://github.com/WP-API/WP-API/pull/1857))
+
+- Prevents error notice when `show_in_rest` isn't set for a post type.
+
+  (props @danielbachhuber, [#1852](https://github.com/WP-API/WP-API/pull/1852))
+
 ## 2.0 Beta 9.0
 
 - BREAKING CHANGE: Move tags and categories to top-level endpoints.

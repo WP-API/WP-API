@@ -71,8 +71,9 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 				'callback'            => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 				'args'                => array(
-					'force' => array(
-						'default' => false,
+					'force'    => array(
+						'default'     => false,
+						'description' => __( 'Required to be true, as resource does not support trashing.' ),
 					),
 				),
 			),
@@ -96,13 +97,13 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'id' => array(
-					'description' => 'Unique identifier for the object.',
+					'description' => __( 'Unique identifier for the object.' ),
 					'type'        => 'integer',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'key' => array(
-					'description' => 'The key for the custom field.',
+					'description' => __( 'The key for the custom field.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'required'    => true,
@@ -111,7 +112,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 					),
 				),
 				'value' => array(
-					'description' => 'The value of the custom field.',
+					'description' => __( 'The value of the custom field.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 				),

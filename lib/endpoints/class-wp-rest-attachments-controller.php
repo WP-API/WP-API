@@ -3,27 +3,57 @@
 class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
+	 * Determine the allowed query_vars for a get_items() response and
+	 * prepare for WP_Query.
+	 *
+	 * @param array $prepared_args
+	 * @return array $query_args
+	 */
+	protected function prepare_items_query( $prepared_args = array() ) {
+		$query_args = parent::prepare_items_query( $prepared_args );
+		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
+			$query_args['post_status'] = 'inherit';
+		}
+		return $query_args;
+	}
+
+	/**
+	 * Check if a given request has access to create an attachment.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return bool|WP_Error
+	 */
+	public function create_item_permissions_check( $request ) {
+		$ret = parent::create_item_permissions_check( $request );
+		if ( ! $ret || is_wp_error( $ret ) ) {
+			return $ret;
+		}
+
+		// "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
+		}
+
+		// Attaching media to a post requires ability to edit said post
+		if ( ! empty( $request['post'] ) ) {
+			$parent = get_post( (int) $request['post'] );
+			$post_parent_type = get_post_type_object( $parent->post_type );
+			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this post.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Create a single attachment
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-
-		// Permissions check - Note: "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
-		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
-			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to post on this site.' ), array( 'status' => 400 ) );
-		}
-
-		// If a user is trying to attach to a post make sure they have permissions. Bail early if post_id is not being passed
-		if ( ! empty( $request['post'] ) ) {
-			$parent = get_post( (int) $request['post'] );
-			$post_parent_type = get_post_type_object( $parent->post_type );
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
-		}
 
 		// Get the file via $_FILES or raw data
 		$files = $request->get_file_params();
@@ -68,8 +98,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->guid = $url;
 		$id = wp_insert_post( $attachment, true );
 		if ( is_wp_error( $id ) ) {
+			if ( in_array( $id->get_error_code(), array( 'db_update_error' ) ) ) {
+				$id->add_data( array( 'status' => 500 ) );
+			} else {
+				$id->add_data( array( 'status' => 400 ) );
+			}
 			return $id;
 		}
+		$attachment = get_post( $id );
 
 		/** Include admin functions to get access to wp_generate_attachment_metadata() */
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -82,10 +118,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$this->update_additional_fields_for_object( $attachment, $request );
 
-		$response = $this->get_item( array(
-			'id'      => $id,
-			'context' => 'edit',
-		) );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
@@ -122,15 +156,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
-		$response = $this->get_item( array(
-			'id'      => $data['id'],
-			'context' => 'edit',
-		));
+		$attachment = get_post( $request['id'] );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $attachment, $request );
+		$response = rest_ensure_response( $response );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_insert_attachment', $data, $request, false );
 
-		return rest_ensure_response( $response );
+		return $response;
 	}
 
 	/**
@@ -243,7 +277,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema = parent::get_item_schema();
 
 		$schema['properties']['alt_text'] = array(
-			'description'     => 'Alternative text to display when attachment is not displayed.',
+			'description'     => __( 'Alternative text to display when attachment is not displayed.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'arg_options'     => array(
@@ -251,7 +285,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['caption'] = array(
-			'description'     => 'The caption for the attachment.',
+			'description'     => __( 'The caption for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -259,7 +293,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['description'] = array(
-			'description'     => 'The description for the attachment.',
+			'description'     => __( 'The description for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -267,25 +301,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['media_type'] = array(
-			'description'     => 'Type of attachment.',
+			'description'     => __( 'Type of attachment.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
-			'description'     => 'Details about the attachment file, specific to its type.',
+			'description'     => __( 'Details about the attachment file, specific to its type.' ),
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
-			'description'     => 'The id for the associated post of the attachment.',
+			'description'     => __( 'The id for the associated post of the attachment.' ),
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['source_url'] = array(
-			'description'     => 'URL to the original attachment file.',
+			'description'     => __( 'URL to the original attachment file.' ),
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit', 'embed' ),
@@ -390,12 +424,29 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
 		$params['parent']        = array(
-			'description'        => 'Limit results to attachments from a specified parent.',
+			'description'        => __( 'Limit results to attachments from a specified parent.' ),
 			'type'               => 'integer',
 			'default'            => null,
 			'sanitize_callback'  => 'absint',
 			);
+		$params['status']['default'] = 'inherit';
+		$params['status']['enum'] = array( 'inherit', 'private', 'trash' );
 		return $params;
+	}
+
+	/**
+	 * Validate whether the user can query private statuses
+	 *
+	 * @param  mixed $value
+	 * @param  WP_REST_Request $request
+	 * @param  string $parameter
+	 * @return WP_Error|bool
+	 */
+	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+		if ( 'inherit' === $value ) {
+			return true;
+		}
+		return parent::validate_user_can_query_private_statuses( $value, $request, $parameter );
 	}
 
 	/**

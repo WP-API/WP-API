@@ -36,11 +36,11 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		foreach ( get_post_types( array( 'public' => true ), 'object' ) as $obj ) {
-			$post_type = $this->prepare_item_for_response( $obj, $request );
-			if ( is_wp_error( $post_type ) ) {
+		foreach ( get_post_types( array(), 'object' ) as $obj ) {
+			if ( empty( $obj->show_in_rest ) || ( 'edit' === $request['context'] && ! current_user_can( $obj->cap->edit_posts ) ) ) {
 				continue;
 			}
+			$post_type = $this->prepare_item_for_response( $obj, $request );
 			$data[ $obj->name ] = $this->prepare_response_for_collection( $post_type );
 		}
 		return $data;
@@ -57,6 +57,12 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		if ( empty( $obj ) ) {
 			return new WP_Error( 'rest_type_invalid', __( 'Invalid type.' ), array( 'status' => 404 ) );
 		}
+		if ( empty( $obj->show_in_rest ) ) {
+			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		if ( 'edit' === $request['context'] && ! current_user_can( $obj->cap->edit_posts ) ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this type.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
 		return $this->prepare_item_for_response( $obj, $request );
 	}
 
@@ -68,10 +74,6 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return array Post type data
 	 */
 	public function prepare_item_for_response( $post_type, $request ) {
-		if ( false === $post_type->public ) {
-			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
 		$data = array(
 			'description'  => $post_type->description,
 			'hierarchical' => $post_type->hierarchical,
@@ -80,8 +82,8 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'slug'         => $post_type->name,
 		);
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
@@ -120,29 +122,29 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'description'      => array(
-					'description'  => 'A human-readable description of the object.',
+					'description'  => __( 'A human-readable description of the object.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'hierarchical'     => array(
-					'description'  => 'Whether or not the type should have children.',
+					'description'  => __( 'Whether or not the type should have children.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'labels'           => array(
-					'description'  => 'Human-readable labels for the type for various contexts.',
+					'description'  => __( 'Human-readable labels for the type for various contexts.' ),
 					'type'         => 'object',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					),
 				'name'             => array(
-					'description'  => 'The title for the object.',
+					'description'  => __( 'The title for the object.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				'slug'             => array(
-					'description'  => 'An alphanumeric identifier for the object.',
+					'description'  => __( 'An alphanumeric identifier for the object.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					),
 				),
 			);

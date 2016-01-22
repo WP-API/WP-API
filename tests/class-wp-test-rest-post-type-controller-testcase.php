@@ -10,16 +10,14 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertEquals( $post->post_name, $data['slug'] );
 		$this->assertEquals( get_permalink( $post->ID ), $data['link'] );
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
-			$this->assertNull( $data['date'] );
-		} else {
-			$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
+			$this->assertNull( $data['date_gmt'] );
 		}
+		$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
 
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
-			$this->assertNull( $data['modified'] );
-		} else {
-			$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+			$this->assertNull( $data['modified_gmt'] );
 		}
+		$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
 
 		// author
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
@@ -70,9 +68,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		}
 
 		if ( post_type_supports( $post->post_type, 'thumbnail' ) ) {
-			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_image'] );
+			$this->assertEquals( (int) get_post_thumbnail_id( $post->ID ), $data['featured_media'] );
 		} else {
-			$this->assertFalse( isset( $data['featured_image'] ) );
+			$this->assertFalse( isset( $data['featured_media'] ) );
 		}
 
 		// Check post format.
@@ -145,6 +143,15 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			} else {
 				$this->assertEquals( mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
 			}
+		}
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $post->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$this->assertTrue( isset( $data[ $taxonomy->rest_base ] ) );
+			$terms = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+			sort( $terms );
+			sort( $data[ $taxonomy->rest_base ] );
+			$this->assertEquals( $terms, $data[ $taxonomy->rest_base ] );
 		}
 	}
 

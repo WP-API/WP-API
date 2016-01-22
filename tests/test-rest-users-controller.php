@@ -50,6 +50,24 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
+	public function test_registered_query_params() {
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$keys = array_keys( $data['endpoints'][0]['args'] );
+		sort( $keys );
+		$this->assertEquals( array(
+			'context',
+			'include',
+			'offset',
+			'order',
+			'orderby',
+			'page',
+			'per_page',
+			'search',
+			), $keys );
+	}
+
 	public function test_get_items() {
 		wp_set_current_user( $this->user );
 
@@ -204,6 +222,60 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_offset() {
+		wp_set_current_user( $this->user );
+		// 2 users created in __construct(), plus default user
+		$this->factory->user->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'offset', 1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
+		// 'offset' works with 'per_page'
+		$request->set_param( 'per_page', 2 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+		// 'offset' takes priority over 'page'
+		$request->set_param( 'page', 3 );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+	}
+
+	public function test_get_items_include_query() {
+		wp_set_current_user( $this->user );
+		$id1 = $this->factory->user->create();
+		$id2 = $this->factory->user->create();
+		$id3 = $this->factory->user->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		// Orderby=>asc
+		$request->set_param( 'include', array( $id3, $id1 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( $id1, $data[0]['id'] );
+		// Orderby=>include
+		$request->set_param( 'orderby', 'include' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( $id3, $data[0]['id'] );
+	}
+
+	public function test_get_items_exclude_query() {
+		wp_set_current_user( $this->user );
+		$id1 = $this->factory->user->create();
+		$id2 = $this->factory->user->create();
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+		$request->set_param( 'exclude', array( $id2 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
 	}
 
 	public function test_get_items_search() {
@@ -831,7 +903,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'type'        => 'integer',
 			'description' => 'Some integer of mine',
 			'enum'        => array( 1, 2, 3, 4 ),
-			'context'     => array( 'view', 'edit' ),
+			'context'     => array( 'embed', 'view', 'edit' ),
 		);
 
 		register_rest_field( 'user', 'my_custom_int', array(
