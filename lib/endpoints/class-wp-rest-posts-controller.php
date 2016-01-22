@@ -86,19 +86,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$args                   = array();
-		$args['author']         = $request['author'];
-		$args['offset']         = $request['offset'];
-		$args['order']          = $request['order'];
-		$args['orderby']        = $request['orderby'];
-		$args['paged']          = $request['page'];
-		$args['post__in']       = $request['include'];
-		$args['post__not_in']   = $request['exclude'];
-		$args['posts_per_page'] = $request['per_page'];
-		$args['name']           = $request['slug'];
-		$args['post_parent']    = $request['parent'];
-		$args['post_status']    = $request['status'];
-		$args['s']              = $request['search'];
+		$args                         = array();
+		$args['author']               = $request['author'];
+		$args['offset']               = $request['offset'];
+		$args['order']                = $request['order'];
+		$args['orderby']              = $request['orderby'];
+		$args['paged']                = $request['page'];
+		$args['post__in']             = $request['include'];
+		$args['post__not_in']         = $request['exclude'];
+		$args['posts_per_page']       = $request['per_page'];
+		$args['name']                 = $request['slug'];
+		$args['post_parent']          = $request['parent'];
+		$args['post_parent__not_in']  = $request['parent_exclude'];
+		$args['post_status']          = $request['status'];
+		$args['s']                    = $request['search'];
 
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
@@ -593,7 +594,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars.
-		$rest_valid = array( 'offset', 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent' );
+		$rest_valid = array( 'offset', 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent', 'post_parent__not_in' );
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
@@ -1666,12 +1667,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( $post_type_obj->hierarchical ) {
+		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
 			$params['parent'] = array(
 				'description'       => _( 'Limit result set to that of a specific parent id.' ),
 				'type'              => 'integer',
 				'sanitize_callback' => 'absint',
 				'default'           => null,
+			);
+			$params['parent_exclude'] = array(
+				'description'       => _( 'Limit result set to all items except those of a particular parent id.' ),
+				'type'              => 'array',
+				'sanitize_callback' => 'wp_parse_id_list',
+				'default'           => array(),
 			);
 		}
 

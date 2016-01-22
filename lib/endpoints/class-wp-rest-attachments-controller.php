@@ -423,12 +423,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function get_collection_params() {
 		$params = parent::get_collection_params();
-		$params['parent']        = array(
-			'description'        => __( 'Limit results to attachments from a specified parent.' ),
-			'type'               => 'integer',
-			'default'            => null,
-			'sanitize_callback'  => 'absint',
-			);
 		$params['status']['default'] = 'inherit';
 		$params['status']['enum'] = array( 'inherit', 'private', 'trash' );
 		return $params;
