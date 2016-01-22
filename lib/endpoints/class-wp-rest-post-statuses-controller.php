@@ -48,7 +48,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			}
 			$data[ $obj->name ] = $this->prepare_response_for_collection( $status );
 		}
-		return $data;
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -62,7 +62,8 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		if ( empty( $obj ) ) {
 			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
 		}
-		return $this->prepare_item_for_response( $obj, $request );
+		$data = $this->prepare_item_for_response( $obj, $request );
+		return rest_ensure_response( $data );
 	}
 
 	/**
