@@ -981,7 +981,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $this->post_id, $data['data']['post'] );
 		$this->assertTrue( $data['deleted'] );
 	}
-	
+
 	public function test_delete_item_already_trashed() {
 		wp_set_current_user( $this->admin_id );
 
