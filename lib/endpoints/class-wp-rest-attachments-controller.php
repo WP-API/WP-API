@@ -75,8 +75,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url     = $file['url'];
 		$type    = $file['type'];
 		$file    = $file['file'];
-		$title   = $name;
-		$caption = '';
 
 		// use image exif/iptc data for title and caption defaults if possible
 		// @codingStandardsIgnoreStart
