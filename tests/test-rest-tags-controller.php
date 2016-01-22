@@ -58,6 +58,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'per_page',
 			'post_id',
 			'search',
+			'slug',
 			), $keys );
 	}
 
@@ -253,6 +254,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 0, count( $data ) );
+	}
+
+	public function test_get_items_slug_arg() {
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'slug', 'apple' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
 	public function test_get_terms_private_taxonomy() {
