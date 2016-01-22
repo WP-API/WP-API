@@ -88,7 +88,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$data = $this->prepare_item_for_response( $revision, $request );
 			$response[] = $this->prepare_response_for_collection( $data );
 		}
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
@@ -120,7 +120,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$response = $this->prepare_item_for_response( $revision, $request );
-		return $response;
+		return rest_ensure_response( $response );
 	}
 
 	/**
