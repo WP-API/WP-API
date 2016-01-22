@@ -62,6 +62,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'parent',
 			'per_page',
 			'search',
+			'slug',
 			'status',
 			), $keys );
 	}

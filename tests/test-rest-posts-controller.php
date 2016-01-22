@@ -68,6 +68,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'page',
 			'per_page',
 			'search',
+			'slug',
 			'status',
 			), $keys );
 	}
@@ -157,6 +158,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Search Result', $data[0]['title']['rendered'] );
+	}
+
+	public function test_get_items_slug_query() {
+		$this->factory->post->create( array( 'post_title' => 'Apple', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Banana', 'post_status' => 'publish' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'slug', 'apple' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['title']['rendered'] );
 	}
 
 	public function test_get_items_status_query() {
