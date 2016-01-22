@@ -609,6 +609,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'post_id'         => $request['post'] ? $request['post'] : '',
 			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
 			'search'          => $request['search'],
+			'offset'          => $request['offset'],
 			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
 			'order'           => $request['order'],
 			'status'          => 'approve',
@@ -616,7 +617,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'no_found_rows'   => false,
 		);
 
-		$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
+		if ( empty( $request['offset'] ) ) {
+			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
+		}
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			$protected_args = array(
@@ -950,6 +953,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+		);
+		$query_params['offset'] = array(
+			'description'        => __( 'Offset the result set by a specific number of comments.' ),
+			'type'               => 'integer',
+			'sanitize_callback'  => 'absint',
 		);
 		$query_params['order']      = array(
 			'description'           => __( 'Order sort attribute ascending or descending.' ),
