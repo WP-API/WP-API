@@ -92,6 +92,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'hide_empty' => $request['hide_empty'],
 			'number'     => $request['per_page'],
 			'search'     => $request['search'],
+			'slug'       => $request['slug'],
 		);
 
 		if ( ! empty( $request['offset'] ) ) {
@@ -668,6 +669,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
 			'type'                  => 'number',
 			'default'               => false,
+		);
+		$query_params['slug']    = array(
+			'description'        => __( 'Limit result set to terms with a specific slug.' ),
+			'type'               => 'string',
 		);
 		return $query_params;
 	}
