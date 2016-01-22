@@ -628,11 +628,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'type'         => isset( $request['type'] ) ? $request['type'] : '',
 				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
 				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
-				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
-				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
-				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
-				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
-				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
 			);
 
 			$prepared_args = array_merge( $prepared_args, $protected_args );
@@ -995,36 +990,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
-		);
-		$query_params['post_author'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post author id.' ),
-			'sanitize_callback' => 'absint',
-			'type'              => 'integer',
-		);
-		$query_params['post_slug'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post slug.' ),
-			'sanitize_callback' => 'sanitize_title',
-			'type'              => 'string',
-		);
-		$query_params['post_parent'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post parent id.' ),
-			'sanitize_callback' => 'absint',
-			'type'              => 'integer',
-		);
-		$query_params['post_status'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post status.' ),
-			'sanitize_callback' => 'sanitize_key',
-			'type'              => 'string',
-		);
-		$query_params['post_type'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post type.' ),
-			'sanitize_callback' => 'sanitize_key',
-			'type'              => 'string',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',
