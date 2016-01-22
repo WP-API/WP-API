@@ -66,7 +66,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read /posts.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -182,7 +182,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -225,7 +225,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -313,7 +313,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @param object          $post      Inserted Post object (not a WP_Post object).
 		 * @param WP_REST_Request $request   Request object.
-		 * @param bool            $creating  True when creating post, false when updating.
+		 * @param boolean         $creating  True when creating post, false when updating.
 		 */
 		do_action( "rest_insert_{$this->post_type}", $post, $request, true );
 
@@ -330,7 +330,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a post.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -952,7 +952,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if a given post type should be viewed or managed.
 	 *
 	 * @param object|string $post_type
-	 * @return bool Is post type allowed?
+	 * @return boolean Is post type allowed?
 	 */
 	protected function check_is_post_type_allowed( $post_type ) {
 		if ( ! is_object( $post_type ) ) {
@@ -972,7 +972,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Correctly handles posts with the inherit status.
 	 *
 	 * @param object $post Post object.
-	 * @return bool Can we read it?
+	 * @return boolean Can we read it?
 	 */
 	public function check_read_permission( $post ) {
 		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
@@ -1013,7 +1013,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if we can edit a post.
 	 *
 	 * @param object $post Post object.
-	 * @return bool Can we edit it?
+	 * @return boolean Can we edit it?
 	 */
 	protected function check_update_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
@@ -1029,7 +1029,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if we can create a post.
 	 *
 	 * @param object $post Post object.
-	 * @return bool Can we create it?.
+	 * @return boolean Can we create it?.
 	 */
 	protected function check_create_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
@@ -1045,7 +1045,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check if we can delete a post.
 	 *
 	 * @param object $post Post object.
-	 * @return bool Can we delete it?
+	 * @return boolean Can we delete it?
 	 */
 	protected function check_delete_permission( $post ) {
 		$post_type = get_post_type_object( $post->post_type );
@@ -1705,7 +1705,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
-	 * @return WP_Error|bool
+	 * @return WP_Error|boolean
 	 */
 	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
 		if ( 'publish' === $value ) {

@@ -62,7 +62,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read comments
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -154,7 +154,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read the comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 		$id = (int) $request['id'];
@@ -213,7 +213,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -328,7 +328,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 *
 		 * @param array           $prepared_comment Inserted comment data.
 		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param bool            $creating         True when creating a comment, false when updating.
+		 * @param boolean         $creating         True when creating a comment, false when updating.
 		 */
 		do_action( 'rest_insert_comment', $prepared_comment, $request, true );
 
@@ -339,7 +339,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -409,7 +409,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a comment
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 		$id = (int) $request['id'];

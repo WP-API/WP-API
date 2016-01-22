@@ -173,7 +173,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 
@@ -246,7 +246,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access create users
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -304,7 +304,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 *
 		 * @param object          $user      Data used to create the user (not a WP_User object).
 		 * @param WP_REST_Request $request   Request object.
-		 * @param bool            $creating  True when creating user, false when updating user.
+		 * @param boolean         $creating  True when creating user, false when updating user.
 		 */
 		do_action( 'rest_insert_user', $user, $request, true );
 
@@ -321,7 +321,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access update a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -397,7 +397,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access delete a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 
@@ -596,7 +596,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @param integer $user_id
 	 * @param string $role
-	 * @return boolen|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	protected function check_role_update( $user_id, $role ) {
 		global $wp_roles;

@@ -52,7 +52,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to get revisions
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
+	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
 
@@ -95,7 +95,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to get a specific revision
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
-	 * @return WP_Error|bool
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
@@ -127,7 +127,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a revision
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 
@@ -145,7 +145,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Delete a single revision
 	 *
 	 * @param WP_REST_Request $request Full details about the request
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item( $request ) {
 		$result = wp_delete_post( $request['id'], true );

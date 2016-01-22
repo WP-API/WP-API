@@ -71,7 +71,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read the terms.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
 		return $this->check_is_taxonomy_allowed( $this->taxonomy );
@@ -176,7 +176,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to read a term.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 		return $this->check_is_taxonomy_allowed( $this->taxonomy );
@@ -207,7 +207,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to create a term
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -276,7 +276,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * @param WP_Term         $term     Inserted Term object.
 		 * @param WP_REST_Request $request   Request object.
-		 * @param bool            $creating  True when creating term, false when updating.
+		 * @param boolean         $creating  True when creating term, false when updating.
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
@@ -293,7 +293,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to update a term
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -372,7 +372,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check if a given request has access to delete a term
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 		if ( ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
@@ -681,7 +681,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * Check that the taxonomy is valid
 	 *
 	 * @param string
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {
 		$taxonomy_obj = get_taxonomy( $taxonomy );
