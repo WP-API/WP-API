@@ -506,7 +506,7 @@ abstract class WP_REST_Controller {
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
-	 * @return WP_Error|bool
+	 * @return mixed
 	 */
 	public function sanitize_schema_property( $value, $request, $parameter ) {
 
