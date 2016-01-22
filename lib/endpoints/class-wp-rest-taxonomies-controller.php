@@ -57,7 +57,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * Check if a given request has access a taxonomy
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool
+	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
 

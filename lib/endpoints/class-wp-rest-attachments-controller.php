@@ -21,7 +21,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Check if a given request has access to create an attachment.
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 		$ret = parent::create_item_permissions_check( $request );
@@ -129,7 +129,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 *
 		 * @param object          $attachment Inserted attachment.
 		 * @param WP_REST_Request $request    The request sent to the API.
-		 * @param bool            $creating   True when creating an attachment, false when updating.
+		 * @param boolean         $creating   True when creating an attachment, false when updating.
 		 */
 		do_action( 'rest_insert_attachment', $attachment, $request, true );
 
@@ -434,7 +434,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
 	 * @param  string $parameter
-	 * @return WP_Error|bool
+	 * @return WP_Error|boolean
 	 */
 	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
 		if ( 'inherit' === $value ) {
