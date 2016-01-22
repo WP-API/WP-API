@@ -75,8 +75,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$url     = $file['url'];
 		$type    = $file['type'];
 		$file    = $file['file'];
-		$title   = $name;
-		$caption = '';
 
 		// use image exif/iptc data for title and caption defaults if possible
 		// @codingStandardsIgnoreStart
@@ -84,11 +82,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		// @codingStandardsIgnoreEnd
 		if ( ! empty( $image_meta ) ) {
 			if ( empty( $request['title'] ) && trim( $image_meta['title'] ) && ! is_numeric( sanitize_title( $image_meta['title'] ) ) ) {
-				$title = $image_meta['title'];
+				$request['title'] = $image_meta['title'];
 			}
 
 			if ( empty( $request['caption'] ) && trim( $image_meta['caption'] ) ) {
-				$caption = $image_meta['caption'];
+				$request['caption'] = $image_meta['caption'];
 			}
 		}
 
