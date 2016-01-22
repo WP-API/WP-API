@@ -966,6 +966,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'date_gmt',
+			'enum'                  => array(
+				'date',
+				'date_gmt',
+				'id',
+				'include',
+				'post',
+				'parent',
+				'type',
+			),
 		);
 		$query_params['parent'] = array(
 			'default'           => null,
