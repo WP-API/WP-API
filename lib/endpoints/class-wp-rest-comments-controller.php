@@ -67,11 +67,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function get_items_permissions_check( $request ) {
 
 		// If the post id is specified, check that we can read the post
-		if ( isset( $request['post'] ) ) {
+		if ( ! is_null( $request['post'] ) ) {
 			$post = get_post( (int) $request['post'] );
 
-			if ( $post && ! $this->check_read_post_permission( $post ) ) {
+			if ( ! empty( $request['post'] ) && $post && ! $this->check_read_post_permission( $post ) ) {
 				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+			} else if ( 0 === $request['post'] && ! current_user_can( 'moderate_comments' ) ) {
+				return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read comments without a post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -605,7 +607,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'comment__in'     => $request['include'],
 			'comment__not_in' => $request['exclude'],
 			'number'          => $request['per_page'],
-			'post_id'         => $request['post'] ? $request['post'] : '',
+			'post_id'         => ! is_null( $request['post'] ) ? (int) $request['post'] : null,
 			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
 			'search'          => $request['search'],
 			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
@@ -975,7 +977,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params['post']   = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
-			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_author'] = array(
