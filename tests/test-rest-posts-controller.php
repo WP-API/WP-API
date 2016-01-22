@@ -1433,6 +1433,18 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertTrue( $data['deleted'] );
 	}
 
+	public function test_delete_item_already_trashed() {
+		$post_id = $this->factory->post->create( array( 'post_title' => 'Deleted post' ) );
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertTrue( $data['trashed'] );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
+	}
+
 	public function test_delete_post_invalid_id() {
 		wp_set_current_user( $this->editor_id );
 
