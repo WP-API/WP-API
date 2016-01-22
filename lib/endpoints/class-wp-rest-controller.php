@@ -254,7 +254,6 @@ abstract class WP_REST_Controller {
 			'type'               => 'string',
 		);
 		$schema = $this->get_item_schema();
-		$contexts = array();
 		if ( empty( $schema['properties'] ) ) {
 			return array_merge( $param_details, $args );
 		}
