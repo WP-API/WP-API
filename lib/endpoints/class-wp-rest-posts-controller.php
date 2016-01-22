@@ -1676,7 +1676,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$params['slug'] = array(
-			'description'       => __( 'Limit result set to terms with a specific slug.' ),
+			'description'       => __( 'Limit result set to posts with a specific slug.' ),
 			'type'              => 'string',
 		);
 		$params['status'] = array(
