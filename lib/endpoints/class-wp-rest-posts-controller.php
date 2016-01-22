@@ -95,6 +95,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post__in']       = $request['include'];
 		$args['post__not_in']   = $request['exclude'];
 		$args['posts_per_page'] = $request['per_page'];
+		$args['name']           = $request['slug'];
 		$args['post_parent']    = $request['parent'];
 		$args['post_status']    = $request['status'];
 		$args['s']              = $request['search'];
@@ -1674,6 +1675,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$params['slug'] = array(
+			'description'       => __( 'Limit result set to terms with a specific slug.' ),
+			'type'              => 'string',
+		);
 		$params['status'] = array(
 			'default'           => 'publish',
 			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
