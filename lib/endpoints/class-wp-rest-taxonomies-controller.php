@@ -50,7 +50,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			$tax = $this->prepare_response_for_collection( $tax );
 			$data[ $tax_type ] = $tax;
 		}
-		return $data;
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -86,7 +86,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		if ( empty( $tax_obj ) ) {
 			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
 		}
-		return $this->prepare_item_for_response( $tax_obj, $request );
+		$data = $this->prepare_item_for_response( $tax_obj, $request );
+		return rest_ensure_response( $data );
 	}
 
 	/**
