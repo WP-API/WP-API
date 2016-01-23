@@ -143,7 +143,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			// Out-of-bounds, run the query again without LIMIT for total count
 			unset( $query_args['paged'] );
 			$count_query = new WP_Query();
-			$query_result = $count_query->query( $query_args );
+			$count_query->query( $query_args );
 			$total_posts = $count_query->found_posts;
 		}
 
