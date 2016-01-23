@@ -758,12 +758,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Author
 		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
-			$author = $this->handle_author_param( $request['author'] );
-			if ( is_wp_error( $author ) ) {
-				return $author;
+			$post_author = (int) $request['author'];
+			if ( get_current_user_id() !== $post_author ) {
+				$user_obj = get_userdata( $post_author );
+				if ( ! $user_obj ) {
+					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
+				}
 			}
-
-			$prepared_post->post_author = $author;
+			$prepared_post->post_author = $post_author;
 		}
 
 		// Post password.
@@ -855,35 +857,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $post_status;
-	}
-
-	/**
-	 * Determine validity and normalize provided author param.
-	 *
-	 * @param object|integer $post_author
-	 * @return WP_Error|integer $post_author
-	 */
-	protected function handle_author_param( $post_author ) {
-		if ( is_object( $post_author ) ) {
-			if ( empty( $post_author->id ) ) {
-				return new WP_Error( 'rest_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
-			}
-			$post_author = (int) $post_author->id;
-		} else {
-			$post_author = (int) $post_author;
-		}
-
-		// Only check edit others' posts if we are another user.
-		if ( get_current_user_id() !== $post_author ) {
-
-			$author = get_userdata( $post_author );
-
-			if ( ! $author ) {
-				return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
-			}
-		}
-
-		return $post_author;
 	}
 
 	/**
