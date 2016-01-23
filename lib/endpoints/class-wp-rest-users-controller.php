@@ -399,7 +399,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function delete_item_permissions_check( $request ) {
 
 		$id = (int) $request['id'];
-		$reassign = isset( $request['reassign'] ) ? absint( $request['reassign'] ) : null;
 
 		if ( ! current_user_can( 'delete_user', $id ) ) {
 			return new WP_Error( 'rest_user_cannot_delete', __( 'Sorry, you are not allowed to delete this user.' ), array( 'status' => rest_authorization_required_code() ) );
