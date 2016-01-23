@@ -1318,7 +1318,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_schema() {
 
-		$base = $this->get_post_type_base( $this->post_type );
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => $this->post_type,
