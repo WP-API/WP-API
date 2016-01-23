@@ -89,6 +89,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'include'    => $request['include'],
 			'order'      => $request['order'],
 			'orderby'    => $request['orderby'],
+			'post'       => $request['post'],
 			'hide_empty' => $request['hide_empty'],
 			'number'     => $request['per_page'],
 			'search'     => $request['search'],
@@ -128,7 +129,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
 
-		$query_result = get_terms( $this->taxonomy, $prepared_args );
+		if ( ! empty( $prepared_args['post'] ) ) {
+			$terms_args = array(
+				'order'   => $prepared_args['order'],
+				'orderby' => $prepared_args['orderby'],
+			);
+			$query_result = wp_get_object_terms( $prepared_args['post'], $this->taxonomy, $terms_args );
+		} else {
+			$query_result = get_terms( $this->taxonomy, $prepared_args );
+		}
 		$response = array();
 		foreach ( $query_result as $term ) {
 			$data = $this->prepare_item_for_response( $term, $request );
@@ -665,7 +674,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'sanitize_callback'  => 'absint',
 			);
 		}
-		$query_params['post_id'] = array(
+		$query_params['post'] = array(
 			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
 			'type'                  => 'number',
 			'default'               => false,

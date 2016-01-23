@@ -56,7 +56,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'orderby',
 			'page',
 			'per_page',
-			'post_id',
+			'post',
 			'search',
 			'slug',
 			), $keys );
@@ -203,6 +203,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$post_id = $this->factory->post->create();
 		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Marvel' ) );
+		$this->factory->tag->create( array( 'name' => 'Dark Horse' ) );
 		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -221,6 +222,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$controller->register_routes();
 		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
 		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
+		$this->factory->term->create( array( 'name' => 'Car', 'taxonomy' => 'batman' ) );
 		$post_id = $this->factory->post->create();
 		wp_set_object_terms( $post_id, array( $term1, $term2 ), 'batman' );
 
