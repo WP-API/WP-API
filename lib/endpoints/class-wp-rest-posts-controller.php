@@ -758,7 +758,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Author
 		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
-			$author = $this->handle_author_param( $request['author'], $post_type );
+			$author = $this->handle_author_param( $request['author'] );
 			if ( is_wp_error( $author ) ) {
 				return $author;
 			}
@@ -861,10 +861,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determine validity and normalize provided author param.
 	 *
 	 * @param object|integer $post_author
-	 * @param object $post_type
 	 * @return WP_Error|integer $post_author
 	 */
-	protected function handle_author_param( $post_author, $post_type ) {
+	protected function handle_author_param( $post_author ) {
 		if ( is_object( $post_author ) ) {
 			if ( empty( $post_author->id ) ) {
 				return new WP_Error( 'rest_invalid_author', __( 'Invalid author object.' ), array( 'status' => 400 ) );
