@@ -89,7 +89,41 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$prepared_args = $this->prepare_items_query( $request );
+		$prepared_args = array(
+			'comment__in'     => $request['include'],
+			'comment__not_in' => $request['exclude'],
+			'number'          => $request['per_page'],
+			'post_id'         => $request['post'] ? $request['post'] : '',
+			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
+			'search'          => $request['search'],
+			'offset'          => $request['offset'],
+			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
+			'order'           => $request['order'],
+			'status'          => 'approve',
+			'type'            => 'comment',
+			'no_found_rows'   => false,
+		);
+
+		if ( empty( $request['offset'] ) ) {
+			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
+		}
+
+		if ( current_user_can( 'edit_posts' ) ) {
+			$protected_args = array(
+				'user'         => $request['user'] ? $request['user'] : '',
+				'status'       => $request['status'],
+				'type'         => isset( $request['type'] ) ? $request['type'] : '',
+				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
+				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
+				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
+				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
+				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
+				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
+				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
+			);
+
+			$prepared_args = array_merge( $prepared_args, $protected_args );
+		}
 
 		/**
 		 * Filter arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
@@ -590,55 +624,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return $links;
-	}
-
-	/**
-	 * Filter query parameters for comments collection endpoint.
-	 *
-	 * Prepares arguments before passing them along to WP_Comment_Query.
-	 *
-	 * @param  WP_REST_Request $request Request object.
-	 * @return array           $prepared_args
-	 */
-	protected function prepare_items_query( $request ) {
-
-		$prepared_args = array(
-			'comment__in'     => $request['include'],
-			'comment__not_in' => $request['exclude'],
-			'number'          => $request['per_page'],
-			'post_id'         => $request['post'] ? $request['post'] : '',
-			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
-			'search'          => $request['search'],
-			'offset'          => $request['offset'],
-			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
-			'order'           => $request['order'],
-			'status'          => 'approve',
-			'type'            => 'comment',
-			'no_found_rows'   => false,
-		);
-
-		if ( empty( $request['offset'] ) ) {
-			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
-		}
-
-		if ( current_user_can( 'edit_posts' ) ) {
-			$protected_args = array(
-				'user'         => $request['user'] ? $request['user'] : '',
-				'status'       => $request['status'],
-				'type'         => isset( $request['type'] ) ? $request['type'] : '',
-				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
-				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
-				'post_author'  => isset( $request['post_author'] ) ? $request['post_author'] : '',
-				'post_name'    => isset( $request['post_slug'] ) ? $request['post_slug'] : '',
-				'post_parent'  => isset( $request['post_parent'] ) ? $request['post_parent'] : '',
-				'post_status'  => isset( $request['post_status'] ) ? $request['post_status'] : '',
-				'post_type'    => isset( $request['post_type'] ) ? $request['post_type'] : '',
-			);
-
-			$prepared_args = array_merge( $prepared_args, $protected_args );
-		}
-
-		return $prepared_args;
 	}
 
 	/**
