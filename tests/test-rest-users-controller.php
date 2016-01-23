@@ -65,6 +65,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'page',
 			'per_page',
 			'search',
+			'slug',
 			), $keys );
 	}
 
@@ -306,6 +307,18 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $adam_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_slug_query() {
+		wp_set_current_user( $this->user );
+		$this->factory->user->create( array( 'display_name' => 'foo', 'user_login' => 'bar' ) );
+		$id2 = $this->factory->user->create( array( 'display_name' => 'Moo', 'user_login' => 'foo' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'slug', 'foo' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $id2, $data[0]['id'] );
 	}
 
 	public function test_get_item() {

@@ -110,6 +110,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 
+		if ( ! empty( $request['slug'] ) ) {
+			$prepared_args['search'] = $request['slug'];
+			$prepared_args['search_columns'] = array( 'user_nicename' );
+		}
+
 		/**
 		 * Filter arguments, before passing to WP_User_Query, when querying users via the REST API.
 		 *
@@ -805,6 +810,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'registered_date',
 			),
 			'sanitize_callback'  => 'sanitize_key',
+			'type'               => 'string',
+		);
+		$query_params['slug']    = array(
+			'description'        => __( 'Limit result set to users with a specific slug.' ),
 			'type'               => 'string',
 		);
 		return $query_params;
