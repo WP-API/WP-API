@@ -56,7 +56,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'page',
 			'parent',
 			'per_page',
-			'post_id',
+			'post',
 			'search',
 			'slug',
 			), $keys );
@@ -265,7 +265,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 3, count( $data ) ); // includes 'Uncategorized'
+		$this->assertEquals( 2, count( $data ) );
 		$this->assertEquals( 'DC', $data[0]['name'] );
 	}
 
@@ -275,6 +275,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$controller->register_routes();
 		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
 		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
+		$this->factory->term->create( array( 'name' => 'Car', 'taxonomy' => 'batman' ) );
 		$post_id = $this->factory->post->create();
 		wp_set_object_terms( $post_id, array( $term1, $term2 ), 'batman' );
 
