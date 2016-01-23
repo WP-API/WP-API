@@ -1398,6 +1398,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$new_data = $response->get_data();
 		$this->assertEquals( array( $category['term_id'] ), $new_data['categories'] );
+		$categories_path = '';
+		$links = $response->get_links();
+		foreach ( $links['https://api.w.org/term'] as $link ) {
+			if ( 'category' === $link['attributes']['taxonomy'] ) {
+				$categories_path = $link['href'];
+			}
+		}
+		$query = parse_url( $categories_path, PHP_URL_QUERY );
+		parse_str( $query, $args );
+		$request = new WP_REST_Request( 'GET', $args['rest_route'] );
+		unset( $args['rest_route'] );
+		$request->set_query_params( $args );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( 'Test Category', $data[0]['name'] );
 	}
 
 	public function test_update_post_with_empty_categories() {

@@ -1260,7 +1260,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				$tax_base = ! empty( $taxonomy_obj->rest_base ) ? $taxonomy_obj->rest_base : $tax;
 				$terms_url = add_query_arg(
-					'post_id',
+					'post',
 					$post->ID,
 					rest_url( 'wp/v2/' . $tax_base )
 				);
