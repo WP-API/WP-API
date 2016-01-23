@@ -82,6 +82,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'author',
 			'author_email',
 			'context',
 			'exclude',
@@ -102,7 +103,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'search',
 			'status',
 			'type',
-			'user',
 			), $keys );
 	}
 
@@ -225,6 +225,33 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
+	}
+
+	public function test_get_items_author_arg() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->author_id,
+		);
+		$this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
+		unset( $args['user_id'] );
+		$this->factory->comment->create( $args );
+
+		// 'author' limits result to 2 of 3
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'author', $this->author_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 2, $comments );
+		// Unavailable to unauthenticated; defauls to all authenticated
+		wp_set_current_user( 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 4, $comments );
 	}
 
 	public function test_get_items_for_post_type() {

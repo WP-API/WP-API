@@ -110,7 +110,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( current_user_can( 'edit_posts' ) ) {
 			$protected_args = array(
-				'user'         => $request['user'] ? $request['user'] : '',
+				'user_id'      => $request['author'] ? $request['author'] : '',
 				'status'       => $request['status'],
 				'type'         => isset( $request['type'] ) ? $request['type'] : '',
 				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
@@ -1023,8 +1023,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
-		$query_params['user']   = array(
-			'default'           => null,
+		$query_params['author'] = array(
 			'description'       => __( 'Limit result set to comments assigned to a specific user id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
