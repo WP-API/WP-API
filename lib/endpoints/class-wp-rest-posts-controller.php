@@ -831,7 +831,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|string $post_status
 	 */
 	protected function handle_status_param( $post_status, $post_type ) {
-		$post_status = $post_status;
 
 		switch ( $post_status ) {
 			case 'draft':
