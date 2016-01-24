@@ -462,6 +462,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 *
 	 * @param obj $item Term object
 	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 

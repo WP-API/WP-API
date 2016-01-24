@@ -532,7 +532,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @param  object          $comment Comment object.
 	 * @param  WP_REST_Request $request Request object.
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $comment, $request ) {
 		$data = array(
