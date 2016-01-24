@@ -408,10 +408,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $cat_link );
 		$this->assertNull( $format_link );
 
-		$tags_url = add_query_arg( 'post_id', $this->post_id, rest_url( '/wp/v2/tags' ) );
+		$tags_url = add_query_arg( 'post', $this->post_id, rest_url( '/wp/v2/tags' ) );
 		$this->assertEquals( $tags_url, $tag_link['href'] );
 
-		$category_url = add_query_arg( 'post_id', $this->post_id, rest_url( '/wp/v2/categories' ) );
+		$category_url = add_query_arg( 'post', $this->post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
 
 		$meta_links = $links['https://api.w.org/meta'];
