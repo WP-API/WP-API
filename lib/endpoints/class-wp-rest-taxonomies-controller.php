@@ -95,7 +95,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 *
 	 * @param stdClass $taxonomy Taxonomy data
 	 * @param WP_REST_Request $request
-	 * @return array Taxonomy data
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $taxonomy, $request ) {
 

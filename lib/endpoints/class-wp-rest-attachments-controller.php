@@ -194,7 +194,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @param WP_Post $post Post object
 	 * @param WP_REST_Request $request Request object
-	 * @return array $response
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 		$response = parent::prepare_item_for_response( $post, $request );

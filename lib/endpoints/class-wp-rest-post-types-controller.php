@@ -72,7 +72,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @param stdClass $post_type Post type data
 	 * @param WP_REST_Request $request
-	 * @return array Post type data
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $post_type, $request ) {
 		$data = array(

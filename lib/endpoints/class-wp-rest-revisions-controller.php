@@ -172,7 +172,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @param WP_Post $post Post revision object.
 	 * @param WP_REST_Request $request Request object.
-	 * @return array
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 
@@ -207,9 +207,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
 
 		if ( ! empty( $data['parent'] ) ) {
 			$response->add_link( 'parent', rest_url( sprintf( 'wp/%s/%d', $this->parent_base, $data['parent'] ) ) );
