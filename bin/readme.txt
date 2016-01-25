@@ -36,6 +36,153 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 
 == Changelog ==
 
+= 2.0 Beta 11.0 =
+
+* BREAKING CHANGE: Moves Post->Term relations to the Post Resource
+
+  Previously, a client would fetch a Post's Tags with `GET /wp/v2/posts/<id>/tags`.
+
+  In Beta 11, an array of term ids is included on the Post resource.
+
+  The collection of terms for a Post can be fetched with `GET /wp/v2/tags?post=<id>`.
+
+  The `WP_REST_Posts_Terms_Controller` class no longer exists.
+
+  (props @joehoyle, [#2063](https://github.com/WP-API/WP-API/pull/2063))
+
+* BREAKING CHANGE: Adds latest JS client including a minified version.
+
+  See pull request for a summarized changelog.
+
+  (props @adamsilverstein, [#1981](https://github.com/WP-API/WP-API/pull/1981))
+
+* BREAKING CHANGE: Changes `featured_image` attribute on Posts to `featured_media`.
+
+  While featuring other attachment types isn't yet officially supported, this makes it easier for us to introduce the possibility in the future.
+
+  (props @danielbachhuber, [#2044](https://github.com/WP-API/WP-API/pull/2044))
+
+* BREAKING CHANGE: Uses discrete schema title for categories and tags.
+
+  If you've used `register_rest_field( 'term' )`, you'll need to change `'term'` to `'tag'` and/or `'category'`.
+
+  (props @danielbachhuber, [#2005](https://github.com/WP-API/WP-API/pull/2005))
+
+* BREAKING CHANGE: Makes many filters dynamic based on the controller type.
+
+  If you were using the `rest_prepare_term` filter, you'll need to change it to `rest_prepare_post_tag` or `rest_prepare_category`.
+
+  If you were using `rest_post_query` or `rest_terms_query`, you'll need update your use to `rest_page_query`, etc.
+
+  If you were using `rest_post_trashable`, `rest_insert_post` or `rest_delete_post`, they are now dynamic based on the post type slug.
+
+  (props @danielbachhuber, [#2008](https://github.com/WP-API/WP-API/pull/2008), [#2010](https://github.com/WP-API/WP-API/pull/2010), [#2057](https://github.com/WP-API/WP-API/pull/2057), [#2058](https://github.com/WP-API/WP-API/pull/2058))
+
+* Renames `GET /wp/v2/comments` `user` param to `author` to match resource attribute.
+
+  Not a breaking change, because it didn't work in the first place.
+
+  (props @danielbachhuber, [#2105](https://github.com/WP-API/WP-API/pull/2105))
+
+* Adds support for `GET /wp/v2/pages parent=1,2,3`.
+
+  (props @danielbachhuber, [#2101](https://github.com/WP-API/WP-API/pull/2101))
+
+* Persists image metadata title and caption when not present in the request.
+
+  (props @danielbachhuber, [#2079](https://github.com/WP-API/WP-API/pull/2079))
+
+* Add `parent_exclude` param to `GET /wp/v2/posts`.
+
+  (props @danielbachhuber, [#2077](https://github.com/WP-API/WP-API/pull/2077))
+
+* Adds `slug` param support for collections of Posts, Users, and Taxonomy Terms.
+
+  (props @danielbachhuber, [#2071](https://github.com/WP-API/WP-API/pull/2071), [#2072](https://github.com/WP-API/WP-API/pull/2072), [#2103](https://github.com/WP-API/WP-API/pull/2103))
+
+* When a comment is already trashed, returns `410:rest_already_trashed`.
+
+  (props @danielbachhuber, [#2069](https://github.com/WP-API/WP-API/pull/2069))
+
+* Filter the responses by context after processing additional fields.
+
+  (props @danielbachhuber, [#2067](https://github.com/WP-API/WP-API/pull/2067))
+
+* Adds `offset` param support for collections of Posts, Users, Comments, and Taxonomy Terms.
+
+  (props @danielbachhuber, [#2061](https://github.com/WP-API/WP-API/pull/2061), [#2062](https://github.com/WP-API/WP-API/pull/2062), [#2064](https://github.com/WP-API/WP-API/pull/2064), [#2076](https://github.com/WP-API/WP-API/pull/2076))
+
+* Adds `rest_insert_{$taxonomy}` and `rest_delete_{$taxonomy}` actions.
+
+  (props @danielbachhuber, [#2060](https://github.com/WP-API/WP-API/pull/2060))
+
+* Provides more helpful error message/code on Post Create/Update fail.
+
+  (props @danielbachhuber, [#2053](https://github.com/WP-API/WP-API/pull/2053))
+
+* Forces `GET /wp/v2/media` to be limited to `'status' => [ inherit, private, trash ]`
+
+  (props @danielbachhuber, [#2026](https://github.com/WP-API/WP-API/pull/2026))
+
+* Uses more correct error code for `Comment::delete` permission check.
+
+  (props @danielbachhuber, [#2054](https://github.com/WP-API/WP-API/pull/2054))
+
+* Calls `prepare_item_for_response()` directly in create and update methods.
+
+  This lets us pass the original request through, giving the method and its filter genuine context, and avoids an
+unnecessary call to `get_item()`.
+
+  (props @danielbachhuber, [#2038](https://github.com/WP-API/WP-API/pull/2038), [#2040](https://github.com/WP-API/WP-API/pull/2040), [#2041](https://github.com/WP-API/WP-API/pull/2041), [#2043](https://github.com/WP-API/WP-API/pull/2043), [#2042](https://github.com/WP-API/WP-API/pull/2042))
+
+* Moves permission check methods across controllers.
+
+  Placing them above the method they're supposed to check makes the code more readable.
+
+  (props @danielbachhuber, [#2030](https://github.com/WP-API/WP-API/pull/2030), [#2029](https://github.com/WP-API/WP-API/pull/2029), [#2034](https://github.com/WP-API/WP-API/pull/2034), [#2036](https://github.com/WP-API/WP-API/pull/2036), [#2037](https://github.com/WP-API/WP-API/pull/2037), [#2035](https://github.com/WP-API/WP-API/pull/2035), [#2039](https://github.com/WP-API/WP-API/pull/2039))
+
+* Requires `force` argument for `DELETE /wp/v2/<taxonomy>/<id>`.
+
+  (props @danielbachhuber, [#2028](https://github.com/WP-API/WP-API/pull/2028))
+
+* Conditionally requires and defines REST API classes and functions.
+
+  (props @danielbachhuber, [#2023](https://github.com/WP-API/WP-API/pull/2023), [#2024](https://github.com/WP-API/WP-API/pull/2024))
+
+* Avoid a duplicate query for the comment count.
+
+  (props @rmccue, [#2015](https://github.com/WP-API/WP-API/pull/2015))
+
+* Parses `$date` if available in `prepare_date_response()`
+
+  (props @adamsilverstein, [#1951](https://github.com/WP-API/WP-API/pull/1951))
+
+* Abstracts `POST /wp/v2/media` permissions check.
+
+  (props @danielbachhuber, [#2003](https://github.com/WP-API/WP-API/pull/2003))
+
+* Adds `exclude` param to getting collections of Posts, Users, Comments, and Taxonomy Terms.
+
+  (props @danielbachhuber, [#1998](https://github.com/WP-API/WP-API/pull/1998), [#1999](https://github.com/WP-API/WP-API/pull/1999), [#2000](https://github.com/WP-API/WP-API/pull/2000), [#2002](https://github.com/WP-API/WP-API/pull/2002))
+
+* Adds `rest_comment_query` for filtering `GET /wp/v2/comments`.
+
+  (props @danielbachhuber, [#2007](https://github.com/WP-API/WP-API/pull/2007))
+
+* Uses HTTP status code `500` for `db_update_error` when creating an attachment.
+
+  (props @danielbachhuber, [#1993](https://github.com/WP-API/WP-API/pull/1993))
+
+* Adds helpful description to `force` param across all `DELETE` registrations
+
+  (props @danielbachhuber, [#2004](https://github.com/WP-API/WP-API/pull/2004), [#2027](https://github.com/WP-API/WP-API/pull/2027))
+
+* In `GET /wp/v2/<taxonomy>`, drops support for `orderby=>term_id`.
+
+  Only one `id` is exposed through the REST API.
+
+  (props @danielbachhuber, [#1990](https://github.com/WP-API/WP-API/pull/1990))
+
 = 2.0 Beta 10.0 =
 
 * SECURITY: Ensure media of private posts are private too.
