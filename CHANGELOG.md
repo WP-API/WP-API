@@ -10,6 +10,8 @@
 
   The collection of terms for a Post can be fetched with `GET /wp/v2/tags?post=<id>`.
 
+  The `WP_REST_Posts_Terms_Controller` class no longer exists.
+
   (props @joehoyle, [#2063](https://github.com/WP-API/WP-API/pull/2063))
 
 - BREAKING CHANGE: Adds latest JS client including a minified version.
