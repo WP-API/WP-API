@@ -2,11 +2,25 @@
 
 ## 2.0 Beta 11.0
 
+- BREAKING CHANGE: Moves Post->Term relations to the Post Resource
+
+  Previously, a client would fetch a Post's Tags with `GET /wp/v2/posts/<id>/tags`.
+
+  In Beta 11, an array of term ids as included on the Post resource.
+
+  (props @joehoyle, [#2063](https://github.com/WP-API/WP-API/pull/2063))
+
 - BREAKING CHANGE: Adds latest JS client including a minified version.
 
   See pull request for a summarized changelog.
 
   (props @adamsilverstein, [#1981](https://github.com/WP-API/WP-API/pull/1981))
+
+- BREAKING CHANGE: Changes `featured_image` attribute on Posts to `featured_media`.
+
+  While featuring other attachment types isn't yet officially supported, this makes it easier for us to introduce the possibility in the future.
+
+  (props @danielbachhuber, [#2044](https://github.com/WP-API/WP-API/pull/2044))
 
 - BREAKING CHANGE: Uses discrete schema title for categories and tags.
 
@@ -14,17 +28,58 @@
 
   (props @danielbachhuber, [#2005](https://github.com/WP-API/WP-API/pull/2005))
 
-- BREAKING CHANGE: Makes `rest_prepare_term` dynamic based on taxonomy.
+- BREAKING CHANGE: Makes many filters dynamic based on the controller type.
 
   If you were using the `rest_prepare_term` filter, you'll need to change it to `rest_prepare_post_tag` or `rest_prepare_category`.
 
-  (props @danielbachhuber, [#2008](https://github.com/WP-API/WP-API/pull/2008))
+  If you were using `rest_post_query` or `rest_terms_query`, you'll need update your use to `rest_page_query`, etc.
 
-- BREAKING CHANGE: Uses dynamic filter names for `rest_post_query` and `rest_terms_query`.
+  If you were using `rest_post_trashable`, `rest_insert_post` or `rest_delete_post`, they are now dynamic based on the post type slug.
 
-  If you were using these filters before, you'll need update your use to `rest_page_query`, etc.
+  (props @danielbachhuber, [#2008](https://github.com/WP-API/WP-API/pull/2008), [#2010](https://github.com/WP-API/WP-API/pull/2010), [#2057](https://github.com/WP-API/WP-API/pull/2057), [#2058](https://github.com/WP-API/WP-API/pull/2058))
 
-  (props @danielbachhuber, [#2010](https://github.com/WP-API/WP-API/pull/2010))
+- Add `parent_exclude` param to `GET /wp/v2/posts`.
+
+  (props @danielbachhuber, [#2077](https://github.com/WP-API/WP-API/pull/2077))
+
+- Adds `slug` param support for collections of Posts, Users, and Taxonomy Terms.
+
+  (props @danielbachhuber, [#2071](https://github.com/WP-API/WP-API/pull/2071), [#2072](https://github.com/WP-API/WP-API/pull/2072), [#2103](https://github.com/WP-API/WP-API/pull/2103))
+
+- When a comment is already trashed, returns `410:rest_already_trashed`.
+
+  (props @danielbachhuber, [#2069](https://github.com/WP-API/WP-API/pull/2069))
+
+- Filter the responses by context after processing additional fields.
+
+  (props @danielbachhuber, [#2067](https://github.com/WP-API/WP-API/pull/2067))
+
+- Adds `offset` param support for collections of Posts, Users, Comments, and Taxonomy Terms.
+
+  (props @danielbachhuber, [#2061](https://github.com/WP-API/WP-API/pull/2061), [#2062](https://github.com/WP-API/WP-API/pull/2062), [#2064](https://github.com/WP-API/WP-API/pull/2064), [#2076](https://github.com/WP-API/WP-API/pull/2076))
+
+- Adds `rest_insert_{$taxonomy}` and `rest_delete_{$taxonomy}` actions.
+
+  (props @danielbachhuber, [#2060](https://github.com/WP-API/WP-API/pull/2060))
+
+- Provides more helpful error message/code on Post Create/Update fail.
+
+  (props @danielbachhuber, [#2053](https://github.com/WP-API/WP-API/pull/2053))
+
+- Forces `GET /wp/v2/media` to be limited to `'status' => [ inherit, private, trash ]`
+
+  (props @danielbachhuber, [#2026](https://github.com/WP-API/WP-API/pull/2026))
+
+- Uses more correct error code for `Comment::delete` permission check.
+
+  (props @danielbachhuber, [#2054](https://github.com/WP-API/WP-API/pull/2054))
+
+- Calls `prepare_item_for_response()` directly in create and update methods.
+
+  This lets us pass the original request through, giving the method and its filter genuine context, and avoids an
+unnecessary call to `get_item()`.
+
+  (props @danielbachhuber, [#2038](https://github.com/WP-API/WP-API/pull/2038), [#2040](https://github.com/WP-API/WP-API/pull/2040), [#2041](https://github.com/WP-API/WP-API/pull/2041), [#2043](https://github.com/WP-API/WP-API/pull/2043), [#2042](https://github.com/WP-API/WP-API/pull/2042))
 
 - Moves permission check methods across controllers.
 
