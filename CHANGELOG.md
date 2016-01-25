@@ -38,6 +38,20 @@
 
   (props @danielbachhuber, [#2008](https://github.com/WP-API/WP-API/pull/2008), [#2010](https://github.com/WP-API/WP-API/pull/2010), [#2057](https://github.com/WP-API/WP-API/pull/2057), [#2058](https://github.com/WP-API/WP-API/pull/2058))
 
+- Renames `GET /wp/v2/comments` `user` param to `author` to match resource attribute.
+
+  Not a breaking change, because it didn't work in the first place.
+
+  (props @danielbachhuber, [#2105](https://github.com/WP-API/WP-API/pull/2105))
+
+- Adds support for `GET /wp/v2/pages parent=1,2,3`.
+
+  (props @danielbachhuber, [#2101](https://github.com/WP-API/WP-API/pull/2101))
+
+- Persists image metadata title and caption when not present in the request.
+
+  (props @danielbachhuber, [#2079](https://github.com/WP-API/WP-API/pull/2079))
+
 - Add `parent_exclude` param to `GET /wp/v2/posts`.
 
   (props @danielbachhuber, [#2077](https://github.com/WP-API/WP-API/pull/2077))
