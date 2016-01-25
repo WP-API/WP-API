@@ -6,7 +6,7 @@
 
   Previously, a client would fetch a Post's Tags with `GET /wp/v2/posts/<id>/tags`.
 
-  In Beta 11, an array of term ids as included on the Post resource.
+  In Beta 11, an array of term ids is included on the Post resource.
 
   The collection of terms for a Post can be fetched with `GET /wp/v2/tags?post=<id>`.
 
