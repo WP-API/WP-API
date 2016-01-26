@@ -89,20 +89,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array(
-			'comment__in'     => $request['include'],
-			'comment__not_in' => $request['exclude'],
-			'number'          => $request['per_page'],
-			'post_id'         => $request['post'] ? $request['post'] : '',
-			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
-			'search'          => $request['search'],
-			'offset'          => $request['offset'],
-			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
-			'order'           => $request['order'],
-			'status'          => 'approve',
-			'type'            => 'comment',
-			'no_found_rows'   => false,
-		);
+		$prepared_args = WP_REST_Request_Controller::prepare_query_args_from_request( $request );
+		$prepared_args['status'] = 'approve';
+		$prepared_args['type'] = 'comment';
+		$prepared_args['no_found_rows'] = true;
+		$prepared_args['parent'] = ! empty( $prepared_args['parent'] ) ? $prepared_args['parent'] : '';
+		$prepared_args['post_id'] = ! empty( $prepared_args['post_id'] ) ? $prepared_args['post_id'] : '';
+		$prepared_args['orderby'] = $this->normalize_query_param( $request['orderby'] );
 
 		if ( empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
@@ -913,6 +906,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params = parent::get_collection_params();
 
 		$query_params['context']['default'] = 'view';
+		$query_params['per_page']['transform_to'] = 'number';
 
 		$query_params['author_email'] = array(
 			'default'           => null,
@@ -926,12 +920,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'transform_to'       => 'comment__not_in',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'transform_to'       => 'comment__in',
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
@@ -980,6 +976,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+			'transform_to'      => 'post_id',
 		);
 		$query_params['post_author'] = array(
 			'default'           => null,
