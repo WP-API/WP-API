@@ -157,7 +157,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_get_items_include_query() {
 		$id1 = $this->factory->category->create();
-		$id2 = $this->factory->category->create();
+		$this->factory->category->create();
 		$id3 = $this->factory->category->create();
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		// Orderby=>asc
