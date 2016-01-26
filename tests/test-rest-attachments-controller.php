@@ -172,7 +172,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_invalid_status_param_is_discarded() {
 		wp_set_current_user( $this->editor_id );
-		$attachment_id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+		$this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
@@ -432,7 +432,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$new_parent = $this->factory->post->create( array() );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'post', $new_parent );
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$attachment = get_post( $attachment_id );
 		$this->assertEquals( $new_parent, $attachment->post_parent );

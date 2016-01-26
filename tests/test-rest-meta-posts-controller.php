@@ -473,7 +473,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -493,7 +493,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta', $post_id ) );
 		$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -629,7 +629,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function test_update_meta_no_meta_id() {
 		$post_id = $this->factory->post->create();
-		$meta_id = add_post_meta( $post_id, 'testkey', 'testvalue' );
+		add_post_meta( $post_id, 'testkey', 'testvalue' );
 
 		$data = array(
 			'key' => 'testnewkey',
@@ -826,7 +826,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
@@ -848,7 +848,7 @@ class WP_Test_REST_Meta_Posts_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d/meta/%d', $post_id, $meta_id ) );
 		$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$meta = get_post_meta( $post_id, 'testkey', false );
 		$this->assertNotEmpty( $meta );
