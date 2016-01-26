@@ -18,7 +18,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	/**
 	 * The plugin should be installed and activated.
 	 */
-	function test_plugin_activated() {
+	public function test_plugin_activated() {
 		$this->assertTrue( class_exists( 'WP_REST_Posts_Controller' ) );
 	}
 
@@ -26,7 +26,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	 * The rest_api_init hook should have been registered with init, and should
 	 * have a default priority of 10.
 	 */
-	function test_init_action_added() {
+	public function test_init_action_added() {
 		$this->assertEquals( 10, has_action( 'init', 'rest_api_init' ) );
 	}
 
@@ -147,7 +147,7 @@ class WP_Test_REST_Plugin extends WP_UnitTestCase {
 	/**
 	 * The rest_route query variable should be registered.
 	 */
-	function test_rest_route_query_var() {
+	public function test_rest_route_query_var() {
 		rest_api_init();
 		global $wp;
 		$this->assertTrue( in_array( 'rest_route', $wp->public_query_vars ) );
