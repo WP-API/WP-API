@@ -147,7 +147,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
 
-		// Check that comment has content
+		// Check that comment has content.
 		if ( empty( $prepared_comment['comment_content'] ) ) {
 			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 400 ) );
 		}
@@ -161,7 +161,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_date'] = current_time( 'mysql' );
 		}
 
-		// Set author data if the user's logged in
+		// Set author data if the user's logged in.
 		$missing_author = empty( $prepared_comment['user_id'] )
 			&& empty( $prepared_comment['comment_author'] )
 			&& empty( $prepared_comment['comment_author_email'] )
@@ -185,7 +185,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
-		// Check author name and email if required
+		// Check author name and email if required.
 		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
 			if ( 6 > strlen( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
 				return new WP_Error( 'rest_require_valid_comment', __( 'Required fields (name, email) missing.' ), array( 'status' => 400 ) );
