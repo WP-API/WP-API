@@ -187,7 +187,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// Check author name and email if required.
 		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
-			if ( 6 > strlen( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
+			if ( empty( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
 				return new WP_Error( 'rest_require_valid_comment', __( 'Required fields (name, email) missing.' ), array( 'status' => 400 ) );
 			} elseif ( ! is_email( $prepared_comment['comment_author_email'] ) ) {
 				return new WP_Error( 'rest_require_valid_comment', __( 'Valid email address required.' ), array( 'status' => 400 ) );
