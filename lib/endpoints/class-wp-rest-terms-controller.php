@@ -12,6 +12,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( $taxonomy ) {
 		$this->taxonomy = $taxonomy;
+		$this->namespace = 'wp/v2';
+		$tax_obj = get_taxonomy( $taxonomy );
+		$this->rest_base = ! empty( $tax_obj->rest_base ) ? $tax_obj->rest_base : $tax_obj->name;
+		$this->singular_label = ! empty( $tax_obj->labels->singular_name ) ? $tax_obj->labels->singular_name : $tax_obj->name;
+		$this->plural_label = ! empty( $tax_obj->label ) ? $tax_obj->label : $tax_obj->name;
 	}
 
 	/**
@@ -19,8 +24,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		$base = $this->get_taxonomy_base( $this->taxonomy );
-		register_rest_route( 'wp/v2', '/' . $base, array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -36,7 +40,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 			'schema' => array( $this, 'get_public_item_schema' ),
 		));
-		register_rest_route( 'wp/v2', '/' . $base . '/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -163,7 +167,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_terms / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( '/' . $this->namespace . '/' . $this->rest_base ) );
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
@@ -201,7 +205,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term || $term->taxonomy !== $this->taxonomy ) {
-			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_term_invalid', sprintf( __( "%s doesn't exist." ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 		if ( is_wp_error( $term ) ) {
 			return $term;
@@ -294,7 +298,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $term, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_taxonomy_base( $this->taxonomy ) . '/' . $term->term_id ) );
+		$response->header( 'Location', rest_url( '/' . $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
 		return $response;
 	}
 
@@ -312,7 +316,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
-			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_term_invalid', sprintf( __( "%s doesn't exist." ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
@@ -389,11 +393,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 		$term = get_term( (int) $request['id'], $this->taxonomy );
 		if ( ! $term ) {
-			return new WP_Error( 'rest_term_invalid', __( "Term doesn't exist." ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_term_invalid', sprintf( __( "%s doesn't exist." ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->delete_terms ) ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you cannot delete terms.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_delete', sprintf( __( 'Sorry, you cannot delete %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;
 	}
@@ -410,7 +414,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		// We don't support trashing for this type, error out
 		if ( ! $force ) {
-			return new WP_Error( 'rest_trash_not_supported', __( 'Terms do not support trashing.' ), array( 'status' => 501 ) );
+			return new WP_Error( 'rest_trash_not_supported', sprintf( __( '%s do not support trashing.' ), $this->plural_label ), array( 'status' => 501 ) );
 		}
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
@@ -426,7 +430,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
 		if ( ! $retval ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'The term cannot be deleted.' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_cannot_delete', sprintf( __( 'The %s cannot be deleted.' ), $this->singular_label ), array( 'status' => 500 ) );
 		}
 
 		/**
@@ -439,22 +443,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		do_action( "rest_delete_{$this->taxonomy}", $term, $data, $request );
 
 		return $response;
-	}
-
-	/**
-	 * Get the base path for a term's taxonomy endpoints.
-	 *
-	 * @param object|string $taxonomy
-	 * @return string       $base
-	 */
-	public function get_taxonomy_base( $taxonomy ) {
-		if ( ! is_object( $taxonomy ) ) {
-			$taxonomy = get_taxonomy( $taxonomy );
-		}
-
-		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-		return $base;
 	}
 
 	/**
@@ -507,7 +495,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base = '/wp/v2/' . $this->get_taxonomy_base( $term->taxonomy );
+		$base = '/' . $this->namespace . '/' . $this->rest_base;
 		$links = array(
 			'self'       => array(
 				'href'       => rest_url( trailingslashit( $base ) . $term->term_id ),
@@ -524,7 +512,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$parent_term = get_term( (int) $term->parent, $term->taxonomy );
 			if ( $parent_term ) {
 				$links['up'] = array(
-					'href'       => rest_url( sprintf( 'wp/v2/%s/%d', $this->get_taxonomy_base( $parent_term->taxonomy ), $parent_term->term_id ) ),
+					'href'       => rest_url( trailingslashit( $base ) . $parent_term->term_id ),
 					'embeddable' => true,
 				);
 			}
@@ -649,7 +637,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['orderby']    = array(
-			'description'           => __( 'Sort collection by object attribute.' ),
+			'description'           => sprintf( __( 'Sort collection by %s attribute.' ), $this->singular_label ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'name',
@@ -664,7 +652,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['hide_empty'] = array(
-			'description'           => __( 'Whether to hide terms not assigned to any posts.' ),
+			'description'           => sprintf( __( 'Whether to hide %s not assigned to any posts.' ), $this->plural_label ),
 			'type'                  => 'boolean',
 			'default'               => false,
 		);
