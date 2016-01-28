@@ -2,12 +2,19 @@
 
 class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'statuses';
+		$this->singular_label = __( 'Status' );
+		$this->plural_label = __( 'Statuses' );
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/statuses', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -16,7 +23,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/statuses/(?P<status>[\w-]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<status>[\w-]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -60,7 +67,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$obj = get_post_status_object( $request['status'] );
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_status_invalid', sprintf( __( 'Invalid %s.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 		$data = $this->prepare_item_for_response( $obj, $request );
 		return rest_ensure_response( $data );
@@ -75,7 +82,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $status, $request ) {
 		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
-			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view status.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read_status', sprintf( __( 'Cannot view %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		$data = array(
@@ -126,27 +133,27 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'name'             => array(
-					'description'  => __( 'The title for the status.' ),
+					'description'  => sprintf( __( 'The title for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
 				'private'          => array(
-					'description'  => __( 'Whether posts with this status should be private.' ),
+					'description'  => sprintf( __( 'Whether posts with this %s should be private.' ), $this->singular_label ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'protected'        => array(
-					'description'  => __( 'Whether posts with this status should be protected.' ),
+					'description'  => sprintf( __( 'Whether posts with this %s should be protected.' ), $this->singular_label ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'public'           => array(
-					'description'  => __( 'Whether posts of this status should be shown in the front end of the site.' ),
+					'description'  => sprintf( __( 'Whether posts of this %s should be shown in the front end of the site.' ), $this->singular_label ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'queryable'        => array(
-					'description'  => __( 'Whether posts with this status should be publicly-queryable.' ),
+					'description'  => sprintf( __( 'Whether posts with this %s should be publicly-queryable.' ), $this->singular_label ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
@@ -156,7 +163,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
-					'description'  => __( 'An alphanumeric identifier for the status.' ),
+					'description'  => sprintf( __( 'An alphanumeric identifier for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
