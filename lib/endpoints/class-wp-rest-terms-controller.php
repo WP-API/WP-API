@@ -230,7 +230,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->manage_terms ) ) {
-			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you cannot create new terms.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_create', sprintf( __( 'Sorry, you cannot create new %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -256,13 +256,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
-				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set term parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_taxonomy_not_hierarchical', sprintf( __( 'Can not set %s parent, taxonomy is not hierarchical.' ), $this->singular_label ), array( 'status' => 400 ) );
 			}
 
 			$parent = get_term( (int) $request['parent'], $this->taxonomy );
 
 			if ( ! $parent ) {
-				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 404 ) );
+				return new WP_Error( 'rest_term_invalid', sprintf( __( "Parent %s doesn't exist." ), $this->singular_label ), array( 'status' => 404 ) );
 			}
 
 			$args['parent'] = $parent->term_id;
@@ -321,7 +321,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 		if ( ! current_user_can( $taxonomy_obj->cap->edit_terms ) ) {
-			return new WP_Error( 'rest_cannot_update', __( 'Sorry, you cannot update terms.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_update', sprintf( __( 'Sorry, you cannot update %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -348,13 +348,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
-				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set term parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_taxonomy_not_hierarchical', sprintf( __( 'Can not set %s parent, taxonomy is not hierarchical.' ), $this->singular_label ), array( 'status' => 400 ) );
 			}
 
 			$parent = get_term( (int) $request['parent'], $this->taxonomy );
 
 			if ( ! $parent ) {
-				return new WP_Error( 'rest_term_invalid', __( "Parent term doesn't exist." ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_term_invalid', sprintf( __( "Parent %s doesn't exist." ), $this->singular_label ), array( 'status' => 400 ) );
 			}
 
 			$prepared_args['parent'] = $parent->term_id;
@@ -533,19 +533,19 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'id'               => array(
-					'description'  => __( 'Unique identifier for the object.' ),
+					'description'  => sprintf( __( 'Unique identifier for the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 				),
 				'count'            => array(
-					'description'  => __( 'Number of published posts for the object.' ),
+					'description'  => sprintf( __( 'Number of published posts for the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
 				),
 				'description'      => array(
-					'description'  => __( 'A human-readable description of the object.' ),
+					'description'  => sprintf( __( 'A human-readable description of the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'arg_options'  => array(
@@ -553,14 +553,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 				'link'             => array(
-					'description'  => __( 'URL to the object.' ),
+					'description'  => sprintf( __( 'URL to the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'embed' ),
 					'readonly'     => true,
 				),
 				'name'             => array(
-					'description'  => __( 'The title for the object.' ),
+					'description'  => sprintf( __( 'The title for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
@@ -569,7 +569,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'required'     => true,
 				),
 				'slug'             => array(
-					'description'  => __( 'An alphanumeric identifier for the object unique to its type.' ),
+					'description'  => sprintf( __( 'An alphanumeric identifier for the %s unique to its type.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
@@ -577,7 +577,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 				'taxonomy'         => array(
-					'description'  => __( 'Type attribution for the object.' ),
+					'description'  => sprintf( __( 'Type attribution for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
 					'context'      => array( 'view', 'embed' ),
@@ -588,7 +588,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$schema['properties']['parent'] = array(
-					'description'  => __( 'The id for the parent of the object.' ),
+					'description'  => sprintf( __( 'The id for the parent of the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'view' ),
 					);
@@ -621,7 +621,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 		if ( ! $taxonomy->hierarchical ) {
 			$query_params['offset'] = array(
-				'description'        => __( 'Offset the result set by a specific number of items.' ),
+				'description'        => sprintf( __( 'Offset the result set by a specific number of %s.' ), $this->plural_label ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
 			);
@@ -658,18 +658,18 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
-				'description'        => __( 'Limit result set to terms assigned to a specific parent term.' ),
+				'description'        => sprintf( __( 'Limit result set to %s assigned to a specific parent.' ), $this->plural_label ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
 			);
 		}
 		$query_params['post'] = array(
-			'description'           => __( 'Limit result set to terms assigned to a specific post.' ),
+			'description'           => sprintf( __( 'Limit result set to %s assigned to a specific post.' ), $this->plural_label ),
 			'type'                  => 'number',
 			'default'               => false,
 		);
 		$query_params['slug']    = array(
-			'description'        => __( 'Limit result set to terms with a specific slug.' ),
+			'description'        => sprintf( __( 'Limit result set to %s with a specific slug.' ), $this->plural_label ),
 			'type'               => 'string',
 		);
 		return $query_params;
