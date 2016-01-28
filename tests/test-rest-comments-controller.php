@@ -158,7 +158,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'comment_post_ID'  => $this->post_id,
 		);
 		$id1 = $this->factory->comment->create( $args );
-		$id2 = $this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
 		$id3 = $this->factory->comment->create( $args );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		// Orderby=>desc
@@ -201,9 +201,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'comment_approved' => 1,
 			'comment_post_ID'  => $this->post_id,
 		);
-		$id1 = $this->factory->comment->create( $args );
-		$id2 = $this->factory->comment->create( $args );
-		$id3 = $this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'offset', 1 );
 		$response = $this->server->dispatch( $request );
@@ -512,7 +512,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		));
 
 		wp_set_current_user( $this->admin_id );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$params = array(
 			'post'    => $this->post_id,
 			'author_name'  => 'Comic Book Guy',
@@ -728,7 +727,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function test_create_item_duplicate() {
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
-		$original_id = $this->factory->comment->create(
+		$this->factory->comment->create(
 			array(
 				'comment_post_ID'      => $this->post_id,
 				'comment_author'       => 'Guy N. Cognito',
@@ -1128,7 +1127,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		));
 
 		wp_set_current_user( 1 );
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 		$this->assertEquals( 123, get_comment_meta( $this->approved_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
