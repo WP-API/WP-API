@@ -2,12 +2,19 @@
 
 class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'taxonomies';
+		$this->singular_label = __( 'Taxonomy' );
+		$this->plural_label = __( 'Taxonomies' );
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/taxonomies', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -16,7 +23,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/taxonomies/(?P<taxonomy>[\w-]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<taxonomy>[\w-]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -68,7 +75,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				return false;
 			}
 			if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->manage_terms ) ) {
-				return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this taxonomy.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error( 'rest_forbidden_context', sprintf( __( 'Sorry, you are not allowed to manage this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -84,7 +91,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$tax_obj = get_taxonomy( $request['taxonomy'] );
 		if ( empty( $tax_obj ) ) {
-			return new WP_Error( 'rest_taxonomy_invalid', __( 'Invalid taxonomy.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_taxonomy_invalid', sprintf( __( 'Invalid %s.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 		$data = $this->prepare_item_for_response( $tax_obj, $request );
 		return rest_ensure_response( $data );
@@ -119,7 +126,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 		$response->add_links( array(
 			'collection'                => array(
-				'href'                  => rest_url( 'wp/v2/taxonomies' ),
+				'href'                  => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 			'https://api.w.org/items'   => array(
 				'href'                  => rest_url( sprintf( 'wp/v2/%s', $base ) ),
@@ -150,27 +157,27 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'description'      => array(
-					'description'  => __( 'A human-readable description of the object.' ),
+					'description'  => sprintf( __( 'A human-readable description of the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'hierarchical'     => array(
-					'description'  => __( 'Whether or not the type should have children.' ),
+					'description'  => sprintf( __( 'Whether or not the %s should have children.' ), $this->singular_label ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'labels'           => array(
-					'description'  => __( 'Human-readable labels for the type for various contexts.' ),
+					'description'  => sprintf( __( 'Human-readable labels for the %s for various contexts.' ), $this->singular_label ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
 					),
 				'name'             => array(
-					'description'  => __( 'The title for the object.' ),
+					'description'  => sprintf( __( 'The title for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'slug'             => array(
-					'description'  => __( 'An alphanumeric identifier for the object.' ),
+					'description'  => sprintf( __( 'An alphanumeric identifier for the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
@@ -180,7 +187,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 					'context'      => array( 'edit' ),
 					),
 				'types'            => array(
-					'description'  => __( 'Types associated with taxonomy.' ),
+					'description'  => sprintf( __( 'Types associated with %s.' ), $this->singular_label ),
 					'type'         => 'array',
 					'context'      => array( 'view', 'edit' ),
 					),
@@ -198,7 +205,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$new_params = array();
 		$new_params['context'] = $this->get_context_param( array( 'default' => 'view' ) );
 		$new_params['type'] = array(
-			'description'  => __( 'Limit results to taxonomies associated with a specific post type.' ),
+			'description'  => sprintf( __( 'Limit results to %s associated with a specific post type.' ), $this->plural_label ),
 			'type'         => 'string',
 		);
 		return $new_params;
