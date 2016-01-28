@@ -5,12 +5,19 @@
  */
 class WP_REST_Comments_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'comments';
+		$this->singular_label = __( 'Comment' );
+		$this->plural_label = __( 'Comments' );
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/comments', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'   => WP_REST_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
@@ -27,7 +34,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/comments/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'  => WP_REST_Server::READABLE,
 				'callback' => array( $this, 'get_item' ),
@@ -71,12 +78,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$post = get_post( (int) $request['post'] );
 
 			if ( $post && ! $this->check_read_post_permission( $post ) ) {
-				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error( 'rest_cannot_read_post', sprintf( __( 'Sorry, you cannot read the post for this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_forbidden_context', sprintf( __( 'Sorry, you cannot view %s with edit context.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -166,7 +173,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-Total', $total_comments );
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/comments' ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
 		if ( $request['page'] > 1 ) {
 			$prev_page = $request['page'] - 1;
 			if ( $prev_page > $max_pages ) {
@@ -200,17 +207,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $this->check_read_permission( $comment ) ) {
-			return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read', sprintf( __( 'Sorry, you cannot read this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		$post = get_post( $comment->comment_post_ID );
 
 		if ( $post && ! $this->check_read_post_permission( $post ) ) {
-			return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read_post', sprintf( __( 'Sorry, you cannot read the post for this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['context'] ) && 'edit' === $request['context'] && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this comment with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_forbidden_context', sprintf( __( 'Sorry, you cannot view this %s with edit context.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -227,7 +234,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 
 		if ( ! empty( $comment->comment_post_ID ) ) {
@@ -257,23 +264,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		// Limit who can set comment `author`, `karma` or `status` to anything other than the default.
 		if ( isset( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_comment_invalid_author', __( 'Comment author invalid.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_comment_invalid_author', sprintf( __( '%s author invalid.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		if ( isset( $request['karma'] ) && $request['karma'] > 0 && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_comment_invalid_karma', __( 'Sorry, you cannot set karma for comments.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_comment_invalid_karma', sprintf( __( 'Sorry, you cannot set karma for %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		if ( isset( $request['status'] ) && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_comment_invalid_status', __( 'Sorry, you cannot set status for comments.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_comment_invalid_status', sprintf( __( 'Sorry, you cannot set status for %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['post'] ) && $post = get_post( (int) $request['post'] ) ) {
 
 			if ( ! $this->check_read_post_permission( $post ) ) {
-				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error( 'rest_cannot_read_post', sprintf( __( 'Sorry, you cannot read the post for this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 			}
 
 			if ( ! comments_open( $post->ID ) ) {
-				return new WP_Error( 'rest_comment_closed', __( 'Sorry, comments are closed on this post.' ), array( 'status' => 403 ) );
+				return new WP_Error( 'rest_comment_closed', sprintf( __( 'Sorry, %s are closed on this post.' ), $this->plural_label ), array( 'status' => 403 ) );
 			}
 		}
 
@@ -288,7 +295,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
-			return new WP_Error( 'rest_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_comment_exists', sprintf( __( 'Cannot create existing %s.' ), $this->singular_label ), array( 'status' => 400 ) );
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -335,7 +342,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment_id = wp_insert_comment( $prepared_comment );
 		if ( ! $comment_id ) {
-			return new WP_Error( 'rest_comment_failed_create', __( 'Creating comment failed.' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_comment_failed_create', sprintf( __( 'Creating %s failed.' ), $this->singular_label ), array( 'status' => 500 ) );
 		}
 
 		if ( isset( $request['status'] ) ) {
@@ -355,7 +362,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
+		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment_id ) ) );
 
 		/**
 		 * Fires after a comment is created or updated via the REST API.
@@ -382,7 +389,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = get_comment( $id );
 
 		if ( $comment && ! $this->check_edit_permission( $comment ) ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you can not edit this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_edit', sprintf( __( 'Sorry, you can not edit this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -399,11 +406,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 
 		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
-			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_type', sprintf( __( 'Sorry, you cannot change the %s type.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 
 		$prepared_args = $this->prepare_item_for_database( $request );
@@ -412,14 +419,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			// Only the comment status is being changed.
 			$change = $this->handle_status_param( $request['status'], $comment );
 			if ( ! $change ) {
-				return new WP_Error( 'rest_comment_failed_edit', __( 'Updating comment status failed.' ), array( 'status' => 500 ) );
+				return new WP_Error( 'rest_comment_failed_edit', sprintf( __( 'Updating %s status failed.' ), $this->singular_label ), array( 'status' => 500 ) );
 			}
 		} else {
 			$prepared_args['comment_ID'] = $id;
 
 			$updated = wp_update_comment( $prepared_args );
 			if ( 0 === $updated ) {
-				return new WP_Error( 'rest_comment_failed_edit', __( 'Updating comment failed.' ), array( 'status' => 500 ) );
+				return new WP_Error( 'rest_comment_failed_edit', sprintf( __( 'Updating %s failed.' ), $this->singular_label ), array( 'status' => 500 ) );
 			}
 
 			if ( isset( $request['status'] ) ) {
@@ -449,10 +456,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$id = (int) $request['id'];
 		$comment = get_comment( $id );
 		if ( ! $comment ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 		if ( ! $this->check_edit_permission( $comment ) ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you can not delete this comment.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_delete', sprintf( __( 'Sorry, you can not delete this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;
 	}
@@ -469,7 +476,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$comment = get_comment( $id );
 		if ( empty( $comment ) ) {
-			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_comment_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
 		}
 
 		/**
@@ -493,11 +500,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		} else {
 			// If we don't support trashing for this type, error out
 			if ( ! $supports_trash ) {
-				return new WP_Error( 'rest_trash_not_supported', __( 'The comment does not support trashing.' ), array( 'status' => 501 ) );
+				return new WP_Error( 'rest_trash_not_supported', sprintf( __( 'The %s does not support trashing.' ), $this->singular_label ), array( 'status' => 501 ) );
 			}
 
 			if ( 'trash' === $comment->comment_approved ) {
-				return new WP_Error( 'rest_already_trashed', __( 'The comment has already been trashed.' ), array( 'status' => 410 ) );
+				return new WP_Error( 'rest_already_trashed', sprintf( __( 'The %s has already been trashed.' ), $this->singular_label ), array( 'status' => 410 ) );
 			}
 
 			$result = wp_trash_comment( $comment->comment_ID );
@@ -512,7 +519,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->set_data( $data );
 
 		if ( ! $result ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_cannot_delete', sprintf( __( 'The %s cannot be deleted.' ), $this->singular_label ), array( 'status' => 500 ) );
 		}
 
 		/**
@@ -588,10 +595,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_links( $comment ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( '/wp/v2/comments/' . $comment->comment_ID ),
+				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( '/wp/v2/comments' ),
+				'href' => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 
@@ -618,7 +625,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href'       => rest_url( sprintf( '/wp/v2/comments/%d', (int) $comment->comment_parent ) ),
+				'href'       => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_parent ) ),
 				'embeddable' => true,
 			);
 		}
@@ -771,7 +778,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'id'               => array(
-					'description'  => __( 'Unique identifier for the object.' ),
+					'description'  => sprintf( __( 'Unique identifier for the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
@@ -782,26 +789,26 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'author_avatar_urls' => array(
-					'description'   => __( 'Avatar URLs for the object author.' ),
+					'description'   => sprintf( __( 'Avatar URLs for the %s author.' ), $this->singular_label ),
 					'type'          => 'object',
 					'context'       => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 					'properties'  => $avatar_properties,
 				),
 				'author_email'     => array(
-					'description'  => __( 'Email address for the object author.' ),
+					'description'  => sprintf( __( 'Email address for the %s author.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'email',
 					'context'      => array( 'edit' ),
 				),
 				'author_ip'     => array(
-					'description'  => __( 'IP address for the object author.' ),
+					'description'  => sprintf( __( 'IP address for the %s author.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
 				),
 				'author_name'     => array(
-					'description'  => __( 'Display name for the object author.' ),
+					'description'  => sprintf( __( 'Display name for the %s author.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -810,29 +817,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'author_url'       => array(
-					'description'  => __( 'URL for the object author.' ),
+					'description'  => sprintf( __( 'URL for the %s author.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'author_user_agent'     => array(
-					'description'  => __( 'User agent for the object author.' ),
+					'description'  => sprintf( __( 'User agent for the %s author.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
 				),
 				'content'          => array(
-					'description'     => __( 'The content for the object.' ),
+					'description'     => sprintf( __( 'The content for the %s.' ), $this->singular_label ),
 					'type'            => 'object',
 					'context'         => array( 'view', 'edit', 'embed' ),
 					'properties'      => array(
 						'raw'         => array(
-							'description'     => __( 'Content for the object, as it exists in the database.' ),
+							'description'     => sprintf( __( 'Content for the %s, as it exists in the database.' ), $this->singular_label ),
 							'type'            => 'string',
 							'context'         => array( 'edit' ),
 						),
 						'rendered'    => array(
-							'description'     => __( 'Content for the object, transformed for display.' ),
+							'description'     => sprintf( __( 'Content for the %s, transformed for display.' ), $this->singular_label ),
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
 						),
@@ -843,31 +850,31 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'date'             => array(
-					'description'  => __( 'The date the object was published.' ),
+					'description'  => sprintf( __( 'The date the %s was published.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'date-time',
 					'context'      => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'         => array(
-					'description'  => __( 'The date the object was published as GMT.' ),
+					'description'  => sprintf( __( 'The date the %s was published as GMT.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'date-time',
 					'context'      => array( 'view', 'edit' ),
 				),
 				'karma'             => array(
-					'description'  => __( 'Karma for the object.' ),
+					'description'  => sprintf( __( 'Karma for the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'edit' ),
 				),
 				'link'             => array(
-					'description'  => __( 'URL to the object.' ),
+					'description'  => sprintf( __( 'URL to the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'format'       => 'uri',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'parent'           => array(
-					'description'  => __( 'The id for the parent of the object.' ),
+					'description'  => sprintf( __( 'The id for the parent of the %s.' ), $this->singular_label ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
@@ -883,7 +890,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 				'status'           => array(
-					'description'  => __( 'State of the object.' ),
+					'description'  => sprintf( __( 'State of the %s.' ), $this->singular_label ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					'arg_options'  => array(
@@ -935,12 +942,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
+			'description'       => sprintf( __( 'Limit result set to that of a particular %s karma.' ), $this->singular_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['offset'] = array(
-			'description'        => __( 'Offset the result set by a specific number of comments.' ),
+			'description'        => sprintf( __( 'Offset the result set by a specific number of %s.' ), $this->plural_label ),
 			'type'               => 'integer',
 			'sanitize_callback'  => 'absint',
 		);
@@ -955,7 +962,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['orderby']    = array(
-			'description'           => __( 'Sort collection by object attribute.' ),
+			'description'           => sprintf( __( 'Sort collection by %s attribute.' ), $this->singular_label ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'default'               => 'date_gmt',
@@ -971,60 +978,60 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 		$query_params['parent'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to that of a specific comment parent id.' ),
+			'description'       => sprintf( __( 'Limit result set to that of a specific %s parent id.' ), $this->singular_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post']   = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
+			'description'       => sprintf( __( 'Limit result set to %s assigned to a specific post id.' ), $this->plural_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_author'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post author id.' ),
+			'description'       => sprintf( __( 'Limit result set to %s associated with posts of a specific post author id.' ), $this->plural_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_slug'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post slug.' ),
+			'description'       => sprintf( __( 'Limit result set to %s associated with posts of a specific post slug.' ), $this->plural_label ),
 			'sanitize_callback' => 'sanitize_title',
 			'type'              => 'string',
 		);
 		$query_params['post_parent'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post parent id.' ),
+			'description'       => sprintf( __( 'Limit result set to %s associated with posts of a specific post parent id.' ), $this->plural_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
 		$query_params['post_status'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post status.' ),
+			'description'       => sprintf( __( 'Limit result set to %s associated with posts of a specific post status.' ), $this->plural_label ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['post_type'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to comments associated with posts of a specific post type.' ),
+			'description'       => sprintf( __( 'Limit result set to %s associated with posts of a specific post type.' ), $this->plural_label ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',
-			'description'       => __( 'Limit result set to comments assigned a specific status.' ),
+			'description'       => sprintf( __( 'Limit result set to %s assigned a specific status.' ), $this->plural_label ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['type'] = array(
 			'default'           => 'comment',
-			'description'       => __( 'Limit result set to comments assigned a specific type.' ),
+			'description'       => sprintf( __( 'Limit result set to %s assigned a specific type.' ), $this->plural_label ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 		);
 		$query_params['author'] = array(
-			'description'       => __( 'Limit result set to comments assigned to a specific user id.' ),
+			'description'       => sprintf( __( 'Limit result set to %s assigned to a specific user id.' ), $this->plural_label ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 		);
