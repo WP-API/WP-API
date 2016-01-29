@@ -35,7 +35,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 	 * Register the meta-related routes.
 	 */
 	public function register_routes() {
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta', array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base, array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
@@ -51,7 +51,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
-		register_rest_route( 'wp/v2', '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/meta/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'             => WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
@@ -246,7 +246,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $meta );
 		$parent_column = $this->get_parent_column();
-		$response->add_link( 'about', rest_url( 'wp/' . $this->parent_base . '/' . $data->$parent_column ), array( 'embeddable' => true ) );
+		$response->add_link( 'about', rest_url( $this->namespace . '/' . $this->parent_base . '/' . $data->$parent_column ), array( 'embeddable' => true ) );
 
 		/**
 		 * Filter a meta value returned from the API.
@@ -407,7 +407,7 @@ abstract class WP_REST_Meta_Controller extends WP_REST_Controller {
 
 		$response->set_status( 201 );
 		$data = $response->get_data();
-		$response->header( 'Location', rest_url( 'wp/v2' . '/' . $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
+		$response->header( 'Location', rest_url( $this->namespace . '/' . $this->parent_base . '/' . $parent_id . '/meta/' . $data['id'] ) );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-meta-controller.php */
 		do_action( 'rest_insert_meta', $data, $request, true );
