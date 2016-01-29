@@ -605,8 +605,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( 0 !== (int) $comment->comment_post_ID ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! empty( $post->ID ) ) {
-				$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
-				$base = $posts_controller->get_post_type_base( $post->post_type );
+				$obj = get_post_type_object( $post->post_type );
+				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 
 				$links['up'] = array(
 					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
