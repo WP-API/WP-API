@@ -503,7 +503,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$schema = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
-				$data['avatar_urls'] = rest_get_avatar_urls($user->user_email);
+				$data['avatar_urls'] = rest_get_avatar_urls( $user->user_email );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
@@ -639,8 +639,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-
-
 		global $wp_roles;
 
 		$schema = array(
@@ -763,7 +761,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( get_option('show_avatars') ) {
+		if ( get_option( 'show_avatars' ) ) {
 			$avatar_properties = array();
 
 			$avatar_sizes = rest_get_avatar_sizes();
