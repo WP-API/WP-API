@@ -8,8 +8,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'users';
-		$this->singular_label = __( 'User' );
-		$this->plural_label = __( 'Users' );
 	}
 
 	/**
@@ -190,7 +188,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = get_userdata( $id );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
-			return new WP_Error( 'rest_user_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( get_current_user_id() === $id ) {
@@ -200,11 +198,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
 
 		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s with edit context' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
 		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s with view context' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with view context.' ), array( 'status' => rest_authorization_required_code() ) );
 		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -221,7 +219,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = get_userdata( $id );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
-			return new WP_Error( 'rest_user_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		$user = $this->prepare_item_for_response( $user, $request );
@@ -260,7 +258,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 
 		if ( ! current_user_can( 'create_users' ) ) {
-			return new WP_Error( 'rest_cannot_create_user', sprintf( __( 'Sorry, you are not allowed to create %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -276,7 +274,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		global $wp_roles;
 
 		if ( ! empty( $request['id'] ) ) {
-			return new WP_Error( 'rest_user_exists', sprintf( __( 'Cannot create existing %s.' ), $this->singular_label ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
 		}
 
 		$user = $this->prepare_item_for_database( $request );
@@ -291,7 +289,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( is_multisite() ) {
 			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
 			if ( ! $user_id ) {
-				return new WP_Error( 'rest_user_create', sprintf( __( 'Error creating new %s.' ), $this->singular_label ), array( 'status' => 500 ) );
+				return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
 			}
 			$user->ID = $user_id;
 			$user_id = wp_update_user( $user );
@@ -337,11 +335,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$id = (int) $request['id'];
 
 		if ( ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'rest_cannot_edit', sprintf( __( 'Sorry, you are not allowed to edit %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
-			return new WP_Error( 'rest_cannot_edit_roles', sprintf( __( 'Sorry, you are not allowed to edit roles of %s.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -358,7 +356,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', sprintf( __( '%s id is invalid.' ), $this->singular_label ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
 		}
 
 		if ( email_exists( $request['email'] ) && $request['email'] !== $user->user_email ) {
@@ -413,7 +411,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$id = (int) $request['id'];
 
 		if ( ! current_user_can( 'delete_user', $id ) ) {
-			return new WP_Error( 'rest_user_cannot_delete', sprintf( __( 'Sorry, you are not allowed to delete this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_user_cannot_delete', __( 'Sorry, you are not allowed to delete this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -437,12 +435,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $reassign ) ) {
 			if ( $reassign === $id || ! get_userdata( $reassign ) ) {
-				return new WP_Error( 'rest_user_invalid_reassign', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_user_invalid_reassign', __( 'Invalid resource id for reassignment.' ), array( 'status' => 400 ) );
 			}
 		}
 
@@ -462,7 +460,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$result = wp_delete_user( $id, $reassign );
 
 		if ( ! $result ) {
-			return new WP_Error( 'rest_cannot_delete', sprintf( __( 'The %s cannot be deleted.' ), $this->singular_label ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_cannot_delete', __( 'The resource cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
 		/**
@@ -621,13 +619,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 			$editable_roles = get_editable_roles();
 			if ( empty( $editable_roles[ $role ] ) ) {
-				return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'You cannot give %s that role.' ), $this->plural_label ), array( 'status' => 403 ) );
+				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => 403 ) );
 			}
 
 			return true;
 		}
 
-		return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'You cannot give %s that role.' ), $this->plural_label ), array( 'status' => rest_authorization_required_code() ) );
+		return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
 	/**
@@ -656,13 +654,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id'          => array(
-					'description' => sprintf( __( 'Unique identifier for the %s.' ), $this->singular_label ),
+					'description' => __( 'Unique identifier for the resource.' ),
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'username'    => array(
-					'description' => sprintf( __( 'Login name for the %s.' ), $this->singular_label ),
+					'description' => __( 'Login name for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'edit' ),
 					'required'    => true,
@@ -671,7 +669,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'name'        => array(
-					'description' => sprintf( __( 'Display name for the %s.' ), $this->singular_label ),
+					'description' => __( 'Display name for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -679,7 +677,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'first_name'  => array(
-					'description' => sprintf( __( 'First name for the %s.' ), $this->singular_label ),
+					'description' => __( 'First name for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -687,7 +685,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'last_name'   => array(
-					'description' => sprintf( __( 'Last name for the %s.' ), $this->singular_label ),
+					'description' => __( 'Last name for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -695,21 +693,21 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'email'       => array(
-					'description' => sprintf( __( 'The email address for the %s.' ), $this->singular_label ),
+					'description' => __( 'The email address for the resource.' ),
 					'type'        => 'string',
 					'format'      => 'email',
 					'context'     => array( 'view', 'edit' ),
 					'required'    => true,
 				),
 				'url'         => array(
-					'description' => sprintf( __( 'URL of the %s.' ), $this->singular_label ),
+					'description' => __( 'URL of the resource.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'description' => array(
-					'description' => sprintf( __( 'Description of the %s.' ), $this->singular_label ),
+					'description' => __( 'Description of the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -717,21 +715,21 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'link'        => array(
-					'description' => sprintf( __( 'Author URL to the %s.' ), $this->singular_label ),
+					'description' => __( 'Author URL to the resource.' ),
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'avatar_urls'  => array(
-					'description' => sprintf( __( 'Avatar URLs for the %s.' ), $this->singular_label ),
+					'description' => __( 'Avatar URLs for the resource.' ),
 					'type'        => 'object',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 					'properties'  => $avatar_properties,
 				),
 				'nickname'    => array(
-					'description' => sprintf( __( 'The nickname for the %s.' ), $this->singular_label ),
+					'description' => __( 'The nickname for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'arg_options' => array(
@@ -739,7 +737,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'slug'        => array(
-					'description' => sprintf( __( 'An alphanumeric identifier for the %s.' ), $this->singular_label ),
+					'description' => __( 'An alphanumeric identifier for the resource.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
@@ -747,29 +745,29 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				),
 				'registered_date' => array(
-					'description' => sprintf( __( 'Registration date for the %s.' ), $this->singular_label ),
+					'description' => __( 'Registration date for the resource.' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'roles'           => array(
-					'description' => sprintf( __( 'Roles assigned to the %s.' ), $this->singular_label ),
+					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'role'            => array(
-					'description' => sprintf( __( 'Role assigned to the %s.' ), $this->singular_label ),
+					'description' => __( 'Role assigned to the resource.' ),
 					'type'        => 'string',
 					'enum'        => array_keys( $wp_roles->role_objects ),
 				),
 				'capabilities'    => array(
-					'description' => sprintf( __( 'All capabilities assigned to the %s.' ), $this->singular_label ),
+					'description' => __( 'All capabilities assigned to the resource.' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
 				),
 				'extra_capabilities' => array(
-					'description' => sprintf( __( 'Any extra capabilities assigned to the %s.' ), $this->singular_label ),
+					'description' => __( 'Any extra capabilities assigned to the resource.' ),
 					'type'        => 'object',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
@@ -820,7 +818,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'               => 'string',
 		);
 		$query_params['slug']    = array(
-			'description'        => sprintf( __( 'Limit result set to %s with a specific slug.' ), $this->plural_label ),
+			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
 		);
 		return $query_params;

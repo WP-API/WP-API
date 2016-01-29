@@ -18,12 +18,6 @@ abstract class WP_REST_Controller {
 	protected $rest_base;
 
 	/**
-	 * The resource's singular label
-	 *
-	 * @var string
-	 */
-
-	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
