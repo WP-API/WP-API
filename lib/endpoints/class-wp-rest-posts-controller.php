@@ -1,5 +1,35 @@
 <?php
 
+/**
+ * @api {get} /wp-json/wp/v2/posts/:id Request Post Objects
+ * @apiName posts
+ * @apiGroup posts
+ *
+ * @apiParam {Number} id ID of the Post.
+ * @apiParam {String} [search] Keyword for search posts.
+ *
+ * @apiSuccess {Number} id ID of the Post.
+ * @apiSuccess {String} date Date of the post published.
+ *
+ * @apiSuccessExample Success-Response:
+ *  HTTP/1.1 200 OK
+ *  {
+ *      "firstname": "John",
+ *      "lastname": "Doe"
+ *  }
+ *
+ * @apiError rest_post_invalid_id Invalid post id.
+ *
+ * @apiErrorExample Error-Response:
+ *     HTTP/1.1 404 Not Found
+ *     {
+ *         "code":"rest_post_invalid_id",
+ *         "message":"Invalid post id.",
+ *         "data":{
+ *             "status":404
+ *          }
+ *     }
+ */
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	protected $post_type;
