@@ -248,7 +248,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
 		$parent_object = get_post_type_object( $parent->post_type );
 		$parent_base = ! empty( $parent_object->rest_base ) ? $parent_object->rest_base : $parent_object->name;
-		$this->assertEquals( rest_url( '/wp/v2' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
+		$this->assertEquals( rest_url( '/wp/v2/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
 	}
 
 }
