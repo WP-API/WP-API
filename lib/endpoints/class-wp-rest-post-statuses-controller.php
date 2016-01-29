@@ -25,6 +25,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
 					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
@@ -57,6 +58,20 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Check if a given request can read a status
+	 * @param \WP_REST_Request $request
+	 * @return bool|\WP_Error
+	 */
+	public function get_item_permissions_check( $request ) {
+		$status = get_post_status_object( $request['status'] );
+		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
+			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get a specific post status
 	 *
 	 * @param WP_REST_Request $request
@@ -79,10 +94,6 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Post status data
 	 */
 	public function prepare_item_for_response( $status, $request ) {
-		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
-			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
 		$data = array(
 			'name'         => $status->label,
 			'private'      => (bool) $status->private,
