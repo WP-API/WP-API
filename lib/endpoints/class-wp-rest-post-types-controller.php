@@ -5,8 +5,6 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'types';
-		$this->singular_label = __( 'Type' );
-		$this->plural_label = __( 'Types' );
 	}
 
 	/**
@@ -62,13 +60,13 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$obj = get_post_type_object( $request['type'] );
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_type_invalid', sprintf( __( 'Invalid %s.' ), $this->singular_label ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_type_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
 		}
 		if ( empty( $obj->show_in_rest ) ) {
-			return new WP_Error( 'rest_cannot_read_type', sprintf( __( 'Cannot view %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		if ( 'edit' === $request['context'] && ! current_user_can( $obj->cap->edit_posts ) ) {
-			return new WP_Error( 'rest_forbidden_context', sprintf( __( 'Sorry, you are not allowed to manage this %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		$data = $this->prepare_item_for_response( $obj, $request );
 		return rest_ensure_response( $data );
@@ -130,27 +128,27 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'description'      => array(
-					'description'  => sprintf( __( 'A human-readable description of the %s.' ), $this->singular_label ),
+					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'hierarchical'     => array(
-					'description'  => sprintf( __( 'Whether or not the %s should have children.' ), $this->singular_label ),
+					'description'  => __( 'Whether or not the resource should have children.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'labels'           => array(
-					'description'  => sprintf( __( 'Human-readable labels for the %s for various contexts.' ), $this->singular_label ),
+					'description'  => __( 'Human-readable labels for the resource for various contexts.' ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
 					),
 				'name'             => array(
-					'description'  => sprintf( __( 'The title for the %s.' ), $this->singular_label ),
+					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'slug'             => array(
-					'description'  => sprintf( __( 'An alphanumeric identifier for the %s.' ), $this->singular_label ),
+					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
