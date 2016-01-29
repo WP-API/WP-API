@@ -5,8 +5,6 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'statuses';
-		$this->singular_label = __( 'Status' );
-		$this->plural_label = __( 'Statuses' );
 	}
 
 	/**
@@ -67,7 +65,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$obj = get_post_status_object( $request['status'] );
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_status_invalid', sprintf( __( 'Invalid %s.' ), $this->singular_label ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_status_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
 		}
 		$data = $this->prepare_item_for_response( $obj, $request );
 		return rest_ensure_response( $data );
@@ -82,7 +80,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $status, $request ) {
 		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
-			return new WP_Error( 'rest_cannot_read_status', sprintf( __( 'Cannot view %s.' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		$data = array(
@@ -101,12 +99,10 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$posts_controller = new WP_REST_Posts_Controller( 'post' );
-
 		if ( 'publish' === $status->name ) {
-			$response->add_link( 'archives', rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) );
+			$response->add_link( 'archives', rest_url( '/wp/v2/posts' ) );
 		} else {
-			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) ) );
+			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/posts' ) ) );
 		}
 
 		/**
@@ -133,27 +129,27 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'name'             => array(
-					'description'  => sprintf( __( 'The title for the %s.' ), $this->singular_label ),
+					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
 				'private'          => array(
-					'description'  => sprintf( __( 'Whether posts with this %s should be private.' ), $this->singular_label ),
+					'description'  => __( 'Whether posts with this resource should be private.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'protected'        => array(
-					'description'  => sprintf( __( 'Whether posts with this %s should be protected.' ), $this->singular_label ),
+					'description'  => __( 'Whether posts with this resource should be protected.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'public'           => array(
-					'description'  => sprintf( __( 'Whether posts of this %s should be shown in the front end of the site.' ), $this->singular_label ),
+					'description'  => __( 'Whether posts of this resource should be shown in the front end of the site.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'queryable'        => array(
-					'description'  => sprintf( __( 'Whether posts with this %s should be publicly-queryable.' ), $this->singular_label ),
+					'description'  => __( 'Whether posts with this resource should be publicly-queryable.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
@@ -163,7 +159,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
-					'description'  => sprintf( __( 'An alphanumeric identifier for the %s.' ), $this->singular_label ),
+					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
