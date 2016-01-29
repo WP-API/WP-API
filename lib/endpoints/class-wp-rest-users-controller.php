@@ -188,6 +188,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
+		$types = array();
+		foreach ( get_post_types( array(), 'object' ) as $obj ) {
+			if ( empty( $obj->show_in_rest ) ) {
+				continue;
+			}
+			$types[] = $obj->name;
+		}
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'rest_user_invalid_id', sprintf( __( 'Invalid %s id.' ), $this->singular_label ), array( 'status' => 404 ) );
@@ -203,7 +210,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s with edit context' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s with view context' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
+		} else if ( 'embed' === $context && ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', sprintf( __( 'Sorry, you cannot view this %s' ), $this->singular_label ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
