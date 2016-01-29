@@ -99,12 +99,10 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
-		$posts_controller = new WP_REST_Posts_Controller( 'post' );
-
 		if ( 'publish' === $status->name ) {
-			$response->add_link( 'archives', rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) );
+			$response->add_link( 'archives', rest_url( '/wp/v2/posts' ) );
 		} else {
-			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) ) );
+			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/posts' ) ) );
 		}
 
 		/**

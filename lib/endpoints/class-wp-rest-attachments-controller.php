@@ -120,7 +120,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
+		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $id ) ) );
 
 		/**
 		 * Fires after a single attachment is created or updated via the REST API.
