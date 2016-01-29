@@ -492,7 +492,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'url'                => $user->user_url,
 			'description'        => $user->description,
 			'link'               => get_author_posts_url( $user->ID ),
-			'avatar_urls'        => rest_get_avatar_urls( $user->user_email ),
 			'nickname'           => $user->nickname,
 			'slug'               => $user->user_nicename,
 			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
@@ -500,6 +499,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'capabilities'       => $user->allcaps,
 			'extra_capabilities' => $user->caps,
 		);
+
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
+				$data['avatar_urls'] = rest_get_avatar_urls($user->user_email);
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -634,17 +639,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		$avatar_properties = array();
 
-		$avatar_sizes = rest_get_avatar_sizes();
-		foreach ( $avatar_sizes as $size ) {
-			$avatar_properties[ $size ] = array(
-				'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
-				'type'        => 'string',
-				'format'      => 'uri',
-				'context'     => array( 'embed', 'view', 'edit' ),
-			);
-		}
 
 		global $wp_roles;
 
@@ -721,13 +716,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'avatar_urls'  => array(
-					'description' => __( 'Avatar URLs for the resource.' ),
-					'type'        => 'object',
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-					'properties'  => $avatar_properties,
-				),
 				'nickname'    => array(
 					'description' => __( 'The nickname for the resource.' ),
 					'type'        => 'string',
@@ -774,6 +762,30 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		if ( get_option('show_avatars') ) {
+			$avatar_properties = array();
+
+			$avatar_sizes = rest_get_avatar_sizes();
+			foreach ( $avatar_sizes as $size ) {
+				$avatar_properties[ $size ] = array(
+					'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				);
+			}
+
+			$schema['properties']['avatar_urls']  = array(
+				'description' => __( 'Avatar URLs for the resource.' ),
+				'type'        => 'object',
+				'context'     => array( 'embed', 'view', 'edit' ),
+				'readonly'    => true,
+				'properties'  => $avatar_properties,
+			);
+
+		}
+
 		return $this->add_additional_fields_schema( $schema );
 	}
 
