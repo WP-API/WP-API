@@ -242,7 +242,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
-		// Unavailable to unauthenticated; defauls to error
+		// Unavailable to unauthenticated; defaults to error
 		wp_set_current_user( 0 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
