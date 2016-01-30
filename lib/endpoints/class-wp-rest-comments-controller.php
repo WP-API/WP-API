@@ -908,6 +908,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to that from a specific author email.' ),
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
+			'validate_callback' => 'rest_validate_request_arg',
 			'type'              => 'string',
 		);
 		$query_params['exclude'] = array(
@@ -915,28 +916,33 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['offset'] = array(
 			'description'        => __( 'Offset the result set by a specific number of comments.' ),
 			'type'               => 'integer',
 			'sanitize_callback'  => 'absint',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['order']      = array(
 			'description'           => __( 'Order sort attribute ascending or descending.' ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
+			'validate_callback'     => 'rest_validate_request_arg',
 			'default'               => 'asc',
 			'enum'                  => array(
 				'asc',
@@ -947,6 +953,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'           => __( 'Sort collection by object attribute.' ),
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
+			'validate_callback'     => 'rest_validate_request_arg',
 			'default'               => 'date_gmt',
 			'enum'                  => array(
 				'date',
@@ -963,29 +970,34 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to that of a specific comment parent id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['post']   = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to comments assigned to a specific post id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',
 			'description'       => __( 'Limit result set to comments assigned a specific status.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['type'] = array(
 			'default'           => 'comment',
 			'description'       => __( 'Limit result set to comments assigned a specific type.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author'] = array(
 			'description'       => __( 'Limit result set to comments assigned to a specific user id.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}
