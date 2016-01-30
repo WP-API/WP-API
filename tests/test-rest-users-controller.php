@@ -558,7 +558,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'username' => 'maggiesimpson',
 			'password' => 'i_shot_mrburns',
 			'email'    => 'packingheat@example.com',
-			'role'     => 'baby',
+			'roles'    => array( 'baby' ),
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
@@ -566,7 +566,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -696,10 +696,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$new_data = $response->get_data();
+
 		$this->assertEquals( 'editor', $new_data['roles'][0] );
 		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
 
@@ -712,11 +713,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->editor );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
-		$request->set_param( 'role', 'administrator' );
+		$request->set_param( 'roles', array( 'administrator' ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_edit_roles', $response, 403 );
-
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
 		$this->assertArrayNotHasKey( 'administrator', $user->caps );
@@ -732,7 +732,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $user_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 403 );
@@ -754,7 +754,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		update_site_option( 'site_admins', array( $user->user_login ) );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$new_data = $response->get_data();
@@ -768,10 +768,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
-		$request->set_param( 'role', 'BeSharp' );
+		$request->set_param( 'roles', array( 'BeSharp' ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -918,7 +918,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertEquals( 17, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -935,7 +935,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
 		$this->assertArrayHasKey( 'roles', $properties );
-		$this->assertArrayHasKey( 'role', $properties );
 
 	}
 
@@ -1055,6 +1054,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( $user->user_email, $data['email'] );
 			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
 			$this->assertEquals( $user->user_login, $data['username'] );
+			$this->assertEquals( $user->roles, $data['roles'] );
 		}
 
 		if ( 'edit' !== $context ) {
