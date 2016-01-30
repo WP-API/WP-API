@@ -266,6 +266,8 @@ abstract class WP_REST_Controller {
 		$param_details = array(
 			'description'        => __( 'Scope under which the request is made; determines fields present in response.' ),
 			'type'               => 'string',
+			'sanitize_callback'  => 'sanitize_key',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$schema = $this->get_item_schema();
 		if ( empty( $schema['properties'] ) ) {

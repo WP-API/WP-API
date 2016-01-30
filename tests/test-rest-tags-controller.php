@@ -341,6 +341,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
 
+	public function test_get_items_invalid_context() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'context', 'banana' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_get_item() {
 		$id = $this->factory->tag->create();
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
