@@ -1573,6 +1573,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'                => 'integer',
 				'default'             => null,
 				'sanitize_callback'   => 'absint',
+				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
 		$params['exclude'] = array(
@@ -1591,12 +1592,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'description'        => __( 'Offset the result set by a specific number of items.' ),
 			'type'               => 'integer',
 			'sanitize_callback'  => 'absint',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$params['order'] = array(
 			'description'        => __( 'Order sort attribute ascending or descending.' ),
 			'type'               => 'string',
 			'default'            => 'desc',
 			'enum'               => array( 'asc', 'desc' ),
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$params['orderby'] = array(
 			'description'        => __( 'Sort collection by object attribute.' ),
@@ -1609,6 +1612,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'title',
 				'slug',
 			),
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 
 		$post_type_obj = get_post_type_object( $this->post_type );
@@ -1630,6 +1634,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['slug'] = array(
 			'description'       => __( 'Limit result set to posts with a specific slug.' ),
 			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['status'] = array(
 			'default'           => 'publish',
