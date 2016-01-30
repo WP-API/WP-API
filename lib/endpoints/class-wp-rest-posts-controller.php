@@ -482,7 +482,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// If we're forcing, then delete permanently.
 		if ( $force ) {
 			$result = wp_delete_post( $id, true );
-			$status = 'deleted';
 		} else {
 			// If we don't support trashing for this type, error out.
 			if ( ! $supports_trash ) {
@@ -497,28 +496,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			// (Note that internally this falls through to `wp_delete_post` if
 			// the trash is disabled.)
 			$result = wp_trash_post( $id );
-			$status = 'trashed';
 		}
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
 		}
 
-		$data = $response->get_data();
-		$data = array(
-			'data'  => $data,
-			$status => true,
-		);
-		$response->set_data( $data );
-
 		/**
 		 * Fires after a single post is deleted or trashed via the REST API.
 		 *
-		 * @param object          $post    The deleted or trashed post.
-		 * @param array           $data    The response data.
-		 * @param WP_REST_Request $request The request sent to the API.
+		 * @param object           $post     The deleted or trashed post.
+		 * @param WP_REST_Response $response The response data.
+		 * @param WP_REST_Request  $request  The request sent to the API.
 		 */
-		do_action( "rest_delete_{$this->post_type}", $post, $data, $request );
+		do_action( "rest_delete_{$this->post_type}", $post, $response, $request );
 
 		return $response;
 	}
