@@ -30,27 +30,28 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$data = $response->get_data();
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
 		$this->assertEquals( 1, count( $data ) );
-		// Check each key in $data against those in $statuses
-		foreach ( $data as $key => $obj ) {
-			$this->assertEquals( $statuses[ $obj['slug'] ]->name, $key );
-			$this->check_post_status_obj( $statuses[ $obj['slug'] ], $obj );
-		}
+		$this->assertEquals( 'publish', $data['publish']['slug'] );
+		$this->assertFalse( $data['publish']['private'] );
+		$this->assertTrue( $data['publish']['public'] );
 	}
 
 	public function test_get_items_logged_in() {
-		$user_id = $this->factory->user->create();
+		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
 		wp_set_current_user( $user_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses' );
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$statuses = get_post_stati( array( 'internal' => false ), 'objects' );
-		$this->assertEquals( 5, count( $data ) );
-		// Check each key in $data against those in $statuses
-		foreach ( $data as $obj ) {
-			$this->check_post_status_obj( $statuses[ $obj['slug'] ], $obj );
-		}
+		$this->assertEquals( 6, count( $data ) );
+		$this->assertEqualSets( array(
+			'publish',
+			'private',
+			'pending',
+			'draft',
+			'trash',
+			'future',
+		), array_keys( $data ) );
 	}
 
 	public function test_get_item() {
