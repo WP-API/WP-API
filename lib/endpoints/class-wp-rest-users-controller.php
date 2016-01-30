@@ -278,6 +278,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
 		}
 
+		if ( ! empty( $request['roles'] ) ) {
+			$check_permission = $this->check_role_update( $user_id, $request['roles'] );
+			if ( is_wp_error( $check_permission ) ) {
+				return $check_permission;
+			}
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 
 		if ( is_multisite() ) {
