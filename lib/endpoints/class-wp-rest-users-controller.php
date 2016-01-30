@@ -186,7 +186,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
-		$types = get_post_types( array( 'show_in_rest' => true ), 'name' );
+		$types = get_post_types( array( 'show_in_rest' => true ), 'names' );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
