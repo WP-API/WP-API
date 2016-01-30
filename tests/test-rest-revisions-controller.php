@@ -190,7 +190,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			'context'     => array( 'view', 'edit' ),
 		);
 
-		register_rest_field( 'posts-revision', 'my_custom_int', array(
+		register_rest_field( 'post-revision', 'my_custom_int', array(
 			'schema'          => $schema,
 			'get_callback'    => array( $this, 'additional_field_get_callback' ),
 			'update_callback' => array( $this, 'additional_field_update_callback' ),
@@ -246,8 +246,9 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 		$parent = get_post( $revision->post_parent );
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
-		$parent_base = $parent_controller->get_post_type_base( $parent->post_type );
-		$this->assertEquals( rest_url( 'wp/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
+		$parent_object = get_post_type_object( $parent->post_type );
+		$parent_base = ! empty( $parent_object->rest_base ) ? $parent_object->rest_base : $parent_object->name;
+		$this->assertEquals( rest_url( '/wp/v2/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
 	}
 
 }

@@ -2,12 +2,17 @@
 
 class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'statuses';
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/statuses', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -16,10 +21,11 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/statuses/(?P<status>[\w-]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<status>[\w-]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
 					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
@@ -36,19 +42,50 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		if ( is_user_logged_in() ) {
-			$statuses = get_post_stati( array( 'internal' => false ), 'object' );
-		} else {
-			$statuses = get_post_stati( array( 'public' => true ), 'object' );
-		}
-		foreach ( $statuses as $obj ) {
-			$status = $this->prepare_item_for_response( $obj, $request );
-			if ( is_wp_error( $status ) ) {
+		$statuses = get_post_stati( array( 'internal' => false ), 'object' );
+		$statuses['trash'] = get_post_status_object( 'trash' );
+		foreach ( $statuses as $slug => $obj ) {
+			$ret = $this->check_read_permission( $obj );
+			if ( ! $ret ) {
 				continue;
 			}
+			$status = $this->prepare_item_for_response( $obj, $request );
 			$data[ $obj->name ] = $this->prepare_response_for_collection( $status );
 		}
-		return $data;
+		return rest_ensure_response( $data );
+	}
+
+	public function get_item_permissions_check( $request ) {
+		$status = get_post_status_object( $request['status'] );
+		if ( empty( $status ) ) {
+			return new WP_Error( 'rest_status_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
+		}
+		$check = $this->check_read_permission( $status );
+		if ( ! $check ) {
+			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Check whether a given post status should be visible
+	 *
+	 * @param object $status
+	 * @return boolean
+	 */
+	protected function check_read_permission( $status ) {
+		if ( true === $status->public ) {
+			return true;
+		}
+		if ( false === $status->internal || 'trash' === $status->name ) {
+			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
+			foreach ( $types as $type ) {
+				if ( current_user_can( $type->cap->edit_posts ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -60,9 +97,10 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$obj = get_post_status_object( $request['status'] );
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_status_invalid', __( 'Invalid status.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_status_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
 		}
-		return $this->prepare_item_for_response( $obj, $request );
+		$data = $this->prepare_item_for_response( $obj, $request );
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -73,9 +111,6 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Post status data
 	 */
 	public function prepare_item_for_response( $status, $request ) {
-		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
-			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view status.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
 
 		$data = array(
 			'name'         => $status->label,
@@ -88,17 +123,15 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		);
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 
 		$response = rest_ensure_response( $data );
 
-		$posts_controller = new WP_REST_Posts_Controller( 'post' );
-
 		if ( 'publish' === $status->name ) {
-			$response->add_link( 'archives', rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) );
+			$response->add_link( 'archives', rest_url( '/wp/v2/posts' ) );
 		} else {
-			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/' . $posts_controller->get_post_type_base( 'post' ) ) ) );
+			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/posts' ) ) );
 		}
 
 		/**
@@ -125,27 +158,27 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'name'             => array(
-					'description'  => __( 'The title for the status.' ),
+					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),
 				'private'          => array(
-					'description'  => __( 'Whether posts with this status should be private.' ),
+					'description'  => __( 'Whether posts with this resource should be private.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'protected'        => array(
-					'description'  => __( 'Whether posts with this status should be protected.' ),
+					'description'  => __( 'Whether posts with this resource should be protected.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'public'           => array(
-					'description'  => __( 'Whether posts of this status should be shown in the front end of the site.' ),
+					'description'  => __( 'Whether posts of this resource should be shown in the front end of the site.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
 				'queryable'        => array(
-					'description'  => __( 'Whether posts with this status should be publicly-queryable.' ),
+					'description'  => __( 'Whether posts with this resource should be publicly-queryable.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					),
@@ -155,7 +188,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					'context'      => array( 'view' ),
 					),
 				'slug'             => array(
-					'description'  => __( 'An alphanumeric identifier for the status.' ),
+					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					),

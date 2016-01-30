@@ -43,8 +43,83 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
+	public function test_registered_query_params() {
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$keys = array_keys( $data['endpoints'][0]['args'] );
+		sort( $keys );
+		$this->assertEquals( array(
+			'author',
+			'context',
+			'exclude',
+			'filter',
+			'include',
+			'offset',
+			'order',
+			'orderby',
+			'page',
+			'parent',
+			'parent_exclude',
+			'per_page',
+			'search',
+			'slug',
+			'status',
+			), $keys );
+	}
+
 	public function test_get_items() {
 
+	}
+
+	public function test_get_items_parent_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		// Filter to parent
+		$request->set_param( 'parent', $id1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $id2, $data[0]['id'] );
+	}
+
+	public function test_get_items_parents_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id3 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 4, count( $data ) );
+		// Filter to parents
+		$request->set_param( 'parent', array( $id1, $id3 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEqualSets( array( $id2, $id4 ), wp_list_pluck( $data, 'id' ) );
+	}
+
+	public function test_get_items_parent_exclude_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		// Filter to parent
+		$request->set_param( 'parent_exclude', $id1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $id1, $data[0]['id'] );
 	}
 
 	public function test_get_items_private_filter_query_var() {
@@ -224,7 +299,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'date_gmt', $properties );
 		$this->assertArrayHasKey( 'guid', $properties );
 		$this->assertArrayHasKey( 'excerpt', $properties );
-		$this->assertArrayHasKey( 'featured_image', $properties );
+		$this->assertArrayHasKey( 'featured_media', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'menu_order', $properties );

@@ -2,12 +2,17 @@
 
 class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'types';
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/types', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -16,7 +21,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'schema'          => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/types/(?P<type>[\w-]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<type>[\w-]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -43,7 +48,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			$post_type = $this->prepare_item_for_response( $obj, $request );
 			$data[ $obj->name ] = $this->prepare_response_for_collection( $post_type );
 		}
-		return $data;
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -55,15 +60,16 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		$obj = get_post_type_object( $request['type'] );
 		if ( empty( $obj ) ) {
-			return new WP_Error( 'rest_type_invalid', __( 'Invalid type.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_type_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
 		}
 		if ( empty( $obj->show_in_rest ) ) {
-			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view type.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_cannot_read_type', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		if ( 'edit' === $request['context'] && ! current_user_can( $obj->cap->edit_posts ) ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this type.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to manage this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
-		return $this->prepare_item_for_response( $obj, $request );
+		$data = $this->prepare_item_for_response( $obj, $request );
+		return rest_ensure_response( $data );
 	}
 
 	/**
@@ -71,7 +77,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @param stdClass $post_type Post type data
 	 * @param WP_REST_Request $request
-	 * @return array Post type data
+	 * @return WP_REST_Response $response
 	 */
 	public function prepare_item_for_response( $post_type, $request ) {
 		$data = array(
@@ -82,8 +88,8 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'slug'         => $post_type->name,
 		);
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data = $this->filter_response_by_context( $data, $context );
 		$data = $this->add_additional_fields_to_object( $data, $request );
+		$data = $this->filter_response_by_context( $data, $context );
 
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
@@ -91,7 +97,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
 		$response->add_links( array(
 			'collection'              => array(
-				'href'                => rest_url( 'wp/v2/types' ),
+				'href'                => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 			'https://api.w.org/items' => array(
 				'href'                => rest_url( sprintf( 'wp/v2/%s', $base ) ),
@@ -122,27 +128,27 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'description'      => array(
-					'description'  => __( 'A human-readable description of the object.' ),
+					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'hierarchical'     => array(
-					'description'  => __( 'Whether or not the type should have children.' ),
+					'description'  => __( 'Whether or not the resource should have children.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'labels'           => array(
-					'description'  => __( 'Human-readable labels for the type for various contexts.' ),
+					'description'  => __( 'Human-readable labels for the resource for various contexts.' ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
 					),
 				'name'             => array(
-					'description'  => __( 'The title for the object.' ),
+					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),
 				'slug'             => array(
-					'description'  => __( 'An alphanumeric identifier for the object.' ),
+					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
 					),

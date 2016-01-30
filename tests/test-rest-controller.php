@@ -3,77 +3,77 @@
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 
-	function test_validate_schema_type_integer() {
+	public function test_validate_schema_type_integer() {
 
 		$controller = new WP_REST_Test_Controller();
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', null, 'someinteger' )
+			$controller->validate_schema_property( '123', new WP_REST_Request, 'someinteger' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'abc', null, 'someinteger' )
+			$controller->validate_schema_property( 'abc', new WP_REST_Request, 'someinteger' )
 		);
 	}
 
-	function test_validate_schema_type_string() {
+	public function test_validate_schema_type_string() {
 
 		$controller = new WP_REST_Test_Controller();
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', null, 'somestring' )
+			$controller->validate_schema_property( '123', new WP_REST_Request, 'somestring' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( array( 'foo' => 'bar' ), null, 'somestring' )
+			$controller->validate_schema_property( array( 'foo' => 'bar' ), new WP_REST_Request, 'somestring' )
 		);
 	}
 
-	function test_validate_schema_enum() {
+	public function test_validate_schema_enum() {
 
 		$controller = new WP_REST_Test_Controller();
 
 		$this->assertTrue(
-			$controller->validate_schema_property( 'a', null, 'someenum' )
+			$controller->validate_schema_property( 'a', new WP_REST_Request, 'someenum' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'd', null, 'someenum' )
+			$controller->validate_schema_property( 'd', new WP_REST_Request, 'someenum' )
 		);
 	}
 
-	function test_validate_schema_format_email() {
+	public function test_validate_schema_format_email() {
 
 		$controller = new WP_REST_Test_Controller();
 
 		$this->assertTrue(
-			$controller->validate_schema_property( 'joe@foo.bar', null, 'someemail' )
+			$controller->validate_schema_property( 'joe@foo.bar', new WP_REST_Request, 'someemail' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_email',
-			$controller->validate_schema_property( 'd', null, 'someemail' )
+			$controller->validate_schema_property( 'd', new WP_REST_Request, 'someemail' )
 		);
 	}
 
-	function test_validate_schema_format_date_time() {
+	public function test_validate_schema_format_date_time() {
 
 		$controller = new WP_REST_Test_Controller();
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '2010-01-01T12:00:00', null, 'somedate' )
+			$controller->validate_schema_property( '2010-01-01T12:00:00', new WP_REST_Request, 'somedate' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_date',
-			$controller->validate_schema_property( '2010-18-18T12:00:00', null, 'somedate' )
+			$controller->validate_schema_property( '2010-18-18T12:00:00', new WP_REST_Request, 'somedate' )
 		);
 	}
 
-	function test_get_endpoint_args_for_item_schema_arg_options() {
+	public function test_get_endpoint_args_for_item_schema_arg_options() {
 
 		$controller = new WP_REST_Test_Controller();
 		$args       = $controller->get_endpoint_args_for_item_schema();
@@ -82,7 +82,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertEquals( '__return_true', $args['someargoptions']['sanitize_callback'] );
 	}
 
-	function test_get_endpoint_args_for_item_schema_default_value() {
+	public function test_get_endpoint_args_for_item_schema_default_value() {
 
 		$controller = new WP_REST_Test_Controller();
 

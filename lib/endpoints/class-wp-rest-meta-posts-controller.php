@@ -32,7 +32,10 @@ class WP_REST_Meta_Posts_Controller extends WP_REST_Meta_Controller {
 	public function __construct( $parent_post_type ) {
 		$this->parent_post_type = $parent_post_type;
 		$this->parent_controller = new WP_REST_Posts_Controller( $this->parent_post_type );
-		$this->parent_base = $this->parent_controller->get_post_type_base( $this->parent_post_type );
+		$obj = get_post_type_object( $this->parent_post_type );
+		$this->parent_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'meta';
 	}
 
 	/**
