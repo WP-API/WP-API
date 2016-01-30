@@ -279,7 +279,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['roles'] ) ) {
-			$check_permission = $this->check_role_update( $user_id, $request['roles'] );
+			$check_permission = $this->check_role_update( $request['id'], $request['roles'] );
 			if ( is_wp_error( $check_permission ) ) {
 				return $check_permission;
 			}
