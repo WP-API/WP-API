@@ -88,10 +88,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$protected_params = array( 'author', 'karma', 'author_email', 'type', 'status' );
 			$forbidden_params = array();
 			foreach ( $protected_params as $param ) {
-				if ( 'status' === $param && 'approved' !== $request[ $param ] ) {
-					$forbidden_params[] = $param;
-				} else if ( 'type' === $param && 'comment' !== $request[ $param ] ) {
-					$forbidden_params[] = $param;
+				if ( 'status' === $param ) {
+					if ( 'approve' !== $request[ $param ] ) {
+						$forbidden_params[] = $param;
+					}
+				} else if ( 'type' === $param ) {
+					if ( 'comment' !== $request[ $param ] ) {
+						$forbidden_params[] = $param;
+					}
 				} else if ( ! empty( $request[ $param ] ) ) {
 					$forbidden_params[] = $param;
 				}
