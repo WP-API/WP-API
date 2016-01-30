@@ -377,7 +377,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
 	}
 
-	public function test_get_item_published_author() {
+	public function test_get_item_published_author_post() {
 		$this->author_id = $this->factory->user->create( array(
 			'role' => 'author',
 		) );
@@ -386,6 +386,22 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		));
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->check_get_user_response( $response, 'embed' );
+	}
+
+	public function test_get_item_published_author_pages() {
+		$this->author_id = $this->factory->user->create( array(
+			'role' => 'author',
+		) );
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/users/%d', $this->author_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 401, $response->get_status() );
+		$this->post_id = $this->factory->post->create( array(
+			'post_author' => $this->author_id,
+			'post_type'   => 'page',
+		));
 		$response = $this->server->dispatch( $request );
 		$this->check_get_user_response( $response, 'embed' );
 	}

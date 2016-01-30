@@ -186,6 +186,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
+		$types = get_post_types( array( 'public' => true ), 'names' );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
@@ -201,7 +202,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
 		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with view context.' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
+		} else if ( 'embed' === $context && ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
