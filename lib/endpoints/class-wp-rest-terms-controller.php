@@ -682,7 +682,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$query_params['post'] = array(
 			'description'           => __( 'Limit result set to resources assigned to a specific post.' ),
 			'type'                  => 'integer',
-			'default'               => false,
+			'default'               => null,
 			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['slug']    = array(
