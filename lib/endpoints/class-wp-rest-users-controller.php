@@ -445,14 +445,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$request->set_param( 'context', 'edit' );
-		$orig_user = $this->prepare_item_for_response( $user, $request );
-
-		$data = $orig_user->get_data();
-		$data = array(
-			'data'    => $data,
-			'deleted' => true,
-		);
-		$orig_user->set_data( $data );
+		$response = $this->prepare_item_for_response( $user, $request );
 
 		/** Include admin user functions to get access to wp_delete_user() */
 		require_once ABSPATH . 'wp-admin/includes/user.php';
@@ -466,12 +459,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a user is deleted via the REST API.
 		 *
-		 * @param WP_User         $user    The user data.
-		 * @param WP_REST_Request $request The request sent to the API.
+		 * @param WP_User          $user     The user data.
+		 * @param WP_REST_Response $response The response returned from the API.
+		 * @param WP_REST_Request  $request  The request sent to the API.
 		 */
-		do_action( 'rest_delete_user', $user, $data, $request );
+		do_action( 'rest_delete_user', $user, $response, $request );
 
-		return $orig_user;
+		return $response;
 	}
 
 	/**
