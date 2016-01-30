@@ -510,21 +510,23 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		$taxonomy_obj = get_taxonomy( $term->taxonomy );
-		if ( ! empty( $taxonomy_obj->object_type ) ) {
-			$post_type_links = array();
-			foreach ( $taxonomy_obj->object_type as $type ) {
-				$post_type_object = get_post_type_object( $type );
-				if ( empty( $post_type_object->show_in_rest ) ) {
-					continue;
-				}
-				$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
-				$post_type_links[] = array(
-					'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
-				);
+		if ( empty( $taxonomy_obj->object_type ) ) {
+			return $links;
+		}
+
+		$post_type_links = array();
+		foreach ( $taxonomy_obj->object_type as $type ) {
+			$post_type_object = get_post_type_object( $type );
+			if ( empty( $post_type_object->show_in_rest ) ) {
+				continue;
 			}
-			if ( ! empty( $post_type_links ) ) {
-				$links['http://api.w.org/v2/post_type'] = $post_type_links;
-			}
+			$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+			$post_type_links[] = array(
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+			);
+		}
+		if ( ! empty( $post_type_links ) ) {
+			$links['http://api.w.org/v2/post_type'] = $post_type_links;
 		}
 
 		return $links;
