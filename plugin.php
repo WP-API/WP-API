@@ -80,20 +80,6 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
- * WP_REST_Meta_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
-}
-
-/**
- * WP_REST_Meta_Posts_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
-}
-
-/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
@@ -179,10 +165,6 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 
 			$controller->register_routes();
 
-			if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
-				$meta_controller = new WP_REST_Meta_Posts_Controller( $post_type->name );
-				$meta_controller->register_routes();
-			}
 			if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 				$revisions_controller->register_routes();
