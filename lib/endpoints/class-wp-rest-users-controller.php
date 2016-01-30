@@ -279,7 +279,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['roles'] ) ) {
-			$check_permission = $this->check_role_update( $user_id, $request['roles'] );
+			$check_permission = $this->check_role_update( $request['id'], $request['roles'] );
 			if ( is_wp_error( $check_permission ) ) {
 				return $check_permission;
 			}
@@ -717,7 +717,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
 				),
 				'description' => array(
 					'description' => __( 'Description of the resource.' ),
@@ -821,6 +820,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'description'        => __( 'Offset the result set by a specific number of items.' ),
 			'type'               => 'integer',
 			'sanitize_callback'  => 'absint',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['order'] = array(
 			'default'            => 'asc',
@@ -828,6 +828,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'enum'               => array( 'asc', 'desc' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['orderby'] = array(
 			'default'            => 'name',
@@ -840,10 +841,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['slug']    = array(
 			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}

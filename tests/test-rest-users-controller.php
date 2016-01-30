@@ -473,6 +473,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'http://example.com', $data['url'] );
 		$this->check_add_edit_user_response( $response );
 	}
 
@@ -573,6 +575,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'user_pass' => 'sjflsfls',
 			'user_login' => 'test_update',
 			'first_name' => 'Old Name',
+			'user_url' => 'http://apple.com',
 		));
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
@@ -583,6 +586,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$_POST['email'] = $userdata->user_email;
 		$_POST['username'] = $userdata->user_login;
 		$_POST['first_name'] = 'New Name';
+		$_POST['url'] = 'http://google.com';
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
@@ -596,6 +600,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'New Name', $new_data['first_name'] );
 		$user = get_userdata( $user_id );
 		$this->assertEquals( 'New Name', $user->first_name );
+
+		$this->assertEquals( 'http://google.com', $new_data['url'] );
+		$this->assertEquals( 'http://google.com', $user->user_url );
 
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429

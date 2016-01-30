@@ -509,6 +509,26 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$taxonomy_obj = get_taxonomy( $term->taxonomy );
+		if ( empty( $taxonomy_obj->object_type ) ) {
+			return $links;
+		}
+
+		$post_type_links = array();
+		foreach ( $taxonomy_obj->object_type as $type ) {
+			$post_type_object = get_post_type_object( $type );
+			if ( empty( $post_type_object->show_in_rest ) ) {
+				continue;
+			}
+			$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+			$post_type_links[] = array(
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+			);
+		}
+		if ( ! empty( $post_type_links ) ) {
+			$links['http://api.w.org/v2/post_type'] = $post_type_links;
+		}
+
 		return $links;
 	}
 
@@ -615,6 +635,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'description'        => __( 'Offset the result set by a specific number of items.' ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			);
 		}
 		$query_params['order']      = array(
@@ -626,6 +647,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'asc',
 				'desc',
 			),
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['orderby']    = array(
 			'description'           => __( 'Sort collection by resource attribute.' ),
@@ -641,27 +663,32 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'description',
 				'count',
 			),
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['hide_empty'] = array(
 			'description'           => __( 'Whether to hide resources not assigned to any posts.' ),
 			'type'                  => 'boolean',
 			'default'               => false,
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
 				'description'        => __( 'Limit result set to resources assigned to a specific parent.' ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			);
 		}
 		$query_params['post'] = array(
 			'description'           => __( 'Limit result set to resources assigned to a specific post.' ),
-			'type'                  => 'number',
-			'default'               => false,
+			'type'                  => 'integer',
+			'default'               => null,
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['slug']    = array(
 			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}

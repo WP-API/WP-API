@@ -131,26 +131,31 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
+					'readonly'     => true,
 					),
 				'hierarchical'     => array(
 					'description'  => __( 'Whether or not the resource should have children.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
+					'readonly'     => true,
 					),
 				'labels'           => array(
 					'description'  => __( 'Human-readable labels for the resource for various contexts.' ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
+					'readonly'     => true,
 					),
 				'name'             => array(
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
+					'readonly'     => true,
 					),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
+					'readonly'     => true,
 					),
 				),
 			);
