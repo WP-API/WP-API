@@ -305,6 +305,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$user = get_user_by( 'id', $user_id );
+		if ( ! empty( $request['roles'] ) ) {
+			array_map( array( $user, 'add_role' ), $request['roles'] );
+		}
+
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
@@ -390,6 +394,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$user = get_user_by( 'id', $id );
+		if ( ! empty( $request['roles'] ) ) {
+			array_map( array( $user, 'add_role' ), $request['roles'] );
+		}
+
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
@@ -581,11 +589,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( isset( $request['description'] ) ) {
 			$prepared_user->description = $request['description'];
 		}
-		if ( isset( $request['role'] ) ) {
-			$prepared_user->role = $request['role'];
-		}
+
 		if ( isset( $request['url'] ) ) {
 			$prepared_user->user_url = $request['url'];
+		}
+
+		// setting roles will be handled outside of this function.
+		if ( isset( $request['roles'] ) ) {
+			$prepared_user->role = false;
 		}
 
 		/**
