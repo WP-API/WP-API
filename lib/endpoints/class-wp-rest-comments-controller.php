@@ -119,7 +119,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_email'    => isset( $request['author_email'] ) ? $request['author_email'] : '',
 			'comment__in'     => $request['include'],
 			'comment__not_in' => $request['exclude'],
-			'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
+			'karma'           => isset( $request['karma'] ) ? $request['karma'] : '',
 			'number'          => $request['per_page'],
 			'post_id'         => $request['post'] ? $request['post'] : '',
 			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
