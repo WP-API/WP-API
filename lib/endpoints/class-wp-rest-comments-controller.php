@@ -837,7 +837,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							'context'         => array( 'edit' ),
 						),
 						'rendered'    => array(
-							'description'     => __( 'Content for the object, transformed for display.' ),
+							'description'     => __( 'HTML content for the object, transformed for display.' ),
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
 						),

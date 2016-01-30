@@ -1437,7 +1437,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
-								'description' => __( 'Title for the object, transformed for display.' ),
+								'description' => __( 'HTML title for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
 							),
@@ -1457,7 +1457,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
-								'description' => __( 'Content for the object, transformed for display.' ),
+								'description' => __( 'HTML content for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
@@ -1485,7 +1485,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'context'     => array( 'edit' ),
 							),
 							'rendered' => array(
-								'description' => __( 'Excerpt for the object, transformed for display.' ),
+								'description' => __( 'HTML excerpt for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
 							),

@@ -543,7 +543,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'description'      => array(
-					'description'  => __( 'A human-readable description of the resource.' ),
+					'description'  => __( 'HTML description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'arg_options'  => array(
@@ -558,7 +558,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'name'             => array(
-					'description'  => __( 'The title for the resource.' ),
+					'description'  => __( 'HTML title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
