@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WP REST API
- * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
+ * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
  * Version: 2.0-beta11
