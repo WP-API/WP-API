@@ -55,6 +55,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function create_item( $request ) {
 
+		if ( ! empty( $request['post'] )
+			&& in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
+		}
+
 		// Get the file via $_FILES or raw data
 		$files = $request->get_file_params();
 		$headers = $request->get_headers();
@@ -142,6 +147,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
+		if ( ! empty( $request['post'] )
+			&& in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
+		}
 		$response = parent::update_item( $request );
 		if ( is_wp_error( $response ) ) {
 			return $response;
