@@ -915,9 +915,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['author'] = array(
+			'description'       => __( 'Limit result set to comments assigned to a specific user id. Requires authorization.' ),
+			'sanitize_callback' => 'absint',
+			'type'              => 'integer',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
 		$query_params['author_email'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to that from a specific author email.' ),
+			'description'       => __( 'Limit result set to that from a specific author email. Requires authorization.' ),
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
 			'validate_callback' => 'rest_validate_request_arg',
@@ -939,7 +945,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
-			'description'       => __( 'Limit result set to that of a particular comment karma.' ),
+			'description'       => __( 'Limit result set to that of a particular comment karma. Requires authorization.' ),
 			'sanitize_callback' => 'absint',
 			'type'              => 'integer',
 			'validate_callback'  => 'rest_validate_request_arg',
@@ -993,23 +999,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',
-			'description'       => __( 'Limit result set to comments assigned a specific status.' ),
+			'description'       => __( 'Limit result set to comments assigned a specific status. Requires authorization.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['type'] = array(
 			'default'           => 'comment',
-			'description'       => __( 'Limit result set to comments assigned a specific type.' ),
+			'description'       => __( 'Limit result set to comments assigned a specific type. Requires authorization.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => 'rest_validate_request_arg',
-		);
-		$query_params['author'] = array(
-			'description'       => __( 'Limit result set to comments assigned to a specific user id.' ),
-			'sanitize_callback' => 'absint',
-			'type'              => 'integer',
-			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}
