@@ -692,7 +692,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
 				),
 				'description' => array(
 					'description' => __( 'Description of the resource.' ),
