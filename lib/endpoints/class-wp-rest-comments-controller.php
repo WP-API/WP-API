@@ -487,14 +487,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 */
 		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $id );
-		$get_request->set_param( 'context', 'edit' );
-		$response = $this->prepare_item_for_response( $comment, $get_request );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->prepare_item_for_response( $comment, $request );
 
 		if ( $force ) {
 			$result = wp_delete_comment( $comment->comment_ID, true );
-			$status = 'deleted';
 		} else {
 			// If we don't support trashing for this type, error out
 			if ( ! $supports_trash ) {
@@ -506,15 +503,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			$result = wp_trash_comment( $comment->comment_ID );
-			$status = 'trashed';
 		}
-
-		$data = $response->get_data();
-		$data = array(
-			'data'  => $data,
-			$status => true,
-		);
-		$response->set_data( $data );
 
 		if ( ! $result ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The comment cannot be deleted.' ), array( 'status' => 500 ) );
@@ -523,11 +512,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a comment is deleted via the REST API.
 		 *
-		 * @param object          $comment The deleted comment data.
-		 * @param array           $data    Delete status data.
-		 * @param WP_REST_Request $request The request sent to the API.
+		 * @param object           $comment  The deleted comment data.
+		 * @param WP_REST_Response $response The response returned from the API.
+		 * @param WP_REST_Request  $request  The request sent to the API.
 		 */
-		do_action( 'rest_delete_comment', $comment, $data, $request );
+		do_action( 'rest_delete_comment', $comment, $response, $request );
 
 		return $response;
 	}

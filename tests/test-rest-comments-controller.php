@@ -1010,8 +1010,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->post_id, $data['data']['post'] );
-		$this->assertTrue( $data['trashed'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_item_skip_trash() {
@@ -1028,8 +1027,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->post_id, $data['data']['post'] );
-		$this->assertTrue( $data['deleted'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_item_already_trashed() {
@@ -1044,7 +1042,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertTrue( $data['trashed'] );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
 	}
