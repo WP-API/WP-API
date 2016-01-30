@@ -84,6 +84,23 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view comments with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			$protected_params = array( 'author', 'karma', 'author_email', 'type', 'status' );
+			$forbidden_params = array();
+			foreach ( $protected_params as $param ) {
+				if ( 'status' === $param && 'approved' !== $request[ $param ] ) {
+					$forbidden_params[] = $param;
+				} else if ( 'type' === $param && 'comment' !== $request[ $param ] ) {
+					$forbidden_params[] = $param;
+				} else if ( ! empty( $request[ $param ] ) ) {
+					$forbidden_params[] = $param;
+				}
+			}
+			if ( ! empty( $forbidden_params ) ) {
+				return new WP_Error( 'rest_forbidden_param', sprintf( __( 'Query parameter not permitted: %s' ), implode( ', ', $forbidden_params ) ), array( 'status' => rest_authorization_required_code() ) );
+			}
+		}
+
 		return true;
 	}
 
@@ -95,8 +112,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$prepared_args = array(
+			'author_email'    => isset( $request['author_email'] ) ? $request['author_email'] : '',
 			'comment__in'     => $request['include'],
 			'comment__not_in' => $request['exclude'],
+			'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
 			'number'          => $request['per_page'],
 			'post_id'         => $request['post'] ? $request['post'] : '',
 			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
@@ -104,25 +123,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'offset'          => $request['offset'],
 			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
 			'order'           => $request['order'],
-			'status'          => 'approve',
-			'type'            => 'comment',
+			'status'          => $request['status'],
+			'type'            => $request['type'],
 			'no_found_rows'   => false,
+			'user_id'         => $request['author'] ? $request['author'] : '',
 		);
 
 		if ( empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
-		}
-
-		if ( current_user_can( 'edit_posts' ) ) {
-			$protected_args = array(
-				'user_id'      => $request['author'] ? $request['author'] : '',
-				'status'       => $request['status'],
-				'type'         => isset( $request['type'] ) ? $request['type'] : '',
-				'author_email' => isset( $request['author_email'] ) ? $request['author_email'] : '',
-				'karma'        => isset( $request['karma'] ) ? $request['karma'] : '',
-			);
-
-			$prepared_args = array_merge( $prepared_args, $protected_args );
 		}
 
 		/**

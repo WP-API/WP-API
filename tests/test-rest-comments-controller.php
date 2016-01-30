@@ -223,6 +223,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_items_author_arg() {
+		// Authorized
 		wp_set_current_user( $this->admin_id );
 		$args = array(
 			'comment_approved' => 1,
@@ -241,12 +242,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
-		// Unavailable to unauthenticated; defauls to all authenticated
+		// Unavailable to unauthenticated; defauls to error
 		wp_set_current_user( 0 );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$comments = $response->get_data();
-		$this->assertCount( 4, $comments );
+		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 	}
 
 	public function test_get_comments_pagination_headers() {
