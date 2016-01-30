@@ -288,3 +288,98 @@ if ( ! function_exists( 'register_api_field' ) ) {
 		register_rest_field( $object_type, $attributes, $args );
 	}
 }
+
+if ( ! function_exists( 'rest_validate_request_arg' ) ) {
+	/**
+	 * Validate a request argument based on details registered to the route.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return WP_Error|boolean
+	 */
+	function rest_validate_request_arg( $value, $request, $param ) {
+
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return true;
+		}
+		$args = $attributes['args'][ $param ];
+
+		if ( ! empty( $args['enum'] ) ) {
+			if ( ! in_array( $value, $args['enum'] ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $param, implode( ', ', $args['enum'] ) ) );
+			}
+		}
+
+		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
+		}
+
+		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
+		}
+
+		if ( isset( $args['format'] ) ) {
+			switch ( $args['format'] ) {
+				case 'date-time' :
+					if ( ! rest_parse_date( $value ) ) {
+						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
+					}
+					break;
+
+				case 'email' :
+					if ( ! is_email( $value ) ) {
+						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
+					}
+					break;
+			}
+		}
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
+	/**
+	 * Sanitize a request argument based on details registered to the route.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return WP_Error|boolean
+	 */
+	function rest_sanitize_request_arg( $value, $request, $param ) {
+
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return $value;
+		}
+		$args = $attributes['args'][ $param ];
+
+		if ( 'integer' === $args['type'] ) {
+			return (int) $value;
+		}
+
+		if ( isset( $args['format'] ) ) {
+			switch ( $args['format'] ) {
+				case 'date-time' :
+					return sanitize_text_field( $value );
+
+				case 'email' :
+					// as sanitize_email is very lossy, we just want to
+					// make sure the string is safe.
+					if ( sanitize_email( $value ) ) {
+						return sanitize_email( $value );
+					}
+					return sanitize_text_field( $value );
+
+				case 'uri' :
+					return esc_url_raw( $value );
+			}
+		}
+
+		return $value;
+	}
+
+}
