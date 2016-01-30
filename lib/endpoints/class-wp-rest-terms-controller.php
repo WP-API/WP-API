@@ -419,13 +419,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 
-		$data = $response->get_data();
-		$data = array(
-			'data'    => $data,
-			'deleted' => true,
-		);
-		$response->set_data( $data );
-
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
 		if ( ! $retval ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The resource cannot be deleted.' ), array( 'status' => 500 ) );
@@ -434,11 +427,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a single term is deleted via the REST API.
 		 *
-		 * @param WP_Term         $term    The deleted term.
-		 * @param array           $data    The response data.
-		 * @param WP_REST_Request $request The request sent to the API.
+		 * @param WP_Term          $term     The deleted term.
+		 * @param WP_REST_Response $response The response data.
+		 * @param WP_REST_Request  $request  The request sent to the API.
 		 */
-		do_action( "rest_delete_{$this->taxonomy}", $term, $data, $request );
+		do_action( "rest_delete_{$this->taxonomy}", $term, $response, $request );
 
 		return $response;
 	}
