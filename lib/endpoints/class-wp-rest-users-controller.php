@@ -350,7 +350,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
+		if ( ! empty( $request['roles'] ) && ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -383,8 +383,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $request['role'] ) ) {
-			$check_permission = $this->check_role_update( $id, $request['role'] );
+		if ( ! empty( $request['roles'] ) ) {
+			$check_permission = $this->check_role_update( $id, $request['roles'] );
 			if ( is_wp_error( $check_permission ) ) {
 				return $check_permission;
 			}
