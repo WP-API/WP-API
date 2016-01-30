@@ -17,6 +17,13 @@ if ( ! class_exists( 'WP_REST_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Request_Controller class.
+ */
+if ( ! class_exists( 'WP_REST_Request_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-request-controller.php';
+}
+
+/**
  * WP_REST_Posts_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Posts_Controller' ) ) {

@@ -41,8 +41,12 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_items( $request ) {
-		if ( ! empty( $request['type'] ) ) {
-			$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+		$prepared_args = WP_REST_Request_Controller::prepare_query_args_from_request( $request );
+		if ( is_wp_error( $prepared_args ) ) {
+			return $prepared_args;
+		}
+		if ( ! empty( $prepared_args['post_type'] ) ) {
+			$taxonomies = get_object_taxonomies( $prepared_args['post_type'], 'objects' );
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}
@@ -205,6 +209,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$new_params['type'] = array(
 			'description'  => __( 'Limit results to resources associated with a specific post type.' ),
 			'type'         => 'string',
+			'transform_to' => 'post_type',
 		);
 		return $new_params;
 	}
