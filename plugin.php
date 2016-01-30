@@ -329,7 +329,7 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 	 * @param  mixed            $value
 	 * @param  WP_REST_Request  $request
 	 * @param  string           $param
-	 * @return WP_Error|boolean
+	 * @return mixed
 	 */
 	function rest_sanitize_request_arg( $value, $request, $param ) {
 
@@ -349,11 +349,9 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 					return sanitize_text_field( $value );
 
 				case 'email' :
-					// as sanitize_email is very lossy, we just want to
-					// make sure the string is safe.
-					if ( sanitize_email( $value ) ) {
-						return sanitize_email( $value );
-					}
+					/*
+					 * sanitize_email() validates, which would be unexpected
+					 */
 					return sanitize_text_field( $value );
 
 				case 'uri' :
