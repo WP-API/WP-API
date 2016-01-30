@@ -40,7 +40,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$parent = get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
 			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
-				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this resource.' ), array( 'status' => rest_authorization_required_code() ) );
+				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this post.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
 
@@ -67,10 +67,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( is_wp_error( $file ) ) {
 			return $file;
 		}
-
-		$name       = basename( $file['file'] );
-		$name_parts = pathinfo( $name );
-		$name       = trim( substr( $name, 0, -(1 + strlen( $name_parts['extension'] ) ) ) );
 
 		$url     = $file['url'];
 		$type    = $file['type'];
@@ -120,7 +116,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $id ) ) );
+		$response->header( 'Location', rest_url( '/wp/v2/' . $this->get_post_type_base( $attachment->post_type ) . '/' . $id ) );
 
 		/**
 		 * Fires after a single attachment is created or updated via the REST API.
@@ -212,7 +208,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( empty( $data['media_details'] ) ) {
 			$data['media_details'] = new stdClass;
 		} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
-			$img_url_basename = wp_basename( $data['source_url'] );
 
 			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
 
@@ -275,7 +270,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$schema = parent::get_item_schema();
 
 		$schema['properties']['alt_text'] = array(
-			'description'     => __( 'Alternative text to display when resource is not displayed.' ),
+			'description'     => __( 'Alternative text to display when attachment is not displayed.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'arg_options'     => array(
@@ -283,7 +278,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['caption'] = array(
-			'description'     => __( 'The caption for the resource.' ),
+			'description'     => __( 'The caption for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -291,7 +286,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['description'] = array(
-			'description'     => __( 'The description for the resource.' ),
+			'description'     => __( 'The description for the attachment.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit' ),
 			'arg_options'     => array(
@@ -299,25 +294,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			),
 			);
 		$schema['properties']['media_type'] = array(
-			'description'     => __( 'Type of resource.' ),
+			'description'     => __( 'Type of attachment.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['media_details'] = array(
-			'description'     => __( 'Details about the resource file, specific to its type.' ),
+			'description'     => __( 'Details about the attachment file, specific to its type.' ),
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 			);
 		$schema['properties']['post'] = array(
-			'description'     => __( 'The id for the associated post of the resource.' ),
+			'description'     => __( 'The id for the associated post of the attachment.' ),
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
 			);
 		$schema['properties']['source_url'] = array(
-			'description'     => __( 'URL to the original resource file.' ),
+			'description'     => __( 'URL to the original attachment file.' ),
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit', 'embed' ),
