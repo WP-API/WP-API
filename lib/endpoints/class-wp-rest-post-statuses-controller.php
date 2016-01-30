@@ -55,6 +55,12 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		return rest_ensure_response( $data );
 	}
 
+	/**
+	 * Check if a given request has access to read a post status.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
 	public function get_item_permissions_check( $request ) {
 		$status = get_post_status_object( $request['status'] );
 		if ( empty( $status ) ) {
