@@ -288,7 +288,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'sanitize_text_field',
 			),
-			);
+		);
 		$schema['properties']['caption'] = array(
 			'description'     => __( 'The caption for the resource.' ),
 			'type'            => 'string',
@@ -296,7 +296,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'wp_filter_post_kses',
 			),
-			);
+		);
 		$schema['properties']['description'] = array(
 			'description'     => __( 'The description for the resource.' ),
 			'type'            => 'string',
@@ -304,32 +304,32 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'wp_filter_post_kses',
 			),
-			);
+		);
 		$schema['properties']['media_type'] = array(
 			'description'     => __( 'Type of resource.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		$schema['properties']['media_details'] = array(
 			'description'     => __( 'Details about the resource file, specific to its type.' ),
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		$schema['properties']['post'] = array(
 			'description'     => __( 'The id for the associated post of the resource.' ),
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
-			);
+		);
 		$schema['properties']['source_url'] = array(
 			'description'     => __( 'URL to the original resource file.' ),
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		return $schema;
 	}
 
