@@ -93,6 +93,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'orderby',
 			'page',
 			'parent',
+			'parent_exclude',
 			'per_page',
 			'post',
 			'search',
@@ -246,6 +247,56 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( 0 );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+	}
+
+	public function test_get_items_parent_arg() {
+		$args = array(
+			'comment_approved'  => 1,
+			'comment_post_ID'   => $this->post_id,
+		);
+		$parent_id = $this->factory->comment->create( $args );
+		$parent_id2 = $this->factory->comment->create( $args );
+		$args['comment_parent'] = $parent_id;
+		$this->factory->comment->create( $args );
+		$args['comment_parent'] = $parent_id2;
+		$this->factory->comment->create( $args );
+		// All comments in the database
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 5, $response->get_data() );
+		// Limit to the parent
+		$request->set_param( 'parent', $parent_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+		// Limit to two parents
+		$request->set_param( 'parent', array( $parent_id, $parent_id2 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 2, $response->get_data() );
+	}
+
+	public function test_get_items_parent_exclude_arg() {
+		$args = array(
+			'comment_approved'  => 1,
+			'comment_post_ID'   => $this->post_id,
+		);
+		$parent_id = $this->factory->comment->create( $args );
+		$parent_id2 = $this->factory->comment->create( $args );
+		$args['comment_parent'] = $parent_id;
+		$this->factory->comment->create( $args );
+		$args['comment_parent'] = $parent_id2;
+		$this->factory->comment->create( $args );
+		// All comments in the database
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 5, $response->get_data() );
+		// Exclude this particular parent
+		$request->set_param( 'parent_exclude', $parent_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 4, $response->get_data() );
+		// Exclude both comment parents
+		$request->set_param( 'parent_exclude', array( $parent_id, $parent_id2 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 3, $response->get_data() );
 	}
 
 	public function test_get_comments_pagination_headers() {
