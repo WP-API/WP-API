@@ -112,7 +112,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_include_query() {
 		$id1 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_status' => 'publish' ) );
 		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		// Orderby=>desc

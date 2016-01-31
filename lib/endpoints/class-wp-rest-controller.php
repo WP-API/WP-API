@@ -4,6 +4,20 @@
 abstract class WP_REST_Controller {
 
 	/**
+	 * The namespace of this controller's route.
+	 *
+	 * @var string
+	 */
+	protected $namespace;
+
+	/**
+	 * The base of this controller's route.
+	 *
+	 * @var string
+	 */
+	protected $rest_base;
+
+	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {

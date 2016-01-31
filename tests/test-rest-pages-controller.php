@@ -108,7 +108,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_parent_exclude_query() {
 		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
-		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		$this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
 		// No parent
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = $this->server->dispatch( $request );

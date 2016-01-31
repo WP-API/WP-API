@@ -5,12 +5,17 @@
  */
 class WP_REST_Comments_Controller extends WP_REST_Controller {
 
+	public function __construct() {
+		$this->namespace = 'wp/v2';
+		$this->rest_base = 'comments';
+	}
+
 	/**
 	 * Register the routes for the objects of the controller.
 	 */
 	public function register_routes() {
 
-		register_rest_route( 'wp/v2', '/comments', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base, array(
 			array(
 				'methods'   => WP_REST_Server::READABLE,
 				'callback'  => array( $this, 'get_items' ),
@@ -27,7 +32,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( 'wp/v2', '/comments/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'  => WP_REST_Server::READABLE,
 				'callback' => array( $this, 'get_item' ),
@@ -166,7 +171,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->header( 'X-WP-Total', $total_comments );
 		$response->header( 'X-WP-TotalPages', $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/wp/v2/comments' ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
 		if ( $request['page'] > 1 ) {
 			$prev_page = $request['page'] - 1;
 			if ( $prev_page > $max_pages ) {
@@ -355,7 +360,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $response;
 		}
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/wp/v2/comments/' . $comment_id ) );
+		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment_id ) ) );
 
 		/**
 		 * Fires after a comment is created or updated via the REST API.
@@ -588,10 +593,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_links( $comment ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( '/wp/v2/comments/' . $comment->comment_ID ),
+				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( '/wp/v2/comments' ),
+				'href' => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 
@@ -605,8 +610,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( 0 !== (int) $comment->comment_post_ID ) {
 			$post = get_post( $comment->comment_post_ID );
 			if ( ! empty( $post->ID ) ) {
-				$posts_controller = new WP_REST_Posts_Controller( $post->post_type );
-				$base = $posts_controller->get_post_type_base( $post->post_type );
+				$obj = get_post_type_object( $post->post_type );
+				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 
 				$links['up'] = array(
 					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
@@ -618,7 +623,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 !== (int) $comment->comment_parent ) {
 			$links['in-reply-to'] = array(
-				'href'       => rest_url( sprintf( '/wp/v2/comments/%d', (int) $comment->comment_parent ) ),
+				'href'       => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment->comment_parent ) ),
 				'embeddable' => true,
 			);
 		}
