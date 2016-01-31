@@ -1018,6 +1018,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'              => 'string',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
+		$query_params['filter'] = array(
+			'description'       => __( 'Use WP_Comment_Query arguments to modify the response; private query vars require appropriate authorization.' ),
+		);
 		return $query_params;
 	}
 
