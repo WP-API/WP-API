@@ -355,17 +355,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$this->handle_status_param( $request['status'], $comment );
 		}
 
-		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
+		$comment = get_comment( $comment_id );
+		$this->update_additional_fields_for_object( $comment, $request );
 
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $comment_id );
-		$get_request->set_param( 'context', $context );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', $context );
+		$response = $this->prepare_item_for_response( $comment, $request );
 		$response = rest_ensure_response( $response );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment_id ) ) );
 
