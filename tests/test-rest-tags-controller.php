@@ -341,6 +341,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
 
+	public function test_get_items_invalid_context() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'context', 'banana' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_get_item() {
 		$id = $this->factory->tag->create();
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
@@ -467,8 +474,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Deleted Tag', $data['data']['name'] );
-		$this->assertTrue( $data['deleted'] );
+		$this->assertEquals( 'Deleted Tag', $data['name'] );
 	}
 
 	public function test_delete_item_force_false() {
@@ -602,6 +608,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'collection', $links );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response, $id ) {

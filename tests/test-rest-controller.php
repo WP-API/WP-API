@@ -2,74 +2,89 @@
 
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
+	public function setUp() {
+		parent::setUp();
+		$this->request = new WP_REST_Request( 'GET', '/wp/v2/testroute', array(
+			'args'     => array(
+				'someinteger'     => array(
+					'type'        => 'integer',
+				),
+				'somestring'      => array(
+					'type'        => 'string',
+				),
+				'someenum'        => array(
+					'type'        => 'string',
+					'enum'        => array( 'a' ),
+				),
+				'somedate'        => array(
+					'type'        => 'string',
+					'format'      => 'date-time',
+				),
+				'someemail'       => array(
+					'type'        => 'string',
+					'format'      => 'email',
+				),
+			),
+		));
+	}
 
 	public function test_validate_schema_type_integer() {
 
-		$controller = new WP_REST_Test_Controller();
-
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', new WP_REST_Request, 'someinteger' )
+			rest_validate_request_arg( '123', $this->request, 'someinteger' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'abc', new WP_REST_Request, 'someinteger' )
+			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
 		);
 	}
 
 	public function test_validate_schema_type_string() {
 
-		$controller = new WP_REST_Test_Controller();
-
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', new WP_REST_Request, 'somestring' )
+			rest_validate_request_arg( '123', $this->request, 'somestring' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( array( 'foo' => 'bar' ), new WP_REST_Request, 'somestring' )
+			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
 		);
 	}
 
 	public function test_validate_schema_enum() {
 
-		$controller = new WP_REST_Test_Controller();
-
 		$this->assertTrue(
-			$controller->validate_schema_property( 'a', new WP_REST_Request, 'someenum' )
+			rest_validate_request_arg( 'a', $this->request, 'someenum' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'd', new WP_REST_Request, 'someenum' )
+			rest_validate_request_arg( 'd', $this->request, 'someenum' )
 		);
 	}
 
 	public function test_validate_schema_format_email() {
 
-		$controller = new WP_REST_Test_Controller();
-
 		$this->assertTrue(
-			$controller->validate_schema_property( 'joe@foo.bar', new WP_REST_Request, 'someemail' )
+			rest_validate_request_arg( 'joe@foo.bar', $this->request, 'someemail' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_email',
-			$controller->validate_schema_property( 'd', new WP_REST_Request, 'someemail' )
+			rest_validate_request_arg( 'd', $this->request, 'someemail' )
 		);
 	}
 
 	public function test_validate_schema_format_date_time() {
 
-		$controller = new WP_REST_Test_Controller();
-
 		$this->assertTrue(
-			$controller->validate_schema_property( '2010-01-01T12:00:00', new WP_REST_Request, 'somedate' )
+			rest_validate_request_arg( '2010-01-01T12:00:00', $this->request, 'somedate' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_date',
-			$controller->validate_schema_property( '2010-18-18T12:00:00', new WP_REST_Request, 'somedate' )
+			rest_validate_request_arg( '2010-18-18T12:00:00', $this->request, 'somedate' )
 		);
 	}
 

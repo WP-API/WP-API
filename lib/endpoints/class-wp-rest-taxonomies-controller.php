@@ -158,39 +158,46 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'hierarchical'     => array(
 					'description'  => __( 'Whether or not the resource should have children.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'labels'           => array(
 					'description'  => __( 'Human-readable labels for the resource for various contexts.' ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'name'             => array(
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'show_cloud'       => array(
 					'description'  => __( 'Whether or not the term cloud should be displayed.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'types'            => array(
 					'description'  => __( 'Types associated with resource.' ),
 					'type'         => 'array',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
 				),
-			);
+			),
+		);
 		return $this->add_additional_fields_schema( $schema );
 	}
 
@@ -205,6 +212,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$new_params['type'] = array(
 			'description'  => __( 'Limit results to resources associated with a specific post type.' ),
 			'type'         => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		return $new_params;
 	}

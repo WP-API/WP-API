@@ -55,6 +55,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function create_item( $request ) {
 
+		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
+		}
+
 		// Get the file via $_FILES or raw data
 		$files = $request->get_file_params();
 		$headers = $request->get_headers();
@@ -142,6 +146,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
+		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
+		}
 		$response = parent::update_item( $request );
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -281,7 +288,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'sanitize_text_field',
 			),
-			);
+		);
 		$schema['properties']['caption'] = array(
 			'description'     => __( 'The caption for the resource.' ),
 			'type'            => 'string',
@@ -289,7 +296,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'wp_filter_post_kses',
 			),
-			);
+		);
 		$schema['properties']['description'] = array(
 			'description'     => __( 'The description for the resource.' ),
 			'type'            => 'string',
@@ -297,32 +304,32 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'arg_options'     => array(
 				'sanitize_callback' => 'wp_filter_post_kses',
 			),
-			);
+		);
 		$schema['properties']['media_type'] = array(
 			'description'     => __( 'Type of resource.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		$schema['properties']['media_details'] = array(
 			'description'     => __( 'Details about the resource file, specific to its type.' ),
 			'type'            => 'object',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		$schema['properties']['post'] = array(
 			'description'     => __( 'The id for the associated post of the resource.' ),
 			'type'            => 'integer',
 			'context'         => array( 'view', 'edit' ),
-			);
+		);
 		$schema['properties']['source_url'] = array(
 			'description'     => __( 'URL to the original resource file.' ),
 			'type'            => 'string',
 			'format'          => 'uri',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
-			);
+		);
 		return $schema;
 	}
 

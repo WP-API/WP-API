@@ -95,11 +95,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'parent',
 			'per_page',
 			'post',
-			'post_author',
-			'post_parent',
-			'post_slug',
-			'post_status',
-			'post_type',
 			'search',
 			'status',
 			'type',
@@ -228,6 +223,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_items_author_arg() {
+		// Authorized
 		wp_set_current_user( $this->admin_id );
 		$args = array(
 			'comment_approved' => 1,
@@ -246,68 +242,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
-		// Unavailable to unauthenticated; defauls to all authenticated
+		// Unavailable to unauthenticated; defaults to error
 		wp_set_current_user( 0 );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$comments = $response->get_data();
-		$this->assertCount( 4, $comments );
-	}
-
-	public function test_get_items_for_post_type() {
-		wp_set_current_user( $this->admin_id );
-		$second_post_id = $this->factory->post->create();
-		$first_page_id = $this->factory->post->create( array( 'post_type' => 'page' ) );
-		$this->factory->comment->create_post_comments( $second_post_id, 2 );
-		$this->factory->comment->create_post_comments( $first_page_id, 1 );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_query_params( array(
-			'post_type' => 'page',
-		) );
-
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$comments = $response->get_data();
-		$this->assertCount( 1, $comments );
-	}
-
-	public function test_get_items_for_post_author() {
-		wp_set_current_user( $this->admin_id );
-		$second_post_id = $this->factory->post->create();
-		$third_post_id = $this->factory->post->create( array( 'post_author' => $this->author_id ) );
-		$this->factory->comment->create_post_comments( $second_post_id, 2 );
-		$this->factory->comment->create_post_comments( $third_post_id, 3 );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_query_params( array(
-			'post_author' => $this->author_id,
-		) );
-
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$comments = $response->get_data();
-		$this->assertCount( 3, $comments );
-	}
-
-	public function test_get_items_for_post_slug() {
-		wp_set_current_user( $this->admin_id );
-		$second_post_id = $this->factory->post->create();
-		$third_post_id = $this->factory->post->create( array( 'post_name' => 'such-a-unique-post-slug' ) );
-		$this->factory->comment->create_post_comments( $second_post_id, 2 );
-		$this->factory->comment->create_post_comments( $third_post_id, 3 );
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_query_params( array(
-			'post_slug' => 'such-a-unique-post-slug',
-		) );
-
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-
-		$comments = $response->get_data();
-		$this->assertCount( 3, $comments );
+		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
 	}
 
 	public function test_get_comments_pagination_headers() {
@@ -1010,8 +948,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->post_id, $data['data']['post'] );
-		$this->assertTrue( $data['trashed'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_item_skip_trash() {
@@ -1028,8 +965,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $this->post_id, $data['data']['post'] );
-		$this->assertTrue( $data['deleted'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_delete_item_already_trashed() {
@@ -1044,7 +980,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertTrue( $data['trashed'] );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_already_trashed', $response, 410 );
 	}

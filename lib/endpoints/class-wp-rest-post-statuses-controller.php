@@ -25,6 +25,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
+				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
 					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
@@ -41,19 +42,56 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		if ( is_user_logged_in() ) {
-			$statuses = get_post_stati( array( 'internal' => false ), 'object' );
-		} else {
-			$statuses = get_post_stati( array( 'public' => true ), 'object' );
-		}
-		foreach ( $statuses as $obj ) {
-			$status = $this->prepare_item_for_response( $obj, $request );
-			if ( is_wp_error( $status ) ) {
+		$statuses = get_post_stati( array( 'internal' => false ), 'object' );
+		$statuses['trash'] = get_post_status_object( 'trash' );
+		foreach ( $statuses as $slug => $obj ) {
+			$ret = $this->check_read_permission( $obj );
+			if ( ! $ret ) {
 				continue;
 			}
+			$status = $this->prepare_item_for_response( $obj, $request );
 			$data[ $obj->name ] = $this->prepare_response_for_collection( $status );
 		}
 		return rest_ensure_response( $data );
+	}
+
+	/**
+	 * Check if a given request has access to read a post status.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_item_permissions_check( $request ) {
+		$status = get_post_status_object( $request['status'] );
+		if ( empty( $status ) ) {
+			return new WP_Error( 'rest_status_invalid', __( 'Invalid resource.' ), array( 'status' => 404 ) );
+		}
+		$check = $this->check_read_permission( $status );
+		if ( ! $check ) {
+			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Check whether a given post status should be visible
+	 *
+	 * @param object $status
+	 * @return boolean
+	 */
+	protected function check_read_permission( $status ) {
+		if ( true === $status->public ) {
+			return true;
+		}
+		if ( false === $status->internal || 'trash' === $status->name ) {
+			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
+			foreach ( $types as $type ) {
+				if ( current_user_can( $type->cap->edit_posts ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -79,9 +117,6 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response Post status data
 	 */
 	public function prepare_item_for_response( $status, $request ) {
-		if ( ( false === $status->public && ! is_user_logged_in() ) || ( true === $status->internal && is_user_logged_in() ) ) {
-			return new WP_Error( 'rest_cannot_read_status', __( 'Cannot view resource.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
 
 		$data = array(
 			'name'         => $status->label,
@@ -132,39 +167,46 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'private'          => array(
 					'description'  => __( 'Whether posts with this resource should be private.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'protected'        => array(
 					'description'  => __( 'Whether posts with this resource should be protected.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'public'           => array(
 					'description'  => __( 'Whether posts of this resource should be shown in the front end of the site.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'queryable'        => array(
 					'description'  => __( 'Whether posts with this resource should be publicly-queryable.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'show_in_list'     => array(
 					'description'  => __( 'Whether to include posts in the edit listing for their post type.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
+				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
-					),
+					'readonly'     => true,
 				),
-			);
+			),
+		);
 		return $this->add_additional_fields_schema( $schema );
 	}
 

@@ -419,13 +419,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 
-		$data = $response->get_data();
-		$data = array(
-			'data'    => $data,
-			'deleted' => true,
-		);
-		$response->set_data( $data );
-
 		$retval = wp_delete_term( $term->term_id, $term->taxonomy );
 		if ( ! $retval ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'The resource cannot be deleted.' ), array( 'status' => 500 ) );
@@ -434,11 +427,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a single term is deleted via the REST API.
 		 *
-		 * @param WP_Term         $term    The deleted term.
-		 * @param array           $data    The response data.
-		 * @param WP_REST_Request $request The request sent to the API.
+		 * @param WP_Term          $term     The deleted term.
+		 * @param WP_REST_Response $response The response data.
+		 * @param WP_REST_Request  $request  The request sent to the API.
 		 */
-		do_action( "rest_delete_{$this->taxonomy}", $term, $data, $request );
+		do_action( "rest_delete_{$this->taxonomy}", $term, $response, $request );
 
 		return $response;
 	}
@@ -516,6 +509,26 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$taxonomy_obj = get_taxonomy( $term->taxonomy );
+		if ( empty( $taxonomy_obj->object_type ) ) {
+			return $links;
+		}
+
+		$post_type_links = array();
+		foreach ( $taxonomy_obj->object_type as $type ) {
+			$post_type_object = get_post_type_object( $type );
+			if ( empty( $post_type_object->show_in_rest ) ) {
+				continue;
+			}
+			$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+			$post_type_links[] = array(
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+			);
+		}
+		if ( ! empty( $post_type_links ) ) {
+			$links['http://api.w.org/v2/post_type'] = $post_type_links;
+		}
+
 		return $links;
 	}
 
@@ -543,7 +556,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'description'      => array(
-					'description'  => __( 'A human-readable description of the resource.' ),
+					'description'  => __( 'HTML description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'arg_options'  => array(
@@ -558,7 +571,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'readonly'     => true,
 				),
 				'name'             => array(
-					'description'  => __( 'The title for the resource.' ),
+					'description'  => __( 'HTML title for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'embed' ),
 					'arg_options'  => array(
@@ -622,6 +635,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'description'        => __( 'Offset the result set by a specific number of items.' ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			);
 		}
 		$query_params['order']      = array(
@@ -633,6 +647,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'asc',
 				'desc',
 			),
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['orderby']    = array(
 			'description'           => __( 'Sort collection by resource attribute.' ),
@@ -648,27 +663,32 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'description',
 				'count',
 			),
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['hide_empty'] = array(
 			'description'           => __( 'Whether to hide resources not assigned to any posts.' ),
 			'type'                  => 'boolean',
 			'default'               => false,
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		if ( $taxonomy->hierarchical ) {
 			$query_params['parent'] = array(
 				'description'        => __( 'Limit result set to resources assigned to a specific parent.' ),
 				'type'               => 'integer',
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			);
 		}
 		$query_params['post'] = array(
 			'description'           => __( 'Limit result set to resources assigned to a specific post.' ),
-			'type'                  => 'number',
-			'default'               => false,
+			'type'                  => 'integer',
+			'default'               => null,
+			'validate_callback'     => 'rest_validate_request_arg',
 		);
 		$query_params['slug']    = array(
 			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}

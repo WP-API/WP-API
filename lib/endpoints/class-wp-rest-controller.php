@@ -239,17 +239,20 @@ abstract class WP_REST_Controller {
 				'type'               => 'integer',
 				'default'            => 1,
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			),
 			'per_page'               => array(
 				'description'        => __( 'Maximum number of items to be returned in result set.' ),
 				'type'               => 'integer',
 				'default'            => 10,
 				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
 			),
 			'search'                 => array(
 				'description'        => __( 'Limit results to those matching a string.' ),
 				'type'               => 'string',
 				'sanitize_callback'  => 'sanitize_text_field',
+				'validate_callback'  => 'rest_validate_request_arg',
 			),
 		);
 	}
@@ -266,6 +269,8 @@ abstract class WP_REST_Controller {
 		$param_details = array(
 			'description'        => __( 'Scope under which the request is made; determines fields present in response.' ),
 			'type'               => 'string',
+			'sanitize_callback'  => 'sanitize_key',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$schema = $this->get_item_schema();
 		if ( empty( $schema['properties'] ) ) {
@@ -426,8 +431,8 @@ abstract class WP_REST_Controller {
 			}
 
 			$endpoint_args[ $field_id ] = array(
-				'validate_callback' => array( $this, 'validate_schema_property' ),
-				'sanitize_callback' => array( $this, 'sanitize_schema_property' ),
+				'validate_callback' => 'rest_validate_request_arg',
+				'sanitize_callback' => 'rest_sanitize_request_arg',
 			);
 
 			if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
@@ -436,6 +441,12 @@ abstract class WP_REST_Controller {
 
 			if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
 				$endpoint_args[ $field_id ]['required'] = true;
+			}
+
+			foreach ( array( 'type', 'format', 'enum' ) as $schema_prop ) {
+				if ( isset( $params[ $schema_prop ] ) ) {
+					$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
+				}
 			}
 
 			// Merge in any options provided by the schema property.
@@ -453,106 +464,4 @@ abstract class WP_REST_Controller {
 		return $endpoint_args;
 	}
 
-	/**
-	 * Validate a parameter value that's based on a property from the item schema.
-	 *
-	 * @param  mixed $value
-	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
-	 * @return WP_Error|boolean
-	 */
-	public function validate_schema_property( $value, $request, $parameter ) {
-
-		/**
-		 * We don't currently validate against empty values, as lots of checks
-		 * can unintentionally fail, as the callback will often handle an empty
-		 * value it's self.
-		 */
-		if ( ! $value ) {
-			return true;
-		}
-
-		$schema = $this->get_item_schema();
-
-		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
-			return true;
-		}
-
-		$property = $schema['properties'][ $parameter ];
-
-		if ( ! empty( $property['enum'] ) ) {
-			if ( ! in_array( $value, $property['enum'] ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $parameter, implode( ', ', $property['enum'] ) ) );
-			}
-		}
-
-		if ( 'integer' === $property['type'] && ! is_numeric( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'integer' ) );
-		}
-
-		if ( 'string' === $property['type'] && ! is_string( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $parameter, 'string' ) );
-		}
-
-		if ( isset( $property['format'] ) ) {
-			switch ( $property['format'] ) {
-				case 'date-time' :
-					if ( ! rest_parse_date( $value ) ) {
-						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
-					}
-					break;
-
-				case 'email' :
-					if ( ! is_email( $value ) ) {
-						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
-					}
-					break;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Sanitize a parameter value that's based on a property from the item schema.
-	 *
-	 * @param  mixed $value
-	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
-	 * @return mixed
-	 */
-	public function sanitize_schema_property( $value, $request, $parameter ) {
-
-		$schema = $this->get_item_schema();
-
-		if ( ! isset( $schema['properties'][ $parameter ] ) ) {
-			return true;
-		}
-
-		$property = $schema['properties'][ $parameter ];
-
-		if ( 'integer' === $property['type'] ) {
-			return (int) $value;
-		}
-
-		if ( isset( $property['format'] ) ) {
-			switch ( $property['format'] ) {
-				case 'date-time' :
-					return sanitize_text_field( $value );
-
-				case 'email' :
-					// as sanitize_email is very lossy, we just want to
-					// make sure the string is safe.
-					if ( sanitize_email( $value ) ) {
-						return sanitize_email( $value );
-					}
-					return sanitize_text_field( $value );
-
-				case 'uri' :
-					return esc_url_raw( $value );
-			}
-		}
-
-		return $value;
-	}
 }
