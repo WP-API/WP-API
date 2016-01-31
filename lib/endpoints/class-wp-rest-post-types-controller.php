@@ -148,13 +148,13 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 				'name'             => array(
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
+					'context'      => array( 'view', 'edit', 'embed' ),
 					'readonly'     => true,
 				),
 			),
