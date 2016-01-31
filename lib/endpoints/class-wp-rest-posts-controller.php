@@ -89,6 +89,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$args                         = array();
 		$args['author']               = $request['author'];
+		$args['menu_order']           = $request['menu_order'];
 		$args['offset']               = $request['offset'];
 		$args['order']                = $request['order'];
 		$args['orderby']              = $request['orderby'];
@@ -586,7 +587,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$valid_vars = array_merge( $valid_vars, $private );
 		}
 		// Define our own in addition to WP's normal vars.
-		$rest_valid = array( 'offset', 'post__in', 'post__not_in', 'posts_per_page', 'ignore_sticky_posts', 'post_parent', 'post_parent__in', 'post_parent__not_in' );
+		$rest_valid = array(
+			'ignore_sticky_posts',
+			'menu_order',
+			'offset',
+			'post__in',
+			'post__not_in',
+			'post_parent',
+			'post_parent__in',
+			'post_parent__not_in',
+			'posts_per_page',
+		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
 		/**
@@ -1588,6 +1599,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
 		);
+		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
+			$params['menu_order'] = array(
+				'description'        => __( 'Limit result set to resources with a specific menu_order value.' ),
+				'type'               => 'integer',
+				'sanitize_callback'  => 'absint',
+				'validate_callback'  => 'rest_validate_request_arg',
+			);
+		}
 		$params['offset'] = array(
 			'description'        => __( 'Offset the result set by a specific number of items.' ),
 			'type'               => 'integer',
@@ -1614,6 +1633,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 			'validate_callback'  => 'rest_validate_request_arg',
 		);
+		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
+			$params['orderby']['enum'][] = 'menu_order';
+		}
 
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
