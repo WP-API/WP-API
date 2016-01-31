@@ -168,45 +168,45 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'private'          => array(
 					'description'  => __( 'Whether posts with this resource should be private.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'protected'        => array(
 					'description'  => __( 'Whether posts with this resource should be protected.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'public'           => array(
 					'description'  => __( 'Whether posts of this resource should be shown in the front end of the site.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'queryable'        => array(
 					'description'  => __( 'Whether posts with this resource should be publicly-queryable.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'show_in_list'     => array(
 					'description'  => __( 'Whether to include posts in the edit listing for their post type.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
+				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view' ),
 					'readonly'     => true,
-					),
 				),
-			);
+			),
+		);
 		return $this->add_additional_fields_schema( $schema );
 	}
 
