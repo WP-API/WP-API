@@ -58,6 +58,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		sort( $keys );
 		$this->assertEquals( array(
 			'context',
+			'exclude',
 			'include',
 			'offset',
 			'order',
