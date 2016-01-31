@@ -122,6 +122,33 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $id1, $data[0]['id'] );
 	}
 
+	public function test_get_items_menu_order_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 2 ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 3 ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEqualSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
+		// Filter to menu_order
+		$request->set_param( 'menu_order', 1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEqualSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
+		// Order by menu order
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', 'menu_order' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertEquals( $id4, $data[1]['id'] );
+		$this->assertEquals( $id2, $data[2]['id'] );
+		$this->assertEquals( $id3, $data[3]['id'] );
+	}
+
 	public function test_get_items_private_filter_query_var() {
 		// Private query vars inaccessible to unauthorized users
 		wp_set_current_user( 0 );
