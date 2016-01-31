@@ -151,7 +151,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_query_params( array(
 			'filter' => array(
 				'post_name' => $post->post_name,
-				'post_type' => 'post',
 			),
 		) );
 
