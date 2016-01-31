@@ -88,7 +88,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$args                         = array();
-		$args['author']               = $request['author'];
+		$args['author__in']           = $request['author'];
+		$args['author__not_in']       = $request['author_exclude'];
 		$args['menu_order']           = $request['menu_order'];
 		$args['offset']               = $request['offset'];
 		$args['order']                = $request['order'];
@@ -588,6 +589,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		// Define our own in addition to WP's normal vars.
 		$rest_valid = array(
+			'author__in',
+			'author__not_in',
 			'ignore_sticky_posts',
 			'menu_order',
 			'offset',
@@ -1580,10 +1583,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(
-				'description'         => __( 'Limit result set to posts assigned to a specific author.' ),
-				'type'                => 'integer',
-				'default'             => null,
-				'sanitize_callback'   => 'absint',
+				'description'         => __( 'Limit result set to posts assigned to specific authors.' ),
+				'type'                => 'array',
+				'default'             => array(),
+				'sanitize_callback'   => 'wp_parse_id_list',
+				'validate_callback'   => 'rest_validate_request_arg',
+			);
+			$params['author_exclude'] = array(
+				'description'         => __( 'Ensure result set excludes posts assigned to specific authors.' ),
+				'type'                => 'array',
+				'default'             => array(),
+				'sanitize_callback'   => 'wp_parse_id_list',
 				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}

@@ -51,6 +51,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		sort( $keys );
 		$this->assertEquals( array(
 			'author',
+			'author_exclude',
 			'context',
 			'exclude',
 			'filter',
