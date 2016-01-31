@@ -132,11 +132,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function test_get_items_for_post() {
 		$second_post_id = $this->factory->post->create();
+		$post = get_post( $second_post_id );
 		$this->factory->comment->create_post_comments( $second_post_id, 2 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_query_params( array(
 			'post' => $second_post_id,
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comments = $response->get_data();
+		$this->assertCount( 2, $comments );
+
+		// With filter params.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_query_params( array(
+			'filter' => array(
+				'post_name' => $post->post_name,
+				'post_type' => 'post',
+			),
 		) );
 
 		$response = $this->server->dispatch( $request );

@@ -137,6 +137,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
 
+		$allowed_filters = array( 'post_name', 'post_type', 'post_author', 'post_parent', 'post_status', 'type__in', 'type__not_in', 'date_query' );
+
+		if ( is_array( $request['filter'] ) ) {
+			$filter_args = array_intersect_key( $request['filter'], array_flip( $allowed_filters ) );
+			$prepared_args = array_merge( $prepared_args, $filter_args );
+		}
+
 		/**
 		 * Filter arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
 		 *
