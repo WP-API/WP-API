@@ -98,6 +98,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'search',
 			'status',
 			'type',
+			'filter',
 			), $keys );
 	}
 
