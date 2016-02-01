@@ -35,7 +35,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'        => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		));
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
@@ -64,7 +63,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					),
 				),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
@@ -599,10 +597,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$taxonomy = get_taxonomy( $this->taxonomy );
 		if ( $taxonomy->hierarchical ) {
 			$schema['properties']['parent'] = array(
-					'description'  => __( 'The id for the parent of the resource.' ),
-					'type'         => 'integer',
-					'context'      => array( 'view' ),
-					);
+				'description'  => __( 'The id for the parent of the resource.' ),
+				'type'         => 'integer',
+				'context'      => array( 'view' ),
+			);
 		}
 		return $this->add_additional_fields_schema( $schema );
 	}
