@@ -6,8 +6,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
-	 * @param array $prepared_args
-	 * @return array $query_args
+	 * @param array           $prepared_args
+	 * @param WP_REST_Request $request
+	 * @return array          $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = parent::prepare_items_query( $prepared_args, $request );
