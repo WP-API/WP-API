@@ -14,13 +14,13 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/statuses/publish' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -31,8 +31,6 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'publish', $data['publish']['slug'] );
-		$this->assertFalse( $data['publish']['private'] );
-		$this->assertTrue( $data['publish']['public'] );
 	}
 
 	public function test_get_items_logged_in() {
@@ -54,8 +52,18 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		), array_keys( $data ) );
 	}
 
+	public function test_get_items_unauthorized_context() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses' );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
+	}
+
 	public function test_get_item() {
+		$user_id = $this->factory->user->create( array( 'role' => 'author' ) );
+		wp_set_current_user( $user_id );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/publish' );
+		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
 		$this->check_post_status_object_response( $response );
 	}
@@ -97,7 +105,9 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	public function test_prepare_item() {
 		$obj = get_post_status_object( 'publish' );
 		$endpoint = new WP_REST_Post_Statuses_Controller;
-		$data = $endpoint->prepare_item_for_response( $obj, new WP_REST_Request );
+		$request = new WP_REST_Request;
+		$request->set_param( 'context', 'edit' );
+		$data = $endpoint->prepare_item_for_response( $obj, $request );
 		$this->check_post_status_obj( $obj, $data->get_data() );
 	}
 
