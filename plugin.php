@@ -318,7 +318,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
-		if ( isset( $args['minimum'] ) && isset( $args['maximum'] ) ) {
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && isset( $args['minimum'] ) && isset( $args['maximum'] ) ) {
 			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d and %d' ), $param, $args['minimum'], $args['maximum'] ) );
 			}
