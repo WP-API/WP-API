@@ -81,6 +81,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $post_type, $request ) {
 		$data = array(
+			'capabilities' => $post_type->cap,
 			'description'  => $post_type->description,
 			'hierarchical' => $post_type->hierarchical,
 			'labels'       => $post_type->labels,
@@ -127,6 +128,12 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 			'title'                => 'type',
 			'type'                 => 'object',
 			'properties'           => array(
+				'capabilities'     => array(
+					'description'  => __( 'All capabilities used by the resource' ),
+					'type'         => array(),
+					'context'      => array( 'edit' ),
+					'readonly'     => true,
+				),
 				'description'      => array(
 					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',

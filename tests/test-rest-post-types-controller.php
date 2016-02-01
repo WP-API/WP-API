@@ -100,7 +100,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 5, count( $properties ) );
+		$this->assertEquals( 6, count( $properties ) );
+		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
 		$this->assertArrayHasKey( 'labels', $properties );
@@ -152,8 +153,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
+			$this->assertEquals( $post_type_obj->cap, $data['capabilities'] );
 			$this->assertEquals( $post_type_obj->labels, $data['labels'] );
 		} else {
+			$this->assertFalse( isset( $data['capabilities'] ) );
 			$this->assertFalse( isset( $data['labels'] ) );
 		}
 	}
