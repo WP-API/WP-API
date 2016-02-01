@@ -116,7 +116,8 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 7, count( $properties ) );
+		$this->assertEquals( 8, count( $properties ) );
+		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
 		$this->assertArrayHasKey( 'labels', $properties );
@@ -152,9 +153,11 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
+			$this->assertEquals( $tax_obj->cap, $data['capabilities'] );
 			$this->assertEquals( $tax_obj->labels, $data['labels'] );
 			$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
 		} else {
+			$this->assertFalse( isset( $data['capabilities'] ) );
 			$this->assertFalse( isset( $data['labels'] ) );
 			$this->assertFalse( isset( $data['show_cloud'] ) );
 		}

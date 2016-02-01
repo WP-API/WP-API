@@ -107,6 +107,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = array(
 			'name'         => $taxonomy->label,
 			'slug'         => $taxonomy->name,
+			'capabilities' => $taxonomy->cap,
 			'description'  => $taxonomy->description,
 			'labels'       => $taxonomy->labels,
 			'types'        => $taxonomy->object_type,
@@ -154,6 +155,12 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'title'                => 'taxonomy',
 			'type'                 => 'object',
 			'properties'           => array(
+				'capabilities'     => array(
+					'description'  => __( 'All capabilities used by the resource' ),
+					'type'         => array(),
+					'context'      => array( 'edit' ),
+					'readonly'     => true,
+				),
 				'description'      => array(
 					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
