@@ -122,7 +122,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request The request used.
 		 */
 		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
-		$query_args = $this->prepare_items_query( $args );
+		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -518,10 +518,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
-	 * @param array $prepared_args
-	 * @return array $query_args
+	 * @param array           $prepared_args
+	 * @param WP_REST_Request $request
+	 * @return array          $query_args
 	 */
-	protected function prepare_items_query( $prepared_args = array() ) {
+	protected function prepare_items_query( $prepared_args = array(), $request ) {
 
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
 		$query_args = array();
