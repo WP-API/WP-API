@@ -39,6 +39,7 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 require $test_root . '/includes/bootstrap.php';
 
 define( 'REST_TESTS_IMPOSSIBLY_HIGH_NUMBER', 99999999 );
+define( 'REST_REQUEST', true );
 
 // Helper classes
 if ( ! class_exists( 'WP_Test_REST_TestCase' ) ) {
