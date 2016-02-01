@@ -151,6 +151,20 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $id3, $data[3]['id'] );
 	}
 
+	public function test_get_items_min_max_pages_query() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'per_page', 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$this->assertEquals( 'per_page must be between 1 and 100', $data['data']['params']['per_page'] );
+		$request->set_param( 'per_page', 101 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$this->assertEquals( 'per_page must be between 1 and 100', $data['data']['params']['per_page'] );
+	}
+
 	public function test_get_items_private_filter_query_var() {
 		// Private query vars inaccessible to unauthorized users
 		wp_set_current_user( 0 );
