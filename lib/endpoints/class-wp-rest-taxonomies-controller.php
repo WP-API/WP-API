@@ -16,6 +16,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -32,6 +33,29 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+	}
+
+	/**
+	 * Check whether a given request has permission to read taxonomies.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_items_permissions_check( $request ) {
+		if ( 'edit' === $request['context'] ) {
+			if ( ! empty( $request['type'] ) ) {
+				$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+			} else {
+				$taxonomies = get_taxonomies( '', 'objects' );
+			}
+			foreach ( $taxonomies as $taxonomy ) {
+				if ( current_user_can( $taxonomy->cap->manage_terms ) ) {
+					return true;
+				}
+			}
+			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
