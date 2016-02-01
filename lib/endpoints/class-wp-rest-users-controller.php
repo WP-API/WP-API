@@ -27,7 +27,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
 					'password'    => array(
-						'required' => true,
+						//'required' => true,
 					),
 				) ),
 			),
@@ -258,7 +258,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 
 		if ( ! current_user_can( 'create_users' ) ) {
-			return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create resource.' ), array( 'status' => rest_authorization_required_code() ) );
+			if ( ! empty( $request['password'] ) || ! get_option( 'users_can_register' ) ) {
+				return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create resource.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
 		}
 
 		return true;
@@ -272,7 +274,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function create_item( $request ) {
 		global $wp_roles;
-
+		$user_password = null;
+		
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
 		}
@@ -285,21 +288,68 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				return $ret['errors'];
 			}
 		}
-
-		if ( is_multisite() ) {
-			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
-			if ( ! $user_id ) {
-				return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
-			}
-			$user->ID = $user_id;
-			$user_id = wp_update_user( $user );
-			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
+		
+		if( empty( $request['password'] ) ){
+			$user_password = wp_generate_password( 12, false );
+		} else {
+			$user_password = $request['password'];		
+		}
+		
+		if( current_user_can( 'create_users' ) ){
+			
+			//admin mode
+			
+			if ( is_multisite() ) {
+				$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
+				if ( ! $user_id ) {
+					return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
+				}
+				$user->ID = $user_id;
+				$user_id = wp_update_user( $user );
+				if ( is_wp_error( $user_id ) ) {
+					return $user_id;
+				}
+			} else {
+				$user_id = wp_insert_user( $user );
+				if ( is_wp_error( $user_id ) ) {
+					return $user_id;
+				}
 			}
 		} else {
-			$user_id = wp_insert_user( $user );
-			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
+			
+			//front-end mode
+			
+			if ( is_multisite() ) {
+				$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
+				if ( ! $user_id ) {
+					return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
+				} else {
+					$user->ID = $user_id;
+					$user_id = wp_update_user( $user );
+					if ( is_wp_error( $user_id ) ) {
+						return $user_id;
+					} else {
+						/**
+						  * Fires after a new user has been created via the network user-new.php page.
+						  *
+						  * @since 4.4.0
+						  *
+						  * @param int $user_id ID of the newly created user.
+						  */
+						do_action( 'network_user_new_created_user', $user_id );
+					}
+				}
+			}else{
+				$user_id = register_new_user( $user->user_login, $user->user_email );
+				if ( is_wp_error( $user_id ) ) {
+					return $user_id;
+				} else {
+					$user->ID = $user_id;
+					$user_id = wp_update_user( $user );
+					if ( is_wp_error( $user_id ) ) {
+						return $user_id;
+					}
+				}
 			}
 		}
 
@@ -333,7 +383,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function update_item_permissions_check( $request ) {
 
 		$id = (int) $request['id'];
-
+				
 		if ( ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
