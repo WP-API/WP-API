@@ -84,6 +84,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( array(
 			'author',
 			'author_email',
+			'author_exclude',
 			'context',
 			'exclude',
 			'include',
@@ -231,13 +232,59 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'user_id'          => $this->author_id,
 		);
 		$this->factory->comment->create( $args );
+		$args['user_id'] = $this->subscriber_id;
 		$this->factory->comment->create( $args );
 		unset( $args['user_id'] );
 		$this->factory->comment->create( $args );
 
-		// 'author' limits result to 2 of 3
+		// 'author' limits result to 1 of 3
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'author', $this->author_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 1, $comments );
+		// Multiple authors are supported
+		$request->set_param( 'author', array( $this->author_id, $this->subscriber_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 2, $comments );
+		// Unavailable to unauthenticated; defaults to error
+		wp_set_current_user( 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_param', $response, 401 );
+	}
+
+	public function test_get_items_author_exclude_arg() {
+		// Authorized
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->author_id,
+		);
+		$this->factory->comment->create( $args );
+		$args['user_id'] = $this->subscriber_id;
+		$this->factory->comment->create( $args );
+		unset( $args['user_id'] );
+		$this->factory->comment->create( $args );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$comments = $response->get_data();
+		$this->assertCount( 4, $comments );
+
+		// 'author_exclude' limits result to 3 of 4
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'author_exclude', $this->author_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 3, $comments );
+		// 'author_exclude' for both comment authors (2 of 4)
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'author_exclude', array( $this->author_id, $this->subscriber_id ) );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$comments = $response->get_data();

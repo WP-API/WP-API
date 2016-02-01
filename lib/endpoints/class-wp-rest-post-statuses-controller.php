@@ -16,6 +16,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -32,6 +33,25 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+	}
+
+	/**
+	 * Check whether a given request has permission to read post statuses.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_items_permissions_check( $request ) {
+		if ( 'edit' === $request['context'] ) {
+			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
+			foreach ( $types as $type ) {
+				if ( current_user_can( $type->cap->edit_posts ) ) {
+					return true;
+				}
+			}
+			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
@@ -166,47 +186,47 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 				'name'             => array(
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'private'          => array(
 					'description'  => __( 'Whether posts with this resource should be private.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'protected'        => array(
 					'description'  => __( 'Whether posts with this resource should be protected.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'public'           => array(
 					'description'  => __( 'Whether posts of this resource should be shown in the front end of the site.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'queryable'        => array(
 					'description'  => __( 'Whether posts with this resource should be publicly-queryable.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'show_in_list'     => array(
 					'description'  => __( 'Whether to include posts in the edit listing for their post type.' ),
 					'type'         => 'boolean',
-					'context'      => array( 'view' ),
+					'context'      => array( 'edit' ),
 					'readonly'     => true,
-					),
+				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'embed', 'view', 'edit' ),
 					'readonly'     => true,
-					),
 				),
-			);
+			),
+		);
 		return $this->add_additional_fields_schema( $schema );
 	}
 

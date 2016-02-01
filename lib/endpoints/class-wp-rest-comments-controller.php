@@ -85,7 +85,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			$protected_params = array( 'author', 'karma', 'author_email', 'type', 'status' );
+			$protected_params = array( 'author', 'author_exclude', 'karma', 'author_email', 'type', 'status' );
 			$forbidden_params = array();
 			foreach ( $protected_params as $param ) {
 				if ( 'status' === $param ) {
@@ -130,7 +130,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'status'          => $request['status'],
 			'type'            => $request['type'],
 			'no_found_rows'   => false,
-			'user_id'         => $request['author'] ? $request['author'] : '',
+			'author__in'      => $request['author'],
+			'author__not_in'  => $request['author_exclude'],
 		);
 
 		if ( empty( $request['offset'] ) ) {
@@ -355,17 +356,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$this->handle_status_param( $request['status'], $comment );
 		}
 
-		$this->update_additional_fields_for_object( get_comment( $comment_id ), $request );
+		$comment = get_comment( $comment_id );
+		$this->update_additional_fields_for_object( $comment, $request );
 
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
-		$get_request = new WP_REST_Request;
-		$get_request->set_param( 'id', $comment_id );
-		$get_request->set_param( 'context', $context );
-		$response = $this->get_item( $get_request );
+		$request->set_param( 'context', $context );
+		$response = $this->prepare_item_for_response( $comment, $request );
 		$response = rest_ensure_response( $response );
-		if ( is_wp_error( $response ) ) {
-			return $response;
-		}
 		$response->set_status( 201 );
 		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $comment_id ) ) );
 
@@ -916,10 +913,16 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$query_params['context']['default'] = 'view';
 
 		$query_params['author'] = array(
-			'description'       => __( 'Limit result set to comments assigned to a specific user id. Requires authorization.' ),
-			'sanitize_callback' => 'absint',
-			'type'              => 'integer',
-			'validate_callback'  => 'rest_validate_request_arg',
+			'description'       => __( 'Limit result set to comments assigned to specific user ids. Requires authorization.' ),
+			'sanitize_callback' => 'wp_parse_id_list',
+			'type'              => 'array',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$query_params['author_exclude'] = array(
+			'description'       => __( 'Ensure result set excludes comments assigned to specific user ids. Requires authorization.' ),
+			'sanitize_callback' => 'wp_parse_id_list',
+			'type'              => 'array',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author_email'] = array(
 			'default'           => null,

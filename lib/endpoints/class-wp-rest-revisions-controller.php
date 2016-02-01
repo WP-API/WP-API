@@ -262,10 +262,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			 */
 			'properties' => array(
 				'author'          => array(
-						'description' => __( 'The id for the author of the object.' ),
-						'type'        => 'integer',
-						'context'     => array( 'view' ),
-					),
+					'description' => __( 'The id for the author of the object.' ),
+					'type'        => 'integer',
+					'context'     => array( 'view' ),
+				),
 				'date'            => array(
 					'description' => __( 'The date the object was published.' ),
 					'type'        => 'string',
