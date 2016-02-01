@@ -10,7 +10,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return array $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request ) {
-		$query_args = parent::prepare_items_query( $prepared_args );
+		$query_args = parent::prepare_items_query( $prepared_args, $request );
 		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
 			$query_args['post_status'] = 'inherit';
 		}

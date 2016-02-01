@@ -522,7 +522,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request
 	 * @return array          $query_args
 	 */
-	protected function prepare_items_query( $prepared_args = array(), $request ) {
+	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
 		$query_args = array();
