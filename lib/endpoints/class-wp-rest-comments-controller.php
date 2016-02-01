@@ -28,7 +28,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'     => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
@@ -58,7 +57,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 				),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
@@ -122,7 +120,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'karma'           => isset( $request['karma'] ) ? $request['karma'] : '',
 			'number'          => $request['per_page'],
 			'post_id'         => $request['post'] ? $request['post'] : '',
-			'parent'          => isset( $request['parent'] ) ? $request['parent'] : '',
+			'parent__in'      => $request['parent'],
+			'parent__not_in'  => $request['parent_exclude'],
 			'search'          => $request['search'],
 			'offset'          => $request['offset'],
 			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
@@ -987,10 +986,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		);
 		$query_params['parent'] = array(
-			'default'           => null,
-			'description'       => __( 'Limit result set to that of a specific comment parent id.' ),
-			'sanitize_callback' => 'absint',
-			'type'              => 'integer',
+			'default'           => array(),
+			'description'       => __( 'Limit result set to resources of specific parent ids.' ),
+			'sanitize_callback' => 'wp_parse_id_list',
+			'type'              => 'array',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$query_params['parent_exclude'] = array(
+			'default'           => array(),
+			'description'       => __( 'Ensure result set excludes specific parent ids.' ),
+			'sanitize_callback' => 'wp_parse_id_list',
+			'type'              => 'array',
 			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['post']   = array(

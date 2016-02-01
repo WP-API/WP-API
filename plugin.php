@@ -83,6 +83,7 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
+require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
@@ -315,6 +316,12 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
 					}
 					break;
+			}
+		}
+
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && isset( $args['minimum'] ) && isset( $args['maximum'] ) ) {
+			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d and %d' ), $param, $args['minimum'], $args['maximum'] ) );
 			}
 		}
 
