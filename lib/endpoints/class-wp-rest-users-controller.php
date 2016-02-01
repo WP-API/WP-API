@@ -752,7 +752,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
 					'context'     => array( 'edit' ),
-					'enum'        => array_keys( $wp_roles->role_objects ),
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),

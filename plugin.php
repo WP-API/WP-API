@@ -292,9 +292,6 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			if ( 'string' === $args['type'] && ! in_array( $value, $args['enum'] ) ) {
 				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $param, implode( ', ', $args['enum'] ) ) );
 			}
-			if ( 'array' === $args['type'] && array_diff( $value, $args['enum'] ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s includes a value not in %s' ), $param, implode( ', ', $args['enum'] ) ) );
-			}
 		}
 
 		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
