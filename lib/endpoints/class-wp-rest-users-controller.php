@@ -31,7 +31,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					),
 				) ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
@@ -63,7 +62,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'reassign' => array(),
 				),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
