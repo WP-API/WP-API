@@ -83,6 +83,7 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
+require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
