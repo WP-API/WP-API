@@ -163,6 +163,7 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 			if ( ! is_subclass_of( $controller, 'WP_REST_Controller' ) ) {
 				continue;
 			}
+			$controller = apply_filters( "wp_rest_on_create_" . $post_type->name. "_controller", $controller, $post_type->name );
 
 			$controller->register_routes();
 
