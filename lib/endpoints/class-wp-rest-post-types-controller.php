@@ -43,7 +43,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	public function get_items_permissions_check( $request ) {
 		if ( 'edit' === $request['context'] ) {
 			foreach ( get_post_types( array(), 'object' ) as $post_type ) {
-				if ( current_user_can( $post_type->cap->edit_posts ) ) {
+				if ( ! empty( $post_type->show_in_rest ) && current_user_can( $post_type->cap->edit_posts ) ) {
 					return true;
 				}
 			}

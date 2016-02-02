@@ -49,7 +49,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				$taxonomies = get_taxonomies( '', 'objects' );
 			}
 			foreach ( $taxonomies as $taxonomy ) {
-				if ( current_user_can( $taxonomy->cap->manage_terms ) ) {
+				if ( ! empty( $taxonomy->show_in_rest ) && current_user_can( $taxonomy->cap->manage_terms ) ) {
 					return true;
 				}
 			}
