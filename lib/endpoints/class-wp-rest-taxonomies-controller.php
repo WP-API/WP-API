@@ -180,8 +180,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'type'                 => 'object',
 			'properties'           => array(
 				'capabilities'     => array(
-					'description'  => __( 'All capabilities used by the resource' ),
-					'type'         => array(),
+					'description'  => __( 'All capabilities used by the resource.' ),
+					'type'         => 'array',
 					'context'      => array( 'edit' ),
 					'readonly'     => true,
 				),
