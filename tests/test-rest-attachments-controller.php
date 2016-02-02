@@ -62,6 +62,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		sort( $keys );
 		$this->assertEquals( array(
 			'author',
+			'author_exclude',
 			'context',
 			'exclude',
 			'filter',
@@ -71,8 +72,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'orderby',
 			'page',
 			'parent',
+			'parent_exclude',
 			'per_page',
 			'search',
+			'slug',
 			'status',
 			), $keys );
 	}
@@ -170,7 +173,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_invalid_status_param_is_discarded() {
 		wp_set_current_user( $this->editor_id );
-		$attachment_id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+		$this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
@@ -278,6 +281,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$data = $response->get_data();
 		$this->assertEquals( 201, $response->get_status() );
 		$this->assertEquals( 'image', $data['media_type'] );
+		$this->assertEquals( 'A field of amazing canola', $data['title']['rendered'] );
+		$this->assertEquals( 'The description for the image', $data['caption'] );
 	}
 
 	public function test_create_item_with_files() {
@@ -363,6 +368,18 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
+	public function test_create_item_invalid_post_type() {
+		$attachment_id = $this->factory->post->create( array( 'post_type' => 'attachment', 'post_status' => 'inherit', 'post_parent' => 0 ) );
+		wp_set_current_user( $this->editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_body( file_get_contents( $this->test_file ) );
+		$request->set_param( 'post', $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_create_item_alt_text() {
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -428,7 +445,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$new_parent = $this->factory->post->create( array() );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
 		$request->set_param( 'post', $new_parent );
-		$response = $this->server->dispatch( $request );
+		$this->server->dispatch( $request );
 
 		$attachment = get_post( $attachment_id );
 		$this->assertEquals( $new_parent, $attachment->post_parent );
@@ -445,6 +462,20 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'caption', 'This is a better caption.' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_update_item_invalid_post_type() {
+		$attachment_id = $this->factory->post->create( array( 'post_type' => 'attachment', 'post_status' => 'inherit', 'post_parent' => 0 ) );
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'post', $attachment_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_delete_item() {

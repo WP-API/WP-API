@@ -51,17 +51,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		sort( $keys );
 		$this->assertEquals( array(
 			'author',
+			'author_exclude',
 			'context',
 			'exclude',
 			'filter',
 			'include',
+			'menu_order',
 			'offset',
 			'order',
 			'orderby',
 			'page',
 			'parent',
+			'parent_exclude',
 			'per_page',
 			'search',
+			'slug',
 			'status',
 			), $keys );
 	}
@@ -84,6 +88,84 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id2, $data[0]['id'] );
+	}
+
+	public function test_get_items_parents_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id3 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 4, count( $data ) );
+		// Filter to parents
+		$request->set_param( 'parent', array( $id1, $id3 ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEqualSets( array( $id2, $id4 ), wp_list_pluck( $data, 'id' ) );
+	}
+
+	public function test_get_items_parent_exclude_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'post_parent' => $id1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		// Filter to parent
+		$request->set_param( 'parent_exclude', $id1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_menu_order_query() {
+		$id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 2 ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 3 ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page', 'menu_order' => 1 ) );
+		// No parent
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEqualSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
+		// Filter to menu_order
+		$request->set_param( 'menu_order', 1 );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEqualSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
+		// Order by menu order
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', 'menu_order' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertEquals( $id4, $data[1]['id'] );
+		$this->assertEquals( $id2, $data[2]['id'] );
+		$this->assertEquals( $id3, $data[3]['id'] );
+	}
+
+	public function test_get_items_min_max_pages_query() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'per_page', 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		// Safe format for 4.4 and 4.5 https://core.trac.wordpress.org/ticket/35028
+		$first_error = array_shift( $data['data']['params'] );
+		$this->assertContains( 'per_page must be between 1 and 100', $first_error );
+		$request->set_param( 'per_page', 101 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$first_error = array_shift( $data['data']['params'] );
+		$this->assertContains( 'per_page must be between 1 and 100', $first_error );
 	}
 
 	public function test_get_items_private_filter_query_var() {

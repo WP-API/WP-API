@@ -2,78 +2,93 @@
 
 class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
+	public function setUp() {
+		parent::setUp();
+		$this->request = new WP_REST_Request( 'GET', '/wp/v2/testroute', array(
+			'args'     => array(
+				'someinteger'     => array(
+					'type'        => 'integer',
+				),
+				'somestring'      => array(
+					'type'        => 'string',
+				),
+				'someenum'        => array(
+					'type'        => 'string',
+					'enum'        => array( 'a' ),
+				),
+				'somedate'        => array(
+					'type'        => 'string',
+					'format'      => 'date-time',
+				),
+				'someemail'       => array(
+					'type'        => 'string',
+					'format'      => 'email',
+				),
+			),
+		));
+	}
 
-	function test_validate_schema_type_integer() {
-
-		$controller = new WP_REST_Test_Controller();
+	public function test_validate_schema_type_integer() {
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', null, 'someinteger' )
+			rest_validate_request_arg( '123', $this->request, 'someinteger' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'abc', null, 'someinteger' )
+			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
 		);
 	}
 
-	function test_validate_schema_type_string() {
-
-		$controller = new WP_REST_Test_Controller();
+	public function test_validate_schema_type_string() {
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '123', null, 'somestring' )
+			rest_validate_request_arg( '123', $this->request, 'somestring' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( array( 'foo' => 'bar' ), null, 'somestring' )
+			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
 		);
 	}
 
-	function test_validate_schema_enum() {
-
-		$controller = new WP_REST_Test_Controller();
+	public function test_validate_schema_enum() {
 
 		$this->assertTrue(
-			$controller->validate_schema_property( 'a', null, 'someenum' )
+			rest_validate_request_arg( 'a', $this->request, 'someenum' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_param',
-			$controller->validate_schema_property( 'd', null, 'someenum' )
+			rest_validate_request_arg( 'd', $this->request, 'someenum' )
 		);
 	}
 
-	function test_validate_schema_format_email() {
-
-		$controller = new WP_REST_Test_Controller();
+	public function test_validate_schema_format_email() {
 
 		$this->assertTrue(
-			$controller->validate_schema_property( 'joe@foo.bar', null, 'someemail' )
+			rest_validate_request_arg( 'joe@foo.bar', $this->request, 'someemail' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_email',
-			$controller->validate_schema_property( 'd', null, 'someemail' )
+			rest_validate_request_arg( 'd', $this->request, 'someemail' )
 		);
 	}
 
-	function test_validate_schema_format_date_time() {
-
-		$controller = new WP_REST_Test_Controller();
+	public function test_validate_schema_format_date_time() {
 
 		$this->assertTrue(
-			$controller->validate_schema_property( '2010-01-01T12:00:00', null, 'somedate' )
+			rest_validate_request_arg( '2010-01-01T12:00:00', $this->request, 'somedate' )
 		);
 
 		$this->assertErrorResponse(
 			'rest_invalid_date',
-			$controller->validate_schema_property( '2010-18-18T12:00:00', null, 'somedate' )
+			rest_validate_request_arg( '2010-18-18T12:00:00', $this->request, 'somedate' )
 		);
 	}
 
-	function test_get_endpoint_args_for_item_schema_arg_options() {
+	public function test_get_endpoint_args_for_item_schema_arg_options() {
 
 		$controller = new WP_REST_Test_Controller();
 		$args       = $controller->get_endpoint_args_for_item_schema();
@@ -82,7 +97,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertEquals( '__return_true', $args['someargoptions']['sanitize_callback'] );
 	}
 
-	function test_get_endpoint_args_for_item_schema_default_value() {
+	public function test_get_endpoint_args_for_item_schema_default_value() {
 
 		$controller = new WP_REST_Test_Controller();
 

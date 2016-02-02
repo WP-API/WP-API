@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: WP REST API
- * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
+ * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta10
+ * Version: 2.0-beta11
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -80,23 +80,10 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
- * WP_REST_Meta_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
-}
-
-/**
- * WP_REST_Meta_Posts_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
-}
-
-/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
+require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
@@ -179,10 +166,6 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 
 			$controller->register_routes();
 
-			if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
-				$meta_controller = new WP_REST_Meta_Posts_Controller( $post_type->name );
-				$meta_controller->register_routes();
-			}
 			if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 				$revisions_controller->register_routes();
@@ -287,4 +270,103 @@ if ( ! function_exists( 'register_api_field' ) ) {
 		_deprecated_function( 'register_api_field', 'WPAPI-2.0', 'register_rest_field' );
 		register_rest_field( $object_type, $attributes, $args );
 	}
+}
+
+if ( ! function_exists( 'rest_validate_request_arg' ) ) {
+	/**
+	 * Validate a request argument based on details registered to the route.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return WP_Error|boolean
+	 */
+	function rest_validate_request_arg( $value, $request, $param ) {
+
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return true;
+		}
+		$args = $attributes['args'][ $param ];
+
+		if ( ! empty( $args['enum'] ) ) {
+			if ( ! in_array( $value, $args['enum'] ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $param, implode( ', ', $args['enum'] ) ) );
+			}
+		}
+
+		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
+		}
+
+		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
+		}
+
+		if ( isset( $args['format'] ) ) {
+			switch ( $args['format'] ) {
+				case 'date-time' :
+					if ( ! rest_parse_date( $value ) ) {
+						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
+					}
+					break;
+
+				case 'email' :
+					if ( ! is_email( $value ) ) {
+						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
+					}
+					break;
+			}
+		}
+
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && isset( $args['minimum'] ) && isset( $args['maximum'] ) ) {
+			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d and %d' ), $param, $args['minimum'], $args['maximum'] ) );
+			}
+		}
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
+	/**
+	 * Sanitize a request argument based on details registered to the route.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_sanitize_request_arg( $value, $request, $param ) {
+
+		$attributes = $request->get_attributes();
+		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {
+			return $value;
+		}
+		$args = $attributes['args'][ $param ];
+
+		if ( 'integer' === $args['type'] ) {
+			return (int) $value;
+		}
+
+		if ( isset( $args['format'] ) ) {
+			switch ( $args['format'] ) {
+				case 'date-time' :
+					return sanitize_text_field( $value );
+
+				case 'email' :
+					/*
+					 * sanitize_email() validates, which would be unexpected
+					 */
+					return sanitize_text_field( $value );
+
+				case 'uri' :
+					return esc_url_raw( $value );
+			}
+		}
+
+		return $value;
+	}
+
 }

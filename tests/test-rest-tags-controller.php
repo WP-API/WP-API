@@ -56,8 +56,9 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			'orderby',
 			'page',
 			'per_page',
-			'post_id',
+			'post',
 			'search',
+			'slug',
 			), $keys );
 	}
 
@@ -202,6 +203,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$post_id = $this->factory->post->create();
 		$tag1 = $this->factory->tag->create( array( 'name' => 'DC' ) );
 		$tag2 = $this->factory->tag->create( array( 'name' => 'Marvel' ) );
+		$this->factory->tag->create( array( 'name' => 'Dark Horse' ) );
 		wp_set_object_terms( $post_id, array( $tag1, $tag2 ), 'post_tag' );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -220,6 +222,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$controller->register_routes();
 		$term1 = $this->factory->term->create( array( 'name' => 'Cape', 'taxonomy' => 'batman' ) );
 		$term2 = $this->factory->term->create( array( 'name' => 'Mask', 'taxonomy' => 'batman' ) );
+		$this->factory->term->create( array( 'name' => 'Car', 'taxonomy' => 'batman' ) );
 		$post_id = $this->factory->post->create();
 		wp_set_object_terms( $post_id, array( $term1, $term2 ), 'batman' );
 
@@ -253,6 +256,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 0, count( $data ) );
+	}
+
+	public function test_get_items_slug_arg() {
+		$tag1 = $this->factory->tag->create( array( 'name' => 'Apple' ) );
+		$tag2 = $this->factory->tag->create( array( 'name' => 'Banana' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'slug', 'apple' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( 'Apple', $data[0]['name'] );
 	}
 
 	public function test_get_terms_private_taxonomy() {
@@ -324,6 +339,13 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			), rest_url( '/wp/v2/tags' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
+	public function test_get_items_invalid_context() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'context', 'banana' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_get_item() {
@@ -452,8 +474,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Deleted Tag', $data['data']['name'] );
-		$this->assertTrue( $data['deleted'] );
+		$this->assertEquals( 'Deleted Tag', $data['name'] );
 	}
 
 	public function test_delete_item_force_false() {
@@ -587,6 +608,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'collection', $links );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response, $id ) {
