@@ -132,32 +132,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_items_for_post() {
+		// With post ID.
 		$second_post_id = $this->factory->post->create();
 		$post = get_post( $second_post_id );
 		$this->factory->comment->create_post_comments( $second_post_id, 2 );
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_query_params( array(
 			'post' => $second_post_id,
 		) );
-
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
-
-		// With filter params.
-		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		// With filter params (in this case post slug).
 		$request->set_query_params( array(
 			'filter' => array(
 				'post_name' => $post->post_name,
 			),
 		) );
-
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-
 		$comments = $response->get_data();
 		$this->assertCount( 2, $comments );
 	}
@@ -204,6 +198,41 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data = $response->get_data();
 		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
 		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+	}
+
+	public function test_get_items_private_filter_query_var() {
+		// Private posts are inaccessible to unauthorized users.
+		wp_set_current_user( 0 );
+		$post_id = $this->factory->post->create( array( 'post_status' => 'private' ) );
+		$post = get_post( $post_id );
+		$this->factory->comment->create_post_comments( $post_id, 2 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_query_params( array(
+			'filter' => array(
+				'post_status' => 'private',
+			),
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 0, $comments );
+		// But they are accessible to authorized users.
+		wp_set_current_user( $this->admin_id );
+		$response = $this->server->dispatch( $request );
+		$comments = $response->get_data();
+		$this->assertCount( 2, $comments );
+		$this->assertEquals( $post_id, $comments[0]['post'] );
+		// They are also inaccessible by post_slug.
+		wp_set_current_user( 0 );
+		$request->set_query_params( array(
+			'filter' => array(
+				'post_name' => $post->post_name,
+			),
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 0, $comments );
 	}
 
 	public function test_get_items_offset_query() {
