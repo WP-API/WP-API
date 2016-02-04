@@ -319,9 +319,37 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
-		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && isset( $args['minimum'] ) && isset( $args['maximum'] ) ) {
-			if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d and %d' ), $param, $args['minimum'], $args['maximum'] ) );
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
+			if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
+				if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (exclusive)' ), $param, $args['minimum'] ) );
+				} else if ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (inclusive)' ), $param, $args['minimum'] ) );
+				}
+			} else if ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
+				if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (exclusive)' ), $param, $args['maximum'] ) );
+				} else if ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (inclusive)' ), $param, $args['maximum'] ) );
+				}
+			} else if ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
+				if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				}
 			}
 		}
 
