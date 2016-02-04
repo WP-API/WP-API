@@ -67,6 +67,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'exclude',
 			'filter',
 			'include',
+			'media_type',
+			'mime_type',
 			'offset',
 			'order',
 			'orderby',
@@ -78,6 +80,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'slug',
 			'status',
 			), $keys );
+		$this->assertEqualSets( array(
+			'application',
+			'video',
+			'image',
+			'audio',
+			'text',
+		), $data['endpoints'][0]['args']['media_type']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -133,6 +142,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertTrue( in_array( $id1, $ids ) );
 		$this->assertTrue( in_array( $id2, $ids ) );
 		$this->assertTrue( in_array( $id3, $ids ) );
+	}
+
+	public function test_get_items_media_type() {
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
+		// media_type=video
+		$request->set_param( 'media_type', 'video' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 0, $response->get_data() );
+		// media_type=image
+		$request->set_param( 'media_type', 'image' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_mime_type() {
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
+		// mime_type=image/png
+		$request->set_param( 'mime_type', 'image/png' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 0, $response->get_data() );
+		// mime_type=image/jpeg
+		$request->set_param( 'mime_type', 'image/jpeg' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id1, $data[0]['id'] );
 	}
 
 	public function test_get_items_parent() {
@@ -215,6 +262,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
 		$response = $this->server->dispatch( $request );
 		$this->check_get_post_response( $response );
+		$data = $response->get_data();
+		$this->assertEquals( 'image/jpeg', $data['mime_type'] );
 	}
 
 	public function test_get_item_sizes() {
@@ -539,7 +588,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 22, count( $properties ) );
+		$this->assertEquals( 23, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -551,6 +600,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
 		$this->assertArrayHasKey( 'media_type', $properties );
+		$this->assertArrayHasKey( 'mime_type', $properties );
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'modified_gmt', $properties );
