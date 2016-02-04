@@ -1143,7 +1143,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$data[ $base ] = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+			$terms = get_the_terms( $post, $taxonomy->name );
+			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
