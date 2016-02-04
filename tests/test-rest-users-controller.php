@@ -46,7 +46,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/' . $this->user );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertEquals( 'embed', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
@@ -1028,37 +1028,25 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'avatar_urls', $data );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 
-		if ( 'view' === $context || 'edit' === $context ) {
+		if ( 'edit' === $context ) {
 			$this->assertEquals( $user->first_name, $data['first_name'] );
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
+			$this->assertEquals( $user->user_email, $data['email'] );
+			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
+			$this->assertEquals( $user->user_login, $data['username'] );
+			$this->assertEquals( $user->roles, $data['roles'] );
 		}
 
-		if ( 'view' !== $context && 'edit' !== $context ) {
+		if ( 'edit' !== $context ) {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered', $data );
 			$this->assertArrayNotHasKey( 'first_name', $data );
 			$this->assertArrayNotHasKey( 'last_name', $data );
 			$this->assertArrayNotHasKey( 'nickname', $data );
-		}
-
-		if ( 'view' === $context ) {
-			$this->assertEquals( $user->roles, $data['roles'] );
-			$this->assertEquals( $user->allcaps, $data['capabilities'] );
-			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
-			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
-		}
-
-		if ( 'edit' === $context ) {
-			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
-			$this->assertEquals( $user->user_login, $data['username'] );
-			$this->assertEquals( $user->roles, $data['roles'] );
-		}
-
-		if ( 'edit' !== $context ) {
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
