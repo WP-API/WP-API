@@ -262,51 +262,51 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'author'          => array(
 					'description' => __( 'The id for the author of the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date'            => array(
 					'description' => __( 'The date the object was published.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'        => array(
 					'description' => __( 'The date the object was published, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'guid'            => array(
 					'description' => __( 'GUID for the object, as it exists in the database.' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'id'              => array(
 					'description' => __( 'Unique identifier for the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'modified'        => array(
 					'description' => __( 'The date the object was last modified.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'modified_gmt'    => array(
 					'description' => __( 'The date the object was last modified, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'parent'          => array(
 					'description' => __( 'The id for the parent of the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					),
 				'slug'            => array(
 					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
@@ -324,7 +324,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['title'] = array(
 						'description' => __( 'Title for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 
@@ -332,7 +332,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['content'] = array(
 						'description' => __( 'Content for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -340,7 +340,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => __( 'Excerpt for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 
