@@ -74,7 +74,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function get_items_permissions_check( $request ) {
-		return $this->check_is_taxonomy_allowed( $this->taxonomy );
+		$tax_obj = get_taxonomy( $this->taxonomy );
+		if ( ! $tax_obj || ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
+			return false;
+		}
+		if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->edit_terms ) ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
@@ -188,7 +195,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function get_item_permissions_check( $request ) {
-		return $this->check_is_taxonomy_allowed( $this->taxonomy );
+		$tax_obj = get_taxonomy( $this->taxonomy );
+		if ( ! $tax_obj || ! $this->check_is_taxonomy_allowed( $this->taxonomy ) ) {
+			return false;
+		}
+		if ( 'edit' === $request['context'] && ! current_user_can( $tax_obj->cap->edit_terms ) ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
@@ -544,19 +558,19 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'id'               => array(
 					'description'  => __( 'Unique identifier for the resource.' ),
 					'type'         => 'integer',
-					'context'      => array( 'view', 'embed' ),
+					'context'      => array( 'view', 'embed', 'edit' ),
 					'readonly'     => true,
 				),
 				'count'            => array(
 					'description'  => __( 'Number of published posts for the resource.' ),
 					'type'         => 'integer',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					'readonly'     => true,
 				),
 				'description'      => array(
 					'description'  => __( 'HTML description of the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view' ),
+					'context'      => array( 'view', 'edit' ),
 					'arg_options'  => array(
 						'sanitize_callback' => 'wp_filter_post_kses',
 					),
@@ -565,13 +579,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'description'  => __( 'URL to the resource.' ),
 					'type'         => 'string',
 					'format'       => 'uri',
-					'context'      => array( 'view', 'embed' ),
+					'context'      => array( 'view', 'embed', 'edit' ),
 					'readonly'     => true,
 				),
 				'name'             => array(
 					'description'  => __( 'HTML title for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'embed' ),
+					'context'      => array( 'view', 'embed', 'edit' ),
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -580,7 +594,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource unique to its type.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'embed' ),
+					'context'      => array( 'view', 'embed', 'edit' ),
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_title',
 					),
@@ -589,7 +603,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 					'description'  => __( 'Type attribution for the resource.' ),
 					'type'         => 'string',
 					'enum'         => array_keys( get_taxonomies() ),
-					'context'      => array( 'view', 'embed' ),
+					'context'      => array( 'view', 'embed', 'edit' ),
 					'readonly'     => true,
 				),
 			),
@@ -599,7 +613,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$schema['properties']['parent'] = array(
 				'description'  => __( 'The id for the parent of the resource.' ),
 				'type'         => 'integer',
-				'context'      => array( 'view' ),
+				'context'      => array( 'view', 'edit' ),
 			);
 		}
 		return $this->add_additional_fields_schema( $schema );
