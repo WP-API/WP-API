@@ -15,6 +15,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
 			$query_args['post_status'] = 'inherit';
 		}
+		$media_types = $this->get_media_types();
+		if ( ! empty( $request['media_type'] ) && in_array( $request['media_type'], array_keys( $media_types ) ) ) {
+			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+		}
+		if ( ! empty( $request['mime_type'] ) ) {
+			$parts = explode( '/', $request['mime_type'] );
+			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ] ) ) {
+				$query_args['post_mime_type'] = $request['mime_type'];
+			}
+		}
 		return $query_args;
 	}
 
@@ -212,6 +222,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$data['caption']       = $post->post_excerpt;
 		$data['description']   = $post->post_content;
 		$data['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
+		$data['mime_type']     = $post->post_mime_type;
 		$data['media_details'] = wp_get_attachment_metadata( $post->ID );
 		$data['post']          = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
 		$data['source_url']    = wp_get_attachment_url( $post->ID );
@@ -310,6 +321,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description'     => __( 'Type of resource.' ),
 			'type'            => 'string',
 			'enum'            => array( 'image', 'file' ),
+			'context'         => array( 'view', 'edit', 'embed' ),
+			'readonly'        => true,
+		);
+		$schema['properties']['mime_type'] = array(
+			'description'     => __( 'Mime type of resource.' ),
+			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 		);
@@ -431,6 +448,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$params = parent::get_collection_params();
 		$params['status']['default'] = 'inherit';
 		$params['status']['enum'] = array( 'inherit', 'private', 'trash' );
+		$media_types = $this->get_media_types();
+		$params['media_type'] = array(
+			'default'            => null,
+			'description'        => __( 'Limit result set to attachments of a particular media type.' ),
+			'type'               => 'string',
+			'enum'               => array_keys( $media_types ),
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
+		$params['mime_type'] = array(
+			'default'            => null,
+			'description'        => __( 'Limit result set to attachments of a particular mime type.' ),
+			'type'               => 'string',
+		);
 		return $params;
 	}
 
@@ -489,6 +519,24 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $file;
+	}
+
+	/**
+	 * Get the supported media types.
+	 * Media types are considered the mime type category
+	 *
+	 * @return array
+	 */
+	protected function get_media_types() {
+		$media_types = array();
+		foreach ( get_allowed_mime_types() as $mime_type ) {
+			$parts = explode( '/', $mime_type );
+			if ( ! isset( $media_types[ $parts[0] ] ) ) {
+				$media_types[ $parts[0] ] = array();
+			}
+			$media_types[ $parts[0] ][] = $mime_type;
+		}
+		return $media_types;
 	}
 
 }
