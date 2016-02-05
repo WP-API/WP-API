@@ -20,7 +20,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base, array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent>[\d]+)/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
@@ -30,7 +30,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -57,7 +57,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
+		$parent = get_post( $request['parent'] );
 		if ( ! $parent ) {
 			return true;
 		}
@@ -77,12 +77,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
-		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
+		$parent = get_post( $request['parent'] );
+		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
-		$revisions = wp_get_post_revisions( $request['parent_id'] );
+		$revisions = wp_get_post_revisions( $request['parent'] );
 
 		$response = array();
 		foreach ( $revisions as $revision ) {
@@ -110,9 +110,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
-		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
+		$parent = get_post( $request['parent'] );
+		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revision = get_post( $request['id'] );
