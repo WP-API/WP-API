@@ -461,7 +461,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		foreach ( $disposition_header as $value ) {
 			$value = trim( $value );
 
-			if ( strpos( $value, 'filename' ) === false ) {
+			if ( strpos( $value, ';' ) === false ) {
 				continue;
 			}
 
