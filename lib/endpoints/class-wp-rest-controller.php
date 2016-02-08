@@ -240,6 +240,7 @@ abstract class WP_REST_Controller {
 				'default'            => 1,
 				'sanitize_callback'  => 'absint',
 				'validate_callback'  => 'rest_validate_request_arg',
+				'minimum'            => 1,
 			),
 			'per_page'               => array(
 				'description'        => __( 'Maximum number of items to be returned in result set.' ),
