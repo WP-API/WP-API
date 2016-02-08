@@ -570,6 +570,23 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 403, $response->get_status() );
 	}
 
+	public function test_get_item_paged_content() {
+		$post_content = <<<EOT
+This is my first page of content.
+<!--nextpage-->
+This is my second page of content.
+<!--nextpage-->
+This is my third page of content.
+EOT;
+		wp_update_post( array( 'ID' => $this->post_id, 'post_content' => $post_content ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'This is my first page of content.', $data['content']['rendered'] );
+		$this->assertEquals( 'This is my second page of content.', $data['content']['pages'][0] );
+		$this->assertEquals( 'This is my third page of content.', $data['content']['pages'][1] );
+	}
+
 	public function test_prepare_item() {
 		wp_set_current_user( $this->editor_id );
 
