@@ -35,6 +35,47 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertCount( 3, $routes['/wp/v2/media/(?P<id>[\d]+)'] );
 	}
 
+	public static function disposition_provider() {
+		return array(
+			// Types
+			array( 'attachment; filename="foo.jpg"', 'foo.jpg' ),
+			array( 'inline; filename="foo.jpg"', 'foo.jpg' ),
+			array( 'form-data; filename="foo.jpg"', 'foo.jpg' ),
+
+			// Formatting
+			array( 'attachment; filename="foo.jpg"', 'foo.jpg' ),
+			array( 'attachment; filename=foo.jpg', 'foo.jpg' ),
+			array( 'attachment;filename="foo.jpg"', 'foo.jpg' ),
+			array( 'attachment;filename=foo.jpg', 'foo.jpg' ),
+			array( 'attachment; filename = "foo.jpg"', 'foo.jpg' ),
+			array( 'attachment; filename = foo.jpg', 'foo.jpg' ),
+			array( "attachment;\tfilename\t=\t\"foo.jpg\"", 'foo.jpg' ),
+			array( "attachment;\tfilename\t=\tfoo.jpg", 'foo.jpg' ),
+			array( 'attachment; filename = my foo picture.jpg', 'my foo picture.jpg' ),
+
+			// Extensions
+			array( 'form-data; name="myfile"; filename="foo.jpg"', 'foo.jpg' ),
+			array( 'form-data; name="myfile"; filename="foo.jpg"; something="else"', 'foo.jpg' ),
+			array( 'form-data; name=myfile; filename=foo.jpg; something=else', 'foo.jpg' ),
+			array( 'form-data; name=myfile; filename=my foo.jpg; something=else', 'my foo.jpg' ),
+
+			// Invalid
+			array( 'filename="foo.jpg"', null ),
+			array( 'filename-foo.jpg', null ),
+			array( 'foo.jpg', null ),
+			array( 'unknown; notfilename="foo.jpg"', null ),
+		);
+	}
+
+	/**
+	 * @dataProvider disposition_provider
+	 */
+	public function test_parse_disposition( $header, $expected ) {
+		$header_list = array( $header );
+		$parsed = WP_REST_Attachments_Controller::get_filename_from_disposition( $header_list );
+		$this->assertEquals( $expected, $parsed );
+	}
+
 	public function test_context_param() {
 		// Collection
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
