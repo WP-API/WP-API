@@ -371,22 +371,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
 		}
 
-		// Get the filename
-		$filename = null;
-
-		foreach ( $headers['content_disposition'] as $part ) {
-			$part = trim( $part );
-
-			if ( strpos( $part, 'filename' ) !== 0 ) {
-				continue;
-			}
-
-			$filenameparts = explode( '=', $part );
-			$filename      = trim( $filenameparts[1] );
-		}
+		$filename = $this->get_filename_from_disposition( $headers['content_disposition'] );
 
 		if ( empty( $filename ) ) {
-			return new WP_Error( 'rest_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied. Content-Disposition needs to be formatted as "filename=image.png" or similar.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied. Content-Disposition needs to be formatted as `attachment; filename="image.png"` or similar.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $headers['content_md5'] ) ) {
@@ -437,6 +425,71 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		return $sideloaded;
+	}
+
+	/**
+	 * Parse filename from a Content-Disposition header value.
+	 *
+	 * As per RFC6266:
+	 *
+	 *     content-disposition = "Content-Disposition" ":"
+     *                            disposition-type *( ";" disposition-parm )
+	 *
+     *     disposition-type    = "inline" | "attachment" | disp-ext-type
+     *                         ; case-insensitive
+     *     disp-ext-type       = token
+	 *
+     *     disposition-parm    = filename-parm | disp-ext-parm
+	 *
+     *     filename-parm       = "filename" "=" value
+     *                         | "filename*" "=" ext-value
+	 *
+     *     disp-ext-parm       = token "=" value
+     *                         | ext-token "=" ext-value
+     *     ext-token           = <the characters in token, followed by "*">
+	 *
+	 * @see http://tools.ietf.org/html/rfc2388
+	 * @see http://tools.ietf.org/html/rfc6266
+	 *
+	 * @param string[] $disposition_header List of Content-Disposition header values.
+	 * @return string|null Filename if available, or null if not found.
+	 */
+	public static function get_filename_from_disposition( $disposition_header ) {
+		// Get the filename
+		$filename = null;
+
+		foreach ( $disposition_header as $value ) {
+			$value = trim( $value );
+
+			if ( strpos( $value, 'filename' ) === false ) {
+				continue;
+			}
+
+			list( $type, $attr_parts ) = explode( ';', $value, 2 );
+			$attr_parts = explode( ';', $attr_parts );
+			$attributes = array();
+			foreach ( $attr_parts as $part ) {
+				if ( strpos( $part, '=' ) === false ) {
+					continue;
+				}
+
+				list( $key, $value ) = explode( '=', $part, 2 );
+				$attributes[ trim( $key ) ] = trim( $value );
+			}
+
+			if ( empty( $attributes['filename'] ) ) {
+				continue;
+			}
+
+			$filename = trim( $attributes['filename'] );
+
+			// Unquote quoted filename, but after trimming.
+			if ( substr( $filename, 0, 1 ) === '"' && substr( $filename, -1, 1 ) === '"' ) {
+				$filename = substr( $filename, 1, -1 );
+			}
+		}
+
+		return $filename;
 	}
 
 	/**
