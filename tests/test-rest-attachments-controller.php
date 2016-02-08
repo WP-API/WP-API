@@ -368,7 +368,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
@@ -422,7 +422,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_header( 'Content-MD5', 'abc123' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$response = $this->server->dispatch( $request );
@@ -466,7 +466,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->editor_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$request->set_param( 'post', $attachment_id );
 		$response = $this->server->dispatch( $request );
@@ -477,7 +477,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$request->set_param( 'alt_text', 'test alt text' );
@@ -490,7 +490,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/jpeg' );
-		$request->set_header( 'Content-Disposition', 'filename=canola.jpg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=canola.jpg' );
 		$request->set_body( file_get_contents( $this->test_file ) );
 		$request->set_param( 'alt_text', '<script>alert(document.cookie)</script>' );
 		$response = $this->server->dispatch( $request );
