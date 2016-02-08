@@ -163,6 +163,16 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( array(), $data );
 	}
 
+	public function test_get_items_invalid_page() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$first_error = array_shift( $data['data']['params'] );
+		$this->assertContains( 'page must be greater than 1 (inclusive)', $first_error );
+	}
+
 	public function test_get_items_include_query() {
 		$id1 = $this->factory->category->create();
 		$this->factory->category->create();
