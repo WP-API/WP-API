@@ -83,13 +83,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $file;
 		}
 
-		$name       = basename( $file['file'] );
-		$name_parts = pathinfo( $name );
-		$name       = trim( substr( $name, 0, -(1 + strlen( $name_parts['extension'] ) ) ) );
-
-		$url     = $file['url'];
-		$type    = $file['type'];
-		$file    = $file['file'];
+		$url  = $file['url'];
+		$type = $file['type'];
+		$file = $file['file'];
 
 		// use image exif/iptc data for title and caption defaults if possible
 		// @codingStandardsIgnoreStart
@@ -187,7 +183,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Prepare a single attachment for create or update
 	 *
 	 * @param WP_REST_Request $request Request object
-	 * @return WP_Error|obj $prepared_attachment Post object
+	 * @return WP_Error|stdClass $prepared_attachment Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
@@ -231,7 +227,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( empty( $data['media_details'] ) ) {
 			$data['media_details'] = new stdClass;
 		} elseif ( ! empty( $data['media_details']['sizes'] ) ) {
-			$img_url_basename = wp_basename( $data['source_url'] );
 
 			foreach ( $data['media_details']['sizes'] as $size => &$size_data ) {
 
