@@ -14,13 +14,13 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/types/post' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -42,7 +42,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'GET', '/wp/v2/types' );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEmpty( $response->get_data() );
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
 	}
 
 	public function test_get_item() {
@@ -100,7 +100,8 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 5, count( $properties ) );
+		$this->assertEquals( 6, count( $properties ) );
+		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
 		$this->assertArrayHasKey( 'labels', $properties );
@@ -152,8 +153,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
+			$this->assertEquals( $post_type_obj->cap, $data['capabilities'] );
 			$this->assertEquals( $post_type_obj->labels, $data['labels'] );
 		} else {
+			$this->assertFalse( isset( $data['capabilities'] ) );
 			$this->assertFalse( isset( $data['labels'] ) );
 		}
 	}

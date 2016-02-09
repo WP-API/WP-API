@@ -20,18 +20,17 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
-		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base, array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent>[\d]+)/' . $this->rest_base, array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
-		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent_id>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)', array(
+		register_rest_route( $this->namespace, '/' . $this->parent_base . '/(?P<parent>[\d]+)/' . $this->rest_base . '/(?P<id>[\d]+)', array(
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_item' ),
@@ -45,7 +44,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'delete_item' ),
 				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		));
 
@@ -59,7 +57,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
+		$parent = get_post( $request['parent'] );
 		if ( ! $parent ) {
 			return true;
 		}
@@ -79,12 +77,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
-		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
+		$parent = get_post( $request['parent'] );
+		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
-		$revisions = wp_get_post_revisions( $request['parent_id'] );
+		$revisions = wp_get_post_revisions( $request['parent'] );
 
 		$response = array();
 		foreach ( $revisions as $revision ) {
@@ -112,9 +110,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 
-		$parent = get_post( $request['parent_id'] );
-		if ( ! $request['parent_id'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
-			return new WP_Error( 'rest_post_invalid_parent_id', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
+		$parent = get_post( $request['parent'] );
+		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
+			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
 		$revision = get_post( $request['id'] );
@@ -264,51 +262,51 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 				'author'          => array(
 					'description' => __( 'The id for the author of the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date'            => array(
 					'description' => __( 'The date the object was published.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'date_gmt'        => array(
 					'description' => __( 'The date the object was published, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'guid'            => array(
 					'description' => __( 'GUID for the object, as it exists in the database.' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'id'              => array(
 					'description' => __( 'Unique identifier for the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 				'modified'        => array(
 					'description' => __( 'The date the object was last modified.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'modified_gmt'    => array(
 					'description' => __( 'The date the object was last modified, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit' ),
 				),
 				'parent'          => array(
 					'description' => __( 'The id for the parent of the object.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 					),
 				'slug'            => array(
 					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'        => 'string',
-					'context'     => array( 'view' ),
+					'context'     => array( 'view', 'edit', 'embed' ),
 				),
 			),
 		);
@@ -326,7 +324,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['title'] = array(
 						'description' => __( 'Title for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 
@@ -334,7 +332,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['content'] = array(
 						'description' => __( 'Content for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit' ),
 					);
 					break;
 
@@ -342,7 +340,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 					$schema['properties']['excerpt'] = array(
 						'description' => __( 'Excerpt for the object, as it exists in the database.' ),
 						'type'        => 'string',
-						'context'     => array( 'view' ),
+						'context'     => array( 'view', 'edit', 'embed' ),
 					);
 					break;
 

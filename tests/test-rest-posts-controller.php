@@ -58,6 +58,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		sort( $keys );
 		$this->assertEquals( array(
 			'author',
+			'author_exclude',
 			'context',
 			'exclude',
 			'filter',
@@ -97,10 +98,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_get_items_author_query() {
 		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		$this->factory->post->create( array( 'post_author' => $this->author_id ) );
+		// All 3 posts
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 2, count( $response->get_data() ) );
+		$this->assertEquals( 3, count( $response->get_data() ) );
+		// 2 of 3 posts
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'author', array( $this->editor_id, $this->author_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEqualSets( array( $this->editor_id, $this->author_id ), wp_list_pluck( $data, 'author' ) );
+		// 1 of 3 posts
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'author', $this->editor_id );
 		$response = $this->server->dispatch( $request );
@@ -108,6 +120,34 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $this->editor_id, $data[0]['author'] );
+	}
+
+	public function test_get_items_author_exclude_query() {
+		$this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		$this->factory->post->create( array( 'post_author' => $this->author_id ) );
+		// All 3 posts
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 3, count( $response->get_data() ) );
+		// 1 of 3 posts
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'author_exclude', array( $this->editor_id, $this->author_id ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertNotEquals( $this->editor_id, $data[0]['author'] );
+		$this->assertNotEquals( $this->author_id, $data[0]['author'] );
+		// 2 of 3 posts
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'author_exclude', $this->editor_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertNotEquals( $this->editor_id, $data[0]['author'] );
+		$this->assertNotEquals( $this->editor_id, $data[1]['author'] );
 	}
 
 	public function test_get_items_include_query() {
@@ -229,6 +269,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_ignore_sticky_posts_by_default() {
+		$this->markTestSkipped( 'Broken, see https://github.com/WP-API/WP-API/issues/2210' );
 		$post_id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-01 12:00:00', 'post_date_gmt' => '2015-01-01 12:00:00' ) );
 		$post_id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-02 12:00:00', 'post_date_gmt' => '2015-01-02 12:00:00' ) );
 		$post_id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-03 12:00:00', 'post_date_gmt' => '2015-01-03 12:00:00' ) );

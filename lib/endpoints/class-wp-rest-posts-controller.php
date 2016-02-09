@@ -29,7 +29,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
@@ -58,7 +57,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					),
 				),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 	}
@@ -88,7 +86,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$args                         = array();
-		$args['author']               = $request['author'];
+		$args['author__in']           = $request['author'];
+		$args['author__not_in']       = $request['author_exclude'];
 		$args['menu_order']           = $request['menu_order'];
 		$args['offset']               = $request['offset'];
 		$args['order']                = $request['order'];
@@ -123,7 +122,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request $request The request used.
 		 */
 		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
-		$query_args = $this->prepare_items_query( $args );
+		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -519,10 +518,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
-	 * @param array $prepared_args
-	 * @return array $query_args
+	 * @param array           $prepared_args
+	 * @param WP_REST_Request $request
+	 * @return array          $query_args
 	 */
-	protected function prepare_items_query( $prepared_args = array() ) {
+	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
 		$query_args = array();
@@ -588,6 +588,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		// Define our own in addition to WP's normal vars.
 		$rest_valid = array(
+			'author__in',
+			'author__not_in',
 			'ignore_sticky_posts',
 			'menu_order',
 			'offset',
@@ -1141,7 +1143,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$data[ $base ] = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+			$terms = get_the_terms( $post, $taxonomy->name );
+			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -1580,10 +1583,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(
-				'description'         => __( 'Limit result set to posts assigned to a specific author.' ),
-				'type'                => 'integer',
-				'default'             => null,
-				'sanitize_callback'   => 'absint',
+				'description'         => __( 'Limit result set to posts assigned to specific authors.' ),
+				'type'                => 'array',
+				'default'             => array(),
+				'sanitize_callback'   => 'wp_parse_id_list',
+				'validate_callback'   => 'rest_validate_request_arg',
+			);
+			$params['author_exclude'] = array(
+				'description'         => __( 'Ensure result set excludes posts assigned to specific authors.' ),
+				'type'                => 'array',
+				'default'             => array(),
+				'sanitize_callback'   => 'wp_parse_id_list',
 				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
