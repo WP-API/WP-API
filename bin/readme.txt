@@ -30,9 +30,11 @@ All tickets for the project are being tracked on [GitHub][]. You can also take a
 
 == Installation ==
 
-Drop this directory in and activate it.
+Install the WP REST API via the plugin directory, or by uploading the files manually to your server.
 
 For full-flavoured API support, you'll need to be using pretty permalinks to use the plugin, as it uses custom rewrite rules to power the API.
+
+Once you've installed and activated the plugin, [check out the documentation](http://v2.wp-api.org/) for details on your newly available endpoints.
 
 == Changelog ==
 
