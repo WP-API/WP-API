@@ -187,7 +187,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * Prepare a single attachment for create or update
 	 *
 	 * @param WP_REST_Request $request Request object
-	 * @return WP_Error|obj $prepared_attachment Post object
+	 * @return WP_Error|stdClass $prepared_attachment Post object
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
