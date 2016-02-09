@@ -134,15 +134,8 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 
 		// Base fields for every post
 		$data = array(
-			'author'       => $post->post_author,
 			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
 			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-			'guid'         => $post->guid,
-			'id'           => $post->ID,
-			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			'parent'       => (int) $post->post_parent,
-			'slug'         => $post->post_name,
 		);
 
 		$schema = $this->get_item_schema();
@@ -164,10 +157,6 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 		$data = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
 
-		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
-		}
-
 		/**
 		 * Filter an autosave returned from the API.
 		 *
@@ -178,6 +167,102 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request   $request    Request used to generate the response.
 		 */
 		return apply_filters( 'rest_prepare_autosave', $response, $post, $request );
+	}
+
+	/**
+	 * Prepare a single post for create or update.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_Error|object $prepared_post Post object.
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$prepared_post = new stdClass;
+
+		$schema = $this->get_item_schema();
+
+		// Post title.
+		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
+			if ( is_string( $request['title'] ) ) {
+				$prepared_post->post_title = wp_filter_post_kses( $request['title'] );
+			} elseif ( ! empty( $request['title']['raw'] ) ) {
+				$prepared_post->post_title = wp_filter_post_kses( $request['title']['raw'] );
+			}
+		}
+
+		// Post content.
+		if ( ! empty( $schema['properties']['content'] ) && isset( $request['content'] ) ) {
+			if ( is_string( $request['content'] ) ) {
+				$prepared_post->post_content = wp_filter_post_kses( $request['content'] );
+			} elseif ( isset( $request['content']['raw'] ) ) {
+				$prepared_post->post_content = wp_filter_post_kses( $request['content']['raw'] );
+			}
+		}
+
+		// Post excerpt.
+		if ( ! empty( $schema['properties']['excerpt'] ) && isset( $request['excerpt'] ) ) {
+			if ( is_string( $request['excerpt'] ) ) {
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt'] );
+			} elseif ( isset( $request['excerpt']['raw'] ) ) {
+				$prepared_post->post_excerpt = wp_filter_post_kses( $request['excerpt']['raw'] );
+			}
+		}
+
+		// Post slug.
+		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) ) {
+			$prepared_post->post_name = $request['slug'];
+		}
+
+		// Author
+		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
+			$post_author = (int) $request['author'];
+			if ( get_current_user_id() !== $post_author ) {
+				$user_obj = get_userdata( $post_author );
+				if ( ! $user_obj ) {
+					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
+				}
+			}
+			$prepared_post->post_author = $post_author;
+		}
+
+		// Post password.
+		if ( ! empty( $schema['properties']['password'] ) && isset( $request['password'] ) && '' !== $request['password'] ) {
+			$prepared_post->post_password = $request['password'];
+
+			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
+				return new WP_Error( 'rest_invalid_field', __( 'A post can not be sticky and have a password.' ), array( 'status' => 400 ) );
+			}
+
+			if ( ! empty( $prepared_post->ID ) && is_sticky( $prepared_post->ID ) ) {
+				return new WP_Error( 'rest_invalid_field', __( 'A sticky post can not be password protected.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		// Menu order.
+		if ( ! empty( $schema['properties']['menu_order'] ) && isset( $request['menu_order'] ) ) {
+			$prepared_post->menu_order = (int) $request['menu_order'];
+		}
+
+		// Comment status.
+		if ( ! empty( $schema['properties']['comment_status'] ) && ! empty( $request['comment_status'] ) ) {
+			$prepared_post->comment_status = $request['comment_status'];
+		}
+
+		// Ping status.
+		if ( ! empty( $schema['properties']['ping_status'] ) && ! empty( $request['ping_status'] ) ) {
+			$prepared_post->ping_status = $request['ping_status'];
+		}
+		/**
+		 * Filter the query_vars used in `get_items` for the constructed query.
+		 *
+		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
+		 * prepared for insertion.
+		 *
+		 * @param object          $prepared_post An object representing a single post prepared
+		 *                                       for inserting or updating the database.
+		 * @param WP_REST_Request $request       Request object.
+		 */
+		return apply_filters( "rest_pre_insert_{$this->post_type}_autosave", $prepared_post, $request );
+
 	}
 
 	/**
@@ -213,69 +298,36 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 			/*
 			 * Base properties for every Autosave
 			 */
-			'properties' => array(
-				'author'          => array(
-						'description' => __( 'The id for the author of the object.' ),
-						'type'        => 'integer',
-						'context'     => array( 'view' ),
-					),
-				'date'            => array(
-					'description' => __( 'The date the object was published.' ),
-					'type'        => 'string',
-					'format'      => 'date-time',
-					'context'     => array( 'view' ),
-				),
-				'date_gmt'        => array(
-					'description' => __( 'The date the object was published, as GMT.' ),
-					'type'        => 'string',
-					'format'      => 'date-time',
-					'context'     => array( 'view' ),
-				),
-				'guid'            => array(
-					'description' => __( 'GUID for the object, as it exists in the database.' ),
-					'type'        => 'string',
-					'context'     => array( 'view' ),
-				),
-				'id'              => array(
-					'description' => __( 'Unique identifier for the object.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view' ),
-				),
-				'modified'        => array(
-					'description' => __( 'The date the object was last modified.' ),
-					'type'        => 'string',
-					'format'      => 'date-time',
-					'context'     => array( 'view' ),
-				),
-				'modified_gmt'    => array(
-					'description' => __( 'The date the object was last modified, as GMT.' ),
-					'type'        => 'string',
-					'format'      => 'date-time',
-					'context'     => array( 'view' ),
-				),
-				'parent'          => array(
-					'description' => __( 'The id for the parent of the object.' ),
-					'type'        => 'integer',
-					'context'     => array( 'view' ),
-					),
-				'slug'            => array(
-					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
-					'type'        => 'string',
-					'context'     => array( 'view' ),
-				),
-			),
+			'properties' => array(),
 		);
 
-		$parent_schema = $this->parent_controller->get_item_schema();
+		$fields = array(
+			'post_title' => __( 'Title' ),
+			'post_content' => __( 'Content' ),
+			'post_excerpt' => __( 'Excerpt' ),
+		);
 
-		foreach ( array( 'title', 'content', 'excerpt' ) as $property ) {
-			if ( empty( $parent_schema['properties'][ $property ] ) ) {
-				continue;
-			}
+		/**
+		 * Filter the list of fields saved in post revisions.
+		 *
+		 * Included by default: 'post_title', 'post_content' and 'post_excerpt'.
+		 *
+		 * Disallowed fields: 'ID', 'post_name', 'post_parent', 'post_date',
+		 * 'post_date_gmt', 'post_status', 'post_type', 'comment_count',
+		 * and 'post_author'.
+		 *
+		 * @since 2.6.0
+		 *
+		 * @param array $fields List of fields to revision. Contains 'post_title',
+		 *                      'post_content', and 'post_excerpt' by default.
+		 */
+		$fields = apply_filters( '_wp_post_revision_fields', $fields );
+
+		foreach ( $fields as $property => $name ) {
 
 			switch ( $property ) {
 
-				case 'title':
+				case 'post_title':
 					$schema['properties']['title'] = array(
 						'description' => __( 'Title for the object, as it exists in the database.' ),
 						'type'        => 'string',
@@ -283,7 +335,7 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 					);
 					break;
 
-				case 'content':
+				case 'post_content':
 					$schema['properties']['content'] = array(
 						'description' => __( 'Content for the object, as it exists in the database.' ),
 						'type'        => 'string',
@@ -291,7 +343,7 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 					);
 					break;
 
-				case 'excerpt':
+				case 'post_excerpt':
 					$schema['properties']['excerpt'] = array(
 						'description' => __( 'Excerpt for the object, as it exists in the database.' ),
 						'type'        => 'string',
