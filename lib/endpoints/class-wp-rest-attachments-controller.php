@@ -433,20 +433,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * As per RFC6266:
 	 *
 	 *     content-disposition = "Content-Disposition" ":"
-     *                            disposition-type *( ";" disposition-parm )
+	 *                            disposition-type *( ";" disposition-parm )
 	 *
-     *     disposition-type    = "inline" | "attachment" | disp-ext-type
-     *                         ; case-insensitive
-     *     disp-ext-type       = token
+	 *     disposition-type    = "inline" | "attachment" | disp-ext-type
+	 *                         ; case-insensitive
+	 *     disp-ext-type       = token
 	 *
-     *     disposition-parm    = filename-parm | disp-ext-parm
+	 *     disposition-parm    = filename-parm | disp-ext-parm
 	 *
-     *     filename-parm       = "filename" "=" value
-     *                         | "filename*" "=" ext-value
+	 *     filename-parm       = "filename" "=" value
+	 *                         | "filename*" "=" ext-value
 	 *
-     *     disp-ext-parm       = token "=" value
-     *                         | ext-token "=" ext-value
-     *     ext-token           = <the characters in token, followed by "*">
+	 *     disp-ext-parm       = token "=" value
+	 *                         | ext-token "=" ext-value
+	 *     ext-token           = <the characters in token, followed by "*">
 	 *
 	 * @see http://tools.ietf.org/html/rfc2388
 	 * @see http://tools.ietf.org/html/rfc6266
