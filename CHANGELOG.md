@@ -1,5 +1,57 @@
 # Changelog
 
+## 2.0 Beta 12.0 (February 9, 2016)
+
+- BREAKING CHANGE: Returns original resource when deleting PTCU.
+
+  Now that all resources require the `force` param, we don't need to wrap delete responses with the `trash` state.
+
+  (props @danielbachhuber, [#2163](https://github.com/WP-API/WP-API/pull/2163))
+
+- BREAKING CHANGE: Removes `post_*` query param support for `GET /wp/v2/comments`.
+
+  The proper pattern is to use `GET /wp/v2/posts` to fetch the post IDs to limit the request to.
+
+  (props @danielbachhuber, [#2165](https://github.com/WP-API/WP-API/pull/2165))
+
+- BREAKING CHANGE: Introduces `rest_validate_request_arg()`/`rest_sanitize_request_arg()`.
+
+  Dedicated functions means we can use them for validating / sanitizing query args too. Removes `WP_REST_Controller::validate_schema_property()` and `WP_REST_Controller::sanitize_schema_property()`.
+
+  (props @danielbachhuber, [#2166](https://github.com/WP-API/WP-API/pull/2166))
+
+- Adds validation callbacks to collection query params.
+
+  (props @danielbachhuber, [#2170](https://github.com/WP-API/WP-API/pull/2170), [#2171](https://github.com/WP-API/WP-API/pull/2171), [#2176](https://github.com/WP-API/WP-API/pull/2176), [#2174](https://github.com/WP-API/WP-API/pull/2174), [#2175](https://github.com/WP-API/WP-API/pull/2175))
+
+- Links taxonomy terms to the post type collections they support.
+
+  (props @danielbachhuber, [#2167](https://github.com/WP-API/WP-API/pull/2167))
+
+- Returns error when making a `GET` request with invalid context.
+
+  (props @danielbachhuber, [#2169](https://github.com/WP-API/WP-API/pull/2169))
+
+- Adds `trash` status to `GET /wp/v2/statuses`.
+
+  (props @danielbachhuber, [#2158](https://github.com/WP-API/WP-API/pull/2158))
+
+- Indicates when fields have HTML in schema.
+
+  (props @joehoyle, [#2159](https://github.com/WP-API/WP-API/pull/2159))
+
+- Permits viewing of User who has published any Public posts.
+
+  (props @danielbachhuber, [#2155](https://github.com/WP-API/WP-API/pull/2155))
+
+- Respects `show_avatars` option when adding avatars to Users.
+
+  (props @nullvariable, [#2151](https://github.com/WP-API/WP-API/pull/2151))
+
+- Controllers use `$namespace` and `$rest_base` class variables for easier subclassing.
+
+  (props @danielbachhuber, [#2119](https://github.com/WP-API/WP-API/pull/2119), [#2130](https://github.com/WP-API/WP-API/pull/2130), [#2131](https://github.com/WP-API/WP-API/pull/2131), [#2132](https://github.com/WP-API/WP-API/pull/2132), [#2133](https://github.com/WP-API/WP-API/pull/2133), [#2134](https://github.com/WP-API/WP-API/pull/2134), [#2139](https://github.com/WP-API/WP-API/pull/2139), [#2141](https://github.com/WP-API/WP-API/pull/2141), [#2142](https://github.com/WP-API/WP-API/pull/2142))
+
 ## 2.0 Beta 11.0 (January 25, 2016)
 
 - BREAKING CHANGE: Moves Post->Term relations to the Post Resource
