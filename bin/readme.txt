@@ -38,6 +38,142 @@ Once you've installed and activated the plugin, [check out the documentation](ht
 
 == Changelog ==
 
+= 2.0 Beta 12.0 (February 9, 2016) =
+
+* BREAKING CHANGE: Removes meta endpoints from primary plugin.
+
+  If your project depends on post meta endpoints, please install [WP REST API Meta Endpoints](https://wordpress.org/plugins/rest-api-meta-endpoints/). For the gory history of meta, read [#1425](https://github.com/WP-API/WP-API/issues/1425) and linked issues. At this time, we recommend using `register_rest_field()` to expose meta ([docs](http://v2.wp-api.org/extending/modifying/)).
+
+  (props @danielbachhuber, [#2172](https://github.com/WP-API/WP-API/pull/2172))
+
+* BREAKING CHANGE: Returns original resource when deleting PTCU.
+
+  Now that all resources require the `force` param, we don't need to wrap delete responses with the `trash` state.
+
+  (props @danielbachhuber, [#2163](https://github.com/WP-API/WP-API/pull/2163))
+
+* BREAKING CHANGE: Uses `roles` rather than `role` in the Users controller.
+
+  Building the REST API gives us the opportunity to standardize on `roles`, instead of having both `roles` and `role`.
+
+  (props @joehoyle, [#2177](https://github.com/WP-API/WP-API/pull/2177))
+
+* BREAKING CHANGES: Moves to consistent use of `context` throughout controllers.
+
+  Contexts limit the data present in the response. Here's how to think of them: `embed` correlates with sidebar representation, `view` represents the primary public view, and `edit` is the data expected for an editor.
+
+  (props @danielbachhuber, [#2205](https://github.com/WP-API/WP-API/pull/2205), [#2204](https://github.com/WP-API/WP-API/pull/2204), [#2203](https://github.com/WP-API/WP-API/pull/2203), [#2218](https://github.com/WP-API/WP-API/pull/2218), [#2216](https://github.com/WP-API/WP-API/pull/2216), [#2230](https://github.com/WP-API/WP-API/pull/2230), [#2184](https://github.com/WP-API/WP-API/pull/2184), [#2235](https://github.com/WP-API/WP-API/pull/2235))
+
+* BREAKING CHANGE: Removes `post_*` query param support for `GET /wp/v2/comments`.
+
+  The proper pattern is to use `GET /wp/v2/posts` to fetch the post IDs to limit the request to.
+
+  (props @danielbachhuber, [#2165](https://github.com/WP-API/WP-API/pull/2165))
+
+* BREAKING CHANGE: Introduces `rest_validate_request_arg()`/`rest_sanitize_request_arg()`.
+
+  Dedicated functions means we can use them for validating / sanitizing query args too. Removes `WP_REST_Controller::validate_schema_property()` and `WP_REST_Controller::sanitize_schema_property()`.
+
+  (props @danielbachhuber, [#2166](https://github.com/WP-API/WP-API/pull/2166), [#2213](https://github.com/WP-API/WP-API/pull/2213))
+
+* Requires minimum value of 1 for `page` param.
+
+  (props @danielbachhuber, [#2241](https://github.com/WP-API/WP-API/pull/2241))
+
+* Introduces `media_type` and `mime_type` params for `GET /wp/v2/media`.
+
+  (props @danielbachhuber, [#2231](https://github.com/WP-API/WP-API/pull/2231))
+
+* Uses the term cache for post data.
+
+  (props @rmccue, [#2234](https://github.com/WP-API/WP-API/pull/2234))
+
+* Supports for querying comments where `post=0`.
+
+  (props @danielbachhuber, [#1865](https://github.com/WP-API/WP-API/pull/1865))
+
+* Exposes taxonomy and post type capabilities in `context=edit`.
+
+  (props @danielbachhuber, [#2216](https://github.com/WP-API/WP-API/pull/2216))
+
+* Errors early when user can't GET types or taxonomies when `context=edit`.
+
+  (props @danielbachhuber, [#2218](https://github.com/WP-API/WP-API/pull/2218))
+
+* Passes original $request context to `prepare_items_query`.
+
+  (props @danielbachhuber, [#2211](https://github.com/WP-API/WP-API/pull/2211))
+
+* Adds `parent` and `parent_exclude` params to GET Comments.
+
+  (props @danielbachhuber, [#2206](https://github.com/WP-API/WP-API/pull/2206))
+
+* Enforces minimum 1 and maximum 100 values for `per_page` parameter.
+
+  (props @danielbachhuber, [#2209](https://github.com/WP-API/WP-API/pull/2209))
+
+* Adds `author` and `author_exclude` params to GET Posts and Comments.
+
+  (props @danielbachhuber, [#2200](https://github.com/WP-API/WP-API/pull/2202), [#2200](https://github.com/WP-API/WP-API/pull/2202))
+
+* Adds `menu_order` param for `GET` Pages; support `menu_order` orderby.
+
+  (props @danielbachhuber, [#2193](https://github.com/WP-API/WP-API/pull/2193))
+
+* Only calls `sanitize_text_field()` when sanitizing `type=string,format=email`.
+
+  (props @danielbachhuber, [#2185](https://github.com/WP-API/WP-API/pull/2185))
+
+* Validates `GET /wp/v2/comments` private query params.
+
+  Returns an error when user doesn't have permission to use them, instead of silently discarding.
+
+  (props @danielbachhuber, [#2178](https://github.com/WP-API/WP-API/pull/2178))
+
+* Explicitly prevents uploading attachments to other attachments or revisions.
+
+  (props @danielbachhuber, [#2180](https://github.com/WP-API/WP-API/pull/2180))
+
+* Permits user urls to be edited through the API.
+
+  (props @danielbachhuber, [#2182](https://github.com/WP-API/WP-API/pull/2182))
+
+* Marks all Status, Type and Taxonomy fields as `readonly`.
+
+  (props @danielbachhuber, [#2181](https://github.com/WP-API/WP-API/pull/2181))
+
+* Adds validation callbacks to collection query params.
+
+  (props @danielbachhuber, [#2170](https://github.com/WP-API/WP-API/pull/2170), [#2171](https://github.com/WP-API/WP-API/pull/2171), [#2176](https://github.com/WP-API/WP-API/pull/2176), [#2174](https://github.com/WP-API/WP-API/pull/2174), [#2175](https://github.com/WP-API/WP-API/pull/2175))
+
+* Links taxonomy terms to the post type collections they support.
+
+  (props @danielbachhuber, [#2167](https://github.com/WP-API/WP-API/pull/2167))
+
+* Returns error when making a `GET` request with invalid context.
+
+  (props @danielbachhuber, [#2169](https://github.com/WP-API/WP-API/pull/2169))
+
+* Adds `trash` status to `GET /wp/v2/statuses`.
+
+  (props @danielbachhuber, [#2158](https://github.com/WP-API/WP-API/pull/2158))
+
+* Indicates when fields have HTML in schema.
+
+  (props @joehoyle, [#2159](https://github.com/WP-API/WP-API/pull/2159))
+
+* Permits viewing of User who has published any Public posts.
+
+  (props @danielbachhuber, [#2155](https://github.com/WP-API/WP-API/pull/2155))
+
+* Respects `show_avatars` option when adding avatars to Users.
+
+  (props @nullvariable, [#2151](https://github.com/WP-API/WP-API/pull/2151))
+
+* Controllers use `$namespace` and `$rest_base` class variables for easier subclassing.
+
+  (props @danielbachhuber, [#2119](https://github.com/WP-API/WP-API/pull/2119), [#2130](https://github.com/WP-API/WP-API/pull/2130), [#2131](https://github.com/WP-API/WP-API/pull/2131), [#2132](https://github.com/WP-API/WP-API/pull/2132), [#2133](https://github.com/WP-API/WP-API/pull/2133), [#2134](https://github.com/WP-API/WP-API/pull/2134), [#2139](https://github.com/WP-API/WP-API/pull/2139), [#2141](https://github.com/WP-API/WP-API/pull/2141), [#2142](https://github.com/WP-API/WP-API/pull/2142))
+
 = 2.0 Beta 11.0 (January 25, 2016) =
 
 * BREAKING CHANGE: Moves Post->Term relations to the Post Resource
