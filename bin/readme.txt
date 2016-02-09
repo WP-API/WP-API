@@ -36,7 +36,7 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 
 == Changelog ==
 
-= 2.0 Beta 11.0 =
+= 2.0 Beta 11.0 (January 25, 2016) =
 
 * BREAKING CHANGE: Moves Post->Term relations to the Post Resource
 
@@ -183,7 +183,7 @@ unnecessary call to `get_item()`.
 
   (props @danielbachhuber, [#1990](https://github.com/WP-API/WP-API/pull/1990))
 
-= 2.0 Beta 10.0 =
+= 2.0 Beta 10.0 (January 11, 2016) =
 
 * SECURITY: Ensure media of private posts are private too.
 
@@ -315,7 +315,7 @@ unnecessary call to `get_item()`.
 
   (props @danielbachhuber, [#1852](https://github.com/WP-API/WP-API/pull/1852))
 
-= 2.0 Beta 9.0 =
+= 2.0 Beta 9.0 (December 11, 2015) =
 
 * BREAKING CHANGE: Move tags and categories to top-level endpoints.
 
@@ -429,7 +429,7 @@ unnecessary call to `get_item()`.
 
   (props @danielbachhuber, [#1833](https://github.com/WP-API/WP-API/pull/1833))
 
-= 2.0 Beta 8.0 =
+= 2.0 Beta 8.0 (December 1, 2015) =
 
 * Prevent fatals when uploading attachment by including admin utilities.
 
@@ -465,7 +465,7 @@ unnecessary call to `get_item()`.
 
   (props @wpsmith, [#1759](https://github.com/WP-API/WP-API/pull/1759))
 
-= 2.0 Beta 7.0 =
+= 2.0 Beta 7.0 (November 17, 2015) =
 
 * Sync infrastructure from WordPress core as of r35691.
 
@@ -496,7 +496,7 @@ unnecessary call to `get_item()`.
 
   (props @danielbachhuber, [#1726](https://github.com/WP-API/WP-API/pull/1726))
 
-= 2.0 Beta 6.0 =
+= 2.0 Beta 6.0 (November 12, 2015) =
 
 * Remove global inclusion of wp-admin/includes/admin.php
 
@@ -592,7 +592,7 @@ unnecessary call to `get_item()`.
 
   (props @rachelbaker, [#1497](https://github.com/WP-API/WP-API/pull/1497))
 
-= 2.0 Beta 5.0 =
+= 2.0 Beta 5.0 (October 23, 2015) =
 
 * Load api-core as a compatibility library
 
@@ -626,7 +626,7 @@ unnecessary call to `get_item()`.
 
   (props @joehoyle)
 
-= 2.0 Beta 4.0 =
+= 2.0 Beta 4.0 (August 14, 2015) =
 
 * Show public user information through the user controller.
 
@@ -859,7 +859,7 @@ unnecessary call to `get_item()`.
 [gh-1467]: https://github.com/WP-API/WP-API/issues/1467
 [gh-1472]: https://github.com/WP-API/WP-API/issues/1472
 
-= 2.0 Beta 3.0 =
+= 2.0 Beta 3.0 (July 1, 2015) =
 
 * Add ability to declare sanitization and default options for schema fields.
 
@@ -924,7 +924,7 @@ unnecessary call to `get_item()`.
   [gh-1347]: https://github.com/WP-API/WP-API/issues/1347
   [gh-1348]: https://github.com/WP-API/WP-API/issues/1348
 
-= 2.0 Beta 2.0 =
+= 2.0 Beta 2.0 (May 28, 2015) =
 
 * Load the WP REST API before the main query runs.
 
@@ -1144,7 +1144,7 @@ unnecessary call to `get_item()`.
 
   Reported by @kacperszurek on 2015-05-16.
 
-= 2.0 Beta 1 =
+= 2.0 Beta 1 (April 28, 2015) =
 
 Partial rewrite and evolution of the REST API to prepare for core integration.
 
