@@ -30,11 +30,6 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 				),
 			),
 			array(
-				'methods'         => WP_REST_Server::DELETABLE,
-				'callback'        => array( $this, 'delete_item' ),
-				'permission_callback' => array( $this, 'delete_item_permissions_check' ),
-			),
-			array(
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
@@ -88,48 +83,44 @@ class WP_REST_Post_Autosave_Controller extends WP_REST_Controller {
 		return rest_ensure_response( $response );
 	}
 
-	/**
-	 * Check if a given request has access to delete an autosave.
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|boolean
-	 */
-	public function delete_item_permissions_check( $request ) {
-
-		$response = $this->get_items_permissions_check( $request );
+	public function update_item_permissions_check( $request ) {
+		$response = $this->get_item_permissions_check( $request );
 		if ( ! $response || is_wp_error( $response ) ) {
 			return $response;
 		}
 
-		$post = get_post( $request['id'] );
-		$post_type = get_post_type_object( 'revision' );
-		return current_user_can( $post_type->cap->delete_post, $post->ID );
+		return true;
 	}
 
 	/**
-	 * Delete a single autosave.
+	 * Update an autosave for a post.
 	 *
-	 * @param WP_REST_Request $request Full details about the request
-	 * @return WP_Error|boolean
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|WP_REST_Response
 	 */
-	public function delete_item( $request ) {
-		$result = wp_delete_post( $request['id'], true );
+	public function update_item( $request ) {
+		$parent = get_post( $request['id'] );
+		$autosave = wp_get_post_autosave( $parent->ID, get_current_user_id() );
 
-		/**
-		 * Fires after an autosave is deleted via the REST API.
-		 *
-		 * @param (mixed) $result The autosave object (if it was deleted or moved to the trash successfully)
-		 *                        or false (failure). If the autosave was moved to to the trash, $result represents
-		 *                        its new state; if it was deleted, $result represents its state before deletion.
-		 * @param WP_REST_Request $request The request sent to the API.
-		 */
-		do_action( 'rest_delete_autosave', $result, $request );
+		$post_data = (array) $this->prepare_item_for_database( $request );
 
-		if ( $result ) {
-			return true;
+		if ( ! $autosave ) {
+			$autosave_id = _wp_put_post_revision( $post_data, true );
 		} else {
-			return new WP_Error( 'rest_cannot_delete', __( 'The post cannot be deleted.' ), array( 'status' => 500 ) );
+			$post_data['ID'] = $autosave->ID;
+			/**
+			 * Fires before an autosave is stored.
+			 *
+			 * @since 4.1.0
+			 *
+			 * @param array $new_autosave Post array - the autosave that is about to be saved.
+			 */
+			do_action( 'wp_creating_autosave', $post_data );
+			wp_update_post( $post_data );
+			$autosave_id = $autosave->ID;
 		}
+
+		return $this->prepare_item_for_response( get_post( $autosave_id ), $request );
 	}
 
 	/**
