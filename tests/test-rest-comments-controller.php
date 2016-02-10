@@ -538,6 +538,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->check_comment_data( $data, 'view' );
 		$this->assertEquals( 'hold', $data['status'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_create_item_invalid_date() {
