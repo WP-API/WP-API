@@ -11,18 +11,19 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return array          $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
+		$request_args = $request->get_query_params();
 		$query_args = parent::prepare_items_query( $prepared_args, $request );
 		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
 			$query_args['post_status'] = 'inherit';
 		}
 		$media_types = $this->get_media_types();
-		if ( ! empty( $request['media_type'] ) && in_array( $request['media_type'], array_keys( $media_types ) ) ) {
-			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
+		if ( ! empty( $request_args['media_type'] ) && in_array( $request_args['media_type'], array_keys( $media_types ) ) ) {
+			$query_args['post_mime_type'] = $media_types[ $request_args['media_type'] ];
 		}
-		if ( ! empty( $request['mime_type'] ) ) {
-			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ] ) ) {
-				$query_args['post_mime_type'] = $request['mime_type'];
+		if ( ! empty( $request_args['mime_type'] ) ) {
+			$parts = explode( '/', $request_args['mime_type'] );
+			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request_args['mime_type'], $media_types[ $parts[0] ] ) ) {
+				$query_args['post_mime_type'] = $request_args['mime_type'];
 			}
 		}
 		return $query_args;
@@ -46,11 +47,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
 		}
 
+		$request_args = $request->get_body_params();
+
 		// Attaching media to a post requires ability to edit said post
-		if ( ! empty( $request['post'] ) ) {
-			$parent = get_post( (int) $request['post'] );
+		if ( ! empty( $request_args['post'] ) ) {
+			$parent = get_post( (int) $request_args['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
-			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
+			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request_args['post'] ) ) {
 				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 		}
@@ -66,7 +69,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function create_item( $request ) {
 
-		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+		$request_args = $request->get_body_params();
+
+		if ( ! empty( $request_args['post'] ) && in_array( get_post_type( $request_args['post'] ), array( 'revision', 'attachment' ) ) ) {
 			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
 		}
 
@@ -125,8 +130,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
 
-		if ( isset( $request['alt_text'] ) ) {
-			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
+		if ( isset( $request_args['alt_text'] ) ) {
+			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $request_args['alt_text'] ) );
 		}
 
 		$this->update_additional_fields_for_object( $attachment, $request );
@@ -157,7 +162,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
-		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+		$request_args = $request->get_body_params();
+		if ( ! empty( $request_args['post'] ) && in_array( get_post_type( $request_args['post'] ), array( 'revision', 'attachment' ) ) ) {
 			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
 		}
 		$response = parent::update_item( $request );
@@ -168,11 +174,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$response = rest_ensure_response( $response );
 		$data = $response->get_data();
 
-		if ( isset( $request['alt_text'] ) ) {
-			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
+		if ( isset( $request_args['alt_text'] ) ) {
+			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request_args['alt_text'] );
 		}
 
-		$attachment = get_post( $request['id'] );
+		$url_args = $request->get_url_params();
+
+		$attachment = get_post( $url_args['id'] );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
@@ -192,16 +200,18 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_attachment = parent::prepare_item_for_database( $request );
 
-		if ( isset( $request['caption'] ) ) {
-			$prepared_attachment->post_excerpt = $request['caption'];
+		$request_args = $request->get_body_params();
+
+		if ( isset( $request_args['caption'] ) ) {
+			$prepared_attachment->post_excerpt = $request_args['caption'];
 		}
 
-		if ( isset( $request['description'] ) ) {
-			$prepared_attachment->post_content = $request['description'];
+		if ( isset( $request_args['description'] ) ) {
+			$prepared_attachment->post_content = $request_args['description'];
 		}
 
-		if ( isset( $request['post'] ) ) {
-			$prepared_attachment->post_parent = (int) $request['post'];
+		if ( isset( $request_args['post'] ) ) {
+			$prepared_attachment->post_parent = (int) $request_args['post'];
 		}
 
 		return $prepared_attachment;
@@ -262,7 +272,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['media_details']['sizes'] = new stdClass;
 		}
 
-		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$query_args = $request->get_query_params();
+		$context = ! empty( $query_args['context'] ) ? $query_args['context'] : 'edit';
 
 		$data = $this->filter_response_by_context( $data, $context );
 
