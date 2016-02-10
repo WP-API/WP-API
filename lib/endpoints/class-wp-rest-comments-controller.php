@@ -138,6 +138,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
+		if ( empty( $request['search'] ) ) {
+			$prepared_args['search'] = '';
+		}
 
 		/**
 		 * Filter arguments, before passing to WP_Comment_Query, when querying comments via the REST API.
