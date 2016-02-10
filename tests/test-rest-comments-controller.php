@@ -365,6 +365,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 3, $response->get_data() );
 	}
 
+	public function test_get_items_search_query() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'comment_content'  => 'foo',
+			'comment_author'   => 'Homer J Simpson',
+		);
+		$id1 = $this->factory->comment->create( $args );
+		$args['comment_content'] = 'bar';
+		$this->factory->comment->create( $args );
+		$args['comment_content'] = 'burrito';
+		$this->factory->comment->create( $args );
+		// 3 comments, plus 1 created in construct
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 4, $response->get_data() );
+		// One matching comments
+		$request->set_param( 'search', 'foo' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
 	public function test_get_comments_pagination_headers() {
 		wp_set_current_user( $this->admin_id );
 		// Start of the index
