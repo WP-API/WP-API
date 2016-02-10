@@ -371,6 +371,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'comment_approved' => 1,
 			'comment_post_ID'  => $this->post_id,
 			'comment_content'  => 'foo',
+			'comment_author'   => 'Homer J Simpson',
 		);
 		$id1 = $this->factory->comment->create( $args );
 		$args['comment_content'] = 'bar';
@@ -379,7 +380,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		// 3 comments, plus 1 created in construct
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		$request->set_param( 'search', '' );
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 4, $response->get_data() );
 		// One matching comments
