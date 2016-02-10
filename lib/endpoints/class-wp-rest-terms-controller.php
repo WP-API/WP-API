@@ -149,7 +149,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$total_terms = $this->total_terms;
 		} else {
 			$query_result = get_terms( $this->taxonomy, $prepared_args );
-			$total_terms = wp_count_terms( $this->taxonomy, $prepared_args );
+
+			$count_args = $prepared_args;
+			unset( $count_args['number'] );
+			unset( $count_args['offset'] );
+			$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
 			// wp_count_terms can return a falsy value when the term has no children
 			if ( ! $total_terms ) {
@@ -167,8 +171,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		// Store pagation values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
 		$page = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
-		unset( $prepared_args['number'] );
-		unset( $prepared_args['offset'] );
 
 		$response->header( 'X-WP-Total', (int) $total_terms );
 		$max_pages = ceil( $total_terms / $per_page );
