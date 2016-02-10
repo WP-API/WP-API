@@ -24,6 +24,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$orig_file = dirname( __FILE__ ) . '/data/canola.jpg';
 		$this->test_file = '/tmp/canola.jpg';
 		copy( $orig_file, $this->test_file );
+		$orig_file2 = dirname( __FILE__ ) . '/data/codeispoetry.png';
+		$this->test_file2 = '/tmp/codeispoetry.png';
+		copy( $orig_file2, $this->test_file2 );
 
 	}
 
@@ -378,6 +381,24 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 'The description for the image', $data['caption'] );
 	}
 
+	public function test_create_item_default_filename_title() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params( array(
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file2 ),
+				'name'     => 'codeispoetry.jpg',
+				'size'     => filesize( $this->test_file2 ),
+				'tmp_name' => $this->test_file2,
+			),
+		) );
+		$request->set_header( 'Content-MD5', md5_file( $this->test_file2 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'codeispoetry', $data['title']['raw'] );
+	}
+
 	public function test_create_item_with_files() {
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -701,6 +722,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		parent::tearDown();
 		if ( file_exists( $this->test_file ) ) {
 			unlink( $this->test_file );
+		}
+		if ( file_exists( $this->test_file2 ) ) {
+			unlink( $this->test_file2 );
 		}
 	}
 

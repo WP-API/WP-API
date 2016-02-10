@@ -109,6 +109,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$attachment->file = $file;
 		$attachment->post_mime_type = $type;
 		$attachment->guid = $url;
+
+		if ( empty( $attachment->post_title ) ) {
+			$attachment->post_title = preg_replace( '/\.[^.]+$/', '', basename( $file ) );
+		}
+
 		$id = wp_insert_post( $attachment, true );
 		if ( is_wp_error( $id ) ) {
 			if ( in_array( $id->get_error_code(), array( 'db_update_error' ) ) ) {
