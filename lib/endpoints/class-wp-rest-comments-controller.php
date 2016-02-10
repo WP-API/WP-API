@@ -70,7 +70,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function get_items_permissions_check( $request ) {
 
 		if ( ! empty( $request['post'] ) ) {
-			foreach ( $request['post'] as $post_id ) {
+			foreach ( (array) $request['post'] as $post_id ) {
 				$post = get_post( $post_id );
 				if ( ! empty( $post_id ) && $post && ! $this->check_read_post_permission( $post ) ) {
 					return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
