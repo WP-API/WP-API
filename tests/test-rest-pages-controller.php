@@ -53,10 +53,16 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'author',
 			'author_exclude',
 			'context',
+			'date_query',
+			'day',
 			'exclude',
 			'filter',
+			'hour',
 			'include',
+			'm',
 			'menu_order',
+			'minute',
+			'monthnum',
 			'offset',
 			'order',
 			'orderby',
@@ -65,8 +71,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'parent_exclude',
 			'per_page',
 			'search',
+			'second',
 			'slug',
 			'status',
+			'w',
+			'year',
 			), $keys );
 	}
 
