@@ -101,6 +101,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_parent__not_in']  = $request['parent_exclude'];
 		$args['post_status']          = $request['status'];
 		$args['s']                    = $request['search'];
+		$args['year']                 = $request['year'];
+		$args['monthnum']             = $request['monthnum'];
+		$args['w']                    = $request['w'];
+		$args['day']                  = $request['day'];
+		$args['hour']                 = $request['hour'];
+		$args['minute']               = $request['minute'];
+		$args['second']               = $request['second'];
+		$args['m']                    = $request['m'];
+		$args['date_query']           = $request['date_query'];
 
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
@@ -458,7 +467,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
-		if ( $post->post_type === 'attachment' ) {
+		if ( 'attachment' === $post->post_type ) {
 			$supports_trash = $supports_trash && MEDIA_TRASH;
 		}
 
@@ -525,6 +534,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
+
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
 			if ( isset( $prepared_args[ $var ] ) ) {
@@ -599,6 +609,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__in',
 			'post_parent__not_in',
 			'posts_per_page',
+			'date_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
@@ -1643,6 +1654,59 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 			'validate_callback'  => 'rest_validate_request_arg',
 		);
+		$params['year'] = array(
+			'description'        => __( '4 digit year (e.g. 2011).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['monthnum'] = array(
+			'description'        => __( 'Month number (from 1 to 12).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['w'] = array(
+			'description'        => __( 'Week of the year (from 0 to 53). Uses MySQL WEEK command. The mode is dependent on the "start_of_week" option.' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['day'] = array(
+			'description'        => __( 'Day of the month (from 1 to 31).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['hour'] = array(
+			'description'        => __( 'Hour (from 0 to 23).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['minute'] = array(
+			'description'        => __( 'Minute (from 0 to 60)' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['second'] = array(
+			'description'        => __( 'Second (0 to 60).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['m'] = array(
+			'description'        => __( 'YearMonth (For e.g.: 201307).' ),
+			'type'               => 'int',
+			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback'  => 'absint',
+		);
+		$params['date_query'] = array(
+			'description'        => __( 'Date parameters. Make sure parameters are encapsulated in an array. See wp-includes/date.php for more info or check WP_Date_Query code reference.' ),
+			'type'               => 'array',
+		);
+
 		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
 			$params['orderby']['enum'][] = 'menu_order';
 		}
@@ -1662,7 +1726,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'default'           => array(),
 			);
 		}
-
 		$params['slug'] = array(
 			'description'       => __( 'Limit result set to posts with a specific slug.' ),
 			'type'              => 'string',
@@ -1699,5 +1762,4 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
 	}
-
 }
