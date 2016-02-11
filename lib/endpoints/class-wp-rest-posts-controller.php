@@ -1654,6 +1654,42 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 			'validate_callback'  => 'rest_validate_request_arg',
 		);
+
+		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
+			$params['orderby']['enum'][] = 'menu_order';
+		}
+
+		$post_type_obj = get_post_type_object( $this->post_type );
+		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
+			$params['parent'] = array(
+				'description'       => _( 'Limit result set to those of particular parent ids.' ),
+				'type'              => 'array',
+				'sanitize_callback' => 'wp_parse_id_list',
+				'default'           => array(),
+			);
+			$params['parent_exclude'] = array(
+				'description'       => _( 'Limit result set to all items except those of a particular parent id.' ),
+				'type'              => 'array',
+				'sanitize_callback' => 'wp_parse_id_list',
+				'default'           => array(),
+			);
+		}
+		$params['slug'] = array(
+			'description'       => __( 'Limit result set to posts with a specific slug.' ),
+			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
+		$params['status'] = array(
+			'default'           => 'publish',
+			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
+		);
+		$params['filter'] = array(
+			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
+		);
+		// Date params starts here.
 		$params['year'] = array(
 			'description'        => __( '4 digit year (e.g. 2011).' ),
 			'type'               => 'int',
@@ -1705,41 +1741,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['date_query'] = array(
 			'description'        => __( 'Date parameters. Make sure parameters are encapsulated in an array. See wp-includes/date.php for more info or check WP_Date_Query code reference.' ),
 			'type'               => 'array',
-		);
-
-		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
-			$params['orderby']['enum'][] = 'menu_order';
-		}
-
-		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
-			$params['parent'] = array(
-				'description'       => _( 'Limit result set to those of particular parent ids.' ),
-				'type'              => 'array',
-				'sanitize_callback' => 'wp_parse_id_list',
-				'default'           => array(),
-			);
-			$params['parent_exclude'] = array(
-				'description'       => _( 'Limit result set to all items except those of a particular parent id.' ),
-				'type'              => 'array',
-				'sanitize_callback' => 'wp_parse_id_list',
-				'default'           => array(),
-			);
-		}
-		$params['slug'] = array(
-			'description'       => __( 'Limit result set to posts with a specific slug.' ),
-			'type'              => 'string',
-			'validate_callback' => 'rest_validate_request_arg',
-		);
-		$params['status'] = array(
-			'default'           => 'publish',
-			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
-			'sanitize_callback' => 'sanitize_key',
-			'type'              => 'string',
-			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
-		);
-		$params['filter'] = array(
-			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
 		);
 		return $params;
 	}
