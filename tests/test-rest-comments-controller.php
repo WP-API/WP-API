@@ -1150,7 +1150,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-
+		update_option( 'show_avatars', true );
 		$this->assertArrayNotHasKey( 'author_avatar_urls', $properties );
 	}
 
