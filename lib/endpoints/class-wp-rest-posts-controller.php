@@ -1692,55 +1692,60 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Date params starts here.
 		$params['year'] = array(
 			'description'        => __( '4 digit year (e.g. 2011).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['monthnum'] = array(
 			'description'        => __( 'Month number (from 1 to 12).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 1,
+			'maximum'            => 12,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['w'] = array(
 			'description'        => __( 'Week of the year (from 0 to 53). Uses MySQL WEEK command. The mode is dependent on the "start_of_week" option.' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 0,
+			'maximum'            => 53,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['day'] = array(
 			'description'        => __( 'Day of the month (from 1 to 31).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 1,
+			'maximum'            => 31,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['hour'] = array(
 			'description'        => __( 'Hour (from 0 to 23).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 0,
+			'maximum'            => 23,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['minute'] = array(
 			'description'        => __( 'Minute (from 0 to 60)' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 0,
+			'maximum'            => 60,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['second'] = array(
 			'description'        => __( 'Second (0 to 60).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
+			'minimum'            => 0,
+			'maximum'            => 60,
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['m'] = array(
 			'description'        => __( 'YearMonth (For e.g.: 201307).' ),
-			'type'               => 'int',
+			'type'               => 'integer',
 			'validate_callback'  => 'rest_validate_request_arg',
-			'sanitize_callback'  => 'absint',
 		);
 		$params['date_query'] = array(
 			'description'        => __( 'Date parameters. Make sure parameters are encapsulated in an array. See wp-includes/date.php for more info or check WP_Date_Query code reference.' ),
 			'type'               => 'array',
+			'validate_callback'  => array( $this, 'rest_validate_date_query' ),
 		);
 		return $params;
 	}
@@ -1762,5 +1767,205 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return true;
 		}
 		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	/**
+	 * Validate a request date query.
+	 *
+	 * @param  mixed            $value   Value of the argument.
+	 * @param  WP_REST_Request  $request Request body.
+	 * @param  string           $param   Argument name should be date_query
+	 * @return WP_Error|boolean
+	 */
+	public function rest_validate_date_query( $value, $request, $param ) {
+		if ( 'date_query' !== $param ) {
+			return new WP_Error( 'date-query-not-validated', __( 'You are validating a date query on a non date query parameter.' ), array( 'status' => 400 ) );
+		}
+
+		if ( empty( $value ) ) {
+			return new WP_Error( 'empty-date-query', __( 'Date query parameter is empty. Please revise your request.' ), array( 'status' => 400 ) );
+		}
+
+		if ( ! is_array( $value ) ) {
+			return new WP_Error( 'date-query-improperly-formatted', __( 'Date query must be formatted as an array of array(s).' ), array( 'status' => 400 ) );
+		}
+
+		$valid = true;
+		foreach ( $value as $value ) {
+			/*
+			 * Validate 'before' and 'after' up front, then let the
+			 * validation routine continue to be sure that all invalid
+			 * values generate errors too.
+			 */
+			if ( array_key_exists( 'before', $value ) && is_array( $value['before'] ) ) {
+				$valid = $this->rest_validate_date_query( $value['before'], $request, $param );
+			}
+
+			if ( array_key_exists( 'after', $value ) && is_array( $value['after'] ) ) {
+				$valid = $this->rest_validate_date_query( $value['after'], $request, $param );
+			}
+
+			// Array containing all min-max checks.
+			$min_max_checks = array();
+
+			// Days per year.
+			if ( array_key_exists( 'year', $value ) ) {
+				if ( ! is_numeric( $value['year'] ) ) {
+					return new WP_Error( 'year-type-error', __( 'Year must be an integer representing 4 digit year.' ), array( 'status' => 400 ) );
+				}
+				/*
+				 * If a year exists in the date query, we can use it to get the days.
+				 * If multiple years are provided (as in a BETWEEN), use the first one.
+				 */
+				if ( is_array( $value['year'] ) ) {
+					$_year = reset( $value['year'] );
+				} else {
+					$_year = $value['year'];
+				}
+
+				$max_days_of_year = date( 'z', mktime( 0, 0, 0, 12, 31, $_year ) ) + 1;
+			} else {
+				// otherwise we use the max of 366 (leap-year)
+				$max_days_of_year = 366;
+			}
+
+			$min_max_checks['dayofyear'] = array(
+				'min' => 1,
+				'max' => $max_days_of_year,
+			);
+
+			// Days per week.
+			$min_max_checks['dayofweek'] = array(
+				'min' => 1,
+				'max' => 7,
+			);
+
+			// Days per week.
+			$min_max_checks['dayofweek_iso'] = array(
+				'min' => 1,
+				'max' => 7,
+			);
+
+			// Months per year.
+			$min_max_checks['month'] = array(
+				'min' => 1,
+				'max' => 12,
+			);
+
+			// Weeks per year.
+			if ( isset( $_year ) ) {
+				/*
+				 * If we have a specific year, use it to calculate number of weeks.
+				 * Note: the number of weeks in a year is the date in which Dec 28 appears.
+				 */
+				$week_count = date( 'W', mktime( 0, 0, 0, 12, 28, $_year ) );
+
+			} else {
+				// Otherwise set the week-count to a maximum of 53.
+				$week_count = 53;
+			}
+
+			$min_max_checks['week'] = array(
+				'min' => 1,
+				'max' => $week_count,
+			);
+
+			// Days per month.
+			$min_max_checks['day'] = array(
+				'min' => 1,
+				'max' => 31,
+			);
+
+			// Hours per day.
+			$min_max_checks['hour'] = array(
+				'min' => 0,
+				'max' => 23,
+			);
+
+			// Minutes per hour.
+			$min_max_checks['minute'] = array(
+				'min' => 0,
+				'max' => 59,
+			);
+
+			// Seconds per minute.
+			$min_max_checks['second'] = array(
+				'min' => 0,
+				'max' => 59,
+			);
+
+			// Concatenate and throw a notice for each invalid value.
+			foreach ( $min_max_checks as $key => $check ) {
+				if ( ! array_key_exists( $key, $value ) ) {
+					continue;
+				}
+
+				// Throw a notice for each failing value.
+				foreach ( (array) $value[ $key ] as $_value ) {
+					$is_between = $_value >= $check['min'] && $_value <= $check['max'];
+
+					if ( ! is_numeric( $_value ) || ! $is_between ) {
+						$error = sprintf(
+							/* translators: Date query invalid date message: 1: invalid value, 2: type of value, 3: minimum valid value, 4: maximum valid value */
+							__( 'Invalid value %1$s for %2$s. Expected value should be between %3$s and %4$s.' ),
+							esc_html( $_value ),
+							esc_html( $key ),
+							esc_html( $check['min'] ),
+							esc_html( $check['max'] )
+						);
+
+						return new WP_Error( 'invalid-date-values', $error, array( 'status' => 400 ) );
+
+						$valid = false;
+					}
+				}
+			}
+
+			// If we already have invalid date messages, don't bother running through checkdate().
+			if ( ! $valid ) {
+				return $valid;
+			}
+
+			$day_month_year_error_msg = '';
+
+			$day_exists   = array_key_exists( 'day', $value ) && is_numeric( $value['day'] );
+			$month_exists = array_key_exists( 'month', $value ) && is_numeric( $value['month'] );
+			$year_exists  = array_key_exists( 'year', $value ) && is_numeric( $value['year'] );
+
+			if ( $day_exists && $month_exists && $year_exists ) {
+				// 1. Checking day, month, year combination.
+				if ( ! wp_checkdate( $value['month'], $value['day'], $value['year'], sprintf( '%s-%s-%s', $value['year'], $value['month'], $value['day'] ) ) ) {
+					/* translators: 1: year, 2: month, 3: day of month */
+					$day_month_year_error_msg = sprintf(
+						__( 'The following values do not describe a valid date: year %1$s, month %2$s, day %3$s.' ),
+						esc_html( $value['year'] ),
+						esc_html( $value['month'] ),
+						esc_html( $value['day'] )
+					);
+
+					$valid = false;
+				}
+			} elseif ( $day_exists && $month_exists ) {
+				/*
+				 * 2. checking day, month combination
+				 * We use 2012 because, as a leap year, it's the most permissive.
+				 */
+				if ( ! wp_checkdate( $value['month'], $value['day'], 2012, sprintf( '2012-%s-%s', $value['month'], $value['day'] ) ) ) {
+					/* translators: 1: month, 2: day of month */
+					$day_month_year_error_msg = sprintf(
+						__( 'The following values do not describe a valid date: month %1$s, day %2$s.' ),
+						esc_html( $value['month'] ),
+						esc_html( $value['day'] )
+					);
+
+					$valid = false;
+				}
+			}
+
+			if ( ! empty( $day_month_year_error_msg ) ) {
+				return new WP_Error( 'invalid-date', $day_month_year_error_msg, array( 'status', 400 ) );
+			}
+		}
+		return $valid;
 	}
 }
