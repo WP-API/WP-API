@@ -886,7 +886,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( true === get_option( 'show_avatars' ) ) {
+		if ( '1' === get_option( 'show_avatars' ) ) {
 			$avatar_properties = array();
 
 			$avatar_sizes = rest_get_avatar_sizes();
