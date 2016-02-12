@@ -116,12 +116,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 7, $comments );
 	}
 
-	public function test_get_items_no_permission() {
+	public function test_get_items_no_permission_for_context() {
 		wp_set_current_user( 0 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+	}
+
+	public function test_get_items_no_post() {
+		$this->factory->comment->create_post_comments( 0, 2 );
+		wp_set_current_user( $this->admin_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$comments = $response->get_data();
+		$this->assertCount( 2, $comments );
+	}
+
+	public function test_get_items_no_permission_for_no_post() {
+		wp_set_current_user( 0 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', 0 );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
 	}
 
 	public function test_get_items_edit_context() {
@@ -346,6 +365,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertCount( 3, $response->get_data() );
 	}
 
+	public function test_get_items_search_query() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'comment_content'  => 'foo',
+			'comment_author'   => 'Homer J Simpson',
+		);
+		$id1 = $this->factory->comment->create( $args );
+		$args['comment_content'] = 'bar';
+		$this->factory->comment->create( $args );
+		$args['comment_content'] = 'burrito';
+		$this->factory->comment->create( $args );
+		// 3 comments, plus 1 created in construct
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 4, $response->get_data() );
+		// One matching comments
+		$request->set_param( 'search', 'foo' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
 	public function test_get_comments_pagination_headers() {
 		wp_set_current_user( $this->admin_id );
 		// Start of the index
@@ -519,6 +563,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->check_comment_data( $data, 'view' );
 		$this->assertEquals( 'hold', $data['status'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
+		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
 	public function test_create_item_invalid_date() {

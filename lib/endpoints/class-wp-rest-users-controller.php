@@ -39,7 +39,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => $this->get_context_param( array( 'default' => 'embed' ) ),
+					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
 			array(
@@ -104,9 +104,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
-
-			// Only display a public subset of information
-			$request['context'] = 'embed';
 		}
 
 		if ( '' !== $prepared_args['search'] ) {
@@ -194,13 +191,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
-
-		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
-			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
+		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with view context.' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
+		} else if ( ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -690,7 +683,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'first_name'  => array(
 					'description' => __( 'First name for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -698,7 +691,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'last_name'   => array(
 					'description' => __( 'Last name for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -707,7 +700,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'The email address for the resource.' ),
 					'type'        => 'string',
 					'format'      => 'email',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'required'    => true,
 				),
 				'url'         => array(
@@ -734,7 +727,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'nickname'    => array(
 					'description' => __( 'The nickname for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -750,18 +743,18 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'registered_date' => array(
 					'description' => __( 'Registration date for the resource.' ),
 					'type'        => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'roles'           => array(
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
 					'type'        => 'object',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 				),
 				'extra_capabilities' => array(
 					'description' => __( 'Any extra capabilities assigned to the resource.' ),

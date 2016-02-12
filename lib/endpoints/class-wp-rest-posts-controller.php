@@ -683,7 +683,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Prepare a single post for create or update.
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|object $prepared_post Post object.
+	 * @return WP_Error|stdClass $prepared_post Post object.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_post = new stdClass;
@@ -822,7 +822,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
 		 * prepared for insertion.
 		 *
-		 * @param object          $prepared_post An object representing a single post prepared
+		 * @param stdClass        $prepared_post An object representing a single post prepared
 		 *                                       for inserting or updating the database.
 		 * @param WP_REST_Request $request       Request object.
 		 */
@@ -1143,7 +1143,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$data[ $base ] = wp_get_object_terms( $post->ID, $taxonomy->name, array( 'fields' => 'ids' ) );
+			$terms = get_the_terms( $post, $taxonomy->name );
+			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
