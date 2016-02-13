@@ -123,6 +123,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'search',
 			'slug',
 			'status',
+			'tax_query',
 			), $keys );
 		$media_types = array(
 			'application',
