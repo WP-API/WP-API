@@ -138,6 +138,9 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		$post = get_post( $request['id'] );
+		if ( ! $post ) {
+			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision id.' ), array( 'status' => 404 ) );
+		}
 		$post_type = get_post_type_object( 'revision' );
 		return current_user_can( $post_type->cap->delete_post, $post->ID );
 	}
