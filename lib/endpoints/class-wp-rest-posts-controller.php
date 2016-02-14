@@ -467,7 +467,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
-		if ( 'attachment' === $post->post_type ) {
+		if ( $post->post_type === 'attachment' ) {
 			$supports_trash = $supports_trash && MEDIA_TRASH;
 		}
 
@@ -534,7 +534,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 
 		$valid_vars = array_flip( $this->get_allowed_query_vars() );
-
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
 			if ( isset( $prepared_args[ $var ] ) ) {
@@ -1654,7 +1653,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 			'validate_callback'  => 'rest_validate_request_arg',
 		);
-
 		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
 			$params['orderby']['enum'][] = 'menu_order';
 		}
@@ -1674,6 +1672,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'default'           => array(),
 			);
 		}
+
 		$params['slug'] = array(
 			'description'       => __( 'Limit result set to posts with a specific slug.' ),
 			'type'              => 'string',
@@ -1771,6 +1770,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	/**
 	 * Validate a request date query.
+	 *
+	 * @see wp-includes/date.php This function was lifted from WP_Date_Query->validate_date_values and slightly modified to fit in here.
 	 *
 	 * @param  mixed            $value   Value of the argument.
 	 * @param  WP_REST_Request  $request Request body.
