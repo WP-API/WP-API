@@ -1170,6 +1170,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'type', $properties );
 	}
 
+	public function test_get_item_schema_show_avatar() {
+		update_option( 'show_avatars', false );
+		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$properties = $data['schema']['properties'];
+
+		$this->assertArrayNotHasKey( 'author_avatar_urls', $properties );
+	}
+
 	public function test_get_additional_field_registration() {
 
 		$schema = array(
