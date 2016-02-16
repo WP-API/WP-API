@@ -545,7 +545,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author_email'       => $comment->comment_author_email,
 			'author_url'         => $comment->comment_author_url,
 			'author_ip'          => $comment->comment_author_IP,
-			'author_avatar_urls' => rest_get_avatar_urls( $comment->comment_author_email ),
 			'author_user_agent'  => $comment->comment_agent,
 			'date'               => mysql_to_rfc3339( $comment->comment_date ),
 			'date_gmt'           => mysql_to_rfc3339( $comment->comment_date_gmt ),
@@ -558,6 +557,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'status'             => $this->prepare_status_response( $comment->comment_approved ),
 			'type'               => get_comment_type( $comment->comment_ID ),
 		);
+
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $schema['properties']['author_avatar_urls'] ) ) {
+			$data['author_avatar_urls'] = rest_get_avatar_urls( $comment->comment_author_email );
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -754,18 +759,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		$avatar_properties = array();
-
-		$avatar_sizes = rest_get_avatar_sizes();
-		foreach ( $avatar_sizes as $size ) {
-			$avatar_properties[ $size ] = array(
-				'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
-				'type'        => 'string',
-				'format'      => 'uri',
-				'context'     => array( 'embed', 'view', 'edit' ),
-			);
-		}
-
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
 			'title'                => 'comment',
@@ -781,13 +774,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => __( 'The id of the user object, if author was a user.' ),
 					'type'         => 'integer',
 					'context'      => array( 'view', 'edit', 'embed' ),
-				),
-				'author_avatar_urls' => array(
-					'description'   => __( 'Avatar URLs for the object author.' ),
-					'type'          => 'object',
-					'context'       => array( 'view', 'edit', 'embed' ),
-					'readonly'    => true,
-					'properties'  => $avatar_properties,
 				),
 				'author_email'     => array(
 					'description'  => __( 'Email address for the object author.' ),
@@ -902,6 +888,29 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		if ( get_option( 'show_avatars' ) ) {
+			$avatar_properties = array();
+
+			$avatar_sizes = rest_get_avatar_sizes();
+			foreach ( $avatar_sizes as $size ) {
+				$avatar_properties[ $size ] = array(
+					'description' => sprintf( __( 'Avatar URL with image size of %d pixels.' ), $size ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'embed', 'view', 'edit' ),
+				);
+			}
+
+			$schema['properties']['author_avatar_urls'] = array(
+				'description'   => __( 'Avatar URLs for the object author.' ),
+				'type'          => 'object',
+				'context'       => array( 'view', 'edit', 'embed' ),
+				'readonly'      => true,
+				'properties'    => $avatar_properties,
+			);
+		}
+
 		return $this->add_additional_fields_schema( $schema );
 	}
 
