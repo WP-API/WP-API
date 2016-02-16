@@ -105,20 +105,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
 			'context',
-			'date_query',
-			'day',
 			'exclude',
 			'filter',
-			'hour',
 			'include',
-			'm',
 			'media_type',
 			'mime_type',
-			'minute',
-			'monthnum',
 			'offset',
 			'order',
 			'orderby',
@@ -127,11 +123,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'parent_exclude',
 			'per_page',
 			'search',
-			'second',
 			'slug',
 			'status',
-			'w',
-			'year',
 			), $keys );
 		$media_types = array(
 			'application',

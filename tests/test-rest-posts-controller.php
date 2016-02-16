@@ -57,29 +57,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
 			'context',
-			'date_query',
-			'day',
 			'exclude',
 			'filter',
-			'hour',
 			'include',
-			'm',
-			'minute',
-			'monthnum',
 			'offset',
 			'order',
 			'orderby',
 			'page',
 			'per_page',
 			'search',
-			'second',
 			'slug',
 			'status',
-			'w',
-			'year',
 			), $keys );
 	}
 
