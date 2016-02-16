@@ -224,7 +224,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				case 'term_group':
 				case 'description':
 				case 'count':
-					$this->sort_column = $terms_args['orderby'];
+					$this->sort_column = $prepared_args['orderby'];
 					break;
 			}
 			usort( $query_result, array( $this, 'compare_terms' ) );
