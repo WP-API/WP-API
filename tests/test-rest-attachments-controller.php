@@ -304,29 +304,44 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function test_get_items_invalid_date() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'after', 'canyonero' );
-		$request->set_param( 'before', 'testing' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_get_items_valid_date() {
-		wp_set_current_user( 0 );
 		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
-			'date'           => '2016-01-15T00:00:00Z',
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$id2 = $this->factory->attachment->create_object( $this->test_file, 0, array(
-			'date'           => '2016-01-16T00:00:00Z',
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
 		$id3 = $this->factory->attachment->create_object( $this->test_file, 0, array(
-			'date'           => '2016-01-17T00:00:00Z',
 			'post_mime_type' => 'image/jpeg',
 			'post_excerpt'   => 'A sample caption',
 		) );
+
+		wp_update_post( array(
+			'ID'       => $id1,
+			'date'     => '2016-01-15T00:00:00Z',
+			'date_gmt' => '2016-01-15T00:00:00',
+		) );
+
+		wp_update_post( array(
+			'ID'       => $id2,
+			'date'     => '2016-01-16T00:00:00Z',
+			'date_gmt' => '2016-01-16T00:00:00',
+		) );
+
+		wp_update_post( array(
+			'ID'       => $id3,
+			'date'     => '2016-01-17T00:00:00Z',
+			'date_gmt' => '2016-01-17T00:00:00',
+		) );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
 		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
