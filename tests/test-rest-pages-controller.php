@@ -198,28 +198,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_valid_date() {
-		$post1 = $this->factory->post->create( array( 'post_type' => 'page' ) );
-		$post2 = $this->factory->post->create( array( 'post_type' => 'page' ) );
-		$post3 = $this->factory->post->create( array( 'post_type' => 'page' ) );
-
-		wp_update_post( array(
-			'ID'       => $post1,
-			'date'     => '2016-01-15T00:00:00Z',
-			'date_gmt' => '2016-01-15T00:00:00',
-		) );
-
-		wp_update_post( array(
-			'ID'       => $post2,
-			'date'     => '2016-01-16T00:00:00Z',
-			'date_gmt' => '2016-01-16T00:00:00',
-		) );
-
-		wp_update_post( array(
-			'ID'       => $post3,
-			'date'     => '2016-01-17T00:00:00Z',
-			'date_gmt' => '2016-01-17T00:00:00',
-		) );
-
+		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-15T00:00:00Z', 'post_type' => 'page' ) );
+		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-16T00:00:00Z', 'post_type' => 'page' ) );
+		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-17T00:00:00Z', 'post_type' => 'page' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
 		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
