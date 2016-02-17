@@ -1593,9 +1593,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['context']['default'] = 'view';
 
 		$params['after'] = array(
-			'description'       => __( 'The after parameter in a date query, send as an ISO8601 or strtotime() compliant date string. See wp-includes/date.php' ),
-			'type'              => 'string',
-			'validate_callback' => array( $this, 'rest_validate_before_after_date' ),
+			'description'        => __( 'The after parameter in a date query, send as an ISO8601 compliant date string.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(
@@ -1614,9 +1615,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 		$params['before'] = array(
-			'description'       => __( 'The before parameter in a date query, send as an ISO8601 or strtotime() compliant date string. See wp-includes/date.php' ),
-			'type'              => 'string',
-			'validate_callback' => array( $this, 'rest_validate_before_after_date' ),
+			'description'        => __( 'The before parameter in a date query, send as an ISO8601 compliant date string.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$params['exclude'] = array(
 			'description'        => __( 'Ensure result set excludes specific ids.' ),
@@ -1721,28 +1723,4 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
 	}
 
-	/**
-	 * Validate before or after parameters of WP_Date_Query only accepting strings.
-	 *
-	 * @param  string          $value     A string that should be ISO8601 compliant, but anything that works in strtotime().
-	 * @param  WP_REST_Request $request   Request body.
-	 * @param  string          $parameter Name of parameter should be before or after.
-	 * @return WP_Error|boolean
-	 */
-	public function rest_validate_before_after_date( $value, $request, $parameter ) {
-		// Only validate time strings if user wants to use as an array pass it into the query param filter[date_query].
-		if ( ! is_string( $value ) ) {
-			return new WP_Error( 'invalid-date-format', __( 'Before or after params must be specified as a strtotime() compliant string. If you want to specify as an array use filter[date_query] instead.' ), array( 'status' => 400 ) );
-		}
-		// Make sure before or after parameter is being validated.
-		if ( 'before' === $parameter || 'after' === $parameter ) {
-			// Make sure before or after parameter is valid. Currently only supports strings if you wanted to pass before or after as an array use filter[date_query] instead.
-			if ( false === strtotime( $value ) ) {
-				return new WP_Error( 'invalid-date-format', __( 'The before or after parameter specified is an invalid format for a date string. Please see strtotime() or ISO8601 documentation and revise your request.' ), array( 'status' => 400 ) );
-			}
-			return true;
-		} else {
-			return new WP_Error( 'improper_validation', __( 'You are trying to validate a non before or after parameter. Please revise your request.' ), array( 'status' => 400 ) );
-		}
-	}
 }
