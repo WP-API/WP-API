@@ -1263,13 +1263,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['https://api.w.org/meta'] = array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
-				'embeddable' => true,
-			);
-		}
-
 		return $links;
 	}
 
