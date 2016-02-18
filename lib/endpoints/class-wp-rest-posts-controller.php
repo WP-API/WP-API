@@ -102,6 +102,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_status']          = $request['status'];
 		$args['s']                    = $request['search'];
 
+		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $request['before'] ) ) {
 			$args['date_query'][0]['before'] = $request['before'];
@@ -1593,7 +1594,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['context']['default'] = 'view';
 
 		$params['after'] = array(
-			'description'        => __( 'The after parameter in a date query, send as an ISO8601 compliant date string.' ),
+			'description'        => __( 'Limit response to resources published after a given ISO8601 compliant date.' ),
 			'type'               => 'string',
 			'format'             => 'date-time',
 			'validate_callback'  => 'rest_validate_request_arg',
@@ -1615,7 +1616,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 		$params['before'] = array(
-			'description'        => __( 'The before parameter in a date query, send as an ISO8601 compliant date string.' ),
+			'description'        => __( 'Limit response to resources published before a given ISO8601 compliant date.' ),
 			'type'               => 'string',
 			'format'             => 'date-time',
 			'validate_callback'  => 'rest_validate_request_arg',
