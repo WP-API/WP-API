@@ -611,11 +611,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__in',
 			'post_parent__not_in',
 			'posts_per_page',
-<<<<<<< HEAD
-			'tax_query',
-=======
 			'date_query',
->>>>>>> refs/remotes/WP-API/develop
+			'tax_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
