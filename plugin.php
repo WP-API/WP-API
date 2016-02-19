@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name: WP REST API
- * Description: JSON-based REST API for WordPress, developed as part of GSoC 2013.
+ * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://wp-api.org
- * Version: 2.0-beta11
+ * Version: 2.0-beta12
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -80,20 +80,6 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
- * WP_REST_Meta_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-controller.php';
-}
-
-/**
- * WP_REST_Meta_Posts_Controller class.
- */
-if ( ! class_exists( 'WP_REST_Meta_Posts_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-meta-posts-controller.php';
-}
-
-/**
  * WP_REST_Post_Autosave_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Post_Autosave_Controller' ) ) {
@@ -104,6 +90,7 @@ if ( ! class_exists( 'WP_REST_Post_Autosave_Controller' ) ) {
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
+require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
@@ -186,10 +173,6 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 
 			$controller->register_routes();
 
-			if ( post_type_supports( $post_type->name, 'custom-fields' ) ) {
-				$meta_controller = new WP_REST_Meta_Posts_Controller( $post_type->name );
-				$meta_controller->register_routes();
-			}
 			if ( post_type_supports( $post_type->name, 'revisions' ) ) {
 				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 				$revisions_controller->register_routes();
@@ -346,6 +329,40 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
+			if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
+				if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (exclusive)' ), $param, $args['minimum'] ) );
+				} else if ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (inclusive)' ), $param, $args['minimum'] ) );
+				}
+			} else if ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
+				if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (exclusive)' ), $param, $args['maximum'] ) );
+				} else if ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (inclusive)' ), $param, $args['maximum'] ) );
+				}
+			} else if ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
+				if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				} else if ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+					if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					}
+				}
+			}
+		}
+
 		return true;
 	}
 }
@@ -357,7 +374,7 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 	 * @param  mixed            $value
 	 * @param  WP_REST_Request  $request
 	 * @param  string           $param
-	 * @return WP_Error|boolean
+	 * @return mixed
 	 */
 	function rest_sanitize_request_arg( $value, $request, $param ) {
 
@@ -377,11 +394,9 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 					return sanitize_text_field( $value );
 
 				case 'email' :
-					// as sanitize_email is very lossy, we just want to
-					// make sure the string is safe.
-					if ( sanitize_email( $value ) ) {
-						return sanitize_email( $value );
-					}
+					/*
+					 * sanitize_email() validates, which would be unexpected
+					 */
 					return sanitize_text_field( $value );
 
 				case 'uri' :

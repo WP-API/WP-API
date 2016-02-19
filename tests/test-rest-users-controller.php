@@ -46,7 +46,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/' . $this->user );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertEquals( 'embed', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
@@ -58,6 +58,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		sort( $keys );
 		$this->assertEquals( array(
 			'context',
+			'exclude',
 			'include',
 			'offset',
 			'order',
@@ -473,6 +474,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'http://example.com', $data['url'] );
 		$this->check_add_edit_user_response( $response );
 	}
 
@@ -556,7 +559,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'username' => 'maggiesimpson',
 			'password' => 'i_shot_mrburns',
 			'email'    => 'packingheat@example.com',
-			'role'     => 'baby',
+			'roles'    => array( 'baby' ),
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
@@ -564,7 +567,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 	}
 
 	public function test_update_item() {
@@ -573,6 +576,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'user_pass' => 'sjflsfls',
 			'user_login' => 'test_update',
 			'first_name' => 'Old Name',
+			'user_url' => 'http://apple.com',
 		));
 		$this->allow_user_to_manage_multisite();
 		wp_set_current_user( $this->user );
@@ -583,6 +587,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$_POST['email'] = $userdata->user_email;
 		$_POST['username'] = $userdata->user_login;
 		$_POST['first_name'] = 'New Name';
+		$_POST['url'] = 'http://google.com';
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
 		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
@@ -596,6 +601,9 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'New Name', $new_data['first_name'] );
 		$user = get_userdata( $user_id );
 		$this->assertEquals( 'New Name', $user->first_name );
+
+		$this->assertEquals( 'http://google.com', $new_data['url'] );
+		$this->assertEquals( 'http://google.com', $user->user_url );
 
 		// Check that we haven't inadvertently changed the user's password,
 		// as per https://core.trac.wordpress.org/ticket/21429
@@ -689,10 +697,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$new_data = $response->get_data();
+
 		$this->assertEquals( 'editor', $new_data['roles'][0] );
 		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
 
@@ -705,11 +714,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $this->editor );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
-		$request->set_param( 'role', 'administrator' );
+		$request->set_param( 'roles', array( 'administrator' ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_edit_roles', $response, 403 );
-
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
 		$this->assertArrayNotHasKey( 'administrator', $user->caps );
@@ -725,7 +733,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( $user_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 403 );
@@ -747,7 +755,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		update_site_option( 'site_admins', array( $user->user_login ) );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
-		$request->set_param( 'role', 'editor' );
+		$request->set_param( 'roles', array( 'editor' ) );
 		$response = $this->server->dispatch( $request );
 
 		$new_data = $response->get_data();
@@ -761,10 +769,10 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->allow_user_to_manage_multisite();
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $this->editor ) );
-		$request->set_param( 'role', 'BeSharp' );
+		$request->set_param( 'roles', array( 'BeSharp' ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 
 		$user = get_userdata( $this->editor );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -911,7 +919,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertEquals( 17, count( $properties ) );
+		$this->assertEquals( 16, count( $properties ) );
 		$this->assertArrayHasKey( 'avatar_urls', $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -928,7 +936,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'url', $properties );
 		$this->assertArrayHasKey( 'username', $properties );
 		$this->assertArrayHasKey( 'roles', $properties );
-		$this->assertArrayHasKey( 'role', $properties );
 
 	}
 
@@ -1021,36 +1028,25 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'avatar_urls', $data );
 		$this->assertEquals( $user->user_nicename, $data['slug'] );
 
-		if ( 'view' === $context || 'edit' === $context ) {
+		if ( 'edit' === $context ) {
 			$this->assertEquals( $user->first_name, $data['first_name'] );
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
+			$this->assertEquals( $user->user_email, $data['email'] );
+			$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
+			$this->assertEquals( $user->user_login, $data['username'] );
+			$this->assertEquals( $user->roles, $data['roles'] );
 		}
 
-		if ( 'view' !== $context && 'edit' !== $context ) {
+		if ( 'edit' !== $context ) {
 			$this->assertArrayNotHasKey( 'roles', $data );
 			$this->assertArrayNotHasKey( 'capabilities', $data );
 			$this->assertArrayNotHasKey( 'registered', $data );
 			$this->assertArrayNotHasKey( 'first_name', $data );
 			$this->assertArrayNotHasKey( 'last_name', $data );
 			$this->assertArrayNotHasKey( 'nickname', $data );
-		}
-
-		if ( 'view' === $context ) {
-			$this->assertEquals( $user->roles, $data['roles'] );
-			$this->assertEquals( $user->allcaps, $data['capabilities'] );
-			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
-			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
-		}
-
-		if ( 'edit' === $context ) {
-			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
-			$this->assertEquals( $user->user_login, $data['username'] );
-		}
-
-		if ( 'edit' !== $context ) {
 			$this->assertArrayNotHasKey( 'extra_capabilities', $data );
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
