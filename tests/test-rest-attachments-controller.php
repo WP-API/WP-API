@@ -105,8 +105,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
 			'context',
 			'exclude',
 			'filter',
@@ -298,6 +300,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( $attachment_id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_invalid_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_valid_date() {
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-15T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$id2 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-16T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$id3 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-17T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id2, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
