@@ -82,7 +82,7 @@ class WP_API_Core_Integration_REST_Server extends WP_REST_Server {
 				$used_curies[ $curie['name'] ] = $curie;
 
 				// Relation now changes from '$uri' to '$curie:$relation'
-				$rel_regex = str_replace( '\{rel\}', '([\w]+)', preg_quote( $curie['href'], '!' ) );
+				$rel_regex = str_replace( '\{rel\}', '([^/]+)', preg_quote( $curie['href'], '!' ) );
 				preg_match( '!' . $rel_regex . '!', $rel, $matches );
 				if ( $matches ) {
 					$rel = $curie['name'] . ':' . $matches[1];
