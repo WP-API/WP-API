@@ -820,10 +820,15 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		} else {
 			$this->assertFalse( isset( $term->parent ) );
 		}
-		$this->assertArrayHasKey( 'self', $links );
-		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertEqualSets( array(
+			'self',
+			'collection',
+			'about',
+			'wp:post_type',
+			'up',
+		), array_keys( $links ) );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['wp:post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {
