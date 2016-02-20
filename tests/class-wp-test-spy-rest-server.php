@@ -1,6 +1,6 @@
 <?php
 
-class WP_Test_Spy_REST_Server extends WP_REST_Server {
+class WP_Test_Spy_REST_Server extends WP_API_Core_Integration_REST_Server {
 	/**
 	 * Get the raw $endpoints data from the server
 	 *

@@ -82,7 +82,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$all_data = $response->get_data();
 		$data = $all_data[0];
 		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, 'view' );
+		$this->check_user_data( $userdata, $data, 'view', $data['_links'] );
 	}
 
 	public function test_get_items_unauthenticated_only_shows_public_users() {
@@ -1019,7 +1019,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		parent::tearDown();
 	}
 
-	protected function check_user_data( $user, $data, $context ) {
+	protected function check_user_data( $user, $data, $context, $links ) {
 		$this->assertEquals( $user->ID, $data['id'] );
 		$this->assertEquals( $user->display_name, $data['name'] );
 		$this->assertEquals( $user->user_url, $data['url'] );
@@ -1051,6 +1051,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'username', $data );
 		}
 
+		$this->assertEqualSets( array(
+			'self',
+			'collection',
+		), array_keys( $links ) );
+
 	}
 
 	protected function check_get_user_response( $response, $context = 'view' ) {
@@ -1058,7 +1063,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, $context );
+		$this->check_user_data( $userdata, $data, $context, $response->get_links() );
 	}
 
 	protected function check_add_edit_user_response( $response, $update = false ) {
@@ -1070,7 +1075,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$data = $response->get_data();
 		$userdata = get_userdata( $data['id'] );
-		$this->check_user_data( $userdata, $data, 'edit' );
+		$this->check_user_data( $userdata, $data, 'edit', $response->get_links() );
 	}
 
 	protected function allow_user_to_manage_multisite() {

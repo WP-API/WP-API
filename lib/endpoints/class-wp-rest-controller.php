@@ -157,7 +157,8 @@ abstract class WP_REST_Controller {
 		}
 
 		$data = (array) $response->get_data();
-		$links = WP_REST_Server::get_response_links( $response );
+		$class_name = get_class( $GLOBALS['wp_rest_server'] );
+		$links = $class_name::get_response_links( $response );
 		if ( ! empty( $links ) ) {
 			$data['_links'] = $links;
 		}
