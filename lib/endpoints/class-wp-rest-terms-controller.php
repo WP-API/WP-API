@@ -639,7 +639,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			);
 		}
 		if ( ! empty( $post_type_links ) ) {
-			$links['http://api.w.org/v2/post_type'] = $post_type_links;
+			$links['https://api.w.org/post_type'] = $post_type_links;
 		}
 
 		return $links;
