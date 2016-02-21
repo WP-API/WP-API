@@ -413,7 +413,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 201, $response->get_status() );
 		$this->assertEquals( 'image', $data['media_type'] );
 		$this->assertEquals( 'A field of amazing canola', $data['title']['rendered'] );
-		$this->assertEquals( 'The description for the image', $data['caption'] );
 		$this->assertEquals( 'The description for the image', $data['caption']['raw'] );
 		$this->assertEquals( wptexturize( 'The description for the image' ), $data['caption']['rendered'] );
 	}
