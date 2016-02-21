@@ -414,6 +414,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 'image', $data['media_type'] );
 		$this->assertEquals( 'A field of amazing canola', $data['title']['rendered'] );
 		$this->assertEquals( 'The description for the image', $data['caption'] );
+		$this->assertEquals( 'The description for the image', $data['caption']['raw'] );
+		$this->assertEquals( wptexturize( 'The description for the image' ), $data['caption']['rendered'] );
 	}
 
 	public function test_create_item_default_filename_title() {
@@ -571,7 +573,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$attachment = get_post( $data['id'] );
 		$this->assertEquals( 'My title is very cool', $data['title']['raw'] );
 		$this->assertEquals( 'My title is very cool', $attachment->post_title );
-		$this->assertEquals( 'This is a better caption.', $data['caption'] );
+		$this->assertEquals( 'This is a better caption.', $data['caption']['raw'] );
+		$this->assertEquals( wptexturize( 'This is a better caption.' ), $data['caption']['rendered'] );
 		$this->assertEquals( 'This is a better caption.', $attachment->post_excerpt );
 		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $data['description'] );
 		$this->assertEquals( 'Without a description, my attachment is descriptionless.', $attachment->post_content );
@@ -767,7 +770,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		parent::check_post_data( $attachment, $data, $context );
 
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
-		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );
+		$this->assertEquals( $attachment->post_excerpt, $data['caption']['raw'] );
+		$this->assertEquals( wptexturize( $attachment->post_excerpt ), $data['caption']['rendered'] );
 		$this->assertEquals( $attachment->post_content, $data['description'] );
 		$this->assertTrue( isset( $data['media_details'] ) );
 
