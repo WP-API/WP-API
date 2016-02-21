@@ -224,7 +224,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$data = $response->get_data();
 
 		$data['alt_text']      = get_post_meta( $post->ID, '_wp_attachment_image_alt', true );
-		$data['caption']       = $post->post_excerpt;
+		$data['caption'] = array(
+			'raw'      => $post->post_excerpt,
+			'rendered' => wptexturize( $post->post_excerpt ),
+		);
 		$data['description']   = $post->post_content;
 		$data['media_type']    = wp_attachment_is_image( $post->ID ) ? 'image' : 'file';
 		$data['mime_type']     = $post->post_mime_type;
