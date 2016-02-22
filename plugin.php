@@ -306,7 +306,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 		if ( isset( $args['format'] ) ) {
 			switch ( $args['format'] ) {
 				case 'date-time' :
-					if ( ! rest_parse_date( $value ) ) {
+					if ( $value && ! rest_parse_date( $value ) ) {
 						return new WP_Error( 'rest_invalid_date', __( 'The date you provided is invalid.' ) );
 					}
 					break;
