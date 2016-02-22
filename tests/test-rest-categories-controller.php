@@ -271,11 +271,27 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
 	}
 
-	public function test_get_items_post_args() {
+	protected function post_with_categories() {
 		$post_id = $this->factory->post->create();
-		$category1 = $this->factory->category->create( array( 'name' => 'DC' ) );
-		$category2 = $this->factory->category->create( array( 'name' => 'Marvel' ) );
-		wp_set_object_terms( $post_id, array( $category1, $category2 ), 'category' );
+		$category1 = $this->factory->category->create( array(
+			'name' => 'DC',
+			'description' => 'Purveyor of fine detective comics',
+		) );
+		$category2 = $this->factory->category->create( array(
+			'name' => 'Marvel',
+			'description' => 'Home of the Marvel Universe',
+		) );
+		$category3 = $this->factory->category->create( array(
+			'name' => 'Image',
+			'description' => 'American independent comic publisher',
+		) );
+		wp_set_object_terms( $post_id, array( $category1, $category2, $category3 ), 'category' );
+
+		return $post_id;
+	}
+
+	public function test_get_items_post_args() {
+		$post_id = $this->post_with_categories();
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'post', $post_id );
@@ -283,8 +299,52 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'DC', $data[0]['name'] );
+		$this->assertEquals( 3, count( $data ) );
+
+		// Check ordered by name by default
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Image', 'Marvel' ), $names );
+	}
+
+	public function test_get_items_post_ordered_by_description() {
+		$post_id = $this->post_with_categories();
+
+		// Regular request
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'orderby', 'description' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'Image', 'Marvel', 'DC' ), $names, 'Terms should be ordered by description' );
+
+		// Flip the order
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Marvel', 'Image' ), $names, 'Terms should be reverse-ordered by description' );
+	}
+
+	public function test_get_items_post_ordered_by_id() {
+		$post_id = $this->post_with_categories();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Marvel', 'Image' ), $names );
 	}
 
 	public function test_get_items_custom_tax_post_args() {
