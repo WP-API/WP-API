@@ -924,7 +924,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
-			if ( ! isset( $request[ $base ] ) ) {
+			if ( ! isset( $request[ $base ] ) || empty( $request[ $base ] ) ) {
 				continue;
 			}
 			$terms = array_map( 'absint', $request[ $base ] );
