@@ -102,6 +102,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_status']          = $request['status'];
 		$args['s']                    = $request['search'];
 
+		$args['date_query'] = array();
+		// Set before into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['before'] ) ) {
+			$args['date_query'][0]['before'] = $request['before'];
+		}
+
+		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['after'] ) ) {
+			$args['date_query'][0]['after'] = $request['after'];
+		}
+
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
@@ -599,6 +610,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__in',
 			'post_parent__not_in',
 			'posts_per_page',
+			'date_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
@@ -1581,6 +1593,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$params['context']['default'] = 'view';
 
+		$params['after'] = array(
+			'description'        => __( 'Limit response to resources published after a given ISO8601 compliant date.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(
 				'description'         => __( 'Limit result set to posts assigned to specific authors.' ),
@@ -1597,6 +1615,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
+		$params['before'] = array(
+			'description'        => __( 'Limit response to resources published before a given ISO8601 compliant date.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
 		$params['exclude'] = array(
 			'description'        => __( 'Ensure result set excludes specific ids.' ),
 			'type'               => 'array',
