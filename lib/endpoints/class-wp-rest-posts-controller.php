@@ -928,7 +928,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
-			if ( ! empty( $request[ $base ]) ) {
+			if ( ! empty( $request[ $base ] ) ) {
 				$terms = array_map( 'absint', $request[ $base ] );
 			}
 
