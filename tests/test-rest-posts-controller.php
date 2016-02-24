@@ -73,6 +73,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'search',
 			'slug',
 			'status',
+			'sticky',
 			), $keys );
 	}
 
@@ -271,7 +272,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_ignore_sticky_posts_by_default() {
-		$this->markTestSkipped( 'Broken, see https://github.com/WP-API/WP-API/issues/2210' );
 		$post_id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-01 12:00:00', 'post_date_gmt' => '2015-01-01 12:00:00' ) );
 		$post_id2 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-02 12:00:00', 'post_date_gmt' => '2015-01-02 12:00:00' ) );
 		$post_id3 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-03 12:00:00', 'post_date_gmt' => '2015-01-03 12:00:00' ) );
@@ -285,7 +285,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// Permit stickies
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'filter', array( 'ignore_sticky_posts' => false ) );
+		$request->set_param( 'sticky', true );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( array( $post_id2, $this->post_id, $post_id3, $post_id1 ), wp_list_pluck( $data, 'id' ) );
