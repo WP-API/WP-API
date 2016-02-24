@@ -440,6 +440,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
 			), rest_url( '/wp/v2/categories' ) );
@@ -455,6 +456,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
 			), rest_url( '/wp/v2/categories' ) );
@@ -470,6 +472,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 1, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
 			), rest_url( '/wp/v2/categories' ) );
@@ -482,6 +485,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 0, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
 			), rest_url( '/wp/v2/categories' ) );
