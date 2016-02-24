@@ -551,7 +551,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( 'post' !== $this->post_type || ! isset( $query_args['ignore_sticky_posts'] ) ) {
+		if ( 'post' === $this->post_type && ! empty( $request['sticky'] ) ) {
+			$query_args['ignore_sticky_posts'] = false;
+		} else {
 			$query_args['ignore_sticky_posts'] = true;
 		}
 
@@ -1699,6 +1701,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
 		);
+		if ( 'post' === $this->post_type ) {
+			$params['sticky'] = array(
+				'description' => __( 'Permit post stickiness to affect result set.' ),
+				'type'        => 'boolean',
+				'default'     => false,
+			);
+		}
+
 		$params['filter'] = array(
 			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
 		);
