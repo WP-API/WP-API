@@ -974,7 +974,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 2, 0, 0, 1, 1, 2010 );
-		$this->assertEquals( '2010-01-01T02:00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T02:00:00+00:00', $data['date'] );
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 	}
 
@@ -992,8 +992,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$new_post = get_post( $data['id'] );
 		$time = gmmktime( 12, 0, 0, 1, 1, 2010 );
 
-		$this->assertEquals( '2010-01-01T12:00:00', $data['date'] );
-		$this->assertEquals( '2010-01-01T12:00:00', $data['modified'] );
+		$this->assertEquals( '2010-01-01T12:00:00+00:00', $data['date'] );
+		$this->assertEquals( '2010-01-01T12:00:00+00:00', $data['modified'] );
 
 		$this->assertEquals( $time, strtotime( $new_post->post_date ) );
 		$this->assertEquals( $time, strtotime( $new_post->post_modified ) );

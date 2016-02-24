@@ -12,12 +12,12 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 			$this->assertNull( $data['date_gmt'] );
 		}
-		$this->assertEquals( mysql_to_rfc3339( $post->post_date ), $data['date'] );
+		$this->assertEquals( mysql_to_rfc3339( $post->post_date ) . '+00:00', $data['date'] );
 
 		if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 			$this->assertNull( $data['modified_gmt'] );
 		}
-		$this->assertEquals( mysql_to_rfc3339( $post->post_modified ), $data['modified'] );
+		$this->assertEquals( mysql_to_rfc3339( $post->post_modified ) . '+00:00', $data['modified'] );
 
 		// author
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
@@ -135,13 +135,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 				$this->assertNull( $data['date_gmt'] );
 			} else {
-				$this->assertEquals( mysql_to_rfc3339( $post->post_date_gmt ), $data['date_gmt'] );
+				$this->assertEquals( mysql_to_rfc3339( $post->post_date_gmt ) . '+00:00', $data['date_gmt'] );
 			}
 
 			if ( '0000-00-00 00:00:00' === $post->post_modified_gmt ) {
 				$this->assertNull( $data['modified_gmt'] );
 			} else {
-				$this->assertEquals( mysql_to_rfc3339( $post->post_modified_gmt ), $data['modified_gmt'] );
+				$this->assertEquals( mysql_to_rfc3339( $post->post_modified_gmt ) . '+00:00', $data['modified_gmt'] );
 			}
 		}
 
