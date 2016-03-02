@@ -312,7 +312,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a user is created or updated via the REST API.
 		 *
-		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_User         $user      Data used to create the user.
 		 * @param WP_REST_Request $request   Request object.
 		 * @param boolean         $creating  True when creating user, false when updating user.
 		 */
