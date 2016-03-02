@@ -614,7 +614,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( 0 !== (int) $comment->user_id ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/v2/users/' . $comment->user_id ),
+				'href'       => rest_url( sprintf( '/%s/users/%d', $this->namespace, $comment->user_id ) ),
 				'embeddable' => true,
 			);
 		}
@@ -626,7 +626,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
 
 				$links['up'] = array(
-					'href'       => rest_url( '/wp/v2/' . $base . '/' . $comment->comment_post_ID ),
+					'href'       => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $base, $comment->comment_post_ID ) ),
 					'embeddable' => true,
 					'post_type'  => $post->post_type,
 				);

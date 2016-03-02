@@ -117,10 +117,10 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		$base = ! empty( $post_type->rest_base ) ? $post_type->rest_base : $post_type->name;
 		$response->add_links( array(
 			'collection'              => array(
-				'href'                => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+				'href'                => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 			'https://api.w.org/items' => array(
-				'href'                => rest_url( sprintf( 'wp/v2/%s', $base ) ),
+				'href'                => rest_url( sprintf( '/%s/%s',  $this->namespace, $base ) ),
 			),
 		) );
 

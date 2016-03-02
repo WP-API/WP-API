@@ -1199,20 +1199,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'href'   => rest_url( $base ),
 			),
 			'about'      => array(
-				'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
+				'href'   => rest_url( sprintf( '/%s/types/%s', $this->namespace, $this->post_type ) ),
 			),
 		);
 
 		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
 			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
+				'href'       => rest_url( sprintf( '/%s/users/%d', $this->namespace, $post->post_author ) ),
 				'embeddable' => true,
 			);
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
-			$replies_url = rest_url( '/wp/v2/comments' );
+			$replies_url = rest_url( sprintf( '/%s/comments', $this->namespace ) );
 			$replies_url = add_query_arg( 'post', $post->ID, $replies_url );
 			$links['replies'] = array(
 				'href'         => $replies_url,
@@ -1235,14 +1235,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// If we have a featured media, add that.
 		if ( $featured_media = get_post_thumbnail_id( $post->ID ) ) {
-			$image_url = rest_url( 'wp/v2/media/' . $featured_media );
+			$image_url = rest_url( sprintf( '/%s/media/%d', $this->namespace, $featured_media ) );
 			$links['https://api.w.org/featuredmedia'] = array(
 				'href'       => $image_url,
 				'embeddable' => true,
 			);
 		}
 		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
-			$attachments_url = rest_url( 'wp/v2/media' );
+			$attachments_url = rest_url( sprintf( '/%s/media', $this->namespace ) );
 			$attachments_url = add_query_arg( 'parent', $post->ID, $attachments_url );
 			$links['https://api.w.org/attachment'] = array(
 				'href'       => $attachments_url,
@@ -1264,7 +1264,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$terms_url = add_query_arg(
 					'post',
 					$post->ID,
-					rest_url( 'wp/v2/' . $tax_base )
+					rest_url( sprintf( '/%s/%s', $this->namespace, $tax_base ) )
 				);
 
 				$links['https://api.w.org/term'][] = array(

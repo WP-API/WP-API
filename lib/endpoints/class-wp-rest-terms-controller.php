@@ -586,7 +586,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'href'       => rest_url( $base ),
 			),
 			'about'      => array(
-				'href'       => rest_url( sprintf( 'wp/v2/taxonomies/%s', $this->taxonomy ) ),
+				'href'       => rest_url( sprintf( '/%s/taxonomies/%s', $this->namespace, $this->taxonomy ) ),
 			),
 		);
 
@@ -613,7 +613,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 			$rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 			$post_type_links[] = array(
-				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( 'wp/v2/%s', $rest_base ) ) ),
+				'href' => add_query_arg( $this->rest_base, $term->term_id, rest_url( sprintf( '/%s/%s', $this->namespace, $rest_base ) ) ),
 			);
 		}
 		if ( ! empty( $post_type_links ) ) {
