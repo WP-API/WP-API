@@ -367,6 +367,31 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'Cape', $data[0]['name'] );
 	}
 
+	public function test_get_items_post_with_exclude() {
+		$include = array();
+		$include[] = $this->factory->category->create( array( 'name' => 'Apple' ) );
+		$include[] = $this->factory->category->create( array( 'name' => 'Orange' ) );
+		$include[] = $this->factory->category->create( array( 'name' => 'Banana' ) );
+
+		// Ensure our query doesn't include this category
+		$bad_milhouse = $this->factory->category->create( array( 'name' => 'Grapefruit' ) );
+		$exclude = array( $bad_milhouse );
+
+		$post_id = $this->factory->post->create();
+		$post_cats_meow = array_merge( $include, $exclude );
+		wp_set_object_terms( $post_id, $post_cats_meow, 'category' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'exclude', $exclude );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$response_ids = wp_list_pluck( $data, 'id' );
+		$this->assertEqualSets( $include, $response_ids, 'Response should not contain excluded categories' );
+	}
+
 	public function test_get_items_search_args() {
 		$this->factory->category->create( array( 'name' => 'Apple' ) );
 		$this->factory->category->create( array( 'name' => 'Banana' ) );
