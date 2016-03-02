@@ -155,6 +155,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			unset( $count_args['offset'] );
 			$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
+			// Ensure we don't return results when offset is out of bounds
+			// see https://core.trac.wordpress.org/ticket/35935
+			if ( $prepared_args['offset'] >= $total_terms ) {
+				$query_result = array();
+			}
+
 			// wp_count_terms can return a falsy value when the term has no children
 			if ( ! $total_terms ) {
 				$total_terms = 0;
