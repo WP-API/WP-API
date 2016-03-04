@@ -1156,7 +1156,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 			$terms = get_the_terms( $post, $taxonomy->name );
-			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
+			$term_ids = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
+
+			/**
+			 * Filter the output of taxonomy terms
+			 *
+			 * The dynamic portion of the hook name, $base, refers to the rest_base of the
+			 * taxonomy, which is either the taxonomy name or a manually configured base.
+			 *
+			 * @param Array   $term_ids      Array of term IDs on the Post object
+			 * @param Object  $taxonomy      Taxonomy that the $term_ids belong to
+			 * @param WP_Post $post          Post object.
+			 */
+			$data[ $base ] = apply_filters( "rest_prepare_terms_{$base}", $term_ids, $taxonomy, $post );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
