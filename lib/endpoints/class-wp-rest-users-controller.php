@@ -27,7 +27,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
 				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
 					'password'    => array(
-						'required' => true,
+						'description'       => __( 'Password for user.' ),
+						'type'              => 'string',
+						'validate_callback' => 'rest_validate_request_arg',
 					),
 				) ),
 			),
@@ -248,8 +250,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return boolean
 	 */
 	public function create_item_permissions_check( $request ) {
-
-		if ( ! current_user_can( 'create_users' ) ) {
+		if ( ! current_user_can( 'create_users' ) && ( ! empty( $request['password'] ) || ! get_option( 'users_can_register' ) ) ) {
 			return new WP_Error( 'rest_cannot_create_user', __( 'Sorry, you are not allowed to create resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -283,26 +284,59 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( is_multisite() ) {
-			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
-			if ( ! $user_id ) {
-				return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
+		if ( current_user_can( 'create_users' ) && ! empty( $request['password'] ) ) {
+			if ( is_multisite() ) {
+				$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
+				if ( ! $user_id ) {
+					return new WP_Error( 'rest_user_create', __( 'Error creating new resource.' ), array( 'status' => 500 ) );
+				}
+				$user->ID = $user_id;
+				$user_id = wp_update_user( $user );
+				if ( is_wp_error( $user_id ) ) {
+					return $user_id;
+				}
+			} else {
+				$user_id = wp_insert_user( $user );
+				if ( is_wp_error( $user_id ) ) {
+					return $user_id;
+				}
 			}
-			$user->ID = $user_id;
-			$user_id = wp_update_user( $user );
-			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
+			$user = get_user_by( 'id', $user_id );
+			if ( ! empty( $request['roles'] ) ) {
+				array_map( array( $user, 'add_role' ), $request['roles'] );
 			}
 		} else {
-			$user_id = wp_insert_user( $user );
+			$user_id = register_new_user( $user->user_login, $user->user_email );
 			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
+				$error_codes = $user_id->get_error_codes();
+				$errors = new WP_Error();
+				foreach ( $error_codes as $error_code ) {
+					switch ( $error_code ) {
+						case 'empty_username':
+							$errors->add( 'empty_username', __( 'Please enter a username.' ), array( 'status' => 400, 'params' => array( 'username' ) ) );
+							continue;
+						case 'invalid_username':
+							$errors->add( 'invalid_username', __( 'This username is invalid because it uses illegal characters. Please enter a valid username.' ), array( 'status' => 400, 'params' => array( 'username' ) ) );
+							continue;
+						case 'username_exists':
+							$errors->add( 'username_exists', __( 'This username is already registered. Please choose another one.' ), array( 'status' => 400, 'params' => array( 'username' ) ) );
+							continue;
+						case 'empty_email':
+							$errors->add( 'rest_invalid_param', __( 'Please type your email address.' ), array( 'status' => 400, 'params' => array( 'email' ) ) );
+							continue;
+						case 'invalid_email':
+							$errors->add( 'rest_invalid_param', __( 'The email address isn&#8217;t correct.' ), array( 'status' => 400, 'params' => array( 'email' ) ) );
+							continue;
+						case 'email_exists':
+							$errors->add( 'rest_invalid_param', __( 'This email is already registered, please choose another one.' ), array( 'status' => 400, 'params' => array( 'email' ) ) );
+							continue;
+						default:
+							break;
+					}
+				}
+				return $errors;
 			}
-		}
-
-		$user = get_user_by( 'id', $user_id );
-		if ( ! empty( $request['roles'] ) ) {
-			array_map( array( $user, 'add_role' ), $request['roles'] );
+			$user = get_user_by( 'id', $user_id );
 		}
 
 		$this->update_additional_fields_for_object( $user, $request );
@@ -624,6 +658,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
 			// Multisite super admins can freely edit their blog roles -- they possess all caps.
 			if ( ! ( is_multisite() && current_user_can( 'manage_sites' ) ) && get_current_user_id() === $user_id && ! $potential_role->has_cap( 'edit_users' ) ) {
+				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+
+			// Don't let anyone without 'edit_users' edit their own role to something.
+			if ( ! current_user_can( 'edit_users' ) ) {
 				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => rest_authorization_required_code() ) );
 			}
 

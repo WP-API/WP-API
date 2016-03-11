@@ -570,6 +570,61 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 400 );
 	}
 
+	public function test_create_unauthenticated_user() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'username' => 'hiImTroyMcClure',
+			'email'    => 'youMayRemember@mefrom.com',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_create_user', $response, 401 );
+
+		update_option( 'users_can_register', 1 );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$userdata = get_userdata( $data['id'] );
+		$this->check_user_data( $userdata, $data, 'edit' );
+	}
+
+	public function test_create_user_role_invalid_privilege_escalation() {
+		wp_set_current_user( 0 );
+		update_option( 'users_can_register', 1 );
+
+		$params = array(
+			'username' => 'hiImTroyMcClure',
+			'email'    => 'youMayRemember@mefrom.com',
+			'roles'    => array( 'administrator' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 401 );
+		$user = get_userdata( $this->editor );
+		$this->assertArrayHasKey( 'editor', $user->caps );
+		$this->assertArrayNotHasKey( 'administrator', $user->caps );
+
+		wp_set_current_user( $this->editor );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_role', $response, 403 );
+		$user = get_userdata( $this->editor );
+		$this->assertArrayHasKey( 'editor', $user->caps );
+		$this->assertArrayNotHasKey( 'administrator', $user->caps );
+	}
+
 	public function test_update_item() {
 		$user_id = $this->factory->user->create( array(
 			'user_email' => 'test@example.com',
