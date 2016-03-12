@@ -250,7 +250,6 @@ abstract class WP_REST_Controller {
 				'default'            => 10,
 				'minimum'            => 1,
 				'maximum'            => 100,
-				'sanitize_callback'  => 'absint',
 				'validate_callback'  => 'rest_validate_request_arg',
 			),
 			'search'                 => array(

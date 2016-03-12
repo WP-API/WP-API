@@ -57,6 +57,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'context',
 			'exclude',
 			'filter',
+			'filter[posts_per_page]',
 			'include',
 			'menu_order',
 			'offset',

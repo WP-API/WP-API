@@ -64,6 +64,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'context',
 			'exclude',
 			'filter',
+			'filter[posts_per_page]',
 			'include',
 			'offset',
 			'order',
@@ -1662,6 +1663,50 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
+	}
+
+	public function test_enforce_minimum_and_max_to_posts_per_page() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'per_page' => 101,
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'per_page' => -1,
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'filter' => array(
+				'posts_per_page' => 101
+			)
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'filter' => array(
+				'posts_per_page' => -1
+			)
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array(
+			'per_page' => 10,
+			'filter' => array(
+				'posts_per_page' => -1
+			)
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
 	}
 
 	public function additional_field_get_callback( $object ) {
