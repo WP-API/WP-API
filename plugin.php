@@ -283,10 +283,12 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 	 */
 	function rest_validate_request_arg( $value, $request, $param ) {
 		// for validating filter args
-		if ( preg_match( "/filter\[([a-zA-Z0-9_]+)\]/", $param, $m )) {
-			$filters = $request->get_param( 'filter' );
-			if ( ! empty( $filters[ $m[1] ] ) ) {
-				$value = $filters[ $m[1] ];
+		if ( isset( $request['filter'] ) ) {
+			if ( preg_match( "/filter\[([a-zA-Z0-9_]+)\]/", $param, $matches ) ) {
+				$filters = $request->get_param( 'filter' );
+				if ( ! empty( $filters[ $matches[1] ] ) ) {
+					$value = $filters[ $matches[1] ];
+				}
 			}
 		}
 

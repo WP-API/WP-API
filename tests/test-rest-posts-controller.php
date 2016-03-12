@@ -1671,14 +1671,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'per_page' => 101,
 		) );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
 			'per_page' => -1,
 		) );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
@@ -1687,7 +1687,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		) );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
@@ -1696,7 +1696,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		) );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
@@ -1706,7 +1706,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		) );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function additional_field_get_callback( $object ) {
