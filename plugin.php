@@ -303,6 +303,10 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
 		}
 
+		if ( 'array' === $args['type'] && ! is_array( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type array' ), $param ) );
+		}
+
 		if ( isset( $args['format'] ) ) {
 			switch ( $args['format'] ) {
 				case 'date-time' :

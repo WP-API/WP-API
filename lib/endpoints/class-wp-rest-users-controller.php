@@ -802,12 +802,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['offset'] = array(
 			'description'        => __( 'Offset the result set by a specific number of items.' ),
