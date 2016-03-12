@@ -96,7 +96,7 @@ add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
  *
  * @since 4.4.0
  *
- * @global array $wp_taxonomies Registered taxonomies.
+ * @global array $wp_post_types Registered post types.
  */
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;
