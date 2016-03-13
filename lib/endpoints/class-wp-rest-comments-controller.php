@@ -135,6 +135,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'author__not_in'  => $request['author_exclude'],
 		);
 
+		$prepared_args['date_query'] = array();
+		// Set before into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['before'] ) ) {
+			$prepared_args['date_query'][0]['before'] = $request['before'];
+		}
+
+		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['after'] ) ) {
+			$prepared_args['date_query'][0]['after'] = $request['after'];
+		}
+
 		if ( empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
 		}
@@ -372,11 +383,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a comment is created or updated via the REST API.
 		 *
-		 * @param array           $prepared_comment Inserted comment data.
-		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param boolean         $creating         True when creating a comment, false when updating.
+		 * @param array           $comment  Comment as it exists in the database.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param boolean         $creating True when creating a comment, false when updating.
 		 */
-		do_action( 'rest_insert_comment', $prepared_comment, $request, true );
+		do_action( 'rest_insert_comment', $comment, $request, true );
 
 		return $response;
 	}
@@ -446,7 +457,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $comment, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-comments-controller.php */
-		do_action( 'rest_insert_comment', $prepared_args, $request, false );
+		do_action( 'rest_insert_comment', $comment, $request, false );
 
 		return rest_ensure_response( $response );
 	}
@@ -924,6 +935,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['after'] = array(
+			'description'       => __( 'Limit response to resources published after a given ISO8601 compliant date.' ),
+			'type'              => 'string',
+			'format'            => 'date-time',
+			'validate_callback' => 'rest_validate_request_arg',
+		);
 		$query_params['author'] = array(
 			'description'       => __( 'Limit result set to comments assigned to specific user ids. Requires authorization.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
@@ -943,6 +960,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'sanitize_callback' => 'sanitize_email',
 			'validate_callback' => 'rest_validate_request_arg',
 			'type'              => 'string',
+		);
+		$query_params['before'] = array(
+			'description'       => __( 'Limit response to resources published before a given ISO8601 compliant date.' ),
+			'type'              => 'string',
+			'format'            => 'date-time',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['exclude'] = array(
 			'description'        => __( 'Ensure result set excludes specific ids.' ),
