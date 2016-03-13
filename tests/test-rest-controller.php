@@ -88,6 +88,13 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 	}
 
+	public function test_get_endpoint_args_for_item_schema_description() {
+		$controller = new WP_REST_Test_Controller();
+		$args       = $controller->get_endpoint_args_for_item_schema();
+		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
+		$this->assertFalse( isset( $args['someinteger']['description'] ) );
+	}
+
 	public function test_get_endpoint_args_for_item_schema_arg_options() {
 
 		$controller = new WP_REST_Test_Controller();
