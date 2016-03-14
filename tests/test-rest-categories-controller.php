@@ -440,6 +440,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
 			), rest_url( '/wp/v2/categories' ) );
@@ -455,6 +456,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
 			), rest_url( '/wp/v2/categories' ) );
@@ -470,6 +472,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 1, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
 			), rest_url( '/wp/v2/categories' ) );
@@ -482,11 +485,37 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 0, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
 			), rest_url( '/wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
+	public function test_get_items_per_page_exceeds_number_of_items() {
+		// Start of the index + Uncategorized default term
+		for ( $i = 0; $i < 17; $i++ ) {
+			$this->factory->category->create( array(
+				'name'   => "Category {$i}",
+				) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', 1 );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 18, $headers['X-WP-Total'] );
+		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 18, $response->get_data() );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 18, $headers['X-WP-Total'] );
+		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 0, $response->get_data() );
 	}
 
 	public function test_get_item() {

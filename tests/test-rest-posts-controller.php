@@ -485,9 +485,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$category_url = add_query_arg( 'post', $this->post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
-
-		$meta_links = $links['https://api.w.org/meta'];
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/meta' ), $meta_links[0]['href'] );
 	}
 
 	public function test_get_item_links_no_author() {

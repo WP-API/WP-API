@@ -1275,13 +1275,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['https://api.w.org/meta'] = array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
-				'embeddable' => true,
-			);
-		}
-
 		return $links;
 	}
 
@@ -1674,13 +1667,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
 			$params['parent'] = array(
-				'description'       => _( 'Limit result set to those of particular parent ids.' ),
+				'description'       => __( 'Limit result set to those of particular parent ids.' ),
 				'type'              => 'array',
 				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
 			);
 			$params['parent_exclude'] = array(
-				'description'       => _( 'Limit result set to all items except those of a particular parent id.' ),
+				'description'       => __( 'Limit result set to all items except those of a particular parent id.' ),
 				'type'              => 'array',
 				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),

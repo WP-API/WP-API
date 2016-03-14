@@ -383,11 +383,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a comment is created or updated via the REST API.
 		 *
-		 * @param array           $prepared_comment Inserted comment data.
-		 * @param WP_REST_Request $request          The request sent to the API.
-		 * @param boolean         $creating         True when creating a comment, false when updating.
+		 * @param array           $comment  Comment as it exists in the database.
+		 * @param WP_REST_Request $request  The request sent to the API.
+		 * @param boolean         $creating True when creating a comment, false when updating.
 		 */
-		do_action( 'rest_insert_comment', $prepared_comment, $request, true );
+		do_action( 'rest_insert_comment', $comment, $request, true );
 
 		return $response;
 	}
@@ -457,7 +457,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $comment, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-comments-controller.php */
-		do_action( 'rest_insert_comment', $prepared_args, $request, false );
+		do_action( 'rest_insert_comment', $comment, $request, false );
 
 		return rest_ensure_response( $response );
 	}
