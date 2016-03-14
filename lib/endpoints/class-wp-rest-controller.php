@@ -440,6 +440,10 @@ abstract class WP_REST_Controller {
 				'sanitize_callback' => 'rest_sanitize_request_arg',
 			);
 
+			if ( isset( $params['description'] ) ) {
+				$endpoint_args[ $field_id ]['description'] = $params['description'];
+			}
+
 			if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
 				$endpoint_args[ $field_id ]['default'] = $params['default'];
 			}
