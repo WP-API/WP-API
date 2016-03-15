@@ -3,7 +3,7 @@
  * Plugin Name: WP REST API
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
- * Author URI: http://wp-api.org
+ * Author URI: http://v2.wp-api.org
  * Version: 2.0-beta12
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
@@ -96,7 +96,7 @@ add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
  *
  * @since 4.4.0
  *
- * @global array $wp_taxonomies Registered taxonomies.
+ * @global array $wp_post_types Registered post types.
  */
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;

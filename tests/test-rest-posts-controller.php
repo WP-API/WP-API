@@ -57,8 +57,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
+			'categories',
 			'context',
 			'exclude',
 			'filter',
@@ -71,6 +74,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'search',
 			'slug',
 			'status',
+			'tags',
 			), $keys );
 	}
 
@@ -308,6 +312,41 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $response->get_data() );
 	}
 
+	public function test_get_items_tags_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags', array( $tag['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+	}
+
+	public function test_get_items_tags_and_categories_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+		$category = wp_insert_term( 'My Category', 'category' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id2, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id1, array( $category['term_id'] ), 'category' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags', array( $tag['term_id'] ) );
+		$request->set_param( 'categories', array( $category['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+	}
+
 	/**
 	 * @group test
 	 */
@@ -413,6 +452,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	public function test_get_items_invalid_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_valid_date() {
+		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-15T00:00:00Z' ) );
+		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-16T00:00:00Z' ) );
+		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-17T00:00:00Z' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $post2, $data[0]['id'] );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
@@ -461,9 +522,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$category_url = add_query_arg( 'post', $this->post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
-
-		$meta_links = $links['https://api.w.org/meta'];
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/meta' ), $meta_links[0]['href'] );
 	}
 
 	public function test_get_item_links_no_author() {
