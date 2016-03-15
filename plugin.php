@@ -282,6 +282,15 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 	 * @return WP_Error|boolean
 	 */
 	function rest_validate_request_arg( $value, $request, $param ) {
+		// for validating filter args
+		if ( isset( $request['filter'] ) ) {
+			if ( preg_match( "/filter\[([a-zA-Z0-9_]+)\]/", $param, $matches ) ) {
+				$filters = $request->get_param( 'filter' );
+				if ( ! empty( $filters[ $matches[1] ] ) ) {
+					$value = $filters[ $matches[1] ];
+				}
+			}
+		}
 
 		$attributes = $request->get_attributes();
 		if ( ! isset( $attributes['args'][ $param ] ) || ! is_array( $attributes['args'][ $param ] ) ) {

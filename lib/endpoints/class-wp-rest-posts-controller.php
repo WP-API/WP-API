@@ -1695,6 +1695,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['filter'] = array(
 			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
 		);
+		$params['filter[posts_per_page]'] = $params['per_page'];
 		return $params;
 	}
 

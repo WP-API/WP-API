@@ -112,6 +112,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'context',
 			'exclude',
 			'filter',
+			'filter[posts_per_page]',
 			'include',
 			'media_type',
 			'mime_type',
