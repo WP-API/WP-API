@@ -1715,7 +1715,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 			$params[ $base ] = array(
-				'description'       => sprintf( _( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
+				'description'       => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
 				'type'              => 'array',
 				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
