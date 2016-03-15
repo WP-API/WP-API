@@ -20,7 +20,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 
 		$this->has_setup_template = false;
-
+		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}
 
 	public function test_register_routes() {
@@ -50,8 +50,10 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
 			'context',
 			'exclude',
 			'filter',
@@ -187,6 +189,27 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $draft_id, $data[0]['id'] );
 	}
 
+	public function test_get_items_invalid_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_valid_date() {
+		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-15T00:00:00Z', 'post_type' => 'page' ) );
+		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-16T00:00:00Z', 'post_type' => 'page' ) );
+		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-17T00:00:00Z', 'post_type' => 'page' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $post2, $data[0]['id'] );
+	}
+
 	public function test_get_item() {
 
 	}
@@ -204,7 +227,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_create_item_with_template() {
 		wp_set_current_user( $this->editor_id );
-		$this->setup_test_template();
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
 		$params = $this->set_post_data( array(
@@ -363,26 +385,14 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function tearDown() {
 		parent::tearDown();
-
-		if ( $this->has_setup_template ) {
-			unlink( $this->has_setup_template );
-		}
-
+		remove_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}
 
-	protected function setup_test_template() {
-
-		$contents = <<<EOT
-<?php
-/*
- * Template Name: My Test Template
- */
-
-EOT;
-
-		$this->has_setup_template = get_stylesheet_directory() . '/page-my-test-template.php';
-		file_put_contents( $this->has_setup_template, $contents );
-		wp_get_theme()->cache_delete();
+	public function filter_theme_page_templates( $page_templates ) {
+		return array(
+			'page-my-test-template.php' => 'My Test Template',
+		);
+		return $page_templates;
 	}
 
 	protected function set_post_data( $args = array() ) {

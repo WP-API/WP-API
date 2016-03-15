@@ -82,9 +82,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_email',
 			'author_exclude',
+			'before',
 			'context',
 			'exclude',
 			'include',
@@ -452,6 +454,37 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			), rest_url( '/wp/v2/comments' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
+	public function test_get_comments_invalid_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_comments_valid_date() {
+		$comment1 = $this->factory->comment->create( array(
+			'comment_date'    => '2016-01-15T00:00:00Z',
+			'comment_post_ID' => $this->post_id,
+		) );
+		$comment2 = $this->factory->comment->create( array(
+			'comment_date'    => '2016-01-16T00:00:00Z',
+			'comment_post_ID' => $this->post_id,
+		) );
+		$comment3 = $this->factory->comment->create( array(
+			'comment_date'    => '2016-01-17T00:00:00Z',
+			'comment_post_ID' => $this->post_id,
+		) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $comment2, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
