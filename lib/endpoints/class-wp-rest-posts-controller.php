@@ -1756,19 +1756,22 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function rest_validate_query_filter( $values, $request, $parameter ) {
-		foreach ( $values as $parameter => $value ) {
-			switch ( $parameter ) {
-				case 'tax_query' :
-					$is_valid = $this->rest_validate_tax_query( $value, $request, $parameter );
-					// If an error is found exit early and it will throw an error for request->has_valid_params();
-					if ( is_wp_error( $is_valid ) ) {
-						return $is_valid;
-					}
-					continue;
-				default :
-					// Returns true for validation by default.
-					$is_valid = true;
-					continue;
+		$is_valid = new WP_Error( 'rest_invalid_param', __( 'The filter param is empty.' ), 400 );
+		if ( ! empty( $values ) ) {
+			foreach ( $values as $parameter => $value ) {
+				switch ( $parameter ) {
+					case 'tax_query' :
+						$is_valid = $this->rest_validate_tax_query( $value, $request, $parameter );
+						// If an error is found exit early and it will throw an error for request->has_valid_params();
+						if ( is_wp_error( $is_valid ) ) {
+							return $is_valid;
+						}
+						continue;
+					default :
+						// Returns true for validation by default.
+						$is_valid = true;
+						continue;
+				}
 			}
 		}
 		return $is_valid;
@@ -1825,51 +1828,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						} else {
 							/* translators: %s equals taxonomy name being checked. */
 							return new WP_Error( 'invalid-taxonomy', sprintf( __( 'The taxonomy %s does not exist.' ), $value ), array( 'status' => 404 ) );
-						}
-						continue;
-					case 'field' :
-						// Validate field.
-						// Test whether the field value is one of the acceptable values.
-						if ( in_array( $value, array( 'term_id', 'name', 'slug', 'term_taxonomy_id' ) ) ) {
-							$valid = true;
-						} else {
-							return new WP_Error( 'invalid-field-for-taxonomy', __( 'A field parameter must match either "term_id", "name", "slug", or "term_taxonomy_id". Please revise your request.' ), array( 'status' => 400 ) );
-						}
-						continue;
-					case 'terms' :
-						// Test for empty string or array.
-						if ( empty( $value ) ) {
-							return new WP_Error( 'empty-terms-parameter', __( 'Terms must be a single value matching field or an array of values matching the queried field.' ), array( 'status' => 400 ) );
-						}
-						// Make sure value is greater than 0 if numeric.
-						if ( is_numeric( $value ) && 1 > $value ) {
-							return new WP_Error( 'invalid-term-id', __( 'When term id(s) are specified they must be a positive integer.' ), array( 'status' => 400 ) );
-						}
-						// If an array run checks.
-						if ( is_array( $value ) ) {
-							foreach ( $value as $value ) {
-								// Make sure value is greater than 0 if numeric.
-								if ( is_numeric( $value ) && 1 > $value ) {
-									return new WP_Error( 'invalid-term-id', __( 'When term id(s) are specified they must be a positive integer.' ), array( 'status' => 400 ) );
-								}
-							}
-						}
-						$valid = true;
-						continue;
-					case 'include_children' :
-						// Validate whether it is a boolean.
-						if ( is_bool( $value ) ) {
-							$valid = true;
-						} else {
-							return new WP_Error( 'invalid-tax-query-parameter', __( 'When specifying include_children it must be of boolean type.' ), array( 'status' => 400 ) );
-						}
-						continue;
-					case 'operator' :
-						// Make sure the value is one of the following 'IN', 'NOT IN', 'AND', 'EXISTS' and 'NOT EXISTS'.
-						if ( in_array( $value, array( 'IN', 'NOT IN', 'AND', 'EXISTS', 'NOT EXISTS' ) ) ) {
-							$valid = true;
-						} else {
-							return new WP_Error( 'invalid-tax-query-parameter', __( 'Operator must be one of "IN", "NOT IN", "AND", "EXISTS" or "NOT EXISTS"' ), array( 'status' => 400 ) );
 						}
 						continue;
 					default :
