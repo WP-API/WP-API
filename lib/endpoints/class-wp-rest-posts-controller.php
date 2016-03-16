@@ -102,6 +102,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_status']          = $request['status'];
 		$args['s']                    = $request['search'];
 
+		$args['date_query'] = array();
+		// Set before into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['before'] ) ) {
+			$args['date_query'][0]['before'] = $request['before'];
+		}
+
+		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $request['after'] ) ) {
+			$args['date_query'][0]['after'] = $request['after'];
+		}
+
 		if ( is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
@@ -123,6 +134,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
 		$query_args = $this->prepare_items_query( $args, $request );
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			if ( ! empty( $request[ $base ] ) ) {
+				$query_args['tax_query'][] = array(
+					'taxonomy'         => $taxonomy->name,
+					'field'            => 'term_id',
+					'terms'            => $request[ $base ],
+					'include_children' => false,
+				);
+			}
+		}
 
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -599,6 +624,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__in',
 			'post_parent__not_in',
 			'posts_per_page',
+			'date_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
@@ -1263,13 +1289,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( post_type_supports( $post->post_type, 'custom-fields' ) ) {
-			$links['https://api.w.org/meta'] = array(
-				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/meta' ),
-				'embeddable' => true,
-			);
-		}
-
 		return $links;
 	}
 
@@ -1581,6 +1600,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$params['context']['default'] = 'view';
 
+		$params['after'] = array(
+			'description'        => __( 'Limit response to resources published after a given ISO8601 compliant date.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
 		if ( post_type_supports( $this->post_type, 'author' ) ) {
 			$params['author'] = array(
 				'description'         => __( 'Limit result set to posts assigned to specific authors.' ),
@@ -1597,6 +1622,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
+		$params['before'] = array(
+			'description'        => __( 'Limit response to resources published before a given ISO8601 compliant date.' ),
+			'type'               => 'string',
+			'format'             => 'date-time',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
 		$params['exclude'] = array(
 			'description'        => __( 'Ensure result set excludes specific ids.' ),
 			'type'               => 'array',
@@ -1650,13 +1681,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type_obj = get_post_type_object( $this->post_type );
 		if ( $post_type_obj->hierarchical || 'attachment' === $this->post_type ) {
 			$params['parent'] = array(
-				'description'       => _( 'Limit result set to those of particular parent ids.' ),
+				'description'       => __( 'Limit result set to those of particular parent ids.' ),
 				'type'              => 'array',
 				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
 			);
 			$params['parent_exclude'] = array(
-				'description'       => _( 'Limit result set to all items except those of a particular parent id.' ),
+				'description'       => __( 'Limit result set to all items except those of a particular parent id.' ),
 				'type'              => 'array',
 				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
@@ -1678,6 +1709,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['filter'] = array(
 			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
 		);
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			$params[ $base ] = array(
+				'description'       => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
+				'type'              => 'array',
+				'sanitize_callback' => 'wp_parse_id_list',
+				'default'           => array(),
+			);
+		}
 		return $params;
 	}
 

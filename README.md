@@ -8,11 +8,11 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 ## WARNING
 
-The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/) to introduce yourself to endpoints, internal patterns, and implementation details. 
+The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/) to introduce yourself to endpoints, internal patterns, and implementation details.
 
 The **"master"** branch represents a **BETA** of our next version release.
 
-The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/json-rest-api/).
+The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/rest-api/).
 
 ## About
 

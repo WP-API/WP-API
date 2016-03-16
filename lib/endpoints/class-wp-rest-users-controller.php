@@ -263,8 +263,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-		global $wp_roles;
-
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
 		}
@@ -312,7 +310,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Fires after a user is created or updated via the REST API.
 		 *
-		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_User         $user      Data used to create the user.
 		 * @param WP_REST_Request $request   Request object.
 		 * @param boolean         $creating  True when creating user, false when updating user.
 		 */
@@ -650,8 +648,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		global $wp_roles;
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'user',
