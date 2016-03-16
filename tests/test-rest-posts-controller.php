@@ -61,6 +61,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'author',
 			'author_exclude',
 			'before',
+			'categories',
 			'context',
 			'exclude',
 			'filter',
@@ -73,6 +74,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'search',
 			'slug',
 			'status',
+			'tags',
 			), $keys );
 	}
 
@@ -310,6 +312,41 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $response->get_data() );
 	}
 
+	public function test_get_items_tags_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags', array( $tag['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+	}
+
+	public function test_get_items_tags_and_categories_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+		$category = wp_insert_term( 'My Category', 'category' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id2, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id1, array( $category['term_id'] ), 'category' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags', array( $tag['term_id'] ) );
+		$request->set_param( 'categories', array( $category['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+	}
+
 	/**
 	 * @group test
 	 */
@@ -485,9 +522,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$category_url = add_query_arg( 'post', $this->post_id, rest_url( '/wp/v2/categories' ) );
 		$this->assertEquals( $category_url, $cat_link['href'] );
-
-		$meta_links = $links['https://api.w.org/meta'];
-		$this->assertEquals( rest_url( '/wp/v2/posts/' . $this->post_id . '/meta' ), $meta_links[0]['href'] );
 	}
 
 	public function test_get_item_links_no_author() {
