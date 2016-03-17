@@ -332,17 +332,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Request|WP_Error
 	 */
 	public function create_item( $request ) {
-		$name = $request['name'];
-
-		$args = array();
-
-		if ( isset( $request['description'] ) ) {
-			$args['description'] = $request['description'];
-		}
-		if ( isset( $request['slug'] ) ) {
-			$args['slug'] = $request['slug'];
-		}
-
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
 				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set resource parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
@@ -351,13 +340,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$parent = get_term( (int) $request['parent'], $this->taxonomy );
 
 			if ( ! $parent ) {
-				return new WP_Error( 'rest_term_invalid', __( "Parent resource doesn't exist." ), array( 'status' => 404 ) );
+				return new WP_Error( 'rest_term_invalid', __( "Parent resource doesn't exist." ), array( 'status' => 400 ) );
 			}
-
-			$args['parent'] = $parent->term_id;
 		}
 
-		$term = wp_insert_term( $name, $this->taxonomy, $args );
+		$prepared_term = $this->prepare_item_for_database( $request );
+
+		$term = wp_insert_term( $prepared_term->name, $this->taxonomy, $prepared_term );
 		if ( is_wp_error( $term ) ) {
 
 			// If we're going to inform the client that the term exists, give them the identifier
@@ -423,18 +412,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Request|WP_Error
 	 */
 	public function update_item( $request ) {
-
-		$prepared_args = array();
-		if ( isset( $request['name'] ) ) {
-			$prepared_args['name'] = $request['name'];
-		}
-		if ( isset( $request['description'] ) ) {
-			$prepared_args['description'] = $request['description'];
-		}
-		if ( isset( $request['slug'] ) ) {
-			$prepared_args['slug'] = $request['slug'];
-		}
-
 		if ( isset( $request['parent'] ) ) {
 			if ( ! is_taxonomy_hierarchical( $this->taxonomy ) ) {
 				return new WP_Error( 'rest_taxonomy_not_hierarchical', __( 'Can not set resource parent, taxonomy is not hierarchical.' ), array( 'status' => 400 ) );
@@ -445,15 +422,15 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			if ( ! $parent ) {
 				return new WP_Error( 'rest_term_invalid', __( "Parent resource doesn't exist." ), array( 'status' => 400 ) );
 			}
-
-			$prepared_args['parent'] = $parent->term_id;
 		}
+
+		$prepared_term = $this->prepare_item_for_database( $request );
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
 
 		// Only update the term if we haz something to update.
-		if ( ! empty( $prepared_args ) ) {
-			$update = wp_update_term( $term->term_id, $term->taxonomy, $prepared_args );
+		if ( ! empty( $prepared_term ) ) {
+			$update = wp_update_term( $term->term_id, $term->taxonomy, (array) $prepared_term );
 			if ( is_wp_error( $update ) ) {
 				return $update;
 			}
@@ -525,6 +502,51 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		do_action( "rest_delete_{$this->taxonomy}", $term, $response, $request );
 
 		return $response;
+	}
+
+	/**
+	 * Prepare a single term for create or update
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return object $prepared_term Term object.
+	 */
+	public function prepare_item_for_database( $request ) {
+		$prepared_term = new stdClass;
+
+		if ( isset( $request['name'] ) ) {
+			$prepared_term->name = $request['name'];
+		}
+
+		if ( isset( $request['slug'] ) ) {
+			$prepared_term->slug = $request['slug'];
+		}
+
+		if ( isset( $request['taxonomy'] ) ) {
+			$prepared_term->taxonomy = $request['taxonomy'];
+		}
+
+		if ( isset( $request['description'] ) ) {
+			$prepared_term->description = $request['description'];
+		}
+
+		if ( isset( $request['parent'] ) ) {
+			$parent_term_id = 0;
+			$parent_term = get_term( (int) $request['parent'], $this->taxonomy );
+
+			if ( $parent_term ) {
+				$parent_term_id = $parent_term->term_id;
+			}
+
+			$prepared_term->parent = $parent_term_id;
+		}
+
+		/**
+		 * Filter term data before inserting term via the REST API.
+		 *
+		 * @param object          $prepared_term Term object.
+		 * @param WP_REST_Request $request       Request object.
+		 */
+		return apply_filters( "rest_pre_insert_{$this->taxonomy}", $prepared_term, $request );
 	}
 
 	/**
