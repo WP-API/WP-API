@@ -1756,20 +1756,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|boolean
 	 */
 	public function rest_validate_query_filter( $values, $request, $parameter ) {
-		$is_valid = new WP_Error( 'rest_invalid_param', __( 'The filter param is empty.' ), 400 );
+		// Returns true for validation by default if $values is empty or if a filter param is not being validated.
+		$is_valid = true;
 		if ( ! empty( $values ) ) {
-			foreach ( $values as $parameter => $value ) {
-				switch ( $parameter ) {
+			foreach ( $values as $filter_param => $value ) {
+				switch ( $filter_param ) {
 					case 'tax_query' :
-						$is_valid = $this->rest_validate_tax_query( $value, $request, $parameter );
+						$is_valid = $this->rest_validate_tax_query( $value, $request, $filter_param );
 						// If an error is found exit early and it will throw an error for request->has_valid_params();
 						if ( is_wp_error( $is_valid ) ) {
 							return $is_valid;
 						}
 						continue;
 					default :
-						// Returns true for validation by default.
-						$is_valid = true;
 						continue;
 				}
 			}
@@ -1788,50 +1787,41 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function rest_validate_tax_query( $values, $request, $parameter, $taxonomies = array() ) {
 		if ( 'tax_query' !== $parameter ) {
-			return new WP_Error( 'validating-non-tax-query', __( 'This validation method is only used to validate a tax query.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_invalid_param', __( 'This validation method is only used to validate a tax query.' ), array( 'status' => 400 ) );
 		}
-		if ( empty( $values ) ) {
-			return new WP_Error( 'empty-tax-query', __( 'The tax query specified is empty.' ), array( 'status' => 400 ) );
-		}
-		$valid = false;
-		foreach ( $values as $key => $value ) {
-			if ( empty( $value ) ) {
-				return new WP_Error( 'empty-tax-query-parameter', __( 'A tax query parameter was empty.' ), array( 'status' => 400 ) );
-			}
-			// Switch statement to handle different cases.
-			// Recursive call to function to handle nested taxonomy queries.
-			if ( is_array( $value ) && 'terms' !== $key ) {
-				$valid = $this->rest_validate_tax_query( $value, $request, $parameter, $taxonomies );
-				// If an error is found keep returning it up the chain.
-				if ( is_wp_error( $valid ) ) {
-					return $valid;
+		$valid = true;
+		if ( ! empty( $values ) ) {
+			foreach ( $values as $key => $value ) {
+				if ( empty( $value ) ) {
+					//return new WP_Error( 'rest_invalid_param', __( 'A tax query parameter in the filter was empty.' ), array( 'status' => 400 ) );
 				}
-			}
-			if ( ! is_numeric( $key ) ) {
-				switch ( $key ) {
-					case 'relation' :
-						// Check if the value of the relation parameter is AND or OR.
-						if ( in_array( $value, array( 'OR', 'AND' ) ) ) {
-							$valid = true;
-						} else {
-							return new WP_Error( 'invalid-relation-parameter', __( 'A relation parameter in your tax query is invalid. Relation must be "AND" or "OR"' ), array( 'status' => 400 ) );
-						}
-						continue;
-					case 'taxonomy' :
-						// If taxonomies is empty by default set it. On reoccurring calls the function overhead is avoided.
-						if ( empty( $taxonomies ) ) {
-							$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-						}
-						// Validate taxonomy.
-						if ( array_key_exists( $value, $taxonomies ) ) {
-							$valid = true;
-						} else {
-							/* translators: %s equals taxonomy name being checked. */
-							return new WP_Error( 'invalid-taxonomy', sprintf( __( 'The taxonomy %s does not exist.' ), $value ), array( 'status' => 404 ) );
-						}
-						continue;
-					default :
-						continue;
+				// Switch statement to handle different cases.
+				// Recursive call to function to handle nested taxonomy queries.
+				if ( is_array( $value ) && 'terms' !== $key ) {
+					$valid = $this->rest_validate_tax_query( $value, $request, $parameter, $taxonomies );
+					// If an error is found keep returning it up the chain.
+					if ( is_wp_error( $valid ) ) {
+						return $valid;
+					}
+				}
+				if ( ! is_numeric( $key ) ) {
+					switch ( $key ) {
+						case 'taxonomy' :
+							// If $taxonomies is empty by default set it. On reoccurring calls the function overhead is avoided.
+							if ( empty( $taxonomies ) ) {
+								$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+							}
+							// Validate taxonomy.
+							if ( array_key_exists( $value, $taxonomies ) ) {
+								$valid = true;
+							} else {
+								/* translators: %s equals taxonomy name being checked. */
+								return new WP_Error( 'rest_invalid_param', sprintf( __( 'The taxonomy %s specified in the filter does not exist.' ), $value ), array( 'status' => 400 ) );
+							}
+							continue;
+						default :
+							continue;
+					}
 				}
 			}
 		}
