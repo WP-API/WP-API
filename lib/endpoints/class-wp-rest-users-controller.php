@@ -861,48 +861,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$query_params['roles']   = array(
 			'description'        => __( 'Limit result set to resources matching at least one specific role provided. Accepts csv list or single role.' ),
 			'type'               => 'array',
-			'sanitize_callback'  => array( $this, 'rest_sanitize_user_roles' ),
-			'validate_callback'  => array( $this, 'rest_validate_user_roles' ),
+			'sanitize_callback'  => 'wp_parse_slug_list',
 		);
 		return $query_params;
-	}
-
-	/**
-	 * Return a sanitized array of user roles.
-	 *
-	 * @param  mixed $roles Either an array of roles or an array
-	 * @return array $roles Sanitized user roles.
-	 */
-	public function rest_sanitize_user_roles( $roles ) {
-		if ( ! empty( $roles ) ) {
-			$roles = explode( ',', $roles );
-			foreach ( $roles as $role ) {
-				$role = sanitize_text_field( $role );
-				$sanitized_roles[] = $role;
-			}
-			return $sanitized_roles;
-		}
-		return $roles;
-	}
-
-	/**
-	 * Get the query params for collections
-	 *
-	 * @global $wp_roles Used by get_editable_roles.
-	 *
-	 * @param  array $roles User roles.
-	 * @return boolean|WP_Error
-	 */
-	public function rest_validate_user_roles( $roles ) {
-		if ( empty( $roles ) ) {
-			return new WP_Error( 'rest_invalid_param', __( 'Roles was left empty. Please revise your request.' ), 400 );
-		}
-		global $wp_roles;
-		foreach ( $roles as $role ) {
-			if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
-				return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'The role %s does not exist.' ), $role ), array( 'status' => 400 ) );
-			}
-		}
-		return true;
 	}
 }

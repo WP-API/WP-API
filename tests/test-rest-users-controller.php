@@ -352,14 +352,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_items_invalid_roles() {
 		wp_set_current_user( $this->user );
-		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz' ) );
+		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz', 'role' => 'author' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
-		$request->set_param( 'roles', 'ilovesteak' );
+		$request->set_param( 'roles', 'ilovesteak,author' );
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
-		$request->set_param( 'roles', '' );
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $lolz, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
