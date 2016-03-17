@@ -25,11 +25,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
-					'password'    => array(
-						'required' => true,
-					),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -46,9 +42,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ), array(
-					'password'    => array(),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods' => WP_REST_Server::DELETABLE,
@@ -746,6 +740,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
 					'context'     => array( 'edit' ),
+				),
+				'password'        => array(
+					'description' => __( 'Roles assigned to the resource.' ),
+					'type'        => 'string',
+					'context'     => array(), // Password is never displayed
+					'required'    => true,
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
