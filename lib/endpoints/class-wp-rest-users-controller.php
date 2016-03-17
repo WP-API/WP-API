@@ -742,7 +742,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'context'     => array( 'edit' ),
 				),
 				'password'        => array(
-					'description' => __( 'Roles assigned to the resource.' ),
+					'description' => __( 'Password for the resource (never included).' ),
 					'type'        => 'string',
 					'context'     => array(), // Password is never displayed
 					'required'    => true,
