@@ -521,14 +521,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$prepared_term->slug = $request['slug'];
 		}
 
-		if ( isset( $request['term_group'] ) ) {
-			$prepared_term->term_group = (int) $request['term_group'];
-		}
-
-		if ( isset( $request['term_taxonomy_id'] ) ) {
-			$prepared_term->term_taxonomy_id = (int) $request['term_taxonomy_id'];
-		}
-
 		if ( isset( $request['taxonomy'] ) ) {
 			$prepared_term->taxonomy = $request['taxonomy'];
 		}
@@ -548,17 +540,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$prepared_term->parent = $parent_term_id;
 		}
 
-		if ( isset( $request['count'] ) ) {
-			$prepared_term->count = (int) $request['count'];
-		}
-
 		/**
 		 * Filter term data before inserting term via the REST API.
 		 *
 		 * @param object          $prepared_term Term object.
 		 * @param WP_REST_Request $request       Request object.
 		 */
-		return apply_filters( 'rest_pre_insert_term', $prepared_term, $request );
+		return apply_filters( "rest_pre_insert_{$this->taxonomy}", $prepared_term, $request );
 	}
 
 	/**
