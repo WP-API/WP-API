@@ -359,6 +359,13 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $lolz, $data[0]['id'] );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'roles', 'steakisgood' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		//echo var_dump($data);
+		$this->assertEquals( 0, count( $data ) );
+		$this->assertEquals( array(), $data );
 	}
 
 	public function test_get_item() {
