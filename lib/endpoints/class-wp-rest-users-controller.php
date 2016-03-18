@@ -26,11 +26,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
-					'password'    => array(
-						'required' => true,
-					),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
@@ -47,9 +43,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ), array(
-					'password'    => array(),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods' => WP_REST_Server::DELETABLE,
@@ -208,7 +202,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
+		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) && ! current_user_can( 'edit_user', $id ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with view context.' ), array( 'status' => rest_authorization_required_code() ) );
 		} else if ( ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -763,6 +757,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
 					'context'     => array( 'edit' ),
+				),
+				'password'        => array(
+					'description' => __( 'Password for the resource (never included).' ),
+					'type'        => 'string',
+					'context'     => array(), // Password is never displayed
+					'required'    => true,
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
