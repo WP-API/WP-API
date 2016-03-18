@@ -242,7 +242,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $data );
 
-		$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
+			$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
+		}
 
 		return $response;
 	}
@@ -843,7 +845,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$prepared_post->ping_status = $request['ping_status'];
 		}
 		/**
-		 * Filter the query_vars used in `get_items` for the constructed query.
+		 * Filter a post before it is inserted via the REST API.
 		 *
 		 * The dynamic portion of the hook name, $this->post_type, refers to post_type of the post being
 		 * prepared for insertion.
