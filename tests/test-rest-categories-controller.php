@@ -849,15 +849,21 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		} else {
 			$this->assertFalse( isset( $term->parent ) );
 		}
-		$this->assertEqualSets( array(
+
+		$relations = array(
 			'self',
 			'collection',
 			'about',
-			'wp:post_type',
-			'up',
-		), array_keys( $links ) );
+			'https://api.w.org/post_type',
+		);
+
+		if ( ! empty( $data['parent'] ) ) {
+			$relations[] = 'up';
+		}
+
+		$this->assertEqualSets( $relations, array_keys( $links ) );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['wp:post_type'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {
