@@ -184,6 +184,13 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			if ( ! empty( $data['featured_media'] ) ) {
 				$this->assertEquals( $links['https://api.w.org/featuredmedia'][0]['href'], rest_url( 'wp/v2/media/' . $data['featured_media'] ) );
 			}
+
+			$num = 0;
+			foreach ( $taxonomies as $key => $taxonomy ) {
+				$this->assertEquals( $taxonomy->name, $links['https://api.w.org/term'][ $num ]['attributes']['taxonomy'] );
+				$this->assertEquals( add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/' . $taxonomy->rest_base ) ), $links['https://api.w.org/term'][ $num ]['href'] );
+				$num++;
+			}
 		}
 
 	}
