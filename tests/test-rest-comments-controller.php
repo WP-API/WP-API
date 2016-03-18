@@ -494,7 +494,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'view' );
+		$this->check_comment_data( $data, 'view', $response->get_links() );
 	}
 
 	public function test_prepare_item() {
@@ -508,7 +508,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'edit' );
+		$this->check_comment_data( $data, 'edit', $response->get_links() );
 	}
 
 	public function test_get_comment_author_avatar_urls() {
@@ -593,7 +593,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'view' );
+		$this->check_comment_data( $data, 'view', $response->get_links() );
 		$this->assertEquals( 'hold', $data['status'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 		$this->assertEquals( $this->post_id, $data['post'] );
@@ -1274,7 +1274,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
 	}
 
-	protected function check_comment_data( $data, $context ) {
+	protected function check_comment_data( $data, $context, $links ) {
 		$comment = get_comment( $data['id'] );
 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
@@ -1288,6 +1288,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
+		$this->assertEqualSets( array(
+			'self',
+			'collection',
+			'up',
+		), array_keys( $links ) );
 
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );
