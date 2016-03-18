@@ -363,7 +363,6 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'roles', 'steakisgood' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		//echo var_dump($data);
 		$this->assertEquals( 0, count( $data ) );
 		$this->assertEquals( array(), $data );
 	}
