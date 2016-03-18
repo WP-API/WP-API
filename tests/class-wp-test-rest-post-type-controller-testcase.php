@@ -198,9 +198,12 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, $context, $response->get_links() );
+		foreach ( $all_data as $data ) {
+			$post = get_post( $data['id'] );
+			// as the links for the post are in the data array we have to pull them out and parse them
+			$links = $data['_links'];
+			$this->check_post_data( $post, $data, $context, $links );
+		}
 	}
 
 	protected function check_get_post_response( $response, $context = 'view' ) {
