@@ -65,6 +65,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'orderby',
 			'page',
 			'per_page',
+			'roles',
 			'search',
 			'slug',
 			), $keys );
@@ -320,6 +321,50 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( $id2, $data[0]['id'] );
+	}
+
+	// Note: Do not test using editor role as there is an editor role created in testing and it makes it hard to test this functionality.
+	public function test_get_items_roles() {
+		wp_set_current_user( $this->user );
+		$tango = $this->factory->user->create( array( 'display_name' => 'tango', 'role' => 'subscriber' ) );
+		$yolo  = $this->factory->user->create( array( 'display_name' => 'yolo', 'role' => 'author' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'roles', 'author,subscriber' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 2, count( $data ) );
+		$this->assertEquals( $tango, $data[0]['id'] );
+		$this->assertEquals( $yolo, $data[1]['id'] );
+		$request->set_param( 'roles', 'author' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $yolo, $data[0]['id'] );
+		wp_set_current_user( 0 );
+		$request->set_param( 'roles', 'author' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+		wp_set_current_user( $this->editor );
+		$request->set_param( 'roles', 'author' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+	}
+
+	public function test_get_items_invalid_roles() {
+		wp_set_current_user( $this->user );
+		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz', 'role' => 'author' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'roles', 'ilovesteak,author' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 1, count( $data ) );
+		$this->assertEquals( $lolz, $data[0]['id'] );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'roles', 'steakisgood' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 0, count( $data ) );
+		$this->assertEquals( array(), $data );
 	}
 
 	public function test_get_item() {
