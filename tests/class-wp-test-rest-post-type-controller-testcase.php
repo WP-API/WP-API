@@ -207,8 +207,17 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$all_data = $response->get_data();
 		foreach ( $all_data as $data ) {
 			$post = get_post( $data['id'] );
-			// as the links for the post are in the data array we have to pull them out and parse them
+			// as the links for the post are "response_links" format in the data array we have to pull them
+			// out and parse them.
 			$links = $data['_links'];
+			foreach ( $links as &$links_array ) {
+				foreach ( $links_array as &$link ) {
+					$attributes = array_diff_key( $link, array( 'href' => 1 ) );
+					$link = array_diff_key( $link, $attributes );
+					$link['attributes'] = $attributes;
+				}
+			}
+
 			$this->check_post_data( $post, $data, $context, $links );
 		}
 	}
