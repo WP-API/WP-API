@@ -224,6 +224,45 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'DC', $data[0]['name'] );
 	}
 
+	public function test_get_terms_post_args_paging() {
+		$post_id = $this->factory->post->create();
+		$tag_ids = array();
+
+		for ( $i = 0; $i < 30; $i++ ) {
+			$tag_ids[] = $this->factory->tag->create( array(
+				'name'   => "Tag {$i}",
+			) );
+		}
+		wp_set_object_terms( $post_id, $tag_ids, 'post_tag' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'page', 1 );
+		$request->set_param( 'per_page', 15 );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$tags = $response->get_data();
+
+		$i = 0;
+		foreach ( $tags as $tag ) {
+			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$i++;
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 15 );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$tags = $response->get_data();
+
+		foreach ( $tags as $tag ) {
+			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$i++;
+		}
+	}
+
 	public function test_get_items_post_empty() {
 		$post_id = $this->factory->post->create();
 
