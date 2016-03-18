@@ -156,6 +156,8 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		// test links
 		if ( $links ) {
+
+			$links = test_rest_expand_compact_links( $links );
 			$post_type = get_post_type_object( $data['type'] );
 			$this->assertEquals( $links['self'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base . '/' . $data['id'] ) );
 			$this->assertEquals( $links['collection'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base ) );
@@ -212,7 +214,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$links = $data['_links'];
 			foreach ( $links as &$links_array ) {
 				foreach ( $links_array as &$link ) {
-					$attributes = array_diff_key( $link, array( 'href' => 1 ) );
+					$attributes = array_diff_key( $link, array( 'href' => 1, 'name' => 1 ) );
 					$link = array_diff_key( $link, $attributes );
 					$link['attributes'] = $attributes;
 				}
