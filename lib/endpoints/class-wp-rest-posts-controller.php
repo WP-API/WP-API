@@ -242,7 +242,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $data );
 
-		if ( is_post_type_viewable( $post->post_type ) ) {
+		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
 			$response->link_header( 'alternate',  get_permalink( $id ), array( 'type' => 'text/html' ) );
 		}
 
