@@ -19,6 +19,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
 			array(
@@ -70,6 +71,21 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Permissions check for getting all users.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_items_permissions_check( $request ) {
+		// Check if roles is specified in GET request and if user can list users.
+		if ( ! empty( $request['roles'] ) && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot filter by role.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get all users
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
@@ -95,6 +111,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
+		$prepared_args['role__in'] = $request['roles'];
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
@@ -840,6 +857,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
 			'validate_callback'  => 'rest_validate_request_arg',
+		);
+		$query_params['roles']   = array(
+			'description'        => __( 'Limit result set to resources matching at least one specific role provided. Accepts csv list or single role.' ),
+			'type'               => 'array',
+			'sanitize_callback'  => 'wp_parse_slug_list',
 		);
 		return $query_params;
 	}
