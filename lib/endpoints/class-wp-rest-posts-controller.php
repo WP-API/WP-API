@@ -1163,6 +1163,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 
+		// Remove any empty or null values from the return data.
+		foreach ( $data as $data_item_key => $data_item ) {
+			if ( empty( $data_item ) ) {
+				unset( $data[ $data_item_key ] );
+			}
+		}
+
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
