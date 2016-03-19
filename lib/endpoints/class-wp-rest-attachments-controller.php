@@ -105,7 +105,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
-		$attachment = $this->prepare_item_for_database( $request );
+		$attachment = $this->prepare_item_for_database( $request, true );
 		$attachment->file = $file;
 		$attachment->post_mime_type = $type;
 		$attachment->guid = $url;
@@ -191,11 +191,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	/**
 	 * Prepare a single attachment for create or update
 	 *
-	 * @param WP_REST_Request $request Request object
-	 * @return WP_Error|stdClass $prepared_attachment Post object
+	 * @param WP_REST_Request $request  Request object
+	 * @param bool            $creating Whether the item is being created.
+	 *
+	 * @return WP_Error|stdClass|array $prepared_attachment Post object
 	 */
-	protected function prepare_item_for_database( $request ) {
-		$prepared_attachment = parent::prepare_item_for_database( $request );
+	protected function prepare_item_for_database( $request, $creating ) {
+		$prepared_attachment = parent::prepare_item_for_database( $request, $creating );
 
 		if ( isset( $request['caption'] ) ) {
 			$prepared_attachment->post_excerpt = $request['caption'];
