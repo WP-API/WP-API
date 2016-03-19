@@ -127,10 +127,12 @@ abstract class WP_REST_Controller {
 	/**
 	 * Prepare the item for create or update operation.
 	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|object $prepared_item
+	 * @param WP_REST_Request $request  Request object.
+	 * @param bool            $creating Whether the item is being created.
+	 *
+	 * @return WP_Error|stdClass $prepared_item
 	 */
-	protected function prepare_item_for_database( $request ) {
+	protected function prepare_item_for_database( $request, $creating ) {
 		return new WP_Error( 'invalid-method', sprintf( __( "Method '%s' not implemented. Must be over-ridden in subclass." ), __METHOD__ ), array( 'status' => 405 ) );
 	}
 
