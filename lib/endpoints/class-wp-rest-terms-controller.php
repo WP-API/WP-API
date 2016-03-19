@@ -344,7 +344,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$prepared_term = $this->prepare_item_for_database( $request );
+		$prepared_term = $this->prepare_item_for_database( $request, true );
 
 		$term = wp_insert_term( $prepared_term->name, $this->taxonomy, $prepared_term );
 		if ( is_wp_error( $term ) ) {
@@ -424,7 +424,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$prepared_term = $this->prepare_item_for_database( $request );
+		$prepared_term = $this->prepare_item_for_database( $request, false );
 
 		$term = get_term( (int) $request['id'], $this->taxonomy );
 
@@ -507,10 +507,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single term for create or update
 	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return object $prepared_term Term object.
+	 * @param WP_REST_Request $request  Request object.
+	 * @param bool            $creating Whether the item is being created.
+	 *
+	 * @return stdClass $prepared_term Term object.
 	 */
-	public function prepare_item_for_database( $request ) {
+	public function prepare_item_for_database( $request, $creating ) {
 		$prepared_term = new stdClass;
 
 		if ( isset( $request['name'] ) ) {
@@ -545,8 +547,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * @param object          $prepared_term Term object.
 		 * @param WP_REST_Request $request       Request object.
+		 * @param bool            $creating      Whether the item is being created.
 		 */
-		return apply_filters( "rest_pre_insert_{$this->taxonomy}", $prepared_term, $request );
+		return apply_filters( "rest_pre_insert_{$this->taxonomy}", $prepared_term, $request, $creating );
 	}
 
 	/**
