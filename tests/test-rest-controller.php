@@ -12,6 +12,14 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'somestring'      => array(
 					'type'        => 'string',
 				),
+				'somearray'       => array(
+					'type'        => 'array',
+					'allow_csv'   => false,
+				),
+				'somecsv'         => array(
+					'type'        => 'array',
+					'allow_csv'   => true,
+				),
 				'someenum'        => array(
 					'type'        => 'string',
 					'enum'        => array( 'a' ),
@@ -49,6 +57,35 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
+		);
+	}
+
+	public function test_validate_schema_type_array() {
+		$this->assertTrue(
+			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somearray' )
+		);
+
+		$this->assertTrue(
+			rest_validate_request_arg( array( 123, 456, 789 ), $this->request, 'somecsv' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_param',
+			rest_validate_request_arg( '123,456,789', $this->request, 'somearray' )
+		);
+	}
+
+	public function test_validate_schema_type_array_csv() {
+		$this->assertTrue(
+			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somecsv' )
+		);
+
+		$this->assertTrue(
+			rest_validate_request_arg( '123,456,789', $this->request, 'somecsv' )
+		);
+
+		$this->assertTrue(
+			rest_validate_request_arg( '123, 456, 789', $this->request, 'somecsv' )
 		);
 	}
 
