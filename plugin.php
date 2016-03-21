@@ -390,6 +390,15 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 			return (int) $value;
 		}
 
+		if ( 'array' === $args['type'] ) {
+			// A comma-separated array of IDs could be acceptable instead of an array.
+			if ( is_string( $value ) && isset( $args['allow_csv'] ) && $args['allow_csv'] ) {
+				$value = wp_parse_id_list( $value );
+			}
+
+			$value = (array) $value;
+		}
+
 		if ( isset( $args['format'] ) ) {
 			switch ( $args['format'] ) {
 				case 'date-time' :
