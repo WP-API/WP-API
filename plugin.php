@@ -295,6 +295,18 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
+		if ( 'array' === $args['type'] ) {
+			// A comma-separated array of IDs could be acceptable instead of an array.
+			if ( is_string( $value ) && isset( $args['allow_csv'] ) && $args['allow_csv'] ) {
+				$value = wp_parse_id_list( $value );
+				if ( empty( $value ) ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s requires type %s, or comma-separated list of IDs.', $param, 'array' ) ) );
+				}
+			} elseif ( ! is_array( $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'array' ) );
+			}
+		}
+
 		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
 		}
