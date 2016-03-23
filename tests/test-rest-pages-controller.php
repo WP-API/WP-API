@@ -20,7 +20,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		) );
 
 		$this->has_setup_template = false;
-
+		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}
 
 	public function test_register_routes() {
@@ -227,7 +227,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function test_create_item_with_template() {
 		wp_set_current_user( $this->editor_id );
-		$this->setup_test_template();
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
 		$params = $this->set_post_data( array(
@@ -386,26 +385,14 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	public function tearDown() {
 		parent::tearDown();
-
-		if ( $this->has_setup_template ) {
-			unlink( $this->has_setup_template );
-		}
-
+		remove_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}
 
-	protected function setup_test_template() {
-
-		$contents = <<<EOT
-<?php
-/*
- * Template Name: My Test Template
- */
-
-EOT;
-
-		$this->has_setup_template = get_stylesheet_directory() . '/page-my-test-template.php';
-		file_put_contents( $this->has_setup_template, $contents );
-		wp_get_theme()->cache_delete();
+	public function filter_theme_page_templates( $page_templates ) {
+		return array(
+			'page-my-test-template.php' => 'My Test Template',
+		);
+		return $page_templates;
 	}
 
 	protected function set_post_data( $args = array() ) {
