@@ -757,6 +757,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
 					'context'     => array( 'edit' ),
+					'arg_options' => array(
+						'sanitize_callback' => 'wp_parse_slug_list',
+						'validate_callback' => 'rest_validate_request_arg',
+					),
 				),
 				'password'        => array(
 					'description' => __( 'Password for the resource (never included).' ),
@@ -864,6 +868,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'description'        => __( 'Limit result set to resources matching at least one specific role provided. Accepts csv list or single role.' ),
 			'type'               => 'array',
 			'sanitize_callback'  => 'wp_parse_slug_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		return $query_params;
 	}
