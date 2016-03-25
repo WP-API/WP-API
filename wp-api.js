@@ -12,6 +12,11 @@
 	wp.api               = wp.api || new WP_API();
 	wp.api.versionString = wp.api.versionString || 'wp/v2/';
 
+	// Alias _includes to _.contains, ensuring it is available.
+	if ( ! _.isFunction( _.includes ) && _.isFunction( _.contains ) ) {
+	  _.includes = _.contains;
+	}
+
 })( window );
 
 (function( window, undefined ) {
@@ -152,49 +157,49 @@
 	};
 
 	/**
-	 * Add defaults to a model from a route's endpoints.
+	 * Add args and options to a model prototype from a route's endpoints.
 	 *
 	 * @param {array}  routeEndpoints Array of route endpoints.
 	 * @param {Object} modelInstance  An instance of the model (or collection)
-	 *                                to add the defaults to.
+	 *                                to add the args to.
 	 */
 	wp.api.utils.decorateFromRoute = function( routeEndpoints, modelInstance ) {
 
 		/**
-		 * Build the defaults based on route endpoint data.
+		 * Build the args based on route endpoint data.
 		 */
 		_.each( routeEndpoints, function( routeEndpoint ) {
 
-			// Add post and edit endpoints as model defaults.
-			if ( _.contains( routeEndpoint.methods, 'POST' ) || _.contains( routeEndpoint.methods, 'PUT' ) ) {
+			// Add post and edit endpoints as model args.
+			if ( _.includes( routeEndpoint.methods, 'POST' ) || _.includes( routeEndpoint.methods, 'PUT' ) ) {
 
-				// Add any non empty args, merging them into the defaults object.
+				// Add any non empty args, merging them into the args object.
 				if ( ! _.isEmpty( routeEndpoint.args ) ) {
 
-					// Set as defauls if no defaults yet.
-					if ( _.isEmpty( modelInstance.defaults ) ) {
-						modelInstance.defaults = routeEndpoint.args;
+					// Set as defauls if no args yet.
+					if ( _.isEmpty( modelInstance.prototype.args ) ) {
+						modelInstance.prototype.args = routeEndpoint.args;
 					} else {
 
-						// We already have defaults, merge these new args in.
-						modelInstance.defaults = _.union( routeEndpoint.args, modelInstance.defaults );
+						// We already have args, merge these new args in.
+						modelInstance.prototype.args = _.union( routeEndpoint.args, modelInstance.prototype.defaults );
 					}
 				}
 			} else {
 
 				// Add GET method as model options.
-				if ( _.contains( routeEndpoint.methods, 'GET' ) ) {
+				if ( _.includes( routeEndpoint.methods, 'GET' ) ) {
 
 					// Add any non empty args, merging them into the defaults object.
 					if ( ! _.isEmpty( routeEndpoint.args ) ) {
 
 						// Set as defauls if no defaults yet.
-						if ( _.isEmpty( modelInstance.options ) ) {
-							modelInstance.options = routeEndpoint.args;
+						if ( _.isEmpty( modelInstance.prototype.options ) ) {
+							modelInstance.prototype.options = routeEndpoint.args;
 						} else {
 
 							// We already have options, merge these new args in.
-							modelInstance.options = _.union( routeEndpoint.args, modelInstance.options );
+							modelInstance.prototype.options = _.union( routeEndpoint.args, modelInstance.prototype.options );
 						}
 					}
 
@@ -333,12 +338,12 @@
 			/**
 			 * Build a helper to retrieve a collection.
 			 *
-			 * @param  {string} parentModel         The parent model.
-			 * @param  {string} collectionName      The name to use when constructing the collection.
-			 * @param  {string} embedSourcePoint    Where to check the embedds object for _embed data.
-			 * @param  {string} embedIndex          An addiitonal optional index for the _embed data.
+			 * @param  {string} parentModel      The parent model.
+			 * @param  {string} collectionName   The name to use when constructing the collection.
+			 * @param  {string} embedSourcePoint Where to check the embedds object for _embed data.
+			 * @param  {string} embedIndex       An addiitonal optional index for the _embed data.
 			 *
-			 * @return {Deferred.promise}           A promise which resolves to the constructed collection.
+			 * @return {Deferred.promise}        A promise which resolves to the constructed collection.
 			 */
 			buildCollectionGetter = function( parentModel, collectionName, embedSourcePoint, embedIndex ) {
 				/**
@@ -439,32 +444,112 @@
 			 * Add a helper funtion to handle post Tags.
 			 */
 			TagsMixin = {
+
+				/**
+				 * Get the tags for a post.
+				 *
+				 * @return {Deferred.promise} promise Resolves to an array of tags.
+				 */
 				getTags: function() {
-					return buildCollectionGetter( this, 'PostTags', 'https://api.w.org/term', 1 );
+					var tagIds = this.get( 'tags' ),
+						tags  = new wp.api.collections.Tags();
+
+					// Resolve with an empty array if no tags.
+					if ( _.isEmpty( tagIds ) ) {
+						return jQuery.Deferred().resolve( [] );
+					}
+
+					return tags.fetch( { data: { include: tagIds } } );
+				},
+
+				/**
+				 * Set the tags for a post.
+				 *
+				 * Accepts an array of tag slugs, or a Tags collection.
+				 *
+				 * @param {array|Backbone.Collection} tags The tags to set on the post.
+				 *
+				 */
+				setTags: function( tags ) {
+					var allTags, newTag,
+						self = this,
+						newTags = [];
+
+					if ( _.isString( tags ) ) {
+						return false;
+					}
+
+					// If this is an array of slugs, build a collection.
+					if ( _.isArray( tags ) ) {
+
+						// Get all the tags.
+						allTags = new wp.api.collections.Tags();
+						allTags.fetch( {
+							data:    { per_page: 100 },
+							success: function( alltags ) {
+
+								// Find the passed tags and set them up.
+								_.each( tags, function( tag ) {
+									newTag = new wp.api.models.Tag( alltags.findWhere( { slug: tag } ) );
+
+									// Tie the new tag to the post.
+									newTag.set( 'parent_post', self.get( 'id' ) );
+
+									// Add the new tag to the collection.
+									newTags.push( newTag );
+								} );
+								tags = new wp.api.collections.Tags( newTags );
+								self.setTagsWithCollection( tags );
+							}
+						} );
+
+					} else {
+						this.setTagsWithCollection( tags );
+					}
+				},
+
+				/**
+				 * Set the tags for a post.
+				 *
+				 * Accepts a Tags collection.
+				 *
+				 * @param {array|Backbone.Collection} tags The tags to set on the post.
+				 *
+				 */
+				setTagsWithCollection: function( tags ) {
+
+					// Pluck out the category ids.
+					this.set( 'tags', tags.pluck( 'id' ) );
+					return this.save();
 				}
 			},
+
 			/**
 			 * Add a helper funtion to handle post Categories.
 			 */
 			CategoriesMixin = {
 
 				/**
-				 * Get a PostCategories model for an model's categories.
+				 * Get a the categories for a post.
 				 *
-				 * Uses the embedded data if available, otherwises fetches the
-				 * data from the server.
-				 *
-				 * @return {Deferred.promise} promise Resolves to a wp.api.collections.PostCategories
-				 * collection containing the post categories.
+				 * @return {Deferred.promise} promise Resolves to an array of categories.
 				 */
 				getCategories: function() {
-					return buildCollectionGetter( this, 'PostCategories', 'https://api.w.org/term', 0 );
+					var categoryIds = this.get( 'categories' ),
+						categories  = new wp.api.collections.Categories();
+
+					// Resolve with an empty array if no categories.
+					if ( _.isEmpty( categoryIds ) ) {
+						return jQuery.Deferred().resolve( [] );
+					}
+
+					return categories.fetch( { data: { include: categoryIds } } );
 				},
 
 				/**
 				 * Set the categories for a post.
 				 *
-				 * Accepts an array of category slugs, or a PostCategories collection.
+				 * Accepts an array of category slugs, or a Categories collection.
 				 *
 				 * @param {array|Backbone.Collection} categories The categories to set on the post.
 				 *
@@ -474,17 +559,22 @@
 						self = this,
 						newCategories = [];
 
+					if ( _.isString( categories ) ) {
+						return false;
+					}
+
 					// If this is an array of slugs, build a collection.
 					if ( _.isArray( categories ) ) {
 
 						// Get all the categories.
 						allCategories = new wp.api.collections.Categories();
 						allCategories.fetch( {
+							data:    { per_page: 100 },
 							success: function( allcats ) {
 
 								// Find the passed categories and set them up.
 								_.each( categories, function( category ) {
-									newCategory = new wp.api.models.PostCategories( allcats.findWhere( { slug: category } ) );
+									newCategory = new wp.api.models.Category( allcats.findWhere( { slug: category } ) );
 
 									// Tie the new category to the post.
 									newCategory.set( 'parent_post', self.get( 'id' ) );
@@ -492,7 +582,7 @@
 									// Add the new category to the collection.
 									newCategories.push( newCategory );
 								} );
-								categories = new wp.api.collections.PostCategories( newCategories );
+								categories = new wp.api.collections.Categories( newCategories );
 								self.setCategoriesWithCollection( categories );
 							}
 						} );
@@ -506,37 +596,16 @@
 				/**
 				 * Set the categories for a post.
 				 *
-				 * Accepts PostCategories collection.
+				 * Accepts Categories collection.
 				 *
 				 * @param {array|Backbone.Collection} categories The categories to set on the post.
 				 *
 				 */
 				setCategoriesWithCollection: function( categories ) {
-					var removedCategories, addedCategories, categoriesIds, existingCategoriesIds;
 
-					// Get the existing categories.
-					this.getCategories().done( function( existingCategories ) {
-
-						// Pluck out the category ids.
-						categoriesIds         = categories.pluck( 'id' );
-						existingCategoriesIds = existingCategories.pluck( 'id' );
-
-						// Calculate which categories have been removed or added (leave the rest).
-						addedCategories   = _.difference( categoriesIds, existingCategoriesIds );
-						removedCategories = _.difference( existingCategoriesIds, categoriesIds );
-
-						// Add the added categories.
-						_.each( addedCategories, function( addedCategory ) {
-
-							// Save the new categories on the post with a 'POST' method, not Backbone's default 'PUT'.
-							existingCategories.create( categories.get( addedCategory ), { type: 'POST' } );
-						} );
-
-						// Remove the removed categories.
-						_.each( removedCategories, function( removedCategory ) {
-							existingCategories.get( removedCategory ).destroy();
-						} );
-					} );
+					// Pluck out the category ids.
+					this.set( 'categories', categories.pluck( 'id' ) );
+					return this.save();
 				}
 			},
 
@@ -559,13 +628,13 @@
 			};
 
 		// Exit if we don't have valid model defaults.
-		if ( _.isUndefined( model.defaults ) ) {
+		if ( _.isUndefined( model.prototype.args ) ) {
 			return model;
 		}
 
 		// Go thru the parsable date fields, if our model contains any of them it gets the TimeStampedMixin.
 		_.each( parseableDates, function( theDateKey ) {
-			if ( ! _.isUndefined( model.defaults[ theDateKey ] ) ) {
+			if ( ! _.isUndefined( model.prototype.args[ theDateKey ] ) ) {
 				hasDate = true;
 			}
 		} );
@@ -576,17 +645,17 @@
 		}
 
 		// Add the AuthorMixin for models that contain an author.
-		if ( ! _.isUndefined( model.defaults.author ) ) {
+		if ( ! _.isUndefined( model.prototype.args.author ) ) {
 			model = model.extend( AuthorMixin );
 		}
 
 		// Add the FeaturedImageMixin for models that contain a featured_image.
-		if ( ! _.isUndefined( model.defaults.featured_image ) ) {
+		if ( ! _.isUndefined( model.prototype.args.featured_image ) ) {
 			model = model.extend( FeaturedImageMixin );
 		}
 
 		// Add the CategoriesMixin for models that support categories collections.
-		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Categories' ] ) ) {
+		if ( ! _.isUndefined( model.prototype.args.categories ) ) {
 			model = model.extend( CategoriesMixin );
 		}
 
@@ -596,7 +665,7 @@
 		}
 
 		// Add the TagsMixin for models that support tags collections.
-		if ( ! _.isUndefined( loadingObjects.collections[ modelClassName + 'Tags' ] ) ) {
+		if ( ! _.isUndefined( model.prototype.args.tags ) ) {
 			model = model.extend( TagsMixin );
 		}
 
@@ -614,9 +683,11 @@
 
 // Suppress warning about parse function's unused "options" argument:
 /* jshint unused:false */
-(function( wp, wpApiSettings, Backbone, window, undefined ) {
+(function() {
 
 	'use strict';
+
+	var wpApiSettings = window.wpApiSettings || {};
 
 	/**
 	 * Backbone base model for all models.
@@ -637,6 +708,16 @@
 
 				options = options || {};
 
+				// Remove date_gmt if null.
+				if ( _.isNull( model.get( 'date_gmt' ) ) ) {
+					model.unset( 'date_gmt' );
+				}
+
+				// Remove slug if empty.
+				if ( _.isEmpty( model.get( 'slug' ) ) ) {
+					model.unset( 'slug' );
+				}
+
 				if ( ! _.isUndefined( wpApiSettings.nonce ) && ! _.isNull( wpApiSettings.nonce ) ) {
 					beforeSend = options.beforeSend;
 
@@ -652,7 +733,7 @@
 					};
 				}
 
-				// Add '?force=true' to delete method when required.
+				// Add '?force=true' to use delete method when required.
 				if ( this.requireForceForDelete && 'delete' === method ) {
 					model.url = model.url() + '?force=true';
 				}
@@ -665,7 +746,7 @@
 			save: function( attrs, options ) {
 
 				// Do we have the put method, then execute the save.
-				if ( _.contains( this.methods, 'PUT' ) || _.contains( this.methods, 'POST' ) ) {
+				if ( _.includes( this.methods, 'PUT' ) || _.includes( this.methods, 'POST' ) ) {
 
 					// Proxy the call to the original save function.
 					return Backbone.Model.prototype.save.call( this, attrs, options );
@@ -682,7 +763,7 @@
 			destroy: function( options ) {
 
 				// Do we have the DELETE method, then execute the destroy.
-				if ( _.contains( this.methods, 'DELETE' ) ) {
+				if ( _.includes( this.methods, 'DELETE' ) ) {
 
 					// Proxy the call to the original save function.
 					return Backbone.Model.prototype.destroy.call( this, options );
@@ -723,12 +804,13 @@
 			}
 		}
 	);
-})( wp, wpApiSettings, Backbone, window );
+})();
 
-/* global wpApiSettings:false */
-(function( wp, wpApiSettings, Backbone, _, window, undefined ) {
+( function() {
 
 	'use strict';
+
+	var wpApiSettings = window.wpApiSettings || {};
 
 	/**
 	 * Contains basic collection functionality such as pagination.
@@ -800,8 +882,10 @@
 
 					success = options.success;
 					options.success = function( data, textStatus, request ) {
-						self.state.totalPages = parseInt( request.getResponseHeader( 'x-wp-totalpages' ), 10 );
-						self.state.totalObjects = parseInt( request.getResponseHeader( 'x-wp-total' ), 10 );
+						if ( ! _.isUndefined( request ) ) {
+							self.state.totalPages = parseInt( request.getResponseHeader( 'x-wp-totalpages' ), 10 );
+							self.state.totalObjects = parseInt( request.getResponseHeader( 'x-wp-total' ), 10 );
+						}
 
 						if ( null === self.state.currentPage ) {
 							self.state.currentPage = 1;
@@ -862,17 +946,20 @@
 		}
 	);
 
-})( wp, wpApiSettings, Backbone, _, window );
+} )();
 
-/* global wpApiSettings */
-(function( window, undefined ) {
+( function() {
 
 	'use strict';
 
-	var Endpoint, initializedDeferreds = {};
-
+	var Endpoint, initializedDeferreds = {},
+		wpApiSettings = window.wpApiSettings || {};
 	window.wp = window.wp || {};
-	wp.api = wp.api || {};
+	wp.api    = wp.api || {};
+
+	if ( _.isEmpty( wpApiSettings ) ) {
+		wpApiSettings.root = window.location.origin + '/wp-json/';
+	}
 
 	Endpoint = Backbone.Model.extend({
 		defaults: {
@@ -991,19 +1078,14 @@
 						index !== schemaRoot &&
 						index !== ( '/' + routeModel.get( 'versionString' ).slice( 0, -1 ) )
 				) {
-					/**
-					 * Single item models end with a regex/variable.
-					 *
-					 * @todo make model/collection logic more robust.
-					 */
-					if ( index.endsWith( '+)' ) ) {
+
+					// Single items end with a regex (or the special case 'me').
+					if ( /.*[+)|me]$/.test( index ) ) {
 						modelRoutes.push( { index: index, route: route } );
 					} else {
 
 						// Collections end in a name.
-						if ( ! index.endsWith( 'me' ) ) {
-							collectionRoutes.push( { index: index, route: route } );
-						}
+						collectionRoutes.push( { index: index, route: route } );
 					}
 				}
 			} );
@@ -1018,7 +1100,13 @@
 				// Extract the name and any parent from the route.
 				var modelClassName,
 						routeName  = wp.api.utils.extractRoutePart( modelRoute.index, 2 ),
-						parentName = wp.api.utils.extractRoutePart( modelRoute.index, 4 );
+						parentName = wp.api.utils.extractRoutePart( modelRoute.index, 4 ),
+						routeEnd   = wp.api.utils.extractRoutePart( modelRoute.index, 1 );
+
+				// Handle the special case of the 'me' route.
+				if ( 'me' === routeEnd ) {
+					routeName = 'me';
+				}
 
 				// If the model has a parent in its route, add that to its class name.
 				if ( '' !== parentName && parentName !== routeName ) {
@@ -1059,7 +1147,7 @@
 							if (
 								'Posts' !== this.name &&
 								'Pages' !== this.name &&
-								_.contains( this.methods, 'DELETE' )
+								_.includes( this.methods, 'DELETE' )
 							) {
 								this.requireForceForDelete = true;
 							}
@@ -1074,7 +1162,10 @@
 
 						// Function that returns a constructed url based on the id.
 						url: function() {
-							var url = routeModel.get( 'apiRoot' ) + routeModel.get( 'versionString' ) + routeName;
+							var url = routeModel.get( 'apiRoot' ) +
+								routeModel.get( 'versionString' ) +
+								( ( 'me' === routeName ) ? 'users/me' : routeName );
+
 							if ( ! _.isUndefined( this.get( 'id' ) ) ) {
 								url +=  '/' + this.get( 'id' );
 							}
@@ -1223,6 +1314,6 @@
 	 */
 
 	// The wp.api.init function returns a promise that will resolve with the endpoint once it is ready.
-	wp.api.init();
+	wp.api.loadPromise = wp.api.init();
 
-})( window );
+} )();
