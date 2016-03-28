@@ -8,6 +8,18 @@
 
   (props @rmccue, [#2239](https://github.com/WP-API/WP-API/pull/2239))
 
+- JavaScript client updates:
+
+  * Support lodash, plus older and newer underscore: add an alias for `_.contains`
+  * Add args and options on the model/collection prototypes
+  * Rework category/tag mixins to support new API structure
+  * Add workaround for the null/empty values returned by the API when creating a new post - these values are not accepted for subsequent updates/saves, so explicitly excluding them. See https://github.com/WP-API/WP-API/pull/2393
+  * Better handling of the (special) `me` endpoint
+  * Schema parsing cleanup
+  * Introduce `wp.api.loadPromise` so developers can ensure api load complete before using
+
+  (props @adamsilverstein, [#2403](https://github.com/WP-API/WP-API/pull/2403))
+
 - Only adds alternate link header for publicly viewable CPTs.
 
   (props @bradyvercher, [#2387](https://github.com/WP-API/WP-API/pull/2387))
