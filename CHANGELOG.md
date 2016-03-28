@@ -1,5 +1,81 @@
 # Changelog
 
+## 2.0 Beta 13.0 (??? ??, 2016)
+
+- BREAKING CHANGE: Fix Content-Disposition header parsing.
+
+  Allows regular form submissions from HTML forms, as well as properly formatted HTTP requests from clients. Note: this breaks backwards compatibility, as previously, the header parsing was completely wrong.
+
+  (props @rmccue, [#2239](https://github.com/WP-API/WP-API/pull/2239))
+
+- Only adds alternate link header for publicly viewable CPTs.
+
+  (props @bradyvercher, [#2387](https://github.com/WP-API/WP-API/pull/2387))
+
+- Adds `roles` param for `GET /wp/v2/users`.
+
+  (props @BE-Webdesign, [#2372](https://github.com/WP-API/WP-API/pull/2372))
+
+- Declares `password` in user schema, but never displays it.
+
+  (props @danielbachhuber, [#2386](https://github.com/WP-API/WP-API/pull/2386))
+
+- Permits `edit` context for requests which can edit the user.
+
+  (props @danielbachhuber, [#2383](https://github.com/WP-API/WP-API/pull/2383))
+
+- Adds `rest_pre_insert_{$taxonomy}` filter for terms.
+
+  (props @kjbenk, [#2377](https://github.com/WP-API/WP-API/pull/2377))
+
+- Supports taxonomy collection args on posts endpoint.
+
+  (props @joehoyle, [#2287](https://github.com/WP-API/WP-API/pull/2287))
+
+- Removes post meta link from post response.
+
+  (props @joehoyle, [#2288](https://github.com/WP-API/WP-API/pull/2288))
+
+- Registers `description` attribute when registering args from schema.
+
+  (props @danielbachhuber, [#2362](https://github.com/WP-API/WP-API/pull/2362))
+
+- Uses `$comment` from the database with `rest_insert_comment` action.
+
+  (props @danielbachhuber, [#2349](https://github.com/WP-API/WP-API/pull/2349))
+
+- Removes unnecessary global variables from users controller.
+
+  (props @claudiosmweb, [#2335](https://github.com/WP-API/WP-API/pull/2335))
+
+- Ensures `GET /wp/v2/categories` with out of bounds offset doesn't return results.
+
+  (props @danielbachhuber, [#2313](https://github.com/WP-API/WP-API/pull/2313))
+
+- Adds top-level support for date queries on posts and comments.
+
+  (props @BE-Webdesign, [#2266](https://github.com/WP-API/WP-API/pull/2266), [#2291](https://github.com/WP-API/WP-API/pull/2291))
+
+- Respects `show_avatars` setting for comments.
+
+  (props @BE-Webdesign, [#2271](https://github.com/WP-API/WP-API/pull/2271))
+
+- Uses cached `get_the_terms()` for terms-for-post for better performance.
+
+  (props @rmccue, [#2257](https://github.com/WP-API/WP-API/pull/2257))
+
+- Ensures comments search is an empty string.
+
+  (props @rmccue, [#2256](https://github.com/WP-API/WP-API/pull/2256))
+
+- If no title is provided in create attachment request or file metadata, falls back to filename.
+
+  (props @danielbachhuber, [#2254](https://github.com/WP-API/WP-API/pull/2254))
+
+- Removes unused `$img_url_basename` variable in attachments controller.
+
+  (props @danielbachhuber, [#2250](https://github.com/WP-API/WP-API/pull/2250))
+
 ## 2.0 Beta 12.0 (February 9, 2016)
 
 - BREAKING CHANGE: Removes meta endpoints from primary plugin.
