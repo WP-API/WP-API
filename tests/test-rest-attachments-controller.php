@@ -679,8 +679,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/media/%d', $attachment_id ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->check_post_data( $attachment, $data, 'view' );
-		$this->check_post_data( $attachment, $data, 'embed' );
+		$this->check_post_data( $attachment, $data, 'view', $response->get_links() );
+		$this->check_post_data( $attachment, $data, 'embed', $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -763,8 +763,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		}
 	}
 
-	protected function check_post_data( $attachment, $data, $context = 'view' ) {
-		parent::check_post_data( $attachment, $data, $context );
+	protected function check_post_data( $attachment, $data, $context = 'view', $links ) {
+		parent::check_post_data( $attachment, $data, $context, $links );
 
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
 		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );
