@@ -673,10 +673,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$this->assertFalse( isset( $data['parent'] ) );
 		}
-		$this->assertArrayHasKey( 'self', $links );
-		$this->assertArrayHasKey( 'collection', $links );
+		$expected_links = array(
+			'self',
+			'collection',
+			'about',
+			'https://api.w.org/post_type',
+		);
+		if ( $taxonomy->hierarchical && $term->parent ) {
+			$expected_links[] = 'up';
+		}
+		$this->assertEqualSets( $expected_links, array_keys( $links ) );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response, $id ) {
