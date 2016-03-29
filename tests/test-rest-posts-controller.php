@@ -272,6 +272,20 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'Apple Cobbler', $data[0]['title']['rendered'] );
 	}
 
+	public function test_get_items_orderby_relevance() {
+		$this->factory->post->create( array( 'post_title' => 'Apple Pie', 'post_status' => 'publish', 'post_content' => 'Sauce, Cobbler and Coffee Cake.' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Sauce', 'post_status' => 'publish', 'post_content' => 'Pie, Cobbler and Coffee Cake.' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Cobbler', 'post_status' => 'publish', 'post_content' => 'Sauce, Pie and Coffee Cake.' ) );
+		$this->factory->post->create( array( 'post_title' => 'Apple Coffee Cake', 'post_status' => 'publish', 'post_content' => 'Sauce, Cobbler and Pie.' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		// orderby=>relevance
+		$request->set_param( 'search', 'Sauce' );
+		$request->set_param( 'orderby', 'relevance' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Apple Sauce', $data[0]['title']['rendered'] );
+	}
+
 	public function test_get_items_ignore_sticky_posts_by_default() {
 		$this->markTestSkipped( 'Broken, see https://github.com/WP-API/WP-API/issues/2210' );
 		$post_id1 = $this->factory->post->create( array( 'post_status' => 'publish', 'post_date' => '2015-01-01 12:00:00', 'post_date_gmt' => '2015-01-01 12:00:00' ) );
