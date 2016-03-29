@@ -1101,7 +1101,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			'self',
 			'collection',
 		), array_keys( $links ) );
-		
+
 		$this->assertArrayNotHasKey( 'password', $data );
 	}
 
