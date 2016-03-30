@@ -795,7 +795,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( get_current_user_id() !== $post_author ) {
 				$user_obj = get_userdata( $post_author );
 				if ( ! $user_obj ) {
-					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 404 ) );
+					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
 				}
 			}
 			$prepared_post->post_author = $post_author;

@@ -372,7 +372,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( email_exists( $request['email'] ) && $request['email'] !== $user->user_email ) {
-			return new WP_Error( 'rest_user_invalid_email', __( 'Email address is invalid.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_user_invalid_email', __( 'Email address is invalid.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
@@ -628,7 +628,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		foreach ( $roles as $role ) {
 
 			if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
-				return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'The role %s does not exist.' ), $role ), array( 'status' => 404 ) );
+				return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'The role %s does not exist.' ), $role ), array( 'status' => 400 ) );
 			}
 
 			$potential_role = $wp_roles->role_objects[ $role ];
