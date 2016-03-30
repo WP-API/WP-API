@@ -395,7 +395,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post = get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
-			return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 404 ) );
 		}
 
 		$post = $this->prepare_item_for_database( $request );
@@ -795,7 +795,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( get_current_user_id() !== $post_author ) {
 				$user_obj = get_userdata( $post_author );
 				if ( ! $user_obj ) {
-					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 400 ) );
+					return new WP_Error( 'rest_invalid_author', __( 'Invalid author id.' ), array( 'status' => 404 ) );
 				}
 			}
 			$prepared_post->post_author = $post_author;
@@ -906,7 +906,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( $result ) {
 				return true;
 			} else {
-				return new WP_Error( 'rest_invalid_featured_media', __( 'Invalid featured media id.' ), array( 'status' => 400 ) );
+				return new WP_Error( 'rest_invalid_featured_media', __( 'Invalid featured media id.' ), array( 'status' => 404 ) );
 			}
 		} else {
 			return delete_post_thumbnail( $post_id );
