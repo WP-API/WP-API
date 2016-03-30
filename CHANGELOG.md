@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0 Beta 13.0 (??? ??, 2016)
+## 2.0 Beta 13.0 (March 29, 2016)
 
 - BREAKING CHANGE: Fix Content-Disposition header parsing.
 
