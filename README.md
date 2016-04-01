@@ -57,6 +57,10 @@ Also, be sure to use the Subversion `trunk` branch of WordPress Core as there ar
 All tickets for the project are being tracked on [GitHub][]. You can also take a
 look at the [recent updates][] for the project.
 
+## Contributing
+
+Want to get involved? Check out [Contributing.md][contributing] for details on submitting fixes and new features.
+
 ## Security
 
 We take the security of the API extremely seriously. If you think you've found
@@ -79,5 +83,6 @@ WordPress on your own server. **Do not test on servers you do not own.**)
 
 [docs]: http://v2.wp-api.org/
 [GitHub]: https://github.com/WP-API/WP-API/issues
+[contributing]: CONTRIBUTING.md
 [recent updates]: https://make.wordpress.org/core/tag/json-api/
 [hackerone]: https://hackerone.com/wp-api
