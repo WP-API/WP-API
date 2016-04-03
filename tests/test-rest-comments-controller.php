@@ -895,10 +895,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
 	}
 
-	public function test_create_comment_two_times() {
-
-		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
-
+	public function test_create_comment_flood() {
 		wp_set_current_user( 0 );
 
 		$params = array(
@@ -929,7 +926,35 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertEquals( 429, $response->get_status() );
+		$this->assertErrorResponse( 'rest_comment_flood', $response, 429 );
+	}
+
+	public function test_create_comment_duplicate() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'content' => 'Worst Comment Ever!',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 409, $response->get_status() );
+		$this->assertErrorResponse( 'rest_comment_duplicate', $response, 409 );
 	}
 
 	public function test_update_item() {
