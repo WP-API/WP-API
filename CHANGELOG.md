@@ -1,12 +1,18 @@
 # Changelog
 
-## 2.0 Beta 13.0 (??? ??, 2016)
+## 2.0 Beta 13.0 (March 29, 2016)
 
 - BREAKING CHANGE: Fix Content-Disposition header parsing.
 
   Allows regular form submissions from HTML forms, as well as properly formatted HTTP requests from clients. Note: this breaks backwards compatibility, as previously, the header parsing was completely wrong.
 
   (props @rmccue, [#2239](https://github.com/WP-API/WP-API/pull/2239))
+
+- BREAKING CHANGE: Use compact links for embedded responses if they are available.
+
+  Introduces curies for sites running WordPress 4.5 or greater; no changes for those running WordPress 4.4.
+
+  (props @joehoyle, [#2412](https://github.com/WP-API/WP-API/pull/2412))
 
 - JavaScript client updates:
 
