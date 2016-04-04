@@ -640,6 +640,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$children = $comment->get_children();
+		if ( $children ) {
+			foreach ( $children as $child ) {
+				if ( $this->check_read_permission( $child ) ) {
+					$links['children'][] = array(
+						'href'       => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $child->comment_ID ) ),
+						'embeddable' => true,
+					);
+				}
+			}
+		}
+
 		return $links;
 	}
 
