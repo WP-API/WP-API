@@ -1175,6 +1175,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
 		}
 
+		//Remove all data, which is not part of the scheme
+		foreach( $data as $key => $property )
+			if( ! isset( $schema['properties'][ $key ] ) || empty( $schema['properties'][ $key ] ) )
+				unset( $data[ $key ] );
+
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
