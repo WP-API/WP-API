@@ -155,9 +155,9 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( 'publish' === $status->name ) {
-			$response->add_link( 'archives', rest_url( '/wp/v2/posts' ) );
+			$response->add_link( 'archives', rest_url( 'wp/v2/posts' ) );
 		} else {
-			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( '/wp/v2/posts' ) ) );
+			$response->add_link( 'archives', add_query_arg( 'status', $status->name, rest_url( 'wp/v2/posts' ) ) );
 		}
 
 		/**

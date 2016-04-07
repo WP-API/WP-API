@@ -185,7 +185,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			unset( $request_params['filter']['posts_per_page'] );
 			unset( $request_params['filter']['paged'] );
 		}
-		$base = add_query_arg( $request_params, rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
+		$base = add_query_arg( $request_params, rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -349,7 +349,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
 
 		return $response;
 	}
@@ -1204,7 +1204,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = sprintf( '/%s/%s', $this->namespace, $this->rest_base );
+		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		// Entity meta
 		$links = array(
@@ -1215,20 +1215,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'href'   => rest_url( $base ),
 			),
 			'about'      => array(
-				'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
+				'href'   => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
 
 		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
 			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
+				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
-			$replies_url = rest_url( '/wp/v2/comments' );
+			$replies_url = rest_url( 'wp/v2/comments' );
 			$replies_url = add_query_arg( 'post', $post->ID, $replies_url );
 			$links['replies'] = array(
 				'href'         => $replies_url,

@@ -164,7 +164,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_users / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
@@ -246,7 +246,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = wp_get_current_user();
 		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $current_user_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -331,7 +331,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $user_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user_id ) ) );
 
 		return $response;
 	}
@@ -544,10 +544,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected function prepare_links( $user ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $user->ID ) ),
+				'href' => rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user->ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 

@@ -182,7 +182,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_terms / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/' . $this->namespace . '/' . $this->rest_base ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( $this->namespace . '/' . $this->rest_base ) );
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
@@ -376,7 +376,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $term, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/' . $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
+		$response->header( 'Location', rest_url( $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
 		return $response;
 	}
 
@@ -599,7 +599,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base = '/' . $this->namespace . '/' . $this->rest_base;
+		$base = $this->namespace . '/' . $this->rest_base;
 		$links = array(
 			'self'       => array(
 				'href'       => rest_url( trailingslashit( $base ) . $term->term_id ),
