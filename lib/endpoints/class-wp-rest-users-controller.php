@@ -516,15 +516,18 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$data['avatar_urls'] = rest_get_avatar_urls( $user->user_email );
 		}
 
-		if ( empty( $data['capabilities'] ) ) {
-			$data['capabilities'] = new stdClass();
-		}
-
-		if ( empty( $data['extra_capabilities'] ) ) {
-			$data['extra_capabilities'] = new stdClass();
-		}
-
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+
+		if ( 'edit' === $context ) {
+			if ( empty( $data['capabilities'] ) ) {
+				$data['capabilities'] = new stdClass();
+			}
+
+			if ( empty( $data['extra_capabilities'] ) ) {
+				$data['extra_capabilities'] = new stdClass();
+			}
+		}
+
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 
