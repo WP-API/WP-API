@@ -416,10 +416,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function test_get_user_empty_capabilities() {
 		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
 
 		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz', 'roles' => '' ) );
-		$lolz_user = get_user_by( 'id', $lolz );
-		$lolz_user->remove_role( 'subscriber' );
+		delete_user_option( $lolz, 'capabilities' );
+		delete_user_option( $lolz, 'user_level' );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users/' . $lolz );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->server->dispatch( $request );
