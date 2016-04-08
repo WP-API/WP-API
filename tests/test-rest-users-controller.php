@@ -414,6 +414,22 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
+	public function test_get_user_empty_capabilities() {
+		wp_set_current_user( $this->user );
+
+		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz', 'roles' => '' ) );
+		$lolz_user = get_user_by( 'id', $lolz );
+		$lolz_user->remove_role( 'subscriber' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/' . $lolz );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$std_class = new stdClass();
+		$this->assertEquals( $data['capabilities'], $std_class );
+		$this->assertEquals( $data['extra_capabilities'], $std_class );
+	}
+
 	public function test_get_item_without_permission() {
 		wp_set_current_user( $this->editor );
 
