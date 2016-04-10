@@ -518,14 +518,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 
-		if ( 'edit' === $context ) {
-			if ( empty( $data['capabilities'] ) ) {
-				$data['capabilities'] = new stdClass();
-			}
+		if ( isset( $data['capabilities'] ) && empty( $data['capabilities'] ) ) {
+			$data['capabilities'] = null;
+		}
 
-			if ( empty( $data['extra_capabilities'] ) ) {
-				$data['extra_capabilities'] = new stdClass();
-			}
+		if ( isset( $data['extra_capabilities'] ) && empty( $data['extra_capabilities'] ) ) {
+			$data['extra_capabilities'] = null;
 		}
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -777,12 +775,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
-					'type'        => 'object',
+					'type'        => array( 'object', 'null' ),
 					'context'     => array( 'edit' ),
 				),
 				'extra_capabilities' => array(
 					'description' => __( 'Any extra capabilities assigned to the resource.' ),
-					'type'        => 'object',
+					'type'        => array( 'object', 'null' ),
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
