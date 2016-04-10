@@ -1095,8 +1095,16 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
 			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertEquals( $user->allcaps, $data['capabilities'] );
-			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			if ( empty( $user->allcaps ) ) {
+				$this->assertEquals( null, $data['capabilities'] );
+			} else {
+				$this->assertEquals( $user->allcaps, $data['capabilities'] );
+			}
+			if ( empty( $user->caps ) ) {
+				$this->assertEquals( null, $data['extra_capabilities'] );
+			} else {
+				$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			}
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 			$this->assertEquals( $user->user_login, $data['username'] );
 			$this->assertEquals( $user->roles, $data['roles'] );
