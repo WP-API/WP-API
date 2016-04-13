@@ -501,7 +501,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'email'              => $user->user_email,
 			'url'                => $user->user_url,
 			'description'        => $user->description,
-			'link'               => get_author_posts_url( $user->ID ),
+			'link'               => get_author_posts_url( $user->ID, $user->user_nicename ),
 			'nickname'           => $user->nickname,
 			'slug'               => $user->user_nicename,
 			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
