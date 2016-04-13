@@ -280,7 +280,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $request['roles'] ) ) {
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $request['roles'] ) && ! empty( $schema['properties']['roles'] ) ) {
 			$check_permission = $this->check_role_update( $request['id'], $request['roles'] );
 			if ( is_wp_error( $check_permission ) ) {
 				return $check_permission;
@@ -314,7 +316,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$user = get_user_by( 'id', $user_id );
-		if ( ! empty( $request['roles'] ) ) {
+		if ( ! empty( $request['roles'] ) && ! empty( $schema['properties']['roles'] ) ) {
 			array_map( array( $user, 'add_role' ), $request['roles'] );
 		}
 
@@ -494,25 +496,68 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response $response Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-		$data = array(
-			'id'                 => $user->ID,
-			'username'           => $user->user_login,
-			'name'               => $user->display_name,
-			'first_name'         => $user->first_name,
-			'last_name'          => $user->last_name,
-			'email'              => $user->user_email,
-			'url'                => $user->user_url,
-			'description'        => $user->description,
-			'link'               => get_author_posts_url( $user->ID, $user->user_nicename ),
-			'nickname'           => $user->nickname,
-			'slug'               => $user->user_nicename,
-			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
-			'roles'              => $user->roles,
-			'capabilities'       => $user->allcaps,
-			'extra_capabilities' => $user->caps,
-		);
 
+		$data = array();
 		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['id'] = $user->ID;
+		}
+
+		if ( ! empty( $schema['properties']['username'] ) ) {
+			$data['username'] = $user->user_login;
+		}
+
+		if ( ! empty( $schema['properties']['name'] ) ) {
+			$data['name'] = $user->display_name;
+		}
+
+		if ( ! empty( $schema['properties']['first_name'] ) ) {
+			$data['first_name'] = $user->first_name;
+		}
+
+		if ( ! empty( $schema['properties']['last_name'] ) ) {
+			$data['last_name'] = $user->last_name;
+		}
+
+		if ( ! empty( $schema['properties']['email'] ) ) {
+			$data['email'] = $user->user_email;
+		}
+
+		if ( ! empty( $schema['properties']['url'] ) ) {
+			$data['url'] = $user->user_url;
+		}
+
+		if ( ! empty( $schema['properties']['description'] ) ) {
+			$data['description'] = $user->description;
+		}
+
+		if ( ! empty( $schema['properties']['link'] ) ) {
+			$data['link'] = get_author_posts_url( $user->ID, $user->user_nicename );
+		}
+
+		if ( ! empty( $schema['properties']['nickname'] ) ) {
+			$data['nickname'] = $user->nickname;
+		}
+
+		if ( ! empty( $schema['properties']['slug'] ) ) {
+			$data['slug'] = $user->user_nicename;
+		}
+
+		if ( ! empty( $schema['properties']['roles'] ) ) {
+			$data['roles'] = $user->roles;
+		}
+
+		if ( ! empty( $schema['properties']['registered_date'] ) ) {
+			$data['registered_date'] = date( 'c', strtotime( $user->user_registered ) );
+		}
+
+		if ( ! empty( $schema['properties']['capabilities'] ) ) {
+			$data['capabilities'] = $user->allcaps;
+		}
+
+		if ( ! empty( $schema['properties']['extra_capabilities'] ) ) {
+			$data['extra_capabilities'] = $user->caps;
+		}
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
 			$data['avatar_urls'] = rest_get_avatar_urls( $user->user_email );
@@ -565,14 +610,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_user = new stdClass;
 
+		$schema = $this->get_item_schema();
+
 		// required arguments.
-		if ( isset( $request['email'] ) ) {
+		if ( isset( $request['email'] ) && ! empty( $schema['properties']['email'] ) ) {
 			$prepared_user->user_email = $request['email'];
 		}
-		if ( isset( $request['username'] ) ) {
+		if ( isset( $request['username'] ) && ! empty( $schema['properties']['username'] ) ) {
 			$prepared_user->user_login = $request['username'];
 		}
-		if ( isset( $request['password'] ) ) {
+		if ( isset( $request['password'] ) && ! empty( $schema['properties']['password'] ) ) {
 			$prepared_user->user_pass = $request['password'];
 		}
 
@@ -580,26 +627,26 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( isset( $request['id'] ) ) {
 			$prepared_user->ID = absint( $request['id'] );
 		}
-		if ( isset( $request['name'] ) ) {
+		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
 			$prepared_user->display_name = $request['name'];
 		}
-		if ( isset( $request['first_name'] ) ) {
+		if ( isset( $request['first_name'] ) && ! empty( $schema['properties']['first_name'] ) ) {
 			$prepared_user->first_name = $request['first_name'];
 		}
-		if ( isset( $request['last_name'] ) ) {
+		if ( isset( $request['last_name'] ) && ! empty( $schema['properties']['last_name'] ) ) {
 			$prepared_user->last_name = $request['last_name'];
 		}
-		if ( isset( $request['nickname'] ) ) {
+		if ( isset( $request['nickname'] ) && ! empty( $schema['properties']['nickname'] ) ) {
 			$prepared_user->nickname = $request['nickname'];
 		}
-		if ( isset( $request['slug'] ) ) {
+		if ( isset( $request['slug'] ) && ! empty( $schema['properties']['slug'] ) ) {
 			$prepared_user->user_nicename = $request['slug'];
 		}
-		if ( isset( $request['description'] ) ) {
+		if ( isset( $request['description'] ) && ! empty( $schema['properties']['description'] ) ) {
 			$prepared_user->description = $request['description'];
 		}
 
-		if ( isset( $request['url'] ) ) {
+		if ( isset( $request['url'] ) && ! empty( $schema['properties']['url'] ) ) {
 			$prepared_user->user_url = $request['url'];
 		}
 
