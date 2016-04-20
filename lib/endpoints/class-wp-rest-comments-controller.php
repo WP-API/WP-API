@@ -346,7 +346,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! isset( $prepared_comment['comment_author_url'] ) ) {
 			$prepared_comment['comment_author_url'] = '';
 		}
-		$prepared_comment['comment_author_IP'] = '127.0.0.1';
+		$prepared_comment['comment_author_IP'] = $prepared_comment['author_ip'] || '127.0.0.1';
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
