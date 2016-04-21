@@ -348,7 +348,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 		$prepared_comment['comment_author_IP'] = '127.0.0.1';
 		$prepared_comment['comment_agent'] = '';
+
+		$wp_die_handler = new WP_REST_Die_Handler();
+		$wp_die_handler->trap_wp_die( 'comment_failure' );
+
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
+
+		if ( is_wp_error( $wp_die_handler->wp_die_error ) ) {
+			return $wp_die_handler->wp_die_error;
+		}
+		$wp_die_handler->trap_wp_die( null );
+		unset( $wp_die_handler );
 
 		/**
 		 * Filter a comment before it is inserted via the REST API.

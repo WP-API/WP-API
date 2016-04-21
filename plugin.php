@@ -396,5 +396,106 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 
 		return $value;
 	}
+}
 
+/**
+ * wp_die() handler for WP REST API requests.
+ *
+ * Methods capture errors
+ *
+ * @since 2.0-beta13
+ */
+class WP_REST_Die_Handler {
+	/**
+	 * Contains data for errors passed by wp_die
+	 *
+	 * @access public
+	 * @var array|WP_Error $wp_die_error Object that holds error data for wp_die errors.
+	 */
+	public $wp_die_error;
+
+	/**
+	 * Causes wp_die errors to be output as JSON.
+	 *
+	 * Adds or removes hooks necessary to output wp_die() errors as JSON.
+	 * @see wp_die_handler wp-includes/functions.php.
+	 *
+	 * @param  string|null $error_code Call with string to prepare for errors. Call with null to stop.
+	 * @return void
+	 */
+	function trap_wp_die( $error_code = null ) {
+		// Stop trapping
+		if ( is_null( $error_code ) ) {
+			$this->wp_die_error = null;
+			remove_filter( 'wp_die_handler', array( $this, 'wp_die_handler_callback' ) );
+			return;
+		}
+
+		// If API called via PHP, bail: don't do our custom wp_die().  Do the normal wp_die().
+		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+			return;
+		}
+
+		// Set up an error that wp_die_handler can accept.
+		$this->wp_die_error = array(
+			'status'  => 500,
+			'code'    => $error_code,
+			'message' => '',
+		);
+
+		add_filter( 'wp_die_handler', array( $this, 'wp_die_handler_callback' ) );
+	}
+
+	/**
+	 * Hooks rest_wp_die_handler callback into wp_die_handler.
+	 *
+	 * @see wp_die_handler wp-includes/functions.php.
+	 * @return callback
+	 */
+	function wp_die_handler_callback() {
+		return array( $this, 'rest_wp_die_handler' );
+	}
+
+	/**
+	 * A callback for wp_die_handler hook.
+	 *
+	 * Saves wp_die() errors into $this->$wp_die_error to be output as JSON.
+	 *
+	 * @see wp_die_handler wp-includes/functions.php.
+	 * @see shutdown wp-includes/wp-load.php
+	 *
+	 * @param string $message Error message.
+	 * @param string $title   Title of error message parsed into message.
+	 * @param array  $args    Error data.
+	 * @return void.
+	 */
+	function rest_wp_die_handler( $message, $title = '', $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'response' => 500,
+		) );
+
+		if ( $title ) {
+			$message = "$title: $message";
+		}
+
+		// Check to see if wp_die_error has been set to a WP_Error if it still an array run this code.
+		if ( ! is_wp_error( $this->wp_die_error ) ) {
+			switch ( $this->wp_die_error['code'] ) {
+				case 'comment_failure' :
+					if ( did_action( 'comment_duplicate_trigger' ) ) {
+						$this->wp_die_error['code']    = 'rest_comment_duplicate';
+						$this->wp_die_error['message'] = __( 'Duplicate comments are not allowed.' );
+					} else if ( did_action( 'comment_flood_trigger' ) ) {
+						$this->wp_die_error['code']    = 'rest_comment_flood';
+						$this->wp_die_error['message'] = __( 'You are posting comments too quickly. Try again later.' );
+					}
+					break;
+				default :
+					break;
+			}
+
+			// Set wp_die_error to be a WP_Error.
+			$this->wp_die_error = new WP_Error( $this->wp_die_error['code'], $this->wp_die_error['message'], array( 'status' => $args['response'] ) );
+		}
+	}
 }
