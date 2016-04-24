@@ -698,7 +698,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * Fake the correct cookie to fool post_password_required().
 			 * Without this, get_the_content() will give a password form.
 			 */
-			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			require_once ABSPATH . WPINC .'/class-phpass.php';
 			$hasher = new PasswordHash( 8, true );
 			$value = $hasher->HashPassword( $password );
 			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
