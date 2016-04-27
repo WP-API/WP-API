@@ -698,7 +698,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * Fake the correct cookie to fool post_password_required().
 			 * Without this, get_the_content() will give a password form.
 			 */
-			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			require_once ABSPATH . WPINC .'/class-phpass.php';
 			$hasher = new PasswordHash( 8, true );
 			$value = $hasher->HashPassword( $password );
 			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
@@ -1331,11 +1331,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'description' => __( 'GUID for the object, as it exists in the database.' ),
 							'type'        => 'string',
 							'context'     => array( 'edit' ),
+							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'GUID for the object, transformed for display.' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
 						),
 					),
 				),
@@ -1466,6 +1468,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML title for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1486,6 +1489,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML content for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1514,6 +1518,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML excerpt for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
 							),
 						),
 					);
