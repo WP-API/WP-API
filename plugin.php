@@ -299,6 +299,10 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
 		}
 
+		if ( 'boolean' === $args['type'] && ! is_bool( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'boolean' ) );
+		}
+
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
 		}
