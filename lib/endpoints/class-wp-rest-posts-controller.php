@@ -722,7 +722,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$schema = $this->get_item_schema();
-		#echo json_encode( $schema );die();
 
 		// Post title.
 		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
