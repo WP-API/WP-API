@@ -722,6 +722,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$schema = $this->get_item_schema();
+		#echo json_encode( $schema );die();
 
 		// Post title.
 		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
@@ -761,7 +762,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status.
-		if ( isset( $request['status'] ) ) {
+		if ( ! empty( $schema['properties']['status'] ) && isset( $request['status'] ) ) {
 			$status = $this->handle_status_param( $request['status'], $post_type );
 			if ( is_wp_error( $status ) ) {
 				return $status;
@@ -771,13 +772,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post date.
-		if ( ! empty( $request['date'] ) ) {
+		if ( ! empty( $schema['properties']['date'] ) && ! empty( $request['date'] ) ) {
 			$date_data = rest_get_date_with_gmt( $request['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
-		} elseif ( ! empty( $request['date_gmt'] ) ) {
+		} elseif ( ! empty( $schema['properties']['date_gmt'] ) && ! empty( $request['date_gmt'] ) ) {
 			$date_data = rest_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
@@ -785,7 +786,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 		// Post slug.
-		if ( isset( $request['slug'] ) ) {
+		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) ) {
 			$prepared_post->post_name = $request['slug'];
 		}
 
@@ -802,7 +803,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post password.
-		if ( isset( $request['password'] ) && '' !== $request['password'] ) {
+		if ( ! empty( $schema['properties']['password'] ) && isset( $request['password'] ) && '' !== $request['password'] ) {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
@@ -814,7 +815,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['sticky'] ) ) {
+		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
 			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
 				return new WP_Error( 'rest_invalid_field', __( 'A password protected post can not be set to sticky.' ), array( 'status' => 400 ) );
 			}
