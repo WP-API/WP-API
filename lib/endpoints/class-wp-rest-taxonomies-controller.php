@@ -16,6 +16,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
@@ -32,6 +33,29 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
+	}
+
+	/**
+	 * Check whether a given request has permission to read taxonomies.
+	 *
+	 * @param  WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_items_permissions_check( $request ) {
+		if ( 'edit' === $request['context'] ) {
+			if ( ! empty( $request['type'] ) ) {
+				$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+			} else {
+				$taxonomies = get_taxonomies( '', 'objects' );
+			}
+			foreach ( $taxonomies as $taxonomy ) {
+				if ( ! empty( $taxonomy->show_in_rest ) && current_user_can( $taxonomy->cap->manage_terms ) ) {
+					return true;
+				}
+			}
+			return new WP_Error( 'rest_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+		return true;
 	}
 
 	/**
@@ -107,6 +131,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$data = array(
 			'name'         => $taxonomy->label,
 			'slug'         => $taxonomy->name,
+			'capabilities' => $taxonomy->cap,
 			'description'  => $taxonomy->description,
 			'labels'       => $taxonomy->labels,
 			'types'        => $taxonomy->object_type,
@@ -154,43 +179,56 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			'title'                => 'taxonomy',
 			'type'                 => 'object',
 			'properties'           => array(
+				'capabilities'     => array(
+					'description'  => __( 'All capabilities used by the resource.' ),
+					'type'         => 'array',
+					'context'      => array( 'edit' ),
+					'readonly'     => true,
+				),
 				'description'      => array(
 					'description'  => __( 'A human-readable description of the resource.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'hierarchical'     => array(
 					'description'  => __( 'Whether or not the resource should have children.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'labels'           => array(
 					'description'  => __( 'Human-readable labels for the resource for various contexts.' ),
 					'type'         => 'object',
 					'context'      => array( 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'name'             => array(
 					'description'  => __( 'The title for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
-					),
+					'context'      => array( 'view', 'edit', 'embed' ),
+					'readonly'     => true,
+				),
 				'slug'             => array(
 					'description'  => __( 'An alphanumeric identifier for the resource.' ),
 					'type'         => 'string',
-					'context'      => array( 'view', 'edit' ),
-					),
+					'context'      => array( 'view', 'edit', 'embed' ),
+					'readonly'     => true,
+				),
 				'show_cloud'       => array(
 					'description'  => __( 'Whether or not the term cloud should be displayed.' ),
 					'type'         => 'boolean',
 					'context'      => array( 'edit' ),
-					),
+					'readonly'     => true,
+				),
 				'types'            => array(
 					'description'  => __( 'Types associated with resource.' ),
 					'type'         => 'array',
 					'context'      => array( 'view', 'edit' ),
-					),
+					'readonly'     => true,
 				),
-			);
+			),
+		);
 		return $this->add_additional_fields_schema( $schema );
 	}
 
@@ -205,6 +243,7 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		$new_params['type'] = array(
 			'description'  => __( 'Limit results to resources associated with a specific post type.' ),
 			'type'         => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		return $new_params;
 	}

@@ -19,19 +19,15 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array(
 				'methods'         => WP_REST_Server::READABLE,
 				'callback'        => array( $this, 'get_items' ),
+				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'            => $this->get_collection_params(),
 			),
 			array(
 				'methods'         => WP_REST_Server::CREATABLE,
 				'callback'        => array( $this, 'create_item' ),
 				'permission_callback' => array( $this, 'create_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ), array(
-					'password'    => array(
-						'required' => true,
-					),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 		register_rest_route( $this->namespace, '/' . $this->rest_base . '/(?P<id>[\d]+)', array(
@@ -40,16 +36,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => $this->get_context_param( array( 'default' => 'embed' ) ),
+					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
 				),
 			),
 			array(
 				'methods'         => WP_REST_Server::EDITABLE,
 				'callback'        => array( $this, 'update_item' ),
 				'permission_callback' => array( $this, 'update_item_permissions_check' ),
-				'args'            => array_merge( $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ), array(
-					'password'    => array(),
-				) ),
+				'args'            => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 			),
 			array(
 				'methods' => WP_REST_Server::DELETABLE,
@@ -63,7 +57,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'reassign' => array(),
 				),
 			),
-
 			'schema' => array( $this, 'get_public_item_schema' ),
 		) );
 
@@ -75,6 +68,25 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 			'schema' => array( $this, 'get_public_item_schema' ),
 		));
+	}
+
+	/**
+	 * Permissions check for getting all users.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_Error|boolean
+	 */
+	public function get_items_permissions_check( $request ) {
+		// Check if roles is specified in GET request and if user can list users.
+		if ( ! empty( $request['roles'] ) && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot filter by role.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -103,12 +115,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
+		$prepared_args['role__in'] = $request['roles'];
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
-
-			// Only display a public subset of information
-			$request['context'] = 'embed';
 		}
 
 		if ( '' !== $prepared_args['search'] ) {
@@ -196,13 +206,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		$context = ! empty( $request['context'] ) && in_array( $request['context'], array( 'edit', 'view', 'embed' ) ) ? $request['context'] : 'embed';
-
-		if ( 'edit' === $context && ! current_user_can( 'edit_user', $id ) ) {
+		if ( 'edit' === $request['context'] && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'view' === $context && ! current_user_can( 'list_users' ) ) {
-			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource with view context.' ), array( 'status' => rest_authorization_required_code() ) );
-		} else if ( 'embed' === $context && ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
+		} else if ( ! count_user_posts( $id, $types ) && ! current_user_can( 'edit_user', $id ) && ! current_user_can( 'list_users' ) ) {
 			return new WP_Error( 'rest_user_cannot_view', __( 'Sorry, you cannot view this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -272,10 +278,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function create_item( $request ) {
-		global $wp_roles;
-
 		if ( ! empty( $request['id'] ) ) {
 			return new WP_Error( 'rest_user_exists', __( 'Cannot create existing resource.' ), array( 'status' => 400 ) );
+		}
+
+		$schema = $this->get_item_schema();
+
+		if ( ! empty( $request['roles'] ) && ! empty( $schema['properties']['roles'] ) ) {
+			$check_permission = $this->check_role_update( $request['id'], $request['roles'] );
+			if ( is_wp_error( $check_permission ) ) {
+				return $check_permission;
+			}
 		}
 
 		$user = $this->prepare_item_for_database( $request );
@@ -305,12 +318,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$user = get_user_by( 'id', $user_id );
+		if ( ! empty( $request['roles'] ) && ! empty( $schema['properties']['roles'] ) ) {
+			array_map( array( $user, 'add_role' ), $request['roles'] );
+		}
+
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/**
 		 * Fires after a user is created or updated via the REST API.
 		 *
-		 * @param object          $user      Data used to create the user (not a WP_User object).
+		 * @param WP_User         $user      Data used to create the user.
 		 * @param WP_REST_Request $request   Request object.
 		 * @param boolean         $creating  True when creating user, false when updating user.
 		 */
@@ -339,7 +356,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		if ( ! empty( $request['role'] ) && ! current_user_can( 'edit_users' ) ) {
+		if ( ! empty( $request['roles'] ) && ! current_user_can( 'edit_users' ) ) {
 			return new WP_Error( 'rest_cannot_edit_roles', __( 'Sorry, you are not allowed to edit roles of this resource.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
@@ -372,8 +389,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
 		}
 
-		if ( ! empty( $request['role'] ) ) {
-			$check_permission = $this->check_role_update( $id, $request['role'] );
+		if ( ! empty( $request['roles'] ) ) {
+			$check_permission = $this->check_role_update( $id, $request['roles'] );
 			if ( is_wp_error( $check_permission ) ) {
 				return $check_permission;
 			}
@@ -390,6 +407,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$user = get_user_by( 'id', $id );
+		if ( ! empty( $request['roles'] ) ) {
+			array_map( array( $user, 'add_role' ), $request['roles'] );
+		}
+
 		$this->update_additional_fields_for_object( $user, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
@@ -477,25 +498,68 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response $response Response data.
 	 */
 	public function prepare_item_for_response( $user, $request ) {
-		$data = array(
-			'id'                 => $user->ID,
-			'username'           => $user->user_login,
-			'name'               => $user->display_name,
-			'first_name'         => $user->first_name,
-			'last_name'          => $user->last_name,
-			'email'              => $user->user_email,
-			'url'                => $user->user_url,
-			'description'        => $user->description,
-			'link'               => get_author_posts_url( $user->ID ),
-			'nickname'           => $user->nickname,
-			'slug'               => $user->user_nicename,
-			'registered_date'    => date( 'c', strtotime( $user->user_registered ) ),
-			'roles'              => $user->roles,
-			'capabilities'       => $user->allcaps,
-			'extra_capabilities' => $user->caps,
-		);
 
+		$data = array();
 		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['id'] = $user->ID;
+		}
+
+		if ( ! empty( $schema['properties']['username'] ) ) {
+			$data['username'] = $user->user_login;
+		}
+
+		if ( ! empty( $schema['properties']['name'] ) ) {
+			$data['name'] = $user->display_name;
+		}
+
+		if ( ! empty( $schema['properties']['first_name'] ) ) {
+			$data['first_name'] = $user->first_name;
+		}
+
+		if ( ! empty( $schema['properties']['last_name'] ) ) {
+			$data['last_name'] = $user->last_name;
+		}
+
+		if ( ! empty( $schema['properties']['email'] ) ) {
+			$data['email'] = $user->user_email;
+		}
+
+		if ( ! empty( $schema['properties']['url'] ) ) {
+			$data['url'] = $user->user_url;
+		}
+
+		if ( ! empty( $schema['properties']['description'] ) ) {
+			$data['description'] = $user->description;
+		}
+
+		if ( ! empty( $schema['properties']['link'] ) ) {
+			$data['link'] = get_author_posts_url( $user->ID, $user->user_nicename );
+		}
+
+		if ( ! empty( $schema['properties']['nickname'] ) ) {
+			$data['nickname'] = $user->nickname;
+		}
+
+		if ( ! empty( $schema['properties']['slug'] ) ) {
+			$data['slug'] = $user->user_nicename;
+		}
+
+		if ( ! empty( $schema['properties']['roles'] ) ) {
+			$data['roles'] = $user->roles;
+		}
+
+		if ( ! empty( $schema['properties']['registered_date'] ) ) {
+			$data['registered_date'] = date( 'c', strtotime( $user->user_registered ) );
+		}
+
+		if ( ! empty( $schema['properties']['capabilities'] ) ) {
+			$data['capabilities'] = $user->allcaps;
+		}
+
+		if ( ! empty( $schema['properties']['extra_capabilities'] ) ) {
+			$data['extra_capabilities'] = $user->caps;
+		}
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
 			$data['avatar_urls'] = rest_get_avatar_urls( $user->user_email );
@@ -548,14 +612,16 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_user = new stdClass;
 
+		$schema = $this->get_item_schema();
+
 		// required arguments.
-		if ( isset( $request['email'] ) ) {
+		if ( isset( $request['email'] ) && ! empty( $schema['properties']['email'] ) ) {
 			$prepared_user->user_email = $request['email'];
 		}
-		if ( isset( $request['username'] ) ) {
+		if ( isset( $request['username'] ) && ! empty( $schema['properties']['username'] ) ) {
 			$prepared_user->user_login = $request['username'];
 		}
-		if ( isset( $request['password'] ) ) {
+		if ( isset( $request['password'] ) && ! empty( $schema['properties']['password'] ) ) {
 			$prepared_user->user_pass = $request['password'];
 		}
 
@@ -563,29 +629,32 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( isset( $request['id'] ) ) {
 			$prepared_user->ID = absint( $request['id'] );
 		}
-		if ( isset( $request['name'] ) ) {
+		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
 			$prepared_user->display_name = $request['name'];
 		}
-		if ( isset( $request['first_name'] ) ) {
+		if ( isset( $request['first_name'] ) && ! empty( $schema['properties']['first_name'] ) ) {
 			$prepared_user->first_name = $request['first_name'];
 		}
-		if ( isset( $request['last_name'] ) ) {
+		if ( isset( $request['last_name'] ) && ! empty( $schema['properties']['last_name'] ) ) {
 			$prepared_user->last_name = $request['last_name'];
 		}
-		if ( isset( $request['nickname'] ) ) {
+		if ( isset( $request['nickname'] ) && ! empty( $schema['properties']['nickname'] ) ) {
 			$prepared_user->nickname = $request['nickname'];
 		}
-		if ( isset( $request['slug'] ) ) {
+		if ( isset( $request['slug'] ) && ! empty( $schema['properties']['slug'] ) ) {
 			$prepared_user->user_nicename = $request['slug'];
 		}
-		if ( isset( $request['description'] ) ) {
+		if ( isset( $request['description'] ) && ! empty( $schema['properties']['description'] ) ) {
 			$prepared_user->description = $request['description'];
 		}
-		if ( isset( $request['role'] ) ) {
-			$prepared_user->role = $request['role'];
-		}
-		if ( isset( $request['url'] ) ) {
+
+		if ( isset( $request['url'] ) && ! empty( $schema['properties']['url'] ) ) {
 			$prepared_user->user_url = $request['url'];
+		}
+
+		// setting roles will be handled outside of this function.
+		if ( isset( $request['roles'] ) ) {
+			$prepared_user->role = false;
 		}
 
 		/**
@@ -598,20 +667,28 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Determine if the current user is allowed to make the desired role change.
+	 * Determine if the current user is allowed to make the desired roles change.
 	 *
 	 * @param integer $user_id
-	 * @param string $role
+	 * @param array   $roles
 	 * @return WP_Error|boolean
 	 */
-	protected function check_role_update( $user_id, $role ) {
+	protected function check_role_update( $user_id, $roles ) {
 		global $wp_roles;
 
-		$potential_role = $wp_roles->role_objects[ $role ];
+		foreach ( $roles as $role ) {
 
-		// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
-		// Multisite super admins can freely edit their blog roles -- they possess all caps.
-		if ( ( is_multisite() && current_user_can( 'manage_sites' ) ) || get_current_user_id() !== $user_id || $potential_role->has_cap( 'edit_users' ) ) {
+			if ( ! isset( $wp_roles->role_objects[ $role ] ) ) {
+				return new WP_Error( 'rest_user_invalid_role', sprintf( __( 'The role %s does not exist.' ), $role ), array( 'status' => 400 ) );
+			}
+
+			$potential_role = $wp_roles->role_objects[ $role ];
+			// Don't let anyone with 'edit_users' (admins) edit their own role to something without it.
+			// Multisite super admins can freely edit their blog roles -- they possess all caps.
+			if ( ! ( is_multisite() && current_user_can( 'manage_sites' ) ) && get_current_user_id() === $user_id && ! $potential_role->has_cap( 'edit_users' ) ) {
+				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+
 			// The new role must be editable by the logged-in user.
 
 			/** Include admin functions to get access to get_editable_roles() */
@@ -621,11 +698,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			if ( empty( $editable_roles[ $role ] ) ) {
 				return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => 403 ) );
 			}
-
-			return true;
 		}
 
-		return new WP_Error( 'rest_user_invalid_role', __( 'You cannot give resource that role.' ), array( 'status' => rest_authorization_required_code() ) );
+		return true;
+
 	}
 
 	/**
@@ -634,8 +710,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
-		global $wp_roles;
-
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'user',
@@ -667,7 +741,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'first_name'  => array(
 					'description' => __( 'First name for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -675,7 +749,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'last_name'   => array(
 					'description' => __( 'Last name for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -684,7 +758,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'description' => __( 'The email address for the resource.' ),
 					'type'        => 'string',
 					'format'      => 'email',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'required'    => true,
 				),
 				'url'         => array(
@@ -692,7 +766,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'format'      => 'uri',
 					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
 				),
 				'description' => array(
 					'description' => __( 'Description of the resource.' ),
@@ -712,7 +785,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'nickname'    => array(
 					'description' => __( 'The nickname for the resource.' ),
 					'type'        => 'string',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'arg_options' => array(
 						'sanitize_callback' => 'sanitize_text_field',
 					),
@@ -728,24 +801,25 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'registered_date' => array(
 					'description' => __( 'Registration date for the resource.' ),
 					'type'        => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'roles'           => array(
 					'description' => __( 'Roles assigned to the resource.' ),
 					'type'        => 'array',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
+					'context'     => array( 'edit' ),
 				),
-				'role'            => array(
-					'description' => __( 'Role assigned to the resource.' ),
+				'password'        => array(
+					'description' => __( 'Password for the resource (never included).' ),
 					'type'        => 'string',
-					'enum'        => array_keys( $wp_roles->role_objects ),
+					'context'     => array(), // Password is never displayed
+					'required'    => true,
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
 					'type'        => 'object',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
 				),
 				'extra_capabilities' => array(
 					'description' => __( 'Any extra capabilities assigned to the resource.' ),
@@ -792,6 +866,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query_params['context']['default'] = 'view';
 
+		$query_params['exclude'] = array(
+			'description'        => __( 'Ensure result set excludes specific ids.' ),
+			'type'               => 'array',
+			'default'            => array(),
+			'sanitize_callback'  => 'wp_parse_id_list',
+		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
@@ -802,6 +882,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'description'        => __( 'Offset the result set by a specific number of items.' ),
 			'type'               => 'integer',
 			'sanitize_callback'  => 'absint',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['order'] = array(
 			'default'            => 'asc',
@@ -809,6 +890,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'enum'               => array( 'asc', 'desc' ),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['orderby'] = array(
 			'default'            => 'name',
@@ -821,10 +903,17 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['slug']    = array(
 			'description'        => __( 'Limit result set to resources with a specific slug.' ),
 			'type'               => 'string',
+			'validate_callback'  => 'rest_validate_request_arg',
+		);
+		$query_params['roles']   = array(
+			'description'        => __( 'Limit result set to resources matching at least one specific role provided. Accepts csv list or single role.' ),
+			'type'               => 'array',
+			'sanitize_callback'  => 'wp_parse_slug_list',
 		);
 		return $query_params;
 	}

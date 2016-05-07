@@ -8,11 +8,11 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 ## WARNING
 
-The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/) to introduce yourself to endpoints, internal patterns, and implementation details. 
+The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/) to introduce yourself to endpoints, internal patterns, and implementation details.
 
 The **"master"** branch represents a **BETA** of our next version release.
 
-The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/json-rest-api/).
+The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/rest-api/).
 
 ## About
 
@@ -57,6 +57,10 @@ Also, be sure to use the Subversion `trunk` branch of WordPress Core as there ar
 All tickets for the project are being tracked on [GitHub][]. You can also take a
 look at the [recent updates][] for the project.
 
+## Contributing
+
+Want to get involved? Check out [Contributing.md][contributing] for details on submitting fixes and new features.
+
 ## Security
 
 We take the security of the API extremely seriously. If you think you've found
@@ -79,5 +83,6 @@ WordPress on your own server. **Do not test on servers you do not own.**)
 
 [docs]: http://v2.wp-api.org/
 [GitHub]: https://github.com/WP-API/WP-API/issues
+[contributing]: CONTRIBUTING.md
 [recent updates]: https://make.wordpress.org/core/tag/json-api/
 [hackerone]: https://hackerone.com/wp-api
