@@ -812,7 +812,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => __( 'IP address for the object author.' ),
 					'type'         => 'string',
 					'context'      => array( 'edit' ),
-					'readonly'     => true,
 				),
 				'author_name'     => array(
 					'description'  => __( 'Display name for the object author.' ),
