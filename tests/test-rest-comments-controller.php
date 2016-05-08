@@ -643,6 +643,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$data = $response->get_data();
 		$this->assertEquals( $subscriber_id, $data['author'] );
+		$this->assertEquals( '127.0.0.1', $data['author_ip'] );
 	}
 
 	public function test_create_comment_without_type() {
@@ -839,7 +840,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_invalid_author_ip', $response, 400 );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_comment_no_post_id() {
@@ -964,6 +966,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
+			'author_ip'    => '4.4.4.4',
 			'date'         => '2014-11-07T10:14:25',
 			'karma'        => 100,
 			'post'         => $post_id,
@@ -982,6 +985,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
+		$this->assertEquals( $params['author_ip'], $comment['author_ip'] );
 		$this->assertEquals( $params['post'], $comment['post'] );
 		$this->assertEquals( $params['karma'], $comment['karma'] );
 
