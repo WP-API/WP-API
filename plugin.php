@@ -322,7 +322,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 					break;
 				case 'ipv4' :
 					if ( ! rest_is_ip_address( $value ) ) {
-						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.'), $value ) );
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $value ) );
 					}
 					break;
 			}
