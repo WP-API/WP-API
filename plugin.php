@@ -320,6 +320,11 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
 					}
 					break;
+				case 'ipv4' :
+					if ( ! rest_is_ip_address( $value ) ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.'), $value ) );
+					}
+					break;
 			}
 		}
 
@@ -395,10 +400,33 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 
 				case 'uri' :
 					return esc_url_raw( $value );
+
+				case 'ipv4' :
+					return sanitize_text_field( $value );
 			}
 		}
 
 		return $value;
 	}
 
+}
+
+if ( ! function_exists( 'rest_is_ip_address' ) ) {
+	/**
+	 * Determines if a IPv4 address is valid.
+	 *
+	 * Does not handle IPv6 addresses.
+	 *
+	 * @param  string $ipv4 IP 32-bit address.
+	 * @return string|false The valid IPv4 address, otherwise false.
+	 */
+	function rest_is_ip_address( $ipv4 ) {
+		$pattern = '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/';
+
+		if ( ! preg_match( $pattern, $ipv4 ) ) {
+			return false;
+		}
+
+		return $ipv4;
+	}
 }

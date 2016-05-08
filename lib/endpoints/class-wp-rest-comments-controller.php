@@ -748,11 +748,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['author_ip'] ) ) {
-			if ( filter_var( $request['author_ip'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
-				$prepared_comment['comment_author_IP'] = $request['author_ip'];
-			} else {
-				return new WP_Error( 'rest_comment_invalid_author_ip', __( 'The IP address you provided is invalid.' ), array( 'status' => 400 ) );
-			}
+			$prepared_comment['comment_author_IP'] = $request['author_ip'];
 		}
 
 		if ( isset( $request['type'] ) ) {
@@ -811,6 +807,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_ip'     => array(
 					'description'  => __( 'IP address for the object author.' ),
 					'type'         => 'string',
+					'format'       => 'ipv4',
 					'context'      => array( 'edit' ),
 				),
 				'author_name'     => array(
