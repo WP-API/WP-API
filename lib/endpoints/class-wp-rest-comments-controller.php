@@ -433,9 +433,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_args = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $prepared_args ) ) {
-			return $prepared_args;
-		}
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
