@@ -319,9 +319,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
-		if ( is_wp_error( $prepared_comment ) ) {
-			return $prepared_comment;
-		}
 
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
