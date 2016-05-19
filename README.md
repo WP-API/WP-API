@@ -39,7 +39,9 @@ core.
 ## Installation
 
 Drop this directory in and activate it. You need to be using pretty permalinks
-to use the plugin, as it uses custom rewrite rules to power the API.
+to use the plugin, as it uses custom rewrite rules to power the API. You'll also
+need to flush your rewrite rules. This can be done by simply visiting the
+Permalinks settings page in the admin.
 
 
 ## Quick Setup
