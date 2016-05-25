@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://v2.wp-api.org
- * Version: 2.0-beta13
+ * Version: 2.0-beta13.1
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */

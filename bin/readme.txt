@@ -3,7 +3,7 @@ Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
 Requires at least: 4.4
 Tested up to: 4.5
-Stable tag: 2.0-beta13
+Stable tag: 2.0-beta13.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,10 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 Once you've installed and activated the plugin, [check out the documentation](http://v2.wp-api.org/) for details on your newly available endpoints.
 
 == Changelog ==
+
+= 2.0 Beta 13.1 (May 25, 2016) =
+
+* SECURITY: Return error when request can't context==edit for users.
 
 = 2.0 Beta 13.0 (March 29, 2016) =
 
