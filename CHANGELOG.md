@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0 Beta 12.1 (May 25, 2016)
+
+- SECURITY: Return error when request can't context==edit for users.
+
 ## 2.0 Beta 12.0 (February 9, 2016)
 
 - BREAKING CHANGE: Removes meta endpoints from primary plugin.
