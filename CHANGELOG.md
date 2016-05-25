@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0 Beta 13.1 (May 25, 2016)
+
+- SECURITY: Return error when request can't context==edit for users.
+
 ## 2.0 Beta 13.0 (March 29, 2016)
 
 - BREAKING CHANGE: Fix Content-Disposition header parsing.
