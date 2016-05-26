@@ -159,7 +159,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'order', 'desc' );
 		$request->set_param( 'per_page', 1 );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertResponseStatus( 200, $response );
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Banana', $data[0]['name'] );
@@ -181,7 +181,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		// defaults to orderby=name, order=asc
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertResponseStatus( 200, $response );
 		$data = $response->get_data();
 		$this->assertEquals( 'Apple', $data[0]['name'] );
 		$this->assertEquals( 'Banana', $data[1]['name'] );
@@ -190,7 +190,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'orderby', 'id' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertResponseStatus( 200, $response );
 		$data = $response->get_data();
 		$this->assertEquals( 'Cantaloupe', $data[0]['name'] );
 		$this->assertEquals( 'Apple', $data[1]['name'] );
@@ -200,8 +200,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'orderby', 'id' );
 		$request->set_param( 'order', 'desc' );
 		$response = $this->server->dispatch( $request );
+		$this->assertResponseStatus( 200, $response );
 		$data = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 'Banana', $data[0]['name'] );
 		$this->assertEquals( 'Apple', $data[1]['name'] );
 		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
@@ -217,7 +217,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertResponseStatus( 200, $response );
 
 		$data = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );
@@ -305,7 +305,12 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'search', 'App' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertResponseStatus( 200, $response );
+		$this->assertResponseData( array(
+			array(
+				'name' => 'Apple',
+			),
+		), $response );
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Apple', $data[0]['name'] );
