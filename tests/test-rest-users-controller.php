@@ -458,8 +458,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 
-		$this->assertEquals( $data['capabilities'], null );
-		$this->assertEquals( $data['extra_capabilities'], null );
+		$this->assertEquals( $data['capabilities'], new stdClass() );
+		$this->assertEquals( $data['extra_capabilities'], new stdClass() );
 	}
 
 	public function test_get_item_without_permission() {
