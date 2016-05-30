@@ -518,12 +518,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
 
-		if ( isset( $data['capabilities'] ) && empty( $data['capabilities'] ) ) {
-			$data['capabilities'] = null;
+		if ( empty( $data['capabilities'] ) ) {
+			$data['capabilities'] = new stdClass();
 		}
 
-		if ( isset( $data['extra_capabilities'] ) && empty( $data['extra_capabilities'] ) ) {
-			$data['extra_capabilities'] = null;
+		if ( empty( $data['extra_capabilities'] ) ) {
+			$data['extra_capabilities'] = new stdClass();
 		}
 
 		$data = $this->add_additional_fields_to_object( $data, $request );
