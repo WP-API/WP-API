@@ -289,7 +289,7 @@ abstract class WP_REST_Controller {
 			return array_merge( $param_details, $args );
 		}
 		$contexts = array();
-		foreach ( $schema['properties'] as $key => $attributes ) {
+		foreach ( $schema['properties'] as $attributes ) {
 			if ( ! empty( $attributes['context'] ) ) {
 				$contexts = array_merge( $contexts, $attributes['context'] );
 			}

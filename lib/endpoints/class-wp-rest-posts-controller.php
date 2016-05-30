@@ -698,7 +698,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 * Fake the correct cookie to fool post_password_required().
 			 * Without this, get_the_content() will give a password form.
 			 */
-			require_once ABSPATH . 'wp-includes/class-phpass.php';
+			require_once ABSPATH . WPINC .'/class-phpass.php';
 			$hasher = new PasswordHash( 8, true );
 			$value = $hasher->HashPassword( $password );
 			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
@@ -761,7 +761,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status.
-		if ( isset( $request['status'] ) ) {
+		if ( ! empty( $schema['properties']['status'] ) && isset( $request['status'] ) ) {
 			$status = $this->handle_status_param( $request['status'], $post_type );
 			if ( is_wp_error( $status ) ) {
 				return $status;
@@ -771,13 +771,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post date.
-		if ( ! empty( $request['date'] ) ) {
+		if ( ! empty( $schema['properties']['date'] ) && ! empty( $request['date'] ) ) {
 			$date_data = rest_get_date_with_gmt( $request['date'] );
 
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_post->post_date, $prepared_post->post_date_gmt ) = $date_data;
 			}
-		} elseif ( ! empty( $request['date_gmt'] ) ) {
+		} elseif ( ! empty( $schema['properties']['date_gmt'] ) && ! empty( $request['date_gmt'] ) ) {
 			$date_data = rest_get_date_with_gmt( $request['date_gmt'], true );
 
 			if ( ! empty( $date_data ) ) {
@@ -785,7 +785,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 		// Post slug.
-		if ( isset( $request['slug'] ) ) {
+		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) ) {
 			$prepared_post->post_name = $request['slug'];
 		}
 
@@ -802,7 +802,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Post password.
-		if ( isset( $request['password'] ) && '' !== $request['password'] ) {
+		if ( ! empty( $schema['properties']['password'] ) && isset( $request['password'] ) && '' !== $request['password'] ) {
 			$prepared_post->post_password = $request['password'];
 
 			if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
@@ -814,7 +814,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( ! empty( $request['sticky'] ) ) {
+		if ( ! empty( $schema['properties']['sticky'] ) && ! empty( $request['sticky'] ) ) {
 			if ( ! empty( $prepared_post->ID ) && post_password_required( $prepared_post->ID ) ) {
 				return new WP_Error( 'rest_invalid_field', __( 'A password protected post can not be set to sticky.' ), array( 'status' => 400 ) );
 			}
@@ -1071,26 +1071,58 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
 
+		$schema = $this->get_item_schema();
+
 		// Base fields for every post.
-		$data = array(
-			'id'           => $post->ID,
-			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-			'guid'         => array(
+		$data = array();
+
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['id'] = $post->ID;
+		}
+
+		if ( ! empty( $schema['properties']['date'] ) ) {
+			$data['date'] = $this->prepare_date_response( $post->post_date_gmt, $post->post_date );
+		}
+
+		if ( ! empty( $schema['properties']['date_gmt'] ) ) {
+			$data['date_gmt'] = $this->prepare_date_response( $post->post_date_gmt );
+		}
+
+		if ( ! empty( $schema['properties']['guid'] ) ) {
+			$data['guid'] = array(
 				/** This filter is documented in wp-includes/post-template.php */
 				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
 				'raw'      => $post->guid,
-			),
-			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			'password'     => $post->post_password,
-			'slug'         => $post->post_name,
-			'status'       => $post->post_status,
-			'type'         => $post->post_type,
-			'link'         => get_permalink( $post->ID ),
-		);
+			);
+		}
 
-		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['modified'] ) ) {
+			$data['modified'] = $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified );
+		}
+
+		if ( ! empty( $schema['properties']['modified_gmt'] ) ) {
+			$data['modified_gmt'] = $this->prepare_date_response( $post->post_modified_gmt );
+		}
+
+		if ( ! empty( $schema['properties']['password'] ) ) {
+			$data['password'] = $post->post_password;
+		}
+
+		if ( ! empty( $schema['properties']['slug'] ) ) {
+			$data['slug'] = $post->post_name;
+		}
+
+		if ( ! empty( $schema['properties']['status'] ) ) {
+			$data['status'] = $post->post_status;
+		}
+
+		if ( ! empty( $schema['properties']['type'] ) ) {
+			$data['type'] = $post->post_type;
+		}
+
+		if ( ! empty( $schema['properties']['link'] ) ) {
+			$data['link'] = get_permalink( $post->ID );
+		}
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
 			$data['title'] = array(
@@ -1171,8 +1203,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$terms = get_the_terms( $post, $taxonomy->name );
-			$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
+			if ( ! empty( $schema['properties'][ $base ] ) ) {
+				$terms = get_the_terms( $post, $taxonomy->name );
+				$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
+			}
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -1331,11 +1365,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'description' => __( 'GUID for the object, as it exists in the database.' ),
 							'type'        => 'string',
 							'context'     => array( 'edit' ),
+							'readonly'    => true,
 						),
 						'rendered' => array(
 							'description' => __( 'GUID for the object, transformed for display.' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
 						),
 					),
 				),
@@ -1466,6 +1502,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML title for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1486,6 +1523,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML content for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
+								'readonly'    => true,
 							),
 						),
 					);
@@ -1514,6 +1552,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'description' => __( 'HTML excerpt for the object, transformed for display.' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
 							),
 						),
 					);

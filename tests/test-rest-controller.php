@@ -9,6 +9,9 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someinteger'     => array(
 					'type'        => 'integer',
 				),
+				'someboolean'     => array(
+					'type'        => 'boolean',
+				),
 				'somestring'      => array(
 					'type'        => 'string',
 				),
@@ -37,6 +40,25 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
+		);
+	}
+
+	public function test_validate_schema_type_boolean() {
+
+		$this->assertTrue(
+			rest_validate_request_arg( true, $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( false, $this->request, 'someboolean' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_param',
+			rest_validate_request_arg( 'true', $this->request, 'someboolean' )
+		);
+		$this->assertErrorResponse(
+			'rest_invalid_param',
+			rest_validate_request_arg( '123', $this->request, 'someboolean' )
 		);
 	}
 
