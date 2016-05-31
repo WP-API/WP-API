@@ -8,7 +8,9 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 ## WARNING
 
-The **"develop"** branch is undergoing substantial changes and is **NOT COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/) to introduce yourself to endpoints, internal patterns, and implementation details.
+The **"develop"** branch is undergoing substantial changes and is **NOT
+COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/)
+to introduce yourself to endpoints, internal patterns, and implementation details.
 
 The **"master"** branch represents a **BETA** of our next version release.
 
@@ -30,9 +32,9 @@ Update user with ID 4? Send a `POST` request to `/wp-json/wp/v2/users/4`. Get al
 posts with the search term "awesome"? `GET /wp-json/wp/v2/posts?filter[s]=awesome`.
 It's that easy.
 
-WP API exposes a simple yet easy interface to WP Query, the posts API, post meta
-API, users API, revisions API and many more. Chances are, if you can do it with
-WordPress, WP API will let you do it.
+WP API exposes a simple yet easy interface to WP Query, the posts API, post
+meta API, users API, revisions API and many more. Chances are, if you can do
+it with WordPress, WP API will let you do it.
 
 WP API also includes an easy-to-use JavaScript API based on Backbone models,
 allowing plugin and theme developers to get up and running without needing to
@@ -42,34 +44,39 @@ Check out [our documentation][docs] for information on what's available in the
 API and how to use it. We've also got documentation on extending the API with
 extra data for plugin and theme developers!
 
-There's no fixed timeline for integration into core at this time, but getting closer!
+There's no fixed timeline for integration into core at this time, but getting
+closer!
 
 
 ## Installation
 
-Drop this directory in and activate it. You need to be using pretty permalinks
-to use the plugin, as it uses custom rewrite rules to power the API.
+Drop this directory into your plugins folder and activate it. You need to be
+using pretty permalinks to use the plugin, as it uses custom rewrite rules to
+power the API.
 
-Also, be sure to use the Subversion `trunk` branch of WordPress Core as there are potentially recent commits to Core that the REST API relies on. See the [WordPress.org website](https://wordpress.org/download/svn/) for simple instructions.
+Also, be sure to use the Subversion `trunk` branch of WordPress Core as there
+are potentially recent commits to Core that the REST API relies on. See the
+[WordPress.org website](https://wordpress.org/download/svn/) for simple instructions.
 
 ## Issue Tracking
 
-All tickets for the project are being tracked on [GitHub][]. You can also take a
-look at the [recent updates][] for the project.
+All tickets for the project are being tracked on [GitHub][]. You can also take
+a look at the [recent updates][] for the project.
 
 ## Contributing
 
-Want to get involved? Check out [Contributing.md][contributing] for details on submitting fixes and new features.
+Want to get involved? Check out [Contributing.md][contributing] for details on
+submitting fixes and new features.
 
 ## Security
 
 We take the security of the API extremely seriously. If you think you've found
 a security issue with the API (whether information disclosure, privilege
-escalation, or another issue), we'd appreciate responsible disclosure as soon as
-possible.
+escalation, or another issue), we'd appreciate responsible disclosure as soon
+as possible.
 
-To report a security issue, you can either email `security[at]wordpress.org`, or
-[file an issue on HackerOne][hackerone]. We will attempt to give an initial
+To report a security issue, you can either email `security[at]wordpress.org`,
+or [file an issue on HackerOne][hackerone]. We will attempt to give an initial
 response to security issues within 48 hours at most, however keep in mind that
 the team is distributed across various timezones, and delays may occur as we
 discuss internally.
