@@ -826,13 +826,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'capabilities'    => array(
 					'description' => __( 'All capabilities assigned to the resource.' ),
-					'type'        => array( 'object', 'null' ),
+					'type'        => array( 'object' ),
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'extra_capabilities' => array(
 					'description' => __( 'Any extra capabilities assigned to the resource.' ),
-					'type'        => array( 'object', 'null' ),
+					'type'        => array( 'object' ),
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
