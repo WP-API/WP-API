@@ -1742,7 +1742,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$params['status'] = array(
 			'default'           => 'publish',
-			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
+			'description'       => __( 'Limit result set to posts assigned a specific status; can be comma-delimited list of status types.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
