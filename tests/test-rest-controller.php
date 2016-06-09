@@ -134,4 +134,25 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 		$this->assertEquals( 'a', $args['somedefault']['default'] );
 	}
+
+	public function test_get_post() {
+		$post_id = $this->factory()->post->create( array( 'post_title' => 'Original' ) );
+		$controller = new WP_REST_Test_Controller();
+
+		$action_count = did_action( 'the_post' );
+		$post = $controller->get_post( $post_id );
+		$this->assertEquals( 1 + $action_count, did_action( 'the_post' ) );
+		$this->assertEquals( 'Original', $post->post_title );
+
+		add_action( 'the_post', array( $this, 'action_the_post_for_test_get_post' ), 10, 2 );
+		$post = $controller->get_post( $post_id );
+		$this->assertEquals( 'Overridden', $post->post_title );
+		$this->assertEquals( 2 + $action_count, did_action( 'the_post' ) );
+	}
+
+	public function action_the_post_for_test_get_post( $post, $query ) {
+		$this->assertInstanceOf( 'WP_Post', $post );
+		$this->assertInstanceOf( 'WP_Query', $query );
+		$post->post_title = 'Overridden';
+	}
 }
