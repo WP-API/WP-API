@@ -862,7 +862,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 409, $response->get_status() );
+		$this->assertErrorResponse( 'rest_duplicate_comment', $response, 409 );
 	}
 
 	public function test_create_comment_closed() {
@@ -926,7 +926,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 429, $response->get_status() );
+
+		$this->assertErrorResponse( 'rest_comment_flood', $response, 429 );
 	}
 
 	public function test_update_item() {

@@ -304,107 +304,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		global $wpdb;
 		$commentdata = $this->prepare_item_for_database( $request );
-
-		/* Make sure, we have all the necessary data */
-		$commentdata['comment_author']       = ! isset( $commentdata['comment_author'] )       ? '' : $commentdata['comment_author'];
-		$commentdata['comment_author_email'] = ! isset( $commentdata['comment_author_email'] ) ? '' : $commentdata['comment_author_email'];
-		$commentdata['comment_author_url']   = ! isset( $commentdata['comment_author_url'] )   ? '' : $commentdata['comment_author_url'];
-		$commentdata['comment_author_IP']    = ! isset( $commentdata['comment_author_IP'] )    ? '127.0.0.1' : $commentdata['comment_author_IP'];
-
-		$commentdata['comment_date']     = ! isset( $commentdata['comment_date'] )     ? current_time( 'mysql' )                           : $commentdata['comment_date'];
-		$commentdata['comment_date_gmt'] = ! isset( $commentdata['comment_date_gmt'] ) ? get_gmt_from_date( $commentdata['comment_date'] ) : $commentdata['comment_date_gmt'];
-
-		$commentdata['comment_post_ID']  = ! isset( $commentdata['comment_post_ID'] )  ? 0  : $commentdata['comment_post_ID'];
-		$commentdata['comment_content']  = ! isset( $commentdata['comment_content'] )  ? '' : $commentdata['comment_content'];
-		$commentdata['comment_karma']    = ! isset( $commentdata['comment_karma'] )    ? 0  : $commentdata['comment_karma'];
-		$commentdata['comment_approved'] = ! isset( $commentdata['comment_approved'] ) ? 1  : $commentdata['comment_approved'];
-		$commentdata['comment_agent']    = ! isset( $commentdata['comment_agent'] )    ? '' : $commentdata['comment_agent'];
-		$commentdata['comment_type']     = ! isset( $commentdata['comment_type'] )     ? '' : $commentdata['comment_type'];
-		$commentdata['comment_parent']   = ! isset( $commentdata['comment_parent'] )   ? 0  : $commentdata['comment_parent'];
-
-		/* This filter is documented in wp-includes/comment.php */
-		$commentdata = apply_filters( 'preprocess_comment', $commentdata );
-		$commentdata = wp_filter_comment( $commentdata );
-
-		// Set author data if the user's logged in
-		$missing_author = empty( $commentdata['user_id'] )
-			&& empty( $commentdata['comment_author'] )
-			&& empty( $commentdata['comment_author_email'] )
-			&& empty( $commentdata['comment_author_url'] );
-
-		if ( is_user_logged_in() && $missing_author ) {
-			$user = wp_get_current_user();
-			$commentdata['user_id'] = $user->ID;
-			$commentdata['comment_author'] = $user->display_name;
-			$commentdata['comment_author_email'] = $user->user_email;
-			$commentdata['comment_author_url'] = $user->user_url;
-		}
-
-		//Test for duplicate comment
-		//catches the functionality of wp_allow_comment() in order to
-		//prevent a wp_die and return a WP_Error
-		$dupe = $wpdb->prepare(
-			"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
-			$commentdata['comment_post_ID'],
-			$commentdata['comment_parent'],
-			$commentdata['comment_author']
-		);
-
-		if ( $commentdata['comment_author_email'] ) {
-			$dupe .= $wpdb->prepare(
-				'OR comment_author_email = %s ',
-				$commentdata['comment_author_email']
-			);
-		}
-		$dupe .= $wpdb->prepare(
-			') AND comment_content = %s LIMIT 1',
-			$commentdata['comment_content']
-		);
-
-		$dupe_id = $wpdb->get_var( $dupe );
-
-		/* This filter is documented in wp-includes/comment.php */
-		$dupe_id = apply_filters( 'duplicate_comment_id', $dupe_id, $commentdata );
-		if ( $dupe_id ) {
-			/* This action is documented in wp-includes/comment.php */
-			do_action( 'comment_duplicate_trigger', $commentdata );
-			return new WP_Error( 'rest_duplicate_comment', __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' ), array( 'status' => 409 ) );
-		}
-
-		//Check for comment flood
-		//catches the functionality of check_comment_flood_db()
-		//to prevent us running into a wp_die()
-		$hour_ago = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
-
-		if ( is_user_logged_in() ) {
-			$user = get_current_user_id();
-			$check_column = '`user_id`';
-		} else {
-			$user = $commentdata['comment_author_IP'];
-			$check_column = '`comment_author_IP`';
-		}
-
-		$sql = $wpdb->prepare(
-			"SELECT `comment_date_gmt` FROM `$wpdb->comments` WHERE `comment_date_gmt` >= %s AND ( $check_column = %s OR `comment_author_email` = %s ) ORDER BY `comment_date_gmt` DESC LIMIT 1",
-			$hour_ago,
-			$user,
-			$commentdata['comment_author_email']
-		);
-
-		$lasttime = $wpdb->get_var( $sql );
-		if ( $lasttime && ! current_user_can( 'manage_options' ) && ! current_user_can( 'moderate_comments' ) ) {
-			$time_lastcomment = mysql2date( 'U', $lasttime, false );
-			$time_newcomment  = mysql2date( 'U', $commentdata['comment_date_gmt'], false );
-
-			/* This filter is documented in wp-includes/comment.php */
-			$flood_die = apply_filters( 'comment_flood_filter', false, $time_lastcomment, $time_newcomment );
-			if ( $flood_die ) {
-				/* This action is documented in wp-includes/comment.php */
-				do_action( 'comment_flood_trigger', $time_lastcomment, $time_newcomment );
-				return new WP_Error( 'rest_comment_flood', __( 'You are posting comments too quickly. Slow down.' ), array( 'status' => 429 ) );
-			}
+		$allow = $this->allow_comment( $commentdata );
+		if ( is_wp_error( $allow ) ) {
+			return $allow;
 		}
 
 		return true;
@@ -1270,5 +1173,121 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return current_user_can( 'edit_comment', $comment->comment_ID );
+	}
+
+
+	/**
+	 * Check if this comment is a double comment or part of a comment flood.
+	 * Basically reproduces the functionality of wp_allow_comment() for this section as long as
+	 * this function executes a wp_die() on double comments and comment floods.
+	 *
+	 * @param  array   $commentdata The current comment data.
+	 * @return boolean|WP_Error Returns either a WP_Error if the comment is double/flood or true
+	 */
+	protected function allow_comment( $commentdata ) {
+		global $wpdb;
+
+		/* Make sure, we have all the necessary data. */
+		$commentdata['comment_author']       = ! isset( $commentdata['comment_author'] )       ? '' : $commentdata['comment_author'];
+		$commentdata['comment_author_email'] = ! isset( $commentdata['comment_author_email'] ) ? '' : $commentdata['comment_author_email'];
+		$commentdata['comment_author_url']   = ! isset( $commentdata['comment_author_url'] )   ? '' : $commentdata['comment_author_url'];
+		$commentdata['comment_author_IP']    = ! isset( $commentdata['comment_author_IP'] )    ? '127.0.0.1' : $commentdata['comment_author_IP'];
+
+		$commentdata['comment_date']     = ! isset( $commentdata['comment_date'] )     ? current_time( 'mysql' )                           : $commentdata['comment_date'];
+		$commentdata['comment_date_gmt'] = ! isset( $commentdata['comment_date_gmt'] ) ? get_gmt_from_date( $commentdata['comment_date'] ) : $commentdata['comment_date_gmt'];
+
+		$commentdata['comment_post_ID']  = ! isset( $commentdata['comment_post_ID'] )  ? 0  : $commentdata['comment_post_ID'];
+		$commentdata['comment_content']  = ! isset( $commentdata['comment_content'] )  ? '' : $commentdata['comment_content'];
+		$commentdata['comment_karma']    = ! isset( $commentdata['comment_karma'] )    ? 0  : $commentdata['comment_karma'];
+		$commentdata['comment_approved'] = ! isset( $commentdata['comment_approved'] ) ? 1  : $commentdata['comment_approved'];
+		$commentdata['comment_agent']    = ! isset( $commentdata['comment_agent'] )    ? '' : $commentdata['comment_agent'];
+		$commentdata['comment_type']     = ! isset( $commentdata['comment_type'] )     ? '' : $commentdata['comment_type'];
+		$commentdata['comment_parent']   = ! isset( $commentdata['comment_parent'] )   ? 0  : $commentdata['comment_parent'];
+
+		/* This filter is documented in wp-includes/comment.php */
+		$commentdata = apply_filters( 'preprocess_comment', $commentdata );
+		$commentdata = wp_filter_comment( $commentdata );
+
+		// Set author data if the user's logged in
+		$missing_author = empty( $commentdata['user_id'] )
+			&& empty( $commentdata['comment_author'] )
+			&& empty( $commentdata['comment_author_email'] )
+			&& empty( $commentdata['comment_author_url'] );
+
+		if ( is_user_logged_in() && $missing_author ) {
+			$user = wp_get_current_user();
+			$commentdata['user_id'] = $user->ID;
+			$commentdata['comment_author'] = $user->display_name;
+			$commentdata['comment_author_email'] = $user->user_email;
+			$commentdata['comment_author_url'] = $user->user_url;
+		}
+
+		//Test for duplicate comment.
+		//Catches the functionality of wp_allow_comment() in order to prevent a wp_die and return a WP_Error.
+		//@codingStandardsIgnoreStart
+		$dupe = $wpdb->prepare(
+			"SELECT comment_ID FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_parent = %s AND comment_approved != 'trash' AND ( comment_author = %s ",
+			$commentdata['comment_post_ID'],
+			$commentdata['comment_parent'],
+			$commentdata['comment_author']
+		);
+
+		if ( $commentdata['comment_author_email'] ) {
+			$dupe .= $wpdb->prepare(
+				'OR comment_author_email = %s ',
+				$commentdata['comment_author_email']
+			);
+		}
+		$dupe .= $wpdb->prepare(
+			') AND comment_content = %s LIMIT 1',
+			$commentdata['comment_content']
+		);
+
+		$dupe_id = $wpdb->get_var( $dupe );
+		//@codingStandardsIgnoreEnd
+
+		/* This filter is documented in wp-includes/comment.php */
+		$dupe_id = apply_filters( 'duplicate_comment_id', $dupe_id, $commentdata );
+		if ( $dupe_id ) {
+			/* This action is documented in wp-includes/comment.php */
+			do_action( 'comment_duplicate_trigger', $commentdata );
+			return new WP_Error( 'rest_duplicate_comment', __( 'Duplicate comment detected; it looks as though you&#8217;ve already said that!' ), array( 'status' => 409 ) );
+		}
+
+		//Check for comment flood.
+		//Catches the functionality of check_comment_flood_db() to prevent us running into a wp_die().
+		$hour_ago = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+
+		if ( is_user_logged_in() ) {
+			$user = get_current_user_id();
+			$check_column = '`user_id`';
+		} else {
+			$user = $commentdata['comment_author_IP'];
+			$check_column = '`comment_author_IP`';
+		}
+
+		//@codingStandardsIgnoreStart
+		$sql = $wpdb->prepare(
+			"SELECT `comment_date_gmt` FROM `$wpdb->comments` WHERE `comment_date_gmt` >= %s AND ( $check_column = %s OR `comment_author_email` = %s ) ORDER BY `comment_date_gmt` DESC LIMIT 1",
+			$hour_ago,
+			$user,
+			$commentdata['comment_author_email']
+		);
+
+		$lasttime = $wpdb->get_var( $sql );
+		//@codingStandardsIgnoreEnd
+		if ( $lasttime && ! current_user_can( 'manage_options' ) && ! current_user_can( 'moderate_comments' ) ) {
+			$time_lastcomment = mysql2date( 'U', $lasttime, false );
+			$time_newcomment  = mysql2date( 'U', $commentdata['comment_date_gmt'], false );
+
+			/* This filter is documented in wp-includes/comment.php */
+			$flood_die = apply_filters( 'comment_flood_filter', false, $time_lastcomment, $time_newcomment );
+			if ( $flood_die ) {
+				/* This action is documented in wp-includes/comment.php */
+				do_action( 'comment_flood_trigger', $time_lastcomment, $time_newcomment );
+				return new WP_Error( 'rest_comment_flood', __( 'You are posting comments too quickly. Slow down.' ), array( 'status' => 429 ) );
+			}
+		}
+		return true;
 	}
 }
