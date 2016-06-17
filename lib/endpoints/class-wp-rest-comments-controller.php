@@ -346,7 +346,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( ! isset( $prepared_comment['comment_author_url'] ) ) {
 			$prepared_comment['comment_author_url'] = '';
 		}
-		$prepared_comment['comment_author_IP'] = '127.0.0.1';
+
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
@@ -739,6 +739,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_author_url'] = $request['author_url'];
 		}
 
+		if ( isset( $request['author_ip'] ) ) {
+			$prepared_comment['comment_author_IP'] = $request['author_ip'];
+		}
+
 		if ( isset( $request['type'] ) ) {
 			$prepared_comment['comment_type'] = $request['type'];
 		}
@@ -795,8 +799,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'author_ip'     => array(
 					'description'  => __( 'IP address for the object author.' ),
 					'type'         => 'string',
+					'format'       => 'ipv4',
 					'context'      => array( 'edit' ),
-					'readonly'     => true,
+					'arg_options'  => array(
+						'default'           => '127.0.0.1',
+					),
 				),
 				'author_name'     => array(
 					'description'  => __( 'Display name for the object author.' ),
