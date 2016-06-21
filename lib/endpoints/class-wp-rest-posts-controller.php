@@ -654,13 +654,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param string       $excerpt
 	 * @return string|null $excerpt
 	 */
-	protected function prepare_excerpt_response( $excerpt ) {
+	protected function prepare_excerpt_response( $excerpt, $post ) {
 		if ( post_password_required() ) {
 			return __( 'There is no excerpt because this is a protected post.' );
 		}
 
 		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
+		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
 
 		if ( empty( $excerpt ) ) {
 			return '';
@@ -1152,7 +1152,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
 				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
 			);
 		}
 
