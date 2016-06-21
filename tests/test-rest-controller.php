@@ -135,24 +135,27 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertEquals( 'a', $args['somedefault']['default'] );
 	}
 
+	public $rest_the_post_filter_apply_count = 0;
+
 	public function test_get_post() {
 		$post_id = $this->factory()->post->create( array( 'post_title' => 'Original' ) );
 		$controller = new WP_REST_Test_Controller();
 
-		$action_count = did_action( 'the_post' );
 		$post = $controller->get_post( $post_id );
-		$this->assertEquals( 1 + $action_count, did_action( 'the_post' ) );
 		$this->assertEquals( 'Original', $post->post_title );
 
-		add_action( 'the_post', array( $this, 'action_the_post_for_test_get_post' ), 10, 2 );
+		$filter_apply_count = $this->rest_the_post_filter_apply_count;
+		add_filter( 'rest_the_post', array( $this, 'filter_rest_the_post_for_test_get_post' ), 10, 2 );
 		$post = $controller->get_post( $post_id );
 		$this->assertEquals( 'Overridden', $post->post_title );
-		$this->assertEquals( 2 + $action_count, did_action( 'the_post' ) );
+		$this->assertEquals( 1 + $filter_apply_count, $this->rest_the_post_filter_apply_count );
 	}
 
-	public function action_the_post_for_test_get_post( $post, $query ) {
+	public function filter_rest_the_post_for_test_get_post( $post, $post_id ) {
 		$this->assertInstanceOf( 'WP_Post', $post );
-		$this->assertInstanceOf( 'WP_Query', $query );
+		$this->assertInternalType( 'int', $post_id );
 		$post->post_title = 'Overridden';
+		$this->rest_the_post_filter_apply_count += 1;
+		return $post;
 	}
 }

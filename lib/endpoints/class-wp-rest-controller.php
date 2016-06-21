@@ -495,13 +495,18 @@ abstract class WP_REST_Controller {
 	 * @return WP_Post|null A `WP_Post` object when successful.
 	 */
 	public function get_post( $post ) {
-		global $wp_query;
+		$post_obj = get_post( $post );
 
-		$post = get_post( $post );
-		if ( $post && $wp_query ) {
-			/** This action is documented in wp-includes/query.php */
-			do_action_ref_array( 'the_post', array( &$post, &$wp_query ) );
-		}
+		/**
+		 * Filter the post.
+		 *
+		 * Allows plugins to filter the post object as returned by `\WP_REST_Controller::get_post()`.
+		 *
+		 * @param WP_Post|null $post_obj  The post object as returned by `get_post()`.
+		 * @param int|WP_Post  $post      The original value used to obtain the post object.
+		 */
+		$post = apply_filters( 'rest_the_post', $post_obj, $post );
+
 		return $post;
 	}
 }
