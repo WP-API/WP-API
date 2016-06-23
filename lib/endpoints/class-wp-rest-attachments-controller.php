@@ -48,7 +48,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		// Attaching media to a post requires ability to edit said post
 		if ( ! empty( $request['post'] ) ) {
-			$parent = get_post( (int) $request['post'] );
+			$parent = $this->get_post( (int) $request['post'] );
 			$post_parent_type = get_post_type_object( $parent->post_type );
 			if ( ! current_user_can( $post_parent_type->cap->edit_post, $request['post'] ) ) {
 				return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to upload media to this resource.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -123,7 +123,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 			return $id;
 		}
-		$attachment = get_post( $id );
+		$attachment = $this->get_post( $id );
 
 		/** Include admin functions to get access to wp_generate_attachment_metadata() */
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
@@ -177,7 +177,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
-		$attachment = get_post( $request['id'] );
+		$attachment = $this->get_post( $request['id'] );
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );

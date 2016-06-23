@@ -57,7 +57,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 
-		$parent = get_post( $request['parent'] );
+		$parent = $this->get_post( $request['parent'] );
 		if ( ! $parent ) {
 			return true;
 		}
@@ -77,7 +77,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		$parent = get_post( $request['parent'] );
+		$parent = $this->get_post( $request['parent'] );
 		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
 			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
@@ -110,12 +110,12 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 
-		$parent = get_post( $request['parent'] );
+		$parent = $this->get_post( $request['parent'] );
 		if ( ! $request['parent'] || ! $parent || $this->parent_post_type !== $parent->post_type ) {
 			return new WP_Error( 'rest_post_invalid_parent', __( 'Invalid post parent id.' ), array( 'status' => 404 ) );
 		}
 
-		$revision = get_post( $request['id'] );
+		$revision = $this->get_post( $request['id'] );
 		if ( ! $revision || 'revision' !== $revision->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision id.' ), array( 'status' => 404 ) );
 		}
@@ -137,7 +137,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $response;
 		}
 
-		$post = get_post( $request['id'] );
+		$post = $this->get_post( $request['id'] );
 		if ( ! $post ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid revision id.' ), array( 'status' => 404 ) );
 		}
