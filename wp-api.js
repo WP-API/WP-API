@@ -1080,7 +1080,7 @@
 				) {
 
 					// Single items end with a regex (or the special case 'me').
-					if ( /.*[+)|me]$/.test( index ) ) {
+					if ( /(?:.*[+)]|me)$/.test( index ) ) {
 						modelRoutes.push( { index: index, route: route } );
 					} else {
 
