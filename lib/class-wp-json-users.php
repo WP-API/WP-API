@@ -30,7 +30,7 @@ class WP_JSON_Users {
 				array( array( $this, 'get_users' ),        WP_JSON_Server::READABLE ),
 				array( array( $this, 'create_user' ),      WP_JSON_Server::CREATABLE | WP_JSON_Server::ACCEPT_JSON ),
 			),
-			'/users/(?P<id>\d+)' => array(
+			'/users/(?P<id>\w+)' => array(
 				array( array( $this, 'get_user' ),         WP_JSON_Server::READABLE ),
 				array( array( $this, 'edit_user' ),        WP_JSON_Server::EDITABLE | WP_JSON_Server::ACCEPT_JSON ),
 				array( array( $this, 'delete_user' ),      WP_JSON_Server::DELETABLE ),
@@ -130,7 +130,13 @@ class WP_JSON_Users {
 			return new WP_Error( 'json_user_cannot_list', __( 'Sorry, you are not allowed to view this user.' ), array( 'status' => 403 ) );
 		}
 
-		$user = get_userdata( $id );
+		
+		if (is_numeric($id)){
+			$user = get_user_by('id', $id ); //Can also do get_userdata($id) but this is just an alias
+		} else {
+			$user = get_user_by('slug', $id );
+		}
+
 
 		if ( empty( $user->ID ) ) {
 			return new WP_Error( 'json_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
