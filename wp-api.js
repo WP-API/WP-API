@@ -117,7 +117,7 @@
 	};
 
 	/**
-	 * Extract a route part based on negitive index.
+	 * Extract a route part based on negative index.
 	 *
 	 * @param {string} route The endpoint route.
 	 * @param {int}    part  The number of parts from the end of the route to retrieve. Default 1.
