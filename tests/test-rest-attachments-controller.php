@@ -21,12 +21,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'role' => 'contributor',
 		) );
 		//matches core capabilities for subscriber role and adds upload_files
-		_x('File upload role', 'User role');
-		add_role('uploader', 'File upload role');
-		$role = get_role('uploader');
-		$role->add_cap('upload_files');
-		$role->add_cap('read');
-		$role->add_cap('level_0');
+		_x( 'File upload role', 'User role' );
+		add_role( 'uploader', 'File upload role' );
+		$role = get_role( 'uploader' );
+		$role->add_cap( 'upload_files' );
+		$role->add_cap( 'read' );
+		$role->add_cap( 'level_0' );
 		//print_r(array('role'=>$role));
 		$this->uploader_id = $this->factory->user->create( array(
 			'role' => 'uploader',
