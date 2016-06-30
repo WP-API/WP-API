@@ -20,6 +20,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->contributor_id = $this->factory->user->create( array(
 			'role' => 'contributor',
 		) );
+		//matches core capabilities for subscriber role and adds upload_files
+		_x('File upload role', 'User role');
+		add_role('uploader', 'File upload role');
+		$role = get_role('uploader');
+		$role->add_cap('upload_files');
+		$role->add_cap('read');
+		$role->add_cap('level_0');
+		//print_r(array('role'=>$role));
+		$this->uploader_id = $this->factory->user->create( array(
+			'role' => 'uploader',
+		) );
 
 		$orig_file = dirname( __FILE__ ) . '/data/canola.jpg';
 		$this->test_file = '/tmp/canola.jpg';
@@ -450,6 +461,22 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
+	public function test_create_item_with_upload_files_role() {
+		wp_set_current_user( $this->uploader_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params( array(
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
+		) );
+		$request->set_header( 'Content-MD5', md5_file( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+	}
+
 	public function test_create_item_empty_body() {
 		wp_set_current_user( $this->author_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -511,6 +538,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_create_item_invalid_edit_permissions() {
 		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
 		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_create_item_invalid_upload_permissions() {
+		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		wp_set_current_user( $this->uploader_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
