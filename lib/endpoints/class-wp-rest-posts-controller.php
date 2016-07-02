@@ -1708,6 +1708,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'default'            => 'date',
 			'enum'               => array(
 				'date',
+				'relevance',
 				'id',
 				'include',
 				'title',
