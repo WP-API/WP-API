@@ -87,6 +87,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$args                         = array();
 		$args['author__in']           = $request['author'];
+		$args['category__in']         = $request['category'];
 		$args['author__not_in']       = $request['author_exclude'];
 		$args['menu_order']           = $request['menu_order'];
 		$args['offset']               = $request['offset'];
@@ -617,6 +618,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$rest_valid = array(
 			'author__in',
 			'author__not_in',
+			'category__in',
 			'ignore_sticky_posts',
 			'menu_order',
 			'offset',
