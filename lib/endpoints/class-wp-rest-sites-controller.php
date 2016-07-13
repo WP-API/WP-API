@@ -109,7 +109,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$prepared_args['search'] = $request['search'];
 		$prepared_args['role__in'] = $request['roles'];
 
-
 		if ( '' !== $prepared_args['search'] ) {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
@@ -253,11 +252,9 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_sites_not_supported', __( ' Cannot create resource.' ), array( 'status' => 403 ) );
 		}
 
-
 		$site = $this->prepare_item_for_database( $request );
 
-		$blog_id = wpmu_create_blog($site->domain, $site->path, $site->title, $site->admin, $site->meta);
-
+		$blog_id = wpmu_create_blog( $site->domain, $site->path, $site->title, $site->admin, $site->meta );
 
 		$this->update_additional_fields_for_object( $site, $request );
 
@@ -459,11 +456,11 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['registered'] ) ) {
-			$data['registered'] = date( 'c', strtotime( $site->registered ));
+			$data['registered'] = date( 'c', strtotime( $site->registered ) );
 		}
 
 		if ( ! empty( $schema['properties']['last_updated'] ) ) {
-			$data['last_updated'] = date( 'c', strtotime( $site->last_updated ));
+			$data['last_updated'] = date( 'c', strtotime( $site->last_updated ) );
 		}
 
 		if ( ! empty( $schema['properties']['public'] ) ) {

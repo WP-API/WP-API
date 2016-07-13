@@ -377,7 +377,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 	}
 }
 
-if ( ! function_exists ( 'rest_sanitize_fake_boolean' ) ) {
+if ( ! function_exists( 'rest_sanitize_fake_boolean' ) ) {
 	/**
 	 * Sanitize a request argument that is a pseudo boolean (and should be 0, 1 or null)
 	 *
@@ -387,7 +387,7 @@ if ( ! function_exists ( 'rest_sanitize_fake_boolean' ) ) {
 	 * @return mixed
 	 */
 	function rest_sanitize_fake_boolean( $value, $request, $param ) {
-		if ( is_null($value) ) {
+		if ( is_null( $value ) ) {
 			return $value;
 		} else {
 			return $value ? 1 : 0;
