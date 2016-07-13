@@ -73,6 +73,13 @@ if ( ! class_exists( 'WP_REST_Users_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Users_Controller class.
+ */
+if ( ! class_exists( 'WP_REST_Sites_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-sites-controller.php';
+}
+
+/**
  * WP_REST_Comments_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
