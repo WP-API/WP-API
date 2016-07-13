@@ -203,6 +203,10 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 		$controller = new WP_REST_Users_Controller;
 		$controller->register_routes();
 
+		// Sites.
+		$controller = new WP_REST_Sites_Controller;
+		$controller->register_routes();
+
 		// Comments.
 		$controller = new WP_REST_Comments_Controller;
 		$controller->register_routes();
@@ -363,6 +367,24 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 		}
 
 		return true;
+	}
+}
+
+if ( ! function_exists ( 'rest_sanitize_fake_boolean' ) ) {
+	/**
+	 * Sanitize a request argument that is a pseudo boolean (and should be 0, 1 or null)
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_sanitize_fake_boolean( $value, $request, $param ) {
+		if ( is_null($value) ) {
+			return $value;
+		} else {
+			return $value ? 1 : 0;
+		}
 	}
 }
 
