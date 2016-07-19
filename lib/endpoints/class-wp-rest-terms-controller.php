@@ -571,7 +571,12 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$data['description'] = $item->description;
 		}
 		if ( ! empty( $schema['properties']['link'] ) ) {
-			$data['link'] = get_term_link( $item );
+			if ( function_exists( 'wpcom_vip_get_term_link' ) ) {
+				$data['link'] = wpcom_vip_get_term_link( $item );
+			} else {
+				$data['link'] = get_term_link( $item );	
+			}
+			
 		}
 		if ( ! empty( $schema['properties']['name'] ) ) {
 			$data['name'] = $item->name;
