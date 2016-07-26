@@ -114,7 +114,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$data = $response->get_data();
 
 		$args = array(
-			'hide_empty' => 'false',
+			'hide_empty' => false,
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
@@ -144,7 +144,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$data = $response->get_data();
 
 		$args = array(
-			'hide_empty' => 'false',
+			'hide_empty' => false,
 			'parent'     => 0,
 		);
 		$categories = get_terms( 'category', $args );
