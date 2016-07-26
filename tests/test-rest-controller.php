@@ -52,9 +52,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			rest_validate_request_arg( false, $this->request, 'someboolean' )
 		);
 
-		$this->assertTrue(,
+		$this->assertTrue(
 			rest_validate_request_arg( 'true', $this->request, 'someboolean' )
 		);
+
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( '123', $this->request, 'someboolean' )
