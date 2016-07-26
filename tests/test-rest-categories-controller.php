@@ -82,7 +82,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$category2 = $this->factory->category->create( array( 'name' => 'The Be Sharps' ) );
 		wp_set_object_terms( $post_id, array( $category1, $category2 ), 'category' );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
-		$request->set_param( 'hide_empty', true );
+		// Test with string of boolean equivalent from url query parameter.
+		$request->set_param( 'hide_empty', 'true' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 2, count( $data ) );

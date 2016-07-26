@@ -97,7 +97,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			'order'      => $request['order'],
 			'orderby'    => $request['orderby'],
 			'post'       => $request['post'],
-			'hide_empty' => $request['hide_empty'],
+			'hide_empty' => (bool) $request['hide_empty'],
 			'number'     => $request['per_page'],
 			'search'     => $request['search'],
 			'slug'       => $request['slug'],
