@@ -446,6 +446,22 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
+	public function test_get_user_empty_capabilities() {
+		wp_set_current_user( $this->user );
+		$this->allow_user_to_manage_multisite();
+
+		$lolz = $this->factory->user->create( array( 'display_name' => 'lolz', 'roles' => '' ) );
+		delete_user_option( $lolz, 'capabilities' );
+		delete_user_option( $lolz, 'user_level' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/' . $lolz );
+		$request->set_param( 'context', 'edit' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( $data['capabilities'], new stdClass() );
+		$this->assertEquals( $data['extra_capabilities'], new stdClass() );
+	}
+
 	public function test_get_item_without_permission() {
 		wp_set_current_user( $this->editor );
 
@@ -1111,8 +1127,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertEquals( $user->last_name, $data['last_name'] );
 			$this->assertEquals( $user->nickname, $data['nickname'] );
 			$this->assertEquals( $user->user_email, $data['email'] );
-			$this->assertEquals( $user->allcaps, $data['capabilities'] );
-			$this->assertEquals( $user->caps, $data['extra_capabilities'] );
+			$this->assertEquals( (object) $user->allcaps, $data['capabilities'] );
+			$this->assertEquals( (object) $user->caps, $data['extra_capabilities'] );
 			$this->assertEquals( date( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
 			$this->assertEquals( $user->user_login, $data['username'] );
 			$this->assertEquals( $user->roles, $data['roles'] );

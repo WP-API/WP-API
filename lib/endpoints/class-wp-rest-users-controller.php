@@ -196,7 +196,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
-		$types = get_post_types( array( 'public' => true ), 'names' );
+		$types = get_post_types( array( 'show_in_rest' => true ), 'names' );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
@@ -554,11 +554,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['capabilities'] ) ) {
-			$data['capabilities'] = $user->allcaps;
+			$data['capabilities'] = (object) $user->allcaps;
 		}
 
 		if ( ! empty( $schema['properties']['extra_capabilities'] ) ) {
-			$data['extra_capabilities'] = $user->caps;
+			$data['extra_capabilities'] = (object) $user->caps;
 		}
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
@@ -566,6 +566,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 

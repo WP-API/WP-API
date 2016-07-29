@@ -212,7 +212,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_item_permissions_check( $request ) {
 
-		$post = get_post( (int) $request['id'] );
+		$post = $this->get_post( (int) $request['id'] );
 
 		if ( 'edit' === $request['context'] && $post && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post' ), array( 'status' => rest_authorization_required_code() ) );
@@ -233,7 +233,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_item( $request ) {
 		$id = (int) $request['id'];
-		$post = get_post( $id );
+		$post = $this->get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
@@ -333,7 +333,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $terms_update;
 		}
 
-		$post = get_post( $post_id );
+		$post = $this->get_post( $post_id );
 		$this->update_additional_fields_for_object( $post, $request );
 
 		/**
@@ -362,7 +362,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function update_item_permissions_check( $request ) {
 
-		$post = get_post( $request['id'] );
+		$post = $this->get_post( $request['id'] );
 		$post_type = get_post_type_object( $this->post_type );
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
@@ -392,7 +392,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function update_item( $request ) {
 		$id = (int) $request['id'];
-		$post = get_post( $id );
+		$post = $this->get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 400 ) );
@@ -440,7 +440,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $terms_update;
 		}
 
-		$post = get_post( $post_id );
+		$post = $this->get_post( $post_id );
 		$this->update_additional_fields_for_object( $post, $request );
 
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
@@ -459,7 +459,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item_permissions_check( $request ) {
 
-		$post = get_post( $request['id'] );
+		$post = $this->get_post( $request['id'] );
 
 		if ( $post && ! $this->check_delete_permission( $post ) ) {
 			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete posts.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -478,7 +478,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$id = (int) $request['id'];
 		$force = (bool) $request['force'];
 
-		$post = get_post( $id );
+		$post = $this->get_post( $id );
 
 		if ( empty( $id ) || empty( $post->ID ) || $this->post_type !== $post->post_type ) {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post id.' ), array( 'status' => 404 ) );
@@ -654,13 +654,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param string       $excerpt
 	 * @return string|null $excerpt
 	 */
-	protected function prepare_excerpt_response( $excerpt ) {
+	protected function prepare_excerpt_response( $excerpt, $post ) {
 		if ( post_password_required() ) {
 			return __( 'There is no excerpt because this is a protected post.' );
 		}
 
 		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt ) );
+		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
 
 		if ( empty( $excerpt ) ) {
 			return '';
@@ -822,7 +822,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Parent.
 		if ( ! empty( $schema['properties']['parent'] ) && ! empty( $request['parent'] ) ) {
-			$parent = get_post( (int) $request['parent'] );
+			$parent = $this->get_post( (int) $request['parent'] );
 			if ( empty( $parent ) ) {
 				return new WP_Error( 'rest_post_invalid_id', __( 'Invalid post parent id.' ), array( 'status' => 400 ) );
 			}
@@ -921,7 +921,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param integer $post_id
 	 */
 	public function handle_template( $template, $post_id ) {
-		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( get_post( $post_id ) ) ) ) ) {
+		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( $this->get_post( $post_id ) ) ) ) ) {
 			update_post_meta( $post_id, '_wp_page_template', $template );
 		} else {
 			update_post_meta( $post_id, '_wp_page_template', '' );
@@ -999,7 +999,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Can we read the parent if we're inheriting?
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
-			$parent = get_post( $post->post_parent );
+			$parent = $this->get_post( $post->post_parent );
 			return $this->check_read_permission( $parent );
 		}
 
@@ -1152,7 +1152,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			$data['excerpt'] = array(
 				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt ),
+				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
 			);
 		}
 
@@ -1742,7 +1742,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$params['status'] = array(
 			'default'           => 'publish',
-			'description'       => __( 'Limit result set to posts assigned a specific status.' ),
+			'description'       => __( 'Limit result set to posts assigned a specific status; can be comma-delimited list of status types.' ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),
