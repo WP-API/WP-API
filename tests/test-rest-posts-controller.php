@@ -1241,7 +1241,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	public function test_update_post_invalid_route() {
@@ -1250,7 +1250,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 400 );
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
 	}
 
 	public function test_update_post_with_format() {

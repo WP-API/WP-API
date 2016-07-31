@@ -905,7 +905,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
 	public function test_delete_item() {
@@ -961,7 +961,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request['force'] = true;
 		$response = $this->server->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
 	public function test_delete_user_reassign() {
