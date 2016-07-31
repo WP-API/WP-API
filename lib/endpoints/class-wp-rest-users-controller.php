@@ -801,7 +801,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'registered_date' => array(
 					'description' => __( 'Registration date for the resource.' ),
-					'type'        => 'date-time',
+					'type'        => 'string',
+					'format'      => 'date-time',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
