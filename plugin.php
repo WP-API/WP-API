@@ -299,8 +299,8 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
 		}
 
-		if ( 'boolean' === $args['type'] && ! is_bool( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'boolean' ) );
+		if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $value, 'boolean' ) );
 		}
 
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
@@ -428,5 +428,36 @@ if ( ! function_exists( 'rest_is_ip_address' ) ) {
 		}
 
 		return $ipv4;
+	}
+}
+
+/**
+ * Determines if a given value is boolean-like.
+ *
+ * @param bool|string $maybe_bool The value being evaluated.
+ * @return boolean True if a boolean, otherwise false.
+ */
+if ( ! function_exists( 'rest_is_boolean' ) ) {
+	function rest_is_boolean( $maybe_bool ) {
+		if ( is_bool( $maybe_bool ) ) {
+			return true;
+		}
+
+		if ( is_string( $maybe_bool ) ) {
+			$maybe_bool = strtolower( $maybe_bool );
+
+			$valid_boolean_values = array(
+				'false',
+				'true',
+				'0',
+				'1',
+			);
+
+			if ( in_array( $maybe_bool, $valid_boolean_values, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
