@@ -380,7 +380,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['slug'] ) && $request['slug'] !== $user->user_nicename && get_user_by( 'slug', $request['slug'] ) ) {
-			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_user_invalid_slug', __( 'Slug is invalid.' ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $request['roles'] ) ) {

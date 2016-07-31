@@ -906,7 +906,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( $result ) {
 				return true;
 			} else {
-				return new WP_Error( 'rest_invalid_featured_media', __( 'Invalid featured media id.' ), array( 'status' => 404 ) );
+				return new WP_Error( 'rest_invalid_featured_media', __( 'Invalid featured media id.' ), array( 'status' => 400 ) );
 			}
 		} else {
 			return delete_post_thumbnail( $post_id );
