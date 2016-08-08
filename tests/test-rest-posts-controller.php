@@ -482,8 +482,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
-			// WPCS: tax_query ok.
-			'tax_query' => array(
+			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'category',
 					'field'    => 'slug',
@@ -503,8 +502,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
-			// WPCS: tax_query ok.
-			'tax_query' => array(
+			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'category',
 					'field'    => 'slug',
@@ -519,8 +517,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
-			// WPCS: tax_query ok.
-			'tax_query' => array(
+			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'mingus',
 					'field'    => 'slug',
