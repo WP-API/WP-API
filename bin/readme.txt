@@ -2,8 +2,8 @@
 Contributors: rmccue, rachelbaker, danielbachhuber, joehoyle
 Tags: json, rest, api, rest-api
 Requires at least: 4.4
-Tested up to: 4.5-alpha
-Stable tag: 2.0-beta12
+Tested up to: 4.5
+Stable tag: 2.0-beta13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,100 @@ For full-flavoured API support, you'll need to be using pretty permalinks to use
 Once you've installed and activated the plugin, [check out the documentation](http://v2.wp-api.org/) for details on your newly available endpoints.
 
 == Changelog ==
+
+= 2.0 Beta 13.0 (March 29, 2016) =
+
+* BREAKING CHANGE: Fix Content-Disposition header parsing.
+
+  Allows regular form submissions from HTML forms, as well as properly formatted HTTP requests from clients. Note: this breaks backwards compatibility, as previously, the header parsing was completely wrong.
+
+  (props @rmccue, [#2239](https://github.com/WP-API/WP-API/pull/2239))
+
+* BREAKING CHANGE: Use compact links for embedded responses if they are available.
+
+  Introduces curies for sites running WordPress 4.5 or greater; no changes for those running WordPress 4.4.
+
+  (props @joehoyle, [#2412](https://github.com/WP-API/WP-API/pull/2412))
+
+* JavaScript client updates:
+
+  * Support lodash, plus older and newer underscore: add an alias for `_.contains`
+  * Add args and options on the model/collection prototypes
+  * Rework category/tag mixins to support new API structure
+  * Add workaround for the null/empty values returned by the API when creating a new post * these values are not accepted for subsequent updates/saves, so explicitly excluding them. See https://github.com/WP-API/WP-API/pull/2393
+  * Better handling of the (special) `me` endpoint
+  * Schema parsing cleanup
+  * Introduce `wp.api.loadPromise` so developers can ensure api load complete before using
+
+  (props @adamsilverstein, [#2403](https://github.com/WP-API/WP-API/pull/2403))
+
+* Only adds alternate link header for publicly viewable CPTs.
+
+  (props @bradyvercher, [#2387](https://github.com/WP-API/WP-API/pull/2387))
+
+* Adds `roles` param for `GET /wp/v2/users`.
+
+  (props @BE-Webdesign, [#2372](https://github.com/WP-API/WP-API/pull/2372))
+
+* Declares `password` in user schema, but never displays it.
+
+  (props @danielbachhuber, [#2386](https://github.com/WP-API/WP-API/pull/2386))
+
+* Permits `edit` context for requests which can edit the user.
+
+  (props @danielbachhuber, [#2383](https://github.com/WP-API/WP-API/pull/2383))
+
+* Adds `rest_pre_insert_{$taxonomy}` filter for terms.
+
+  (props @kjbenk, [#2377](https://github.com/WP-API/WP-API/pull/2377))
+
+* Supports taxonomy collection args on posts endpoint.
+
+  (props @joehoyle, [#2287](https://github.com/WP-API/WP-API/pull/2287))
+
+* Removes post meta link from post response.
+
+  (props @joehoyle, [#2288](https://github.com/WP-API/WP-API/pull/2288))
+
+* Registers `description` attribute when registering args from schema.
+
+  (props @danielbachhuber, [#2362](https://github.com/WP-API/WP-API/pull/2362))
+
+* Uses `$comment` from the database with `rest_insert_comment` action.
+
+  (props @danielbachhuber, [#2349](https://github.com/WP-API/WP-API/pull/2349))
+
+* Removes unnecessary global variables from users controller.
+
+  (props @claudiosmweb, [#2335](https://github.com/WP-API/WP-API/pull/2335))
+
+* Ensures `GET /wp/v2/categories` with out of bounds offset doesn't return results.
+
+  (props @danielbachhuber, [#2313](https://github.com/WP-API/WP-API/pull/2313))
+
+* Adds top-level support for date queries on posts and comments.
+
+  (props @BE-Webdesign, [#2266](https://github.com/WP-API/WP-API/pull/2266), [#2291](https://github.com/WP-API/WP-API/pull/2291))
+
+* Respects `show_avatars` setting for comments.
+
+  (props @BE-Webdesign, [#2271](https://github.com/WP-API/WP-API/pull/2271))
+
+* Uses cached `get_the_terms()` for terms-for-post for better performance.
+
+  (props @rmccue, [#2257](https://github.com/WP-API/WP-API/pull/2257))
+
+* Ensures comments search is an empty string.
+
+  (props @rmccue, [#2256](https://github.com/WP-API/WP-API/pull/2256))
+
+* If no title is provided in create attachment request or file metadata, falls back to filename.
+
+  (props @danielbachhuber, [#2254](https://github.com/WP-API/WP-API/pull/2254))
+
+* Removes unused `$img_url_basename` variable in attachments controller.
+
+  (props @danielbachhuber, [#2250](https://github.com/WP-API/WP-API/pull/2250))
 
 = 2.0 Beta 12.0 (February 9, 2016) =
 

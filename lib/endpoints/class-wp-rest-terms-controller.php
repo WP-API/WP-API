@@ -513,23 +513,24 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = new stdClass;
 
-		if ( isset( $request['name'] ) ) {
+		$schema = $this->get_item_schema();
+		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
 			$prepared_term->name = $request['name'];
 		}
 
-		if ( isset( $request['slug'] ) ) {
+		if ( isset( $request['slug'] ) && ! empty( $schema['properties']['slug'] ) ) {
 			$prepared_term->slug = $request['slug'];
 		}
 
-		if ( isset( $request['taxonomy'] ) ) {
+		if ( isset( $request['taxonomy'] ) && ! empty( $schema['properties']['taxonomy'] ) ) {
 			$prepared_term->taxonomy = $request['taxonomy'];
 		}
 
-		if ( isset( $request['description'] ) ) {
+		if ( isset( $request['description'] ) && ! empty( $schema['properties']['description'] ) ) {
 			$prepared_term->description = $request['description'];
 		}
 
-		if ( isset( $request['parent'] ) ) {
+		if ( isset( $request['parent'] ) && ! empty( $schema['properties']['parent'] ) ) {
 			$parent_term_id = 0;
 			$parent_term = get_term( (int) $request['parent'], $this->taxonomy );
 
@@ -558,16 +559,29 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 
-		$data = array(
-			'id'           => (int) $item->term_id,
-			'count'        => (int) $item->count,
-			'description'  => $item->description,
-			'link'         => get_term_link( $item ),
-			'name'         => $item->name,
-			'slug'         => $item->slug,
-			'taxonomy'     => $item->taxonomy,
-		);
 		$schema = $this->get_item_schema();
+		$data = array();
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['id'] = (int) $item->term_id;
+		}
+		if ( ! empty( $schema['properties']['count'] ) ) {
+			$data['count'] = (int) $item->count;
+		}
+		if ( ! empty( $schema['properties']['description'] ) ) {
+			$data['description'] = $item->description;
+		}
+		if ( ! empty( $schema['properties']['link'] ) ) {
+			$data['link'] = get_term_link( $item );
+		}
+		if ( ! empty( $schema['properties']['name'] ) ) {
+			$data['name'] = $item->name;
+		}
+		if ( ! empty( $schema['properties']['slug'] ) ) {
+			$data['slug'] = $item->slug;
+		}
+		if ( ! empty( $schema['properties']['taxonomy'] ) ) {
+			$data['taxonomy'] = $item->taxonomy;
+		}
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $item->parent;
 		}
@@ -639,7 +653,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			);
 		}
 		if ( ! empty( $post_type_links ) ) {
-			$links['http://api.w.org/v2/post_type'] = $post_type_links;
+			$links['https://api.w.org/post_type'] = $post_type_links;
 		}
 
 		return $links;

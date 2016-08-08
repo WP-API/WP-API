@@ -157,7 +157,14 @@ abstract class WP_REST_Controller {
 		}
 
 		$data = (array) $response->get_data();
-		$links = WP_REST_Server::get_response_links( $response );
+		$server = rest_get_server();
+
+		if ( method_exists( $server, 'get_compact_response_links' ) ) {
+			$links = call_user_func( array( $server, 'get_compact_response_links' ), $response );
+		} else {
+			$links = call_user_func( array( $server, 'get_response_links' ), $response );
+		}
+
 		if ( ! empty( $links ) ) {
 			$data['_links'] = $links;
 		}
@@ -282,7 +289,7 @@ abstract class WP_REST_Controller {
 			return array_merge( $param_details, $args );
 		}
 		$contexts = array();
-		foreach ( $schema['properties'] as $key => $attributes ) {
+		foreach ( $schema['properties'] as $attributes ) {
 			if ( ! empty( $attributes['context'] ) ) {
 				$contexts = array_merge( $contexts, $attributes['context'] );
 			}
@@ -473,4 +480,33 @@ abstract class WP_REST_Controller {
 		return $endpoint_args;
 	}
 
+	/**
+	 * Retrieves post data given a post ID or post object.
+	 *
+	 * This is a subset of the functionality of the `get_post()` function, with
+	 * the additional functionality of having `the_post` action done on the
+	 * resultant post object. This is done so that plugins may manipulate the
+	 * post that is used in the REST API.
+	 *
+	 * @see get_post()
+	 * @global WP_Query $wp_query
+	 *
+	 * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
+	 * @return WP_Post|null A `WP_Post` object when successful.
+	 */
+	public function get_post( $post ) {
+		$post_obj = get_post( $post );
+
+		/**
+		 * Filter the post.
+		 *
+		 * Allows plugins to filter the post object as returned by `\WP_REST_Controller::get_post()`.
+		 *
+		 * @param WP_Post|null $post_obj  The post object as returned by `get_post()`.
+		 * @param int|WP_Post  $post      The original value used to obtain the post object.
+		 */
+		$post = apply_filters( 'rest_the_post', $post_obj, $post );
+
+		return $post;
+	}
 }

@@ -494,7 +494,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'view' );
+		$this->check_comment_data( $data, 'view', $response->get_links() );
 	}
 
 	public function test_prepare_item() {
@@ -508,7 +508,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'edit' );
+		$this->check_comment_data( $data, 'edit', $response->get_links() );
 	}
 
 	public function test_get_comment_author_avatar_urls() {
@@ -593,7 +593,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->check_comment_data( $data, 'view' );
+		$this->check_comment_data( $data, 'view', $response->get_links() );
 		$this->assertEquals( 'hold', $data['status'] );
 		$this->assertEquals( '2014-11-07T10:14:25', $data['date'] );
 		$this->assertEquals( $this->post_id, $data['post'] );
@@ -643,6 +643,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$data = $response->get_data();
 		$this->assertEquals( $subscriber_id, $data['author'] );
+		$this->assertEquals( '127.0.0.1', $data['author_ip'] );
 	}
 
 	public function test_create_comment_without_type() {
@@ -797,7 +798,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_status', $response, 403 );
 	}
 
-	public function test_create_comment_with_status() {
+	public function test_create_comment_with_status_and_IP() {
 		$post_id = $this->factory->post->create();
 		wp_set_current_user( $this->admin_id );
 
@@ -805,6 +806,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'post'         => $post_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
+			'author_ip'    => '139.130.4.5',
 			'author_url'   => 'http://androidsdungeon.com',
 			'content'      => 'Worst Comment Ever!',
 			'status'       => 'approved',
@@ -819,6 +821,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$data = $response->get_data();
 		$this->assertEquals( 'approved', $data['status'] );
+		$this->assertEquals( '139.130.4.5', $data['author_ip'] );
+	}
+
+	public function test_create_comment_invalid_author_IP() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'author_name'  => 'Comic Book Guy',
+			'author_email' => 'cbg@androidsdungeon.com',
+			'author_url'   => 'http://androidsdungeon.com',
+			'author_ip'    => '867.5309',
+			'content'      => 'Worst Comment Ever!',
+			'status'       => 'approved',
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	public function test_create_comment_no_post_id() {
@@ -943,6 +966,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
+			'author_ip'    => '4.4.4.4',
 			'date'         => '2014-11-07T10:14:25',
 			'karma'        => 100,
 			'post'         => $post_id,
@@ -961,6 +985,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
 		$this->assertEquals( $params['author_email'], $comment['author_email'] );
+		$this->assertEquals( $params['author_ip'], $comment['author_ip'] );
 		$this->assertEquals( $params['post'], $comment['post'] );
 		$this->assertEquals( $params['karma'], $comment['karma'] );
 
@@ -1274,7 +1299,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
 	}
 
-	protected function check_comment_data( $data, $context ) {
+	protected function check_comment_data( $data, $context, $links ) {
 		$comment = get_comment( $data['id'] );
 
 		$this->assertEquals( $comment->comment_ID, $data['id'] );
@@ -1288,6 +1313,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertEquals( get_comment_link( $comment ), $data['link'] );
 		$this->assertContains( 'author_avatar_urls', $data );
+		$this->assertEqualSets( array(
+			'self',
+			'collection',
+			'up',
+		), array_keys( $links ) );
 
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $comment->comment_author_email, $data['author_email'] );

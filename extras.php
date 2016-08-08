@@ -24,7 +24,7 @@ if ( ! function_exists( 'rest_register_scripts' ) ) {
 		// Use minified scripts if SCRIPT_DEBUG is not on.
 		$suffix = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 
-		wp_register_script( 'wp-api', plugins_url( 'wp-api' . $suffix . '.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.1', true );
+		wp_register_script( 'wp-api', plugins_url( 'wp-api' . $suffix . '.js', __FILE__ ), array( 'jquery', 'backbone', 'underscore' ), '1.2', true );
 
 		$settings = array(
 			'root'          => esc_url_raw( get_rest_url() ),
