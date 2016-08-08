@@ -482,6 +482,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
 			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'category',
@@ -489,6 +490,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'terms'    => 'basie',
 				),
 			),
+			// @codingStandardsIgnoreEnd
 		) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
@@ -502,6 +504,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
 			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'category',
@@ -509,6 +512,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'terms'    => 'duke',
 				),
 			),
+			// @codingStandardsIgnoreEnd
 		) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
@@ -517,6 +521,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
 			'tax_query' => array( // WPCS: tax_query ok.
 				array(
 					'taxonomy' => 'mingus',
@@ -524,6 +529,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 					'terms'    => 'duke',
 				),
 			),
+			// @codingStandardsIgnoreEnd
 		) );
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
