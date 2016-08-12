@@ -71,7 +71,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
-		if ( ! empty( $request['orderby'] ) && $request['orderby'] === 'relevance' && empty( $request['search'] ) ) {
+		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
 			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
 		}
 
