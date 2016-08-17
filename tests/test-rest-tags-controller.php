@@ -306,11 +306,14 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'search', 'App' );
 		$response = $this->server->dispatch( $request );
 		$this->assertResponseStatus( 200, $response );
-		$this->assertResponseData( array(
+		$this->assertResponseData(
 			array(
-				'name' => 'Apple',
+				array(
+					'name' => 'Apple',
+				),
 			),
-		), $response );
+			$response
+		);
 		$data = $response->get_data();
 		$this->assertEquals( 1, count( $data ) );
 		$this->assertEquals( 'Apple', $data[0]['name'] );
