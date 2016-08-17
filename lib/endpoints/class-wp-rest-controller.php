@@ -189,6 +189,7 @@ abstract class WP_REST_Controller {
 
 			if ( ! in_array( $context, $schema['properties'][ $key ]['context'] ) ) {
 				unset( $data[ $key ] );
+				continue;
 			}
 
 			if ( 'object' === $schema['properties'][ $key ]['type'] && ! empty( $schema['properties'][ $key ]['properties'] ) ) {
