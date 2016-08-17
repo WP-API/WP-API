@@ -71,10 +71,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
-		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
-			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
-		}
-
 		if ( 'edit' === $request['context'] && ! current_user_can( $post_type->cap->edit_posts ) ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit these posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
 		}
@@ -89,6 +85,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
+
+		//Make sure a search string is set in case the orderby is set to 'relevace'
+		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
+		}
+
 		$args                         = array();
 		$args['author__in']           = $request['author'];
 		$args['author__not_in']       = $request['author_exclude'];
