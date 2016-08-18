@@ -85,6 +85,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
+
+		//Make sure a search string is set in case the orderby is set to 'relevace'
+		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
+		}
+
 		$args                         = array();
 		$args['author__in']           = $request['author'];
 		$args['author__not_in']       = $request['author_exclude'];
@@ -1708,6 +1714,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'default'            => 'date',
 			'enum'               => array(
 				'date',
+				'relevance',
 				'id',
 				'include',
 				'title',

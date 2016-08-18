@@ -270,6 +270,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'Apple Cobbler', $data[0]['title']['rendered'] );
+
+		//Relevance orderby
+		$this->factory->post->create( array( 'post_title' => 'Coffee Cake is relevant', 'post_content' => 'Apple', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Coffee Cake', 'post_content' => 'Apple is less relevant', 'post_status' => 'publish' ) );
+		$request->set_param( 'search', 'relevant' );
+		$request->set_param( 'orderby', 'relevance' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 'Coffee Cake is relevant', $data[0]['title']['rendered'] );
 	}
 
 	public function test_get_items_ignore_sticky_posts_by_default() {
