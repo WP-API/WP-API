@@ -6,7 +6,7 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 
 	public function setUp() {
 		parent::setUp();
-
+		add_filter( 'rest_url', array( $this, 'filter_rest_url_for_leading_slash' ), 10, 2 );
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$this->server = $wp_rest_server = new WP_Test_Spy_REST_Server;
@@ -15,7 +15,7 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 
 	public function tearDown() {
 		parent::tearDown();
-
+		remove_filter( 'rest_url', array( $this, 'test_rest_url_for_leading_slash' ), 10, 2 );
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
@@ -39,4 +39,10 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 
 	abstract public function test_get_item_schema();
 
+	public function filter_rest_url_for_leading_slash( $url, $path ) {
+		// Make sure path for rest_url has a leading slash for proper resolution.
+		$this->assertTrue( 0 === strpos( $path, '/' ) );
+
+		return $url;
+	}
 }

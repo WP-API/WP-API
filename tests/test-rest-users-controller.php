@@ -159,7 +159,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// 3rd page
@@ -174,11 +174,11 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
 			'page'    => 4,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
@@ -189,7 +189,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 		// Out of bounds
@@ -201,7 +201,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
@@ -233,7 +233,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$prev_link = add_query_arg( array(
 			'per_page'  => 5,
 			'page'      => 1,
-			), rest_url( '/wp/v2/users' ) );
+			), rest_url( 'wp/v2/users' ) );
 		$headers = $response->get_headers();
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 	}
@@ -535,7 +535,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'Location', $headers );
-		$this->assertEquals( rest_url( '/wp/v2/users/' . $this->user ), $headers['Location'] );
+		$this->assertEquals( rest_url( 'wp/v2/users/' . $this->user ), $headers['Location'] );
 	}
 
 	public function test_get_current_user_without_permission() {

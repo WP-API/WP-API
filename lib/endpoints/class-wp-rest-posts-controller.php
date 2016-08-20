@@ -85,6 +85,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
+
+		//Make sure a search string is set in case the orderby is set to 'relevace'
+		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
+			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
+		}
+
 		$args                         = array();
 		$args['author__in']           = $request['author'];
 		$args['author__not_in']       = $request['author_exclude'];
@@ -185,7 +191,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			unset( $request_params['filter']['posts_per_page'] );
 			unset( $request_params['filter']['paged'] );
 		}
-		$base = add_query_arg( $request_params, rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
+		$base = add_query_arg( $request_params, rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
@@ -349,7 +355,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $post_id ) ) );
 
 		return $response;
 	}
@@ -1238,7 +1244,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return array Links for the given post.
 	 */
 	protected function prepare_links( $post ) {
-		$base = sprintf( '/%s/%s', $this->namespace, $this->rest_base );
+		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
 		// Entity meta
 		$links = array(
@@ -1249,20 +1255,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'href'   => rest_url( $base ),
 			),
 			'about'      => array(
-				'href'   => rest_url( '/wp/v2/types/' . $this->post_type ),
+				'href'   => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 		);
 
 		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
 			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
-				'href'       => rest_url( '/wp/v2/users/' . $post->post_author ),
+				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
 		};
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
-			$replies_url = rest_url( '/wp/v2/comments' );
+			$replies_url = rest_url( 'wp/v2/comments' );
 			$replies_url = add_query_arg( 'post', $post->ID, $replies_url );
 			$links['replies'] = array(
 				'href'         => $replies_url,
@@ -1708,6 +1714,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'default'            => 'date',
 			'enum'               => array(
 				'date',
+				'relevance',
 				'id',
 				'include',
 				'title',
@@ -1743,6 +1750,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$params['status'] = array(
 			'default'           => 'publish',
 			'description'       => __( 'Limit result set to posts assigned a specific status; can be comma-delimited list of status types.' ),
+			'enum'              => array_merge( array_keys( get_post_stati() ), array( 'any' ) ),
 			'sanitize_callback' => 'sanitize_key',
 			'type'              => 'string',
 			'validate_callback' => array( $this, 'validate_user_can_query_private_statuses' ),

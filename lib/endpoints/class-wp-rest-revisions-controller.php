@@ -213,7 +213,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$response = rest_ensure_response( $data );
 
 		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
+			$response->add_link( 'parent', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->parent_base, $data['parent'] ) ) );
 		}
 
 		/**
