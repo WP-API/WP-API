@@ -374,7 +374,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( email_exists( $request['email'] ) && $request['email'] !== $user->user_email ) {
@@ -457,7 +457,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! empty( $reassign ) ) {
@@ -801,7 +801,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'registered_date' => array(
 					'description' => __( 'Registration date for the resource.' ),
-					'type'        => 'date-time',
+					'type'        => 'string',
+					'format'      => 'date-time',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
