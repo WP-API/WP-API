@@ -270,15 +270,16 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'Apple Cobbler', $data[0]['title']['rendered'] );
+	}
 
-		//Relevance orderby
-		$this->factory->post->create( array( 'post_title' => 'Coffee Cake is relevant', 'post_content' => 'Apple', 'post_status' => 'publish' ) );
-		$this->factory->post->create( array( 'post_title' => 'Coffee Cake', 'post_content' => 'Apple is less relevant', 'post_status' => 'publish' ) );
-		$request->set_param( 'search', 'relevant' );
+	public function test_get_items_with_orderby_relevance() {
+		$this->factory->post->create( array( 'post_title' => 'Title is more relevant', 'post_content' => 'Content is', 'post_status' => 'publish' ) );
+		$this->factory->post->create( array( 'post_title' => 'Title is', 'post_content' => 'Content is less relevant', 'post_status' => 'publish' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'orderby', 'relevance' );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$this->assertEquals( 'Coffee Cake is relevant', $data[0]['title']['rendered'] );
+		$this->assertErrorResponse( 'rest_no_search_term_defined', $response, 400 );
 	}
 
 	public function test_get_items_ignore_sticky_posts_by_default() {
