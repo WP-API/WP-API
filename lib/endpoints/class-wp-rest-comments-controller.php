@@ -1006,7 +1006,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'                  => 'string',
 			'sanitize_callback'     => 'sanitize_key',
 			'validate_callback'     => 'rest_validate_request_arg',
-			'default'               => 'asc',
+			'default'               => 'desc',
 			'enum'                  => array(
 				'asc',
 				'desc',
