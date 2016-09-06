@@ -168,7 +168,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_users / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
@@ -196,7 +196,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id = (int) $request['id'];
 		$user = get_userdata( $id );
-		$types = get_post_types( array( 'public' => true ), 'names' );
+		$types = get_post_types( array( 'show_in_rest' => true ), 'names' );
 
 		if ( empty( $id ) || empty( $user->ID ) ) {
 			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
@@ -250,7 +250,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = wp_get_current_user();
 		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $current_user_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $current_user_id ) ) );
 		$response->set_status( 302 );
 
 		return $response;
@@ -337,7 +337,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$response = $this->prepare_item_for_response( $user, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $user_id ) ) );
+		$response->header( 'Location', rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user_id ) ) );
 
 		return $response;
 	}
@@ -374,7 +374,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( email_exists( $request['email'] ) && $request['email'] !== $user->user_email ) {
@@ -457,7 +457,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$user = get_userdata( $id );
 		if ( ! $user ) {
-			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_id', __( 'Invalid resource id.' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! empty( $reassign ) ) {
@@ -554,11 +554,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['capabilities'] ) ) {
-			$data['capabilities'] = $user->allcaps;
+			$data['capabilities'] = (object) $user->allcaps;
 		}
 
 		if ( ! empty( $schema['properties']['extra_capabilities'] ) ) {
-			$data['extra_capabilities'] = $user->caps;
+			$data['extra_capabilities'] = (object) $user->caps;
 		}
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
@@ -566,6 +566,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
+
 		$data = $this->add_additional_fields_to_object( $data, $request );
 		$data = $this->filter_response_by_context( $data, $context );
 
@@ -593,10 +594,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	protected function prepare_links( $user ) {
 		$links = array(
 			'self' => array(
-				'href' => rest_url( sprintf( '/%s/%s/%d', $this->namespace, $this->rest_base, $user->ID ) ),
+				'href' => rest_url( sprintf( '%s/%s/%d', $this->namespace, $this->rest_base, $user->ID ) ),
 			),
 			'collection' => array(
-				'href' => rest_url( sprintf( '/%s/%s', $this->namespace, $this->rest_base ) ),
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 
@@ -800,7 +801,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				),
 				'registered_date' => array(
 					'description' => __( 'Registration date for the resource.' ),
-					'type'        => 'date-time',
+					'type'        => 'string',
+					'format'      => 'date-time',
 					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
