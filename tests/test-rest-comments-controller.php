@@ -179,7 +179,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->factory->comment->create( $args );
 		$id3 = $this->factory->comment->create( $args );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
-		// Orderby=>desc
+		// Order=>asc
+		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'include', array( $id3, $id1 ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
@@ -234,6 +235,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'page', 3 );
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 2, $response->get_data() );
+	}
+
+	public function test_get_items_order_query() {
+		wp_set_current_user( $this->admin_id );
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+		);
+		$this->factory->comment->create( $args );
+		$this->factory->comment->create( $args );
+		$id3 = $this->factory->comment->create( $args );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		// order defaults to 'desc'
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $id3, $data[0]['id'] );
+		// order=>asc
+		$request->set_param( 'order', 'asc' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $this->approved_id, $data[0]['id'] );
 	}
 
 	public function test_get_items_private_post_no_permissions() {
