@@ -318,7 +318,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
 		}
 
-		$prepared_comment = $this->prepare_item_for_database( $request );
+		$prepared_comment = $this->prepare_item_for_database( $request, true );
 
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
@@ -429,7 +429,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
 		}
 
-		$prepared_args = $this->prepare_item_for_database( $request );
+		$prepared_args = $this->prepare_item_for_database( $request, false );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
@@ -705,10 +705,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single comment to be inserted into the database.
 	 *
-	 * @param  WP_REST_Request $request Request object.
+	 * @param  WP_REST_Request $request  Request object.
+	 * @param bool             $creating Whether the item is being created.
+	 *
 	 * @return array|WP_Error  $prepared_comment
 	 */
-	protected function prepare_item_for_database( $request ) {
+	protected function prepare_item_for_database( $request, $creating ) {
 		$prepared_comment = array();
 
 		if ( isset( $request['content'] ) ) {
@@ -765,7 +767,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
+		/**
+		 * Filter the comment data before it is inserted into the database.
+		 *
+		 * @param array           $prepared_comment The prepared comment data.
+		 * @param WP_REST_Request $request          Full details about the request.
+		 * @param bool            $creating         Whether the item is being created.
+		 */
+		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request, $creating );
 	}
 
 	/**

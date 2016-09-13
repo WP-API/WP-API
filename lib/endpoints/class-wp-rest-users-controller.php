@@ -291,7 +291,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$user = $this->prepare_item_for_database( $request );
+		$user = $this->prepare_item_for_database( $request, true );
 
 		if ( is_multisite() ) {
 			$ret = wpmu_validate_user_signup( $user->user_login, $user->user_email );
@@ -396,7 +396,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$user = $this->prepare_item_for_database( $request );
+		$user = $this->prepare_item_for_database( $request, false );
 
 		// Ensure we're operating on the same user we already checked
 		$user->ID = $id;
@@ -607,10 +607,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single user for create or update
 	 *
-	 * @param WP_REST_Request $request Request object.
-	 * @return object $prepared_user User object.
+	 * @param WP_REST_Request $request  Request object.
+	 * @param bool            $creating Whether the item is being created.
+	 *
+	 * @return stdClass $prepared_user User object.
 	 */
-	protected function prepare_item_for_database( $request ) {
+	protected function prepare_item_for_database( $request, $creating ) {
 		$prepared_user = new stdClass;
 
 		$schema = $this->get_item_schema();
@@ -661,10 +663,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		/**
 		 * Filter user data before inserting user via the REST API.
 		 *
-		 * @param object          $prepared_user User object.
+		 * @param stdClass        $prepared_user User object.
 		 * @param WP_REST_Request $request       Request object.
+		 * @param bool            $creating      Whether the item is being created.
 		 */
-		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request );
+		return apply_filters( 'rest_pre_insert_user', $prepared_user, $request, $creating );
 	}
 
 	/**

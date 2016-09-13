@@ -294,7 +294,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_post_exists', __( 'Cannot create existing post.' ), array( 'status' => 400 ) );
 		}
 
-		$post = $this->prepare_item_for_database( $request );
+		$post = $this->prepare_item_for_database( $request, true );
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
@@ -404,7 +404,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_post_invalid_id', __( 'Post id is invalid.' ), array( 'status' => 404 ) );
 		}
 
-		$post = $this->prepare_item_for_database( $request );
+		$post = $this->prepare_item_for_database( $request, false );
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
@@ -716,10 +716,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single post for create or update.
 	 *
-	 * @param WP_REST_Request $request Request object.
+	 * @param WP_REST_Request $request  Request object.
+	 * @param bool            $creating Whether the item is being created.
 	 * @return WP_Error|stdClass $prepared_post Post object.
 	 */
-	protected function prepare_item_for_database( $request ) {
+	protected function prepare_item_for_database( $request, $creating ) {
 		$prepared_post = new stdClass;
 
 		// ID.
@@ -859,8 +860,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param stdClass        $prepared_post An object representing a single post prepared
 		 *                                       for inserting or updating the database.
 		 * @param WP_REST_Request $request       Request object.
+		 * @param bool            $creating      Whether the item is being created.
 		 */
-		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request );
+		return apply_filters( "rest_pre_insert_{$this->post_type}", $prepared_post, $request, $creating );
 
 	}
 
