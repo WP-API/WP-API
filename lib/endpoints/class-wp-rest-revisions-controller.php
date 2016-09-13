@@ -180,31 +180,80 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $post, $request ) {
 
-		// Base fields for every post
-		$data = array(
-			'author'       => $post->post_author,
-			'date'         => $this->prepare_date_response( $post->post_date_gmt, $post->post_date ),
-			'date_gmt'     => $this->prepare_date_response( $post->post_date_gmt ),
-			'guid'         => $post->guid,
-			'id'           => $post->ID,
-			'modified'     => $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified ),
-			'modified_gmt' => $this->prepare_date_response( $post->post_modified_gmt ),
-			'parent'       => (int) $post->post_parent,
-			'slug'         => $post->post_name,
-		);
-
 		$schema = $this->get_item_schema();
 
+		$data = array();
+
+		if ( ! empty( $schema['properties']['author'] ) ) {
+			$data['author'] = $post->post_author;
+		}
+		
+		if ( ! empty( $schema['properties']['date'] ) ) {
+			$data['date'] = $this->prepare_date_response( $post->post_date_gmt, $post->post_date );
+		}
+		
+		if ( ! empty( $schema['properties']['date_gmt'] ) ) {
+			$data['date'] = $this->prepare_date_response( $post->post_date_gmt );
+		}
+		
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['date'] = $post->ID;
+		}
+		
+		if ( ! empty( $schema['properties']['modified'] ) ) {
+			$data['modified'] = $this->prepare_date_response( $post->post_modified_gmt, $post->post_modified );
+		}
+		
+		if ( ! empty( $schema['properties']['modified_gmt'] ) ) {
+			$data['modified_gmt'] = $this->prepare_date_response( $post->post_modified_gmt );
+		}
+		
+		if ( ! empty( $schema['properties']['parent'] ) ) {
+			$data['parent'] = (int) $post->post_parent;
+		}
+		
+		if ( ! empty( $schema['properties']['parent'] ) ) {
+			$data['slug'] = $post->post_name;
+		}
+
+		if ( ! empty( $schema['properties']['guid'] ) ) {
+			$data['guid'] = array(
+				/** This filter is documented in wp-includes/post-template.php */
+				'rendered' => apply_filters( 'get_the_guid', $post->guid ),
+				'raw'      => $post->guid,
+			);
+		}
+
 		if ( ! empty( $schema['properties']['title'] ) ) {
-			$data['title'] = $post->post_title;
+			$data['title'] = array(
+				'raw'      => $post->post_title,
+				'rendered' => get_the_title( $post->ID ),
+			);
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
-			$data['content'] = $post->post_content;
+
+			if ( ! empty( $post->post_password ) ) {
+				$this->prepare_password_response( $post->post_password );
+			}
+
+			$data['content'] = array(
+				'raw'      => $post->post_content,
+				/** This filter is documented in wp-includes/post-template.php */
+				'rendered' => apply_filters( 'the_content', $post->post_content ),
+			);
+
+			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055.
+			if ( ! empty( $post->post_password ) ) {
+				$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = '';
+			}
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
-			$data['excerpt'] = $post->post_excerpt;
+			$data['excerpt'] = array(
+				'raw'      => $post->post_excerpt,
+				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
+			);
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -316,38 +365,17 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent_schema = $this->parent_controller->get_item_schema();
 
-		foreach ( array( 'title', 'content', 'excerpt' ) as $property ) {
-			if ( empty( $parent_schema['properties'][ $property ] ) ) {
-				continue;
-			}
-
-			switch ( $property ) {
-
-				case 'title':
-					$schema['properties']['title'] = array(
-						'description' => __( 'Title for the object, as it exists in the database.' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit', 'embed' ),
-					);
-					break;
-
-				case 'content':
-					$schema['properties']['content'] = array(
-						'description' => __( 'Content for the object, as it exists in the database.' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit' ),
-					);
-					break;
-
-				case 'excerpt':
-					$schema['properties']['excerpt'] = array(
-						'description' => __( 'Excerpt for the object, as it exists in the database.' ),
-						'type'        => 'string',
-						'context'     => array( 'view', 'edit', 'embed' ),
-					);
-					break;
-
-			}
+		if ( ! empty( $parent_schema['properties']['title'] ) ) {
+			$schema['properties']['title'] = $parent_schema['properties']['title'];
+		}
+		if ( ! empty( $parent_schema['properties']['content'] ) ) {
+			$schema['properties']['content'] = $parent_schema['properties']['content'];
+		}
+		if ( ! empty( $parent_schema['properties']['excerpt'] ) ) {
+			$schema['properties']['excerpt'] = $parent_schema['properties']['excerpt'];
+		}
+		if ( ! empty( $parent_schema['properties']['guid'] ) ) {
+			$schema['properties']['guid'] = $parent_schema['properties']['guid'];
 		}
 
 		return $this->add_additional_fields_schema( $schema );
@@ -362,6 +390,27 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		return array(
 			'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 		);
+	}
+
+	/**
+	 * Check the post excerpt and prepare it for single post output.
+	 *
+	 * @param string       $excerpt
+	 * @return string|null $excerpt
+	 */
+	protected function prepare_excerpt_response( $excerpt, $post ) {
+		if ( post_password_required() ) {
+			return __( 'There is no excerpt because this is a protected post.' );
+		}
+
+		/** This filter is documented in wp-includes/post-template.php */
+		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
+
+		if ( empty( $excerpt ) ) {
+			return '';
+		}
+
+		return $excerpt;
 	}
 
 }
