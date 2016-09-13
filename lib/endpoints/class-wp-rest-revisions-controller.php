@@ -413,4 +413,19 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		return $excerpt;
 	}
 
+	protected function prepare_password_response( $password ) {
+		if ( ! empty( $password ) ) {
+			/**
+			 * Fake the correct cookie to fool post_password_required().
+			 * Without this, get_the_content() will give a password form.
+			 */
+			require_once ABSPATH . WPINC .'/class-phpass.php';
+			$hasher = new PasswordHash( 8, true );
+			$value = $hasher->HashPassword( $password );
+			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
+		}
+
+		return $password;
+	}
+
 }
