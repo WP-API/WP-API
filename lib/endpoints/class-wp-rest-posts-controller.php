@@ -1680,12 +1680,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
+			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
 			$params['menu_order'] = array(
@@ -1731,14 +1733,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$params['parent'] = array(
 				'description'       => __( 'Limit result set to those of particular parent ids.' ),
 				'type'              => 'array',
-				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
+				'sanitize_callback' => 'wp_parse_id_list',
+				'validate_callback' => 'rest_validate_request_arg',
 			);
 			$params['parent_exclude'] = array(
 				'description'       => __( 'Limit result set to all items except those of a particular parent id.' ),
 				'type'              => 'array',
-				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
+				'sanitize_callback' => 'wp_parse_id_list',
+				'validate_callback' => 'rest_validate_request_arg',
 			);
 		}
 
@@ -1766,8 +1770,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$params[ $base ] = array(
 				'description'       => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
 				'type'              => 'array',
-				'sanitize_callback' => 'wp_parse_id_list',
 				'default'           => array(),
+				'sanitize_callback' => 'wp_parse_id_list',
+				'validate_callback' => 'rest_validate_request_arg',
 			);
 		}
 		return $params;

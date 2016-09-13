@@ -15,6 +15,9 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'somestring'      => array(
 					'type'        => 'string',
 				),
+				'somearray'       => array(
+					'type'        => 'array',
+				),
 				'someenum'        => array(
 					'type'        => 'string',
 					'enum'        => array( 'a' ),
@@ -71,6 +74,18 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
+		);
+	}
+
+	public function test_validate_schema_type_array() {
+
+		$this->assertTrue(
+			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somearray' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_param',
+			rest_validate_request_arg( '123', $this->request, 'somearray' )
 		);
 	}
 
