@@ -265,7 +265,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 			$this->assertArrayHasKey( '_links', $response );
 			$links = $response['_links'];
 		}
-		
+
 		$this->assertEquals( $revision->post_author, $response['author'] );
 
 		$rendered_content = apply_filters( 'the_content', $revision->post_content );
