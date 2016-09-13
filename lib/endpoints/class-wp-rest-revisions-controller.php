@@ -193,11 +193,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 		
 		if ( ! empty( $schema['properties']['date_gmt'] ) ) {
-			$data['date'] = $this->prepare_date_response( $post->post_date_gmt );
+			$data['date_gmt'] = $this->prepare_date_response( $post->post_date_gmt );
 		}
 		
 		if ( ! empty( $schema['properties']['id'] ) ) {
-			$data['date'] = $post->ID;
+			$data['id'] = $post->ID;
 		}
 		
 		if ( ! empty( $schema['properties']['modified'] ) ) {
@@ -212,7 +212,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			$data['parent'] = (int) $post->post_parent;
 		}
 		
-		if ( ! empty( $schema['properties']['parent'] ) ) {
+		if ( ! empty( $schema['properties']['slug'] ) ) {
 			$data['slug'] = $post->post_name;
 		}
 
