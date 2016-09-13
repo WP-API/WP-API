@@ -233,20 +233,11 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
 
-			if ( ! empty( $post->post_password ) ) {
-				$this->prepare_password_response( $post->post_password );
-			}
-
 			$data['content'] = array(
 				'raw'      => $post->post_content,
 				/** This filter is documented in wp-includes/post-template.php */
 				'rendered' => apply_filters( 'the_content', $post->post_content ),
 			);
-
-			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055.
-			if ( ! empty( $post->post_password ) ) {
-				$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = '';
-			}
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
@@ -399,9 +390,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @return string|null $excerpt
 	 */
 	protected function prepare_excerpt_response( $excerpt, $post ) {
-		if ( post_password_required() ) {
-			return __( 'There is no excerpt because this is a protected post.' );
-		}
 
 		/** This filter is documented in wp-includes/post-template.php */
 		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
@@ -411,21 +399,6 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		return $excerpt;
-	}
-
-	protected function prepare_password_response( $password ) {
-		if ( ! empty( $password ) ) {
-			/**
-			 * Fake the correct cookie to fool post_password_required().
-			 * Without this, get_the_content() will give a password form.
-			 */
-			require_once ABSPATH . WPINC .'/class-phpass.php';
-			$hasher = new PasswordHash( 8, true );
-			$value = $hasher->HashPassword( $password );
-			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
-		}
-
-		return $password;
 	}
 
 }
