@@ -122,6 +122,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		// Prevent tax_query from being used in filter param, to avoid querying by private taxonomies
+		$args['tax_query'] = array();
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
@@ -625,6 +627,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__not_in',
 			'posts_per_page',
 			'date_query',
+			'tax_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
