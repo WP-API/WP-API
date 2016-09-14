@@ -371,7 +371,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$comment = get_comment( $comment_id );
-		$this->update_additional_fields_for_object( $comment, $request );
+		$fields_update = $this->update_additional_fields_for_object( $comment, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		$context = current_user_can( 'moderate_comments' ) ? 'edit' : 'view';
 		$request->set_param( 'context', $context );
@@ -451,7 +454,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$comment = get_comment( $id );
-		$this->update_additional_fields_for_object( $comment, $request );
+		$fields_update = $this->update_additional_fields_for_object( $comment, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $comment, $request );

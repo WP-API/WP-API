@@ -134,7 +134,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $id, '_wp_attachment_image_alt', sanitize_text_field( $request['alt_text'] ) );
 		}
 
-		$this->update_additional_fields_for_object( $attachment, $request );
+		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $attachment, $request );
