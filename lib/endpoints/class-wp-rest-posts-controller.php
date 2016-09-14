@@ -128,7 +128,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 			if ( ! empty( $request[ $base ] ) ) {
-				$args['tax_query'][] = array(
+				$args['tax_query'][] = array( // WPCS: tax_query ok.
 					'taxonomy'         => $taxonomy->name,
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
