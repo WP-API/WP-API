@@ -371,7 +371,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
-		$this->update_additional_fields_for_object( $term, $request );
+		$fields_update = $this->update_additional_fields_for_object( $term, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 		$response = rest_ensure_response( $response );
@@ -441,7 +445,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		/* This action is documented in lib/endpoints/class-wp-rest-terms-controller.php */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, false );
 
-		$this->update_additional_fields_for_object( $term, $request );
+		$fields_update = $this->update_additional_fields_for_object( $term, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 		return rest_ensure_response( $response );

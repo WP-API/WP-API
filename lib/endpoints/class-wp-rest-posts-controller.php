@@ -87,8 +87,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 
 		//Make sure a search string is set in case the orderby is set to 'relevace'
-		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
-			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term in order to use the relevance search.' ), array( 'status' => 400 ) );
+		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) && empty( $request['filter']['s'] ) ) {
+			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term to order by relevance.' ), array( 'status' => 400 ) );
 		}
 
 		$args                         = array();
@@ -340,7 +340,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = $this->get_post( $post_id );
-		$this->update_additional_fields_for_object( $post, $request );
+		$fields_update = $this->update_additional_fields_for_object( $post, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		/**
 		 * Fires after a single post is created or updated via the REST API.
@@ -447,7 +450,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = $this->get_post( $post_id );
-		$this->update_additional_fields_for_object( $post, $request );
+		$fields_update = $this->update_additional_fields_for_object( $post, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		/* This action is documented in lib/endpoints/class-wp-rest-controller.php */
 		do_action( "rest_insert_{$this->post_type}", $post, $request, false );

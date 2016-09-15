@@ -267,16 +267,26 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		}
 
 		$this->assertEquals( $revision->post_author, $response['author'] );
-		$this->assertEquals( $revision->post_content, $response['content'] );
+
+		$rendered_content = apply_filters( 'the_content', $revision->post_content );
+		$this->assertEquals( $rendered_content, $response['content']['rendered'] );
+
 		$this->assertEquals( mysql_to_rfc3339( $revision->post_date ), $response['date'] );
 		$this->assertEquals( mysql_to_rfc3339( $revision->post_date_gmt ), $response['date_gmt'] );
-		$this->assertEquals( $revision->post_excerpt, $response['excerpt'] );
-		$this->assertEquals( $revision->guid, $response['guid'] );
+
+		$rendered_excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $revision->post_excerpt, $revision ) );
+		$this->assertEquals( $rendered_excerpt, $response['excerpt']['rendered'] );
+
+		$rendered_guid = apply_filters( 'get_the_guid', $revision->guid );
+		$this->assertEquals( $rendered_guid, $response['guid']['rendered'] );
+
 		$this->assertEquals( $revision->ID, $response['id'] );
 		$this->assertEquals( mysql_to_rfc3339( $revision->post_modified ), $response['modified'] );
 		$this->assertEquals( mysql_to_rfc3339( $revision->post_modified_gmt ), $response['modified_gmt'] );
 		$this->assertEquals( $revision->post_name, $response['slug'] );
-		$this->assertEquals( $revision->post_title, $response['title'] );
+
+		$rendered_title = get_the_title( $revision->ID );
+		$this->assertEquals( $rendered_title, $response['title']['rendered'] );
 
 		$parent = get_post( $revision->post_parent );
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
