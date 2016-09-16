@@ -265,7 +265,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( 'Apple Sauce', $data[0]['title']['rendered'] );
-		// order=>desc
+		// order=>asc
 		$request->set_param( 'order', 'asc' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();

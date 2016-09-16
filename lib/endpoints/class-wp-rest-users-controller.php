@@ -322,7 +322,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array_map( array( $user, 'add_role' ), $request['roles'] );
 		}
 
-		$this->update_additional_fields_for_object( $user, $request );
+		$fields_update = $this->update_additional_fields_for_object( $user, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		/**
 		 * Fires after a user is created or updated via the REST API.
@@ -411,7 +414,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array_map( array( $user, 'add_role' ), $request['roles'] );
 		}
 
-		$this->update_additional_fields_for_object( $user, $request );
+		$fields_update = $this->update_additional_fields_for_object( $user, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
 
 		/* This action is documented in lib/endpoints/class-wp-rest-users-controller.php */
 		do_action( 'rest_insert_user', $user, $request, false );
