@@ -74,6 +74,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'search',
 			'slug',
 			'status',
+			'sticky',
 			'tags',
 			), $keys );
 	}
@@ -345,6 +346,84 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
+	}
+
+	public function test_get_items_sticky_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$post = $response->get_data()[0];
+		$this->assertEquals( $id2, $post['id'] );
+	}
+
+	public function test_get_items_sticky_with_post__in_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+		$request->set_param( 'include', array( $id1 ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 0, $response->get_data() );
+
+		update_option( 'sticky_posts', array( $id1, $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+		$request->set_param( 'include', array( $id1 ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertCount( 1, $response->get_data() );
+
+		$post = $response->get_data()[0];
+		$this->assertEquals( $id1, $post['id'] );
+	}
+
+	public function test_get_items_not_sticky_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', false );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$post = $response->get_data()[0];
+		$this->assertEquals( $id1, $post['id'] );
+	}
+
+	public function test_get_items_sticky_with_post__not_in_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', false );
+		$request->set_param( 'exclude', array( $id3 ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$post = $response->get_data()[0];
+		$this->assertEquals( $id1, $post['id'] );
 	}
 
 	/**
@@ -1429,6 +1508,19 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$new_data = $response->get_data();
 		$this->assertEquals( '', $new_data['content']['raw'] );
+	}
+
+	public function test_update_post_with_slashes_in_content() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'content' => 'Hello\\s',
+		) );
+
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'Hello\\s', $new_data['content']['raw'] );
 	}
 
 	public function test_update_post_with_password_and_sticky_fails() {
