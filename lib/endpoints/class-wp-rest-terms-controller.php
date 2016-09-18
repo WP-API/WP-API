@@ -182,7 +182,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$max_pages = ceil( $total_terms / $per_page );
 		$response->header( 'X-WP-TotalPages', (int) $max_pages );
 
-		$base = add_query_arg( $request->get_query_params(), rest_url( '/' . $this->namespace . '/' . $this->rest_base ) );
+		$base = add_query_arg( $request->get_query_params(), rest_url( $this->namespace . '/' . $this->rest_base ) );
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
 			if ( $prev_page > $max_pages ) {
@@ -371,12 +371,16 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
-		$this->update_additional_fields_for_object( $term, $request );
+		$fields_update = $this->update_additional_fields_for_object( $term, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 		$response = rest_ensure_response( $response );
 		$response->set_status( 201 );
-		$response->header( 'Location', rest_url( '/' . $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
+		$response->header( 'Location', rest_url( $this->namespace . '/' . $this->rest_base . '/' . $term->term_id ) );
 		return $response;
 	}
 
@@ -441,7 +445,11 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		/* This action is documented in lib/endpoints/class-wp-rest-terms-controller.php */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, false );
 
-		$this->update_additional_fields_for_object( $term, $request );
+		$fields_update = $this->update_additional_fields_for_object( $term, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'view' );
 		$response = $this->prepare_item_for_response( $term, $request );
 		return rest_ensure_response( $response );
@@ -513,23 +521,24 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	public function prepare_item_for_database( $request ) {
 		$prepared_term = new stdClass;
 
-		if ( isset( $request['name'] ) ) {
+		$schema = $this->get_item_schema();
+		if ( isset( $request['name'] ) && ! empty( $schema['properties']['name'] ) ) {
 			$prepared_term->name = $request['name'];
 		}
 
-		if ( isset( $request['slug'] ) ) {
+		if ( isset( $request['slug'] ) && ! empty( $schema['properties']['slug'] ) ) {
 			$prepared_term->slug = $request['slug'];
 		}
 
-		if ( isset( $request['taxonomy'] ) ) {
+		if ( isset( $request['taxonomy'] ) && ! empty( $schema['properties']['taxonomy'] ) ) {
 			$prepared_term->taxonomy = $request['taxonomy'];
 		}
 
-		if ( isset( $request['description'] ) ) {
+		if ( isset( $request['description'] ) && ! empty( $schema['properties']['description'] ) ) {
 			$prepared_term->description = $request['description'];
 		}
 
-		if ( isset( $request['parent'] ) ) {
+		if ( isset( $request['parent'] ) && ! empty( $schema['properties']['parent'] ) ) {
 			$parent_term_id = 0;
 			$parent_term = get_term( (int) $request['parent'], $this->taxonomy );
 
@@ -558,16 +567,29 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 
-		$data = array(
-			'id'           => (int) $item->term_id,
-			'count'        => (int) $item->count,
-			'description'  => $item->description,
-			'link'         => get_term_link( $item ),
-			'name'         => $item->name,
-			'slug'         => $item->slug,
-			'taxonomy'     => $item->taxonomy,
-		);
 		$schema = $this->get_item_schema();
+		$data = array();
+		if ( ! empty( $schema['properties']['id'] ) ) {
+			$data['id'] = (int) $item->term_id;
+		}
+		if ( ! empty( $schema['properties']['count'] ) ) {
+			$data['count'] = (int) $item->count;
+		}
+		if ( ! empty( $schema['properties']['description'] ) ) {
+			$data['description'] = $item->description;
+		}
+		if ( ! empty( $schema['properties']['link'] ) ) {
+			$data['link'] = get_term_link( $item );
+		}
+		if ( ! empty( $schema['properties']['name'] ) ) {
+			$data['name'] = $item->name;
+		}
+		if ( ! empty( $schema['properties']['slug'] ) ) {
+			$data['slug'] = $item->slug;
+		}
+		if ( ! empty( $schema['properties']['taxonomy'] ) ) {
+			$data['taxonomy'] = $item->taxonomy;
+		}
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $item->parent;
 		}
@@ -599,7 +621,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array Links for the given term.
 	 */
 	protected function prepare_links( $term ) {
-		$base = '/' . $this->namespace . '/' . $this->rest_base;
+		$base = $this->namespace . '/' . $this->rest_base;
 		$links = array(
 			'self'       => array(
 				'href'       => rest_url( trailingslashit( $base ) . $term->term_id ),

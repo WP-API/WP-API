@@ -9,6 +9,9 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 				'someinteger'     => array(
 					'type'        => 'integer',
 				),
+				'someboolean'     => array(
+					'type'        => 'boolean',
+				),
 				'somestring'      => array(
 					'type'        => 'string',
 				),
@@ -37,6 +40,72 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
+		);
+	}
+
+	public function test_validate_schema_type_boolean() {
+
+		$this->assertTrue(
+			rest_validate_request_arg( true, $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( false, $this->request, 'someboolean' )
+		);
+
+		$this->assertTrue(
+			rest_validate_request_arg( 'true', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'TRUE', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'false', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'False', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( '1', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( '0', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 1, $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 0, $this->request, 'someboolean' )
+		);
+
+		// Check sanitize testing.
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
+		);
+
+		$this->assertErrorResponse(
+			'rest_invalid_param',
+			rest_validate_request_arg( '123', $this->request, 'someboolean' )
 		);
 	}
 
@@ -111,5 +180,29 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$args = $controller->get_endpoint_args_for_item_schema();
 
 		$this->assertEquals( 'a', $args['somedefault']['default'] );
+	}
+
+	public $rest_the_post_filter_apply_count = 0;
+
+	public function test_get_post() {
+		$post_id = $this->factory()->post->create( array( 'post_title' => 'Original' ) );
+		$controller = new WP_REST_Test_Controller();
+
+		$post = $controller->get_post( $post_id );
+		$this->assertEquals( 'Original', $post->post_title );
+
+		$filter_apply_count = $this->rest_the_post_filter_apply_count;
+		add_filter( 'rest_the_post', array( $this, 'filter_rest_the_post_for_test_get_post' ), 10, 2 );
+		$post = $controller->get_post( $post_id );
+		$this->assertEquals( 'Overridden', $post->post_title );
+		$this->assertEquals( 1 + $filter_apply_count, $this->rest_the_post_filter_apply_count );
+	}
+
+	public function filter_rest_the_post_for_test_get_post( $post, $post_id ) {
+		$this->assertInstanceOf( 'WP_Post', $post );
+		$this->assertInternalType( 'int', $post_id );
+		$post->post_title = 'Overridden';
+		$this->rest_the_post_filter_apply_count += 1;
+		return $post;
 	}
 }
