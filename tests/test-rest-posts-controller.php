@@ -420,19 +420,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 
-		// With filter params.
+		// With query params.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => 5, 'paged' => 2 ) ) );
+		$request->set_query_params( array( 'per_page' => 5, 'page' => 2 ) );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 11, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
-			'page'    => 1,
+			'per_page' => 5,
+			'page'     => 1,
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
-			'page'    => 3,
+			'per_page' => 5,
+			'page'     => 3,
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
@@ -453,6 +455,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertEquals( $draft_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_invalid_per_page() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'per_page' => -1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_invalid_posts_per_page_ignored() {
+		// This test ensures that filter[posts_per_page] is ignored, and that -1
+		// cannot be used to sidestep per_page's valid range to retrieve all posts
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => -1 ) ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 10, $response->get_data() );
 	}
 
 	public function test_get_items_invalid_context() {
