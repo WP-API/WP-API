@@ -287,10 +287,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $this->post_type );
 
-		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to create posts as this user.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
@@ -398,10 +394,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to update this post.' ), array( 'status' => rest_authorization_required_code() ) );;
-		}
-
-		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
@@ -683,27 +675,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check the post excerpt and prepare it for single post output.
-	 *
-	 * @param string       $excerpt
-	 * @return string|null $excerpt
-	 */
-	protected function prepare_excerpt_response( $excerpt, $post ) {
-		if ( post_password_required() ) {
-			return __( 'There is no excerpt because this is a protected post.' );
-		}
-
-		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
-
-		if ( empty( $excerpt ) ) {
-			return '';
-		}
-
-		return $excerpt;
-	}
-
-	/**
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
 	 *
@@ -724,21 +695,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
-	}
-
-	protected function prepare_password_response( $password ) {
-		if ( ! empty( $password ) ) {
-			/**
-			 * Fake the correct cookie to fool post_password_required().
-			 * Without this, get_the_content() will give a password form.
-			 */
-			require_once ABSPATH . WPINC .'/class-phpass.php';
-			$hasher = new PasswordHash( 8, true );
-			$value = $hasher->HashPassword( $password );
-			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
-		}
-
-		return $password;
 	}
 
 	/**
@@ -1164,11 +1120,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
-
-			if ( ! empty( $post->post_password ) ) {
-				$this->prepare_password_response( $post->post_password );
-			}
-
 			$data['content'] = array(
 				'raw'       => $post->post_content,
 				/** This filter is documented in wp-includes/post-template.php */
@@ -1178,9 +1129,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
+			/** This filter is documented in wp-includes/post-template.php */
+			$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
 			$data['excerpt'] = array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
+				'raw'       => $post->post_excerpt,
+				'rendered'  => post_password_required( $post ) ? '' : $excerpt,
+				'protected' => (bool) $post->post_password,
 			);
 		}
 
@@ -1257,6 +1211,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request    $request    Request object.
 		 */
 		return apply_filters( "rest_prepare_{$this->post_type}", $response, $post, $request );
+	}
+
+	/**
+	 * Overwrite the default protected title format.
+	 *
+	 * By default WordPress will show password protected posts with a title of
+	 * "Protected: %s", as the REST API communicates the protected status of a post
+	 * in a machine readable format, we remove the "Protected: " prefix.
+	 *
+	 * @param  string $format
+	 * @return string
+	 */
+	public function protected_title_format() {
+		return '%s';
 	}
 
 	/**
