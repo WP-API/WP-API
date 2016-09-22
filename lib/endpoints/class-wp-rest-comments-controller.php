@@ -654,7 +654,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			$links['children'] = array(
 				'href'       => $rest_url,
-				'embeddable' => true,
 			);
 		}
 
