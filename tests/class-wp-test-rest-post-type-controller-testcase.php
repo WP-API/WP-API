@@ -63,6 +63,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
 		}
 
+		if ( 'post' === $post->post_type && 'edit' === $context ) {
+			$this->assertEquals( $post->post_password, $data['password'] );
+		}
 		if ( 'page' === $post->post_type ) {
 			$this->assertEquals( get_page_template_slug( $post->ID ), $data['template'] );
 		}
@@ -130,7 +133,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $post->guid, $data['guid']['raw'] );
 			$this->assertEquals( $post->post_status, $data['status'] );
-			$this->assertEquals( $post->post_password, $data['password'] );
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 				$this->assertNull( $data['date_gmt'] );
