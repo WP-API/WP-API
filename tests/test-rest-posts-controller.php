@@ -1520,19 +1520,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( '', $new_data['content']['raw'] );
 	}
 
-	public function test_update_post_with_slashes_in_content() {
-		wp_set_current_user( $this->editor_id );
-
-		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( array(
-			'content' => 'Hello\\s',
-		) );
-
-		$response = $this->server->dispatch( $request );
-		$new_data = $response->get_data();
-		$this->assertEquals( 'Hello\\s', $new_data['content']['raw'] );
-	}
-
 	public function test_update_post_with_password_and_sticky_fails() {
 		wp_set_current_user( $this->editor_id );
 
