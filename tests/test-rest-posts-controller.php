@@ -605,22 +605,61 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'post_password' => '$inthebananastand',
 		) );
 
-		wp_set_current_user( $this->editor_id );
-
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->check_get_post_response( $response, 'view' );
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['content']['protected'] );
+		$this->assertTrue( $data['excerpt']['protected'] );
+	}
+
+	public function test_get_post_with_password_using_password() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => '$inthebananastand',
+			'post_content'  => 'Some secret content.',
+			'post_excerpt'  => 'Some secret excerpt.',
+		) );
+
+		$post = get_post( $post_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'password', '$inthebananastand' );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_get_post_response( $response, 'view' );
+
+		$data = $response->get_data();
+		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+	}
+
+	public function test_get_post_with_password_using_incorrect_password() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => '$inthebananastand',
+		) );
+
+		$post = get_post( $post_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'password', 'wrongpassword' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_incorrect_password', $response, 403 );
 	}
 
 	public function test_get_post_with_password_without_permission() {
 		$post_id = $this->factory->post->create( array(
 			'post_password' => '$inthebananastand',
+			'post_content'  => 'Some secret content.',
+			'post_excerpt'  => 'Some secret excerpt.',
 		) );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->check_get_post_response( $response, 'view' );
+		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertEquals( '', $data['excerpt']['rendered'] );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
 	public function test_get_item_read_permission_custom_post_status() {
@@ -938,26 +977,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data = $response->get_data();
 		$this->assertEquals( 'testing', $data['password'] );
-	}
-
-	public function test_create_post_with_password_without_permission() {
-		wp_set_current_user( $this->author_id );
-		$user = wp_get_current_user();
-		$user->add_cap( 'publish_posts', false );
-		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
-		$user->get_role_caps();
-		$user->update_user_level_from_caps();
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
-		$params = $this->set_post_data( array(
-			'password' => 'testing',
-			'author'   => $this->author_id,
-			'status'   => 'draft',
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_cannot_publish', $response, 403 );
 	}
 
 	public function test_create_post_with_falsy_password() {
