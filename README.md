@@ -28,7 +28,7 @@ site's data in simple JSON format, including users, posts, taxonomies and more.
 Retrieving or updating data is as simple as sending a HTTP request.
 
 Want to get your site's posts? Simply send a `GET` request to `/wp-json/wp/v2/posts`.
-Update user with ID 4? Send a `POST` request to `/wp-json/wp/v2/users/4`. Get all
+Update user with ID 4? Send a `PUT` request to `/wp-json/wp/v2/users/4`. Get all
 posts with the search term "awesome"? `GET /wp-json/wp/v2/posts?filter[s]=awesome`.
 It's that easy.
 
