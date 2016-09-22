@@ -32,11 +32,11 @@ Update user with ID 4? Send a `POST` request to `/wp-json/wp/v2/users/4`. Get al
 posts with the search term "awesome"? `GET /wp-json/wp/v2/posts?filter[s]=awesome`.
 It's that easy.
 
-WP API exposes a simple yet easy interface to WP Query, the posts API, post
-meta API, users API, revisions API and many more. Chances are, if you can do
-it with WordPress, WP API will let you do it.
+The WordPress REST API exposes a simple yet easy interface to WP Query, the posts
+API, post meta API, users API, revisions API and many more. Chances are, if you
+can do it with WordPress, the API will let you do it.
 
-WP API also includes an easy-to-use JavaScript API based on Backbone models,
+The REST API also includes an easy-to-use JavaScript API based on Backbone models,
 allowing plugin and theme developers to get up and running without needing to
 know anything about the details of getting connected.
 

@@ -330,13 +330,12 @@ abstract class WP_REST_Controller {
 	 *
 	 * @param array  $object
 	 * @param WP_REST_Request $request
+	 * @return bool|WP_Error True on success, WP_Error object if a field cannot be updated.
 	 */
 	protected function update_additional_fields_for_object( $object, $request ) {
-
 		$additional_fields = $this->get_additional_fields();
 
 		foreach ( $additional_fields as $field_name => $field_options ) {
-
 			if ( ! $field_options['update_callback'] ) {
 				continue;
 			}
@@ -346,8 +345,13 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request, $this->get_object_type() );
+			$result = call_user_func( $field_options['update_callback'], $request[ $field_name ], $object, $field_name, $request, $this->get_object_type() );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
 		}
+
+		return true;
 	}
 
 	/**
