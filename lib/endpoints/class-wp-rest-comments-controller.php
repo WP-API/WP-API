@@ -647,7 +647,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Only grab one comment to verify the comment has children.
-		$comment_children = $comment->get_children( array( 'number' => 1 ) );
+		$comment_children = $comment->get_children( array( 'number' => 1, 'count' => true ) );
 		if ( ! empty( $comment_children ) ) {
 			$args = array( 'parent' => $comment->comment_ID );
 			$rest_url = add_query_arg( $args, rest_url( $this->namespace . '/' . $this->rest_base ) );
