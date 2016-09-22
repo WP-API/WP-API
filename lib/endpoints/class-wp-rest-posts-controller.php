@@ -127,19 +127,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
 			if ( $sticky_posts && $request['sticky'] ) {
-				// as post__in will be used to only get sticky posts,
+				// As post__in will be used to only get sticky posts,
 				// we have to support the case where post__in was already
 				// specified.
 				$args['post__in'] = $args['post__in'] ? array_intersect( $sticky_posts, $args['post__in'] ) : $sticky_posts;
 
-				// if we intersected, but there are no post ids in common,
+				// If we intersected, but there are no post ids in common,
 				// WP_Query won't return "no posts" for `post__in = array()`
 				// so we have to fake it a bit.
 				if ( ! $args['post__in'] ) {
 					$args['post__in'] = array( -1 );
 				}
 			} elseif ( $sticky_posts ) {
-				// as post___not_in will be used to only get posts that
+				// As post___not_in will be used to only get posts that
 				// are not sticky, we have to support the case where post__not_in
 				// was already specified.
 				$args['post__not_in'] = array_merge( $args['post__not_in'], $sticky_posts );
@@ -1801,8 +1801,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( 'post' === $this->post_type ) {
 			$params['sticky'] = array(
-				'description'       => __( 'Limit result set to items that are sticky.' ),
-				'type'              => 'boolean',
+				'description' => __( 'Limit result set to items that are sticky.' ),
+				'type'        => 'boolean',
 			);
 		}
 
