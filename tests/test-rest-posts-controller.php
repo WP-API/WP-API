@@ -370,7 +370,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
 
-		$post = $response->get_data()[0];
+		$posts = $response->get_data();
+		$post = $posts[0];
 		$this->assertEquals( $id2, $post['id'] );
 	}
 
@@ -398,7 +399,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertCount( 1, $response->get_data() );
 
-		$post = $response->get_data()[0];
+		$posts = $response->get_data();
+		$post = $posts[0];
 		$this->assertEquals( $id1, $post['id'] );
 	}
 
@@ -414,7 +416,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
 
-		$post = $response->get_data()[0];
+		$posts = $response->get_data();
+		$post = $posts[0];
 		$this->assertEquals( $id1, $post['id'] );
 	}
 
@@ -432,7 +435,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
 
-		$post = $response->get_data()[0];
+		$posts = $response->get_data();
+		$post = $posts[0];
 		$this->assertEquals( $id1, $post['id'] );
 	}
 
