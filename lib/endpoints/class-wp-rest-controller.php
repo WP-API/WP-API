@@ -514,4 +514,17 @@ abstract class WP_REST_Controller {
 
 		return $post;
 	}
+
+	/**
+	 * Sanitize a post's title.
+	 *
+	 * It's not possible to pass `sanitize_title` directly as the sanitize_callback
+	 * as that will cause 3 params inadvertantly being passed to `sanitize_title`.
+	 *
+	 * @param string $slug
+	 * @return string
+	 */
+	public function sanitize_slug( $slug ) {
+		return sanitize_title( $slug );
+	}
 }
