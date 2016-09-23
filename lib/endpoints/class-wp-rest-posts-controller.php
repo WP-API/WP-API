@@ -1217,7 +1217,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 			if ( ! empty( $schema['properties'][ $base ] ) ) {
 				$terms = get_the_terms( $post, $taxonomy->name );
-				$data[ $base ] = $terms ? wp_list_pluck( $terms, 'term_id' ) : array();
+				$data[ $base ] = $terms ? array_values( wp_list_pluck( $terms, 'term_id' ) ) : array();
 			}
 		}
 
