@@ -4,6 +4,12 @@
  * Access comments
  */
 class WP_REST_Comments_Controller extends WP_REST_Controller {
+	/**
+	 * Response schema.
+	 *
+	 * @var array Cached schema from `get_item_schema()`
+	 */
+	protected $schema;
 
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -780,6 +786,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		if ( isset( $this->schema ) ) {
+			return $this->schema;
+		}
+
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
 			'title'                => 'comment',
@@ -935,7 +945,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $this->add_additional_fields_schema( $schema );
+		return $this->schema;
 	}
 
 	/**
