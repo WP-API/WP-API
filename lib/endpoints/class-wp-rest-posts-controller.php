@@ -957,10 +957,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			if ( ! isset( $request[ $base ] ) ) {
 				continue;
 			}
-			$terms = array_map( 'absint', $request[ $base ] );
-			$result = wp_set_object_terms( $post_id, $terms, $taxonomy->name );
-			if ( is_wp_error( $result ) ) {
-				return $result;
+
+			if ( is_array( $request[ $base ] ) ) {
+				$terms = array_map( 'absint', $request[ $base ] );
+				$result = wp_set_object_terms( $post_id, $terms, $taxonomy->name );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
 			}
 		}
 	}
@@ -1426,7 +1429,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => 'sanitize_key',
 					),
 				),
 				'status'          => array(
