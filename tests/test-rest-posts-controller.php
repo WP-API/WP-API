@@ -484,6 +484,67 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $post2, $data[0]['id'] );
 	}
 
+	public function test_get_items_valid_tax_query_in_filter() {
+		$term1 = $this->factory->term->create( array( 'taxonomy' => 'category', 'name' => 'basie' ) );
+		$post1 = $this->factory->post->create();
+		$post2 = $this->factory->post->create( array( 'post_category' => array( $term1 ) ) );
+		$post3 = $this->factory->post->create();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
+			'tax_query' => array( // WPCS: tax_query ok.
+				array(
+					'taxonomy' => 'category',
+					'field'    => 'slug',
+					'terms'    => 'basie',
+				),
+			),
+			// @codingStandardsIgnoreEnd
+		) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $post2, $data[0]['id'] );
+		$this->assertEquals( $term1, $data[0]['categories'][0] );
+	}
+
+	public function test_get_items_invalid_tax_query_in_filter() {
+		$post1 = $this->factory->post->create();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
+			'tax_query' => array( // WPCS: tax_query ok.
+				array(
+					'taxonomy' => 'category',
+					'field'    => 'slug',
+					'terms'    => 'duke',
+				),
+			),
+			// @codingStandardsIgnoreEnd
+		) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 0, $data );
+		$this->assertEquals( array(), $data );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'filter', array(
+			// @codingStandardsIgnoreStart
+			'tax_query' => array( // WPCS: tax_query ok.
+				array(
+					'taxonomy' => 'mingus',
+					'field'    => 'slug',
+					'terms'    => 'duke',
+				),
+			),
+			// @codingStandardsIgnoreEnd
+		) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
