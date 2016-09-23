@@ -1360,6 +1360,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'sample-slug', $post->post_name );
 	}
 
+	public function test_update_post_slug_accented_chars() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'slug' => 'tęst-acceńted-chäræcters',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'test-accented-charaecters', $new_data['slug'] );
+		$post = get_post( $new_data['id'] );
+		$this->assertEquals( 'test-accented-charaecters', $post->post_name );
+	}
+
 	public function test_update_post_sticky() {
 		wp_set_current_user( $this->editor_id );
 
