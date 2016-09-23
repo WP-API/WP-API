@@ -516,13 +516,17 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
-	 * Sanitize a post's title.
+	 * Sanitize the slug value.
 	 *
-	 * It's not possible to pass `sanitize_title` directly as the sanitize_callback
-	 * as that will cause 3 params inadvertantly being passed to `sanitize_title`.
+	 * @internal We can't use {@see sanitize_title} directly, as the second
+	 * parameter is the fallback title, which would end up being set to the
+	 * request object.
+	 * @see https://github.com/WP-API/WP-API/issues/1585
 	 *
-	 * @param string $slug
-	 * @return string
+	 * @todo Remove this in favour of https://core.trac.wordpress.org/ticket/34659
+	 *
+	 * @param string $slug Slug value passed in request.
+	 * @return string Sanitized value for the slug.
 	 */
 	public function sanitize_slug( $slug ) {
 		return sanitize_title( $slug );
