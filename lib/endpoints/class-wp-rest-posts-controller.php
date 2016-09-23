@@ -909,6 +909,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param int $featured_media
 	 * @param int $post_id
+	 *
+	 * @return bool|WP_Error
 	 */
 	protected function handle_featured_media( $featured_media, $post_id ) {
 
