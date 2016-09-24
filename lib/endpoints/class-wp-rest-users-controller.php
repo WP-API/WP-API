@@ -552,7 +552,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['roles'] ) ) {
-			$data['roles'] = $user->roles;
+			// Defensively call array_values() to ensure an array is returned.
+			$data['roles'] = array_values( $user->roles );
 		}
 
 		if ( ! empty( $schema['properties']['registered_date'] ) ) {
