@@ -121,7 +121,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['has_published_posts'] = true;
 		}
 
-		if ( '' !== $prepared_args['search'] ) {
+		if ( ! empty( $prepared_args['search'] ) ) {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 
