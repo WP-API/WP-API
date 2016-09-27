@@ -78,11 +78,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit these posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		// Allow access to all password protected posts if the context is edit.
-		if ( 'edit' === $request['context'] ) {
-			add_filter( 'post_password_required', '__return_false' );
-		}
-
 		return true;
 	}
 
@@ -166,6 +161,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
 
+		// Allow access to all password protected posts if the context is edit.
+		if ( 'edit' === $request['context'] ) {
+			add_filter( 'post_password_required', '__return_false' );
+		}
+
 		$posts = array();
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
@@ -174,6 +174,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$data = $this->prepare_item_for_response( $post, $request );
 			$posts[] = $this->prepare_response_for_collection( $data );
+		}
+
+		// Reset filter.
+		if ( 'edit' === $request['context'] ) {
+			remove_filter( 'post_password_required', '__return_false' );
 		}
 
 		$page = (int) $query_args['paged'];
@@ -233,11 +238,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( $post && ! empty( $request['password'] ) ) {
+			// Check post password, and return error if invalid.
 			if ( ! hash_equals( $post->post_password, $request['password'] ) ) {
 				return new WP_Error( 'rest_post_incorrect_password', __( 'Incorrect post password.' ), array( 'status' => 403 ) );
-			} else {
-				// Allow access to the post going forward.
-				add_filter( 'post_password_required', '__return_false' );
 			}
 		}
 
@@ -251,6 +254,36 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Can the user access passworded content?
+	 *
+	 * This method determines whether we need to override the regular password
+	 * check in core with a filter.
+	 *
+	 * @param WP_Post $post Post to check against.
+	 * @param WP_REST_Request $request Request data to check.
+	 * @return bool True if the user can access passworded content, false otherwise.
+	 */
+	protected function can_access_password_content( $post, $request ) {
+		if ( empty( $post->post_password ) ) {
+			// No filter required.
+			return false;
+		}
+
+		// Edit context always gets access to passworded posts.
+		if ( $request['context'] === 'edit' ) {
+			return true;
+		}
+
+		// No password, no auth.
+		if ( empty( $request['password'] ) ) {
+			return false;
+		}
+
+		// Double-check the request password.
+		return hash_equals( $post->post_password, $request['password'] );
 	}
 
 	/**
@@ -1119,6 +1152,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 		}
 
+		$has_password_filter = false;
+		if ( $this->can_access_password_content( $post, $request ) ) {
+			// Allow access to the post, permissions already checked before.
+			add_filter( 'post_password_required', '__return_false' );
+			$has_password_filter = true;
+		}
+
 		if ( ! empty( $schema['properties']['content'] ) ) {
 			$data['content'] = array(
 				'raw'       => $post->post_content,
@@ -1136,6 +1176,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'rendered'  => post_password_required( $post ) ? '' : $excerpt,
 				'protected' => (bool) $post->post_password,
 			);
+		}
+
+		if ( $has_password_filter ) {
+			// Reset filter.
+			remove_filter( 'post_password_required', '__return_false' );
 		}
 
 		if ( ! empty( $schema['properties']['author'] ) ) {
