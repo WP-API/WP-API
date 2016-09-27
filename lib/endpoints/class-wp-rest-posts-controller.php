@@ -1426,7 +1426,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'status'          => array(
@@ -1799,5 +1799,4 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
 	}
-
 }
