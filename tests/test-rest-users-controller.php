@@ -238,7 +238,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 	}
 
-	public function test_get_items_orderby() {
+	public function test_get_items_orderby_name() {
 		wp_set_current_user( $this->user );
 		$low_id = $this->factory->user->create( array( 'display_name' => 'AAAAA' ) );
 		$mid_id = $this->factory->user->create( array( 'display_name' => 'NNNNN' ) );
@@ -257,6 +257,99 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_orderby_url() {
+		wp_set_current_user( $this->user );
+
+		$low_id = $this->factory->user->create( array( 'user_url' => 'http://a.com' ) );
+		$high_id = $this->factory->user->create( array( 'user_url' => 'http://b.com' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'url' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( $high_id, $data[0]['id'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'url' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_orderby_slug() {
+		wp_set_current_user( $this->user );
+
+		$high_id = $this->factory->user->create( array( 'user_nicename' => 'blogin' ) );
+		$low_id = $this->factory->user->create( array( 'user_nicename' => 'alogin' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'slug' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( $high_id, $data[0]['id'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'slug' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_orderby_email() {
+		wp_set_current_user( $this->user );
+
+		$high_id = $this->factory->user->create( array( 'user_email' => 'bemail@gmail.com' ) );
+		$low_id = $this->factory->user->create( array( 'user_email' => 'aemail@gmail.com' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'email' );
+		$request->set_param( 'order', 'desc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $high_id, $data[0]['id'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'email' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'per_page', 1 );
+		$request->set_param( 'include', array( $low_id, $high_id ) );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( $low_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_orderby_email_unauthenticated() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'email' );
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_orderby', $response, 401 );
+	}
+
+	public function test_get_items_orderby_registered_date_unauthenticated() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
+		$request->set_param( 'orderby', 'registered_date' );
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_forbidden_orderby', $response, 401 );
 	}
 
 	public function test_get_items_offset() {
