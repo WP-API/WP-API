@@ -616,6 +616,11 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_post_with_password_using_password() {
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+			return $this->markTestSkipped( 'WordPress < 4.6 does not support filtering passwords for posts.' );
+		}
+
 		$post_id = $this->factory->post->create( array(
 			'post_password' => '$inthebananastand',
 			'post_content'  => 'Some secret content.',
