@@ -1801,8 +1801,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( 'post' === $this->post_type ) {
 			$params['sticky'] = array(
-				'description' => __( 'Limit result set to items that are sticky.' ),
-				'type'        => 'boolean',
+				'description'       => __( 'Limit result set to items that are sticky.' ),
+				'type'              => 'boolean',
+				'sanitize_callback' => 'rest_parse_request_arg',
 			);
 		}
 
