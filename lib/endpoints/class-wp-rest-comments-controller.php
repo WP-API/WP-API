@@ -436,6 +436,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
 		}
 
+		if ( isset( $request['content'] ) && ! is_string( $request['content'] ) ) {
+			return new WP_Error( 'rest_comment_content_invalid', __( 'Invalid comment content.' ), array( 'status' => 400 ) );
+		}
+
 		$prepared_args = $this->prepare_item_for_database( $request );
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
@@ -446,10 +450,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		} else {
 			$prepared_args['comment_ID'] = $id;
-
-			if ( empty( $request['content'] ) || ! is_string( $request['content'] ) ) {
-				return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
-			}
 
 			$updated = wp_update_comment( $prepared_args );
 			if ( 0 === $updated ) {

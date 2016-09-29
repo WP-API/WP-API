@@ -1122,13 +1122,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_update_comment_invalid_content() {
 		wp_set_current_user( $this->admin_id );
 
-		$params = array();
+		$params = array(
+			'content' => array( 1, 2, 3 ),
+		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
 		$request->set_body( wp_json_encode( $params ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_comment_content_required', $response, 400 );
+		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
 	}
 
 	public function test_update_item_invalid_date() {
