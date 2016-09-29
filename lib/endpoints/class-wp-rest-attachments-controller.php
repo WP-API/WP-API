@@ -40,9 +40,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $ret;
 		}
 
-		// "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
 		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+		if ( ! current_user_can( 'upload_files' ) ) {
 			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
 		}
 
