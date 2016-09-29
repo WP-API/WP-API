@@ -318,6 +318,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
 		}
 
+		if ( empty( $request['content'] ) || ! is_string( $request['content'] ) ) {
+			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
+		}
+
 		$prepared_comment = $this->prepare_item_for_database( $request );
 
 		// Setting remaining values before wp_insert_comment so we can
@@ -442,6 +446,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 		} else {
 			$prepared_args['comment_ID'] = $id;
+
+			if ( empty( $request['content'] ) || ! is_string( $request['content'] ) ) {
+				return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
+			}
 
 			$updated = wp_update_comment( $prepared_args );
 			if ( 0 === $updated ) {
