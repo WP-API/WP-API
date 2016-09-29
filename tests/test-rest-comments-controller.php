@@ -641,6 +641,25 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	public function test_create_item_invalid_content() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Reverend Lovejoy',
+			'author_email' => 'lovejoy@example.com',
+			'author_url'   => 'http://timothylovejoy.jr',
+			'content'      => '',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_content_required', $response, 400 );
+	}
+
 	public function test_create_item_assign_different_user() {
 		$subscriber_id = $this->factory->user->create( array(
 			'role' => 'subscriber',
@@ -1069,6 +1088,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
+			'content' => rand_str(),
 			'date_gmt' => '2015-05-07T10:14:25',
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
@@ -1088,7 +1108,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'type' => 'trackback',
+			'type'    => 'trackback',
+			'content' => rand_str(),
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -1096,6 +1117,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
+	}
+
+	public function test_update_comment_invalid_content() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array();
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_content_required', $response, 400 );
 	}
 
 	public function test_update_item_invalid_date() {
