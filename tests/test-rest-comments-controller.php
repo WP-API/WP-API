@@ -917,6 +917,41 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
+	public function test_create_comment_without_content() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_require_valid_comment', $response, 400 );
+	}
+
+	public function test_create_comment_without_author() {
+		add_filter( 'comment_flood_filter', '__return_false' );
+		wp_set_current_user( 0 );
+		update_option( 'require_name_email', 1 );
+
+		$params = array(
+			'post'    => $this->post_id,
+			'content' => 'No TV and no beer makes Homer something something.',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_require_valid_comment', $response, 400 );
+	}
+
 	public function test_create_item_duplicate() {
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 		$this->factory->comment->create(
@@ -1383,7 +1418,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . $this->approved_id );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'content' => 'abc',
+			'content'       => 'abc',
 		));
 
 		wp_set_current_user( 1 );
@@ -1393,8 +1428,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'title' => 'hello',
-			'post' => $this->post_id,
+			'title'         => 'hello',
+			'post'          => $this->post_id,
+			'content'       => 'abc2',
+			'author_name'   => 'Comic Book Guy',
+			'author_email'  => 'cbg@androidsdungeon.com',
 		));
 
 		$response = $this->server->dispatch( $request );

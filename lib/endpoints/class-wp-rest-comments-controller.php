@@ -320,13 +320,21 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
 
-		// Setting remaining values before wp_insert_comment so we can
-		// use wp_allow_comment().
-		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
-			$prepared_comment['comment_date_gmt'] = current_time( 'mysql', true );
+		// Check that comment has content.
+		if ( empty( $prepared_comment['comment_content'] ) ) {
+			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 400 ) );
 		}
 
-		// Set author data if the user's logged in
+		// Setting remaining values before wp_insert_comment so we can
+		// use wp_allow_comment().
+		if ( empty( $prepared_comment['comment_date_gmt'] ) ) {
+			$prepared_comment['comment_date_gmt'] = current_time( 'mysql', true );
+		}
+		if ( empty( $prepared_comment['comment_date'] ) ) {
+			$prepared_comment['comment_date'] = current_time( 'mysql' );
+		}
+
+		// Set author data if the user's logged in.
 		$missing_author = empty( $prepared_comment['user_id'] )
 			&& empty( $prepared_comment['comment_author'] )
 			&& empty( $prepared_comment['comment_author_email'] )
@@ -349,6 +357,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment['comment_agent'] = '';
 		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
+
+		// Check author name and email if required.
+		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
+			if ( empty( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_require_valid_comment', __( 'Required fields (name, email) missing.' ), array( 'status' => 400 ) );
+			}
+		}
 
 		/**
 		 * Filter a comment before it is inserted via the REST API.
