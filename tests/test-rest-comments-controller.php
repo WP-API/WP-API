@@ -1088,7 +1088,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content' => rand_str(),
 			'date_gmt' => '2015-05-07T10:14:25',
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
@@ -1108,8 +1107,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'type'    => 'trackback',
-			'content' => rand_str(),
+			'type' => 'trackback',
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
