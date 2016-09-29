@@ -773,6 +773,34 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNull( $data['modified_gmt'] );
 	}
 
+	/**
+	 * Test updating a draft post by sending in a null date.
+	 *
+	 * When the API returns a null value for a field, such as for dates on draft
+	 * posts, it should also accept a null value for that field.
+	 *
+	 * @issue 2696
+	 *
+	 */
+	public function test_update_draft_post_with_null_date() {
+
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data();
+
+		$params['status'] = 'draft';
+		$params['date_gmt'] = null;
+
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_update_post_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+	}
+
 	public function test_create_post_private() {
 		wp_set_current_user( $this->editor_id );
 
