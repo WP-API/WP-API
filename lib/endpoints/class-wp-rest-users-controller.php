@@ -86,6 +86,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
+		if ( in_array( $request['orderby'], array( 'email', 'registered_date' ), true ) && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_forbidden_orderby', __( 'Sorry, you cannot order by this parameter.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		return true;
 	}
 
@@ -112,6 +116,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'include'         => 'include',
 			'name'            => 'display_name',
 			'registered_date' => 'registered',
+			'slug'            => 'user_nicename',
+			'email'           => 'user_email',
+			'url'             => 'user_url',
 		);
 		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
 		$prepared_args['search'] = $request['search'];
@@ -552,7 +559,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['roles'] ) ) {
-			$data['roles'] = $user->roles;
+			// Defensively call array_values() to ensure an array is returned.
+			$data['roles'] = array_values( $user->roles );
 		}
 
 		if ( ! empty( $schema['properties']['registered_date'] ) ) {
@@ -802,7 +810,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'registered_date' => array(
@@ -908,6 +916,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'include',
 				'name',
 				'registered_date',
+				'slug',
+				'email',
+				'url',
 			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',

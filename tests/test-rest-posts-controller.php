@@ -74,6 +74,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'search',
 			'slug',
 			'status',
+			'sticky',
 			'tags',
 			), $keys );
 	}
@@ -355,6 +356,88 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
+	}
+
+	public function test_get_items_sticky_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$posts = $response->get_data();
+		$post = $posts[0];
+		$this->assertEquals( $id2, $post['id'] );
+	}
+
+	public function test_get_items_sticky_with_post__in_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+		$request->set_param( 'include', array( $id1 ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 0, $response->get_data() );
+
+		update_option( 'sticky_posts', array( $id1, $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', true );
+		$request->set_param( 'include', array( $id1 ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertCount( 1, $response->get_data() );
+
+		$posts = $response->get_data();
+		$post = $posts[0];
+		$this->assertEquals( $id1, $post['id'] );
+	}
+
+	public function test_get_items_not_sticky_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', false );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$posts = $response->get_data();
+		$post = $posts[0];
+		$this->assertEquals( $id1, $post['id'] );
+	}
+
+	public function test_get_items_sticky_with_post__not_in_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+
+		update_option( 'sticky_posts', array( $id2 ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'sticky', false );
+		$request->set_param( 'exclude', array( $id3 ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 1, $response->get_data() );
+
+		$posts = $response->get_data();
+		$post = $posts[0];
+		$this->assertEquals( $id1, $post['id'] );
 	}
 
 	/**
@@ -1360,6 +1443,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( 'sample-slug', $post->post_name );
 	}
 
+	public function test_update_post_slug_accented_chars() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data( array(
+			'slug' => 'tęst-acceńted-chäræcters',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$new_data = $response->get_data();
+		$this->assertEquals( 'test-accented-charaecters', $new_data['slug'] );
+		$post = get_post( $new_data['id'] );
+		$this->assertEquals( 'test-accented-charaecters', $post->post_name );
+	}
+
 	public function test_update_post_sticky() {
 		wp_set_current_user( $this->editor_id );
 
@@ -1708,11 +1807,43 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$wp_rest_additional_fields = array();
 	}
 
+	public function test_additional_field_update_errors() {
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_rest_field( 'post', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
+		) );
+
+		wp_set_current_user( $this->editor_id );
+		// Check for error on update.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$request->set_body_params( array(
+			'my_custom_int' => 'returnError',
+		) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
 	public function additional_field_get_callback( $object ) {
 		return get_post_meta( $object['id'], 'my_custom_int', true );
 	}
 
 	public function additional_field_update_callback( $value, $post ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
 		update_post_meta( $post->ID, 'my_custom_int', $value );
 	}
 
