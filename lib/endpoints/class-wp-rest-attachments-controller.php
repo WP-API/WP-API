@@ -58,35 +58,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
-	 * Check if a given request has access to update an attachment.
-	 *
-	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|boolean
-	 */
-	public function update_item_permissions_check( $request ) {
-
-		$item = $this->get_post( (int) $request['id'] );
-		if ( ! $item ) {
-			return false;
-		}
-
-		// Only attachments can be edited by the attachments controller.
-		if ( 'attachment' !== $item->post_type ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this item.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( ! current_user_can( 'edit_post', (int) $request['id'] ) ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to update this item.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( 'trash' === $item->post_status ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'You can&#8217;t edit this attachment because it is in the Trash. Please move it out of the Trash and try again.' ), array( 'status' => 410 ) );
-		}
-
-		return true;
-	}
-
-	/**
 	 * Create a single attachment
 	 *
 	 * @param WP_REST_Request $request Full details about the request
