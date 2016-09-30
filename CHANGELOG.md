@@ -26,6 +26,10 @@
 
   (props @BE-Webdesign, [#2662][gh-2662], [#1612][gh-1612])
 
+- Update the wp-api.js client from the client-js repo.
+
+  (props @joehoyle, [#2746][gh-2746])
+
 - Avoid unnecessary SQL query by passing `$user_nicename`
 
   (props @danielbachhuber, [#2435][gh-2435])
@@ -239,6 +243,7 @@ get_post()'s return value
 [gh-2731]: https://github.com/WP-API/WP-API/issues/2731
 [gh-2735]: https://github.com/WP-API/WP-API/issues/2735
 [gh-2744]: https://github.com/WP-API/WP-API/issues/2744
+[gh-2746]: https://github.com/WP-API/WP-API/issues/2746
 
 ## 2.0 Beta 13.0 (March 29, 2016)
 
