@@ -37,7 +37,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'callback'        => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'            => array(
-					'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
+					'context'  => $this->get_context_param( array( 'default' => 'view' ) ),
+					'password' => array(
+						'description' => __( 'The password for the post if it is password protected.' ),
+					),
 				),
 			),
 			array(
@@ -101,7 +104,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['paged']                = $request['page'];
 		$args['post__in']             = $request['include'];
 		$args['post__not_in']         = $request['exclude'];
-		$args['posts_per_page']       = $request['per_page'];
 		$args['name']                 = $request['slug'];
 		$args['post_parent__in']      = $request['parent'];
 		$args['post_parent__not_in']  = $request['parent_exclude'];
@@ -123,6 +125,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
+
+		// Ensure our per_page parameter overrides filter.
+		$args['posts_per_page'] = $request['per_page'];
 
 		if ( isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
@@ -180,6 +185,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$posts_query = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
 
+		// Allow access to all password protected posts if the context is edit.
+		if ( 'edit' === $request['context'] ) {
+			add_filter( 'post_password_required', '__return_false' );
+		}
+
 		$posts = array();
 		foreach ( $query_result as $post ) {
 			if ( ! $this->check_read_permission( $post ) ) {
@@ -188,6 +198,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$data = $this->prepare_item_for_response( $post, $request );
 			$posts[] = $this->prepare_response_for_collection( $data );
+		}
+
+		// Reset filter.
+		if ( 'edit' === $request['context'] ) {
+			remove_filter( 'post_password_required', '__return_false' );
 		}
 
 		$page = (int) $query_args['paged'];
@@ -246,11 +261,53 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit this post' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
+		if ( $post && ! empty( $request['password'] ) ) {
+			// Check post password, and return error if invalid.
+			if ( ! hash_equals( $post->post_password, $request['password'] ) ) {
+				return new WP_Error( 'rest_post_incorrect_password', __( 'Incorrect post password.' ), array( 'status' => 403 ) );
+			}
+		}
+
+		// Allow access to all password protected posts if the context is edit.
+		if ( 'edit' === $request['context'] ) {
+			add_filter( 'post_password_required', '__return_false' );
+		}
+
 		if ( $post ) {
 			return $this->check_read_permission( $post );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Can the user access passworded content?
+	 *
+	 * This method determines whether we need to override the regular password
+	 * check in core with a filter.
+	 *
+	 * @param WP_Post $post Post to check against.
+	 * @param WP_REST_Request $request Request data to check.
+	 * @return bool True if the user can access passworded content, false otherwise.
+	 */
+	protected function can_access_password_content( $post, $request ) {
+		if ( empty( $post->post_password ) ) {
+			// No filter required.
+			return false;
+		}
+
+		// Edit context always gets access to passworded posts.
+		if ( 'edit' === $request['context'] ) {
+			return true;
+		}
+
+		// No password, no auth.
+		if ( empty( $request['password'] ) ) {
+			return false;
+		}
+
+		// Double-check the request password.
+		return hash_equals( $post->post_password, $request['password'] );
 	}
 
 	/**
@@ -286,10 +343,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	public function create_item_permissions_check( $request ) {
 
 		$post_type = get_post_type_object( $this->post_type );
-
-		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
-		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
 			return new WP_Error( 'rest_cannot_edit_others', __( 'You are not allowed to create posts as this user.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -398,10 +451,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to update this post.' ), array( 'status' => rest_authorization_required_code() ) );;
-		}
-
-		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
@@ -683,27 +732,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check the post excerpt and prepare it for single post output.
-	 *
-	 * @param string       $excerpt
-	 * @return string|null $excerpt
-	 */
-	protected function prepare_excerpt_response( $excerpt, $post ) {
-		if ( post_password_required() ) {
-			return __( 'There is no excerpt because this is a protected post.' );
-		}
-
-		/** This filter is documented in wp-includes/post-template.php */
-		$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $excerpt, $post ) );
-
-		if ( empty( $excerpt ) ) {
-			return '';
-		}
-
-		return $excerpt;
-	}
-
-	/**
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
 	 *
@@ -724,21 +752,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
-	}
-
-	protected function prepare_password_response( $password ) {
-		if ( ! empty( $password ) ) {
-			/**
-			 * Fake the correct cookie to fool post_password_required().
-			 * Without this, get_the_content() will give a password form.
-			 */
-			require_once ABSPATH . WPINC .'/class-phpass.php';
-			$hasher = new PasswordHash( 8, true );
-			$value = $hasher->HashPassword( $password );
-			$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = wp_slash( $value );
-		}
-
-		return $password;
 	}
 
 	/**
@@ -1014,10 +1027,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	public function check_read_permission( $post ) {
-		if ( ! empty( $post->post_password ) && ! $this->check_update_permission( $post ) ) {
-			return false;
-		}
-
 		$post_type = get_post_type_object( $post->post_type );
 		if ( ! $this->check_is_post_type_allowed( $post_type ) ) {
 			return false;
@@ -1161,35 +1170,43 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['title'] ) ) {
+			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			$data['title'] = array(
 				'raw'      => $post->post_title,
 				'rendered' => get_the_title( $post->ID ),
 			);
+			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
+		}
+
+		$has_password_filter = false;
+		if ( $this->can_access_password_content( $post, $request ) ) {
+			// Allow access to the post, permissions already checked before.
+			add_filter( 'post_password_required', '__return_false' );
+			$has_password_filter = true;
 		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
-
-			if ( ! empty( $post->post_password ) ) {
-				$this->prepare_password_response( $post->post_password );
-			}
-
 			$data['content'] = array(
-				'raw'      => $post->post_content,
+				'raw'       => $post->post_content,
 				/** This filter is documented in wp-includes/post-template.php */
-				'rendered' => apply_filters( 'the_content', $post->post_content ),
+				'rendered'  => post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content ),
+				'protected' => (bool) $post->post_password,
 			);
-
-			// Don't leave our cookie lying around: https://github.com/WP-API/WP-API/issues/1055.
-			if ( ! empty( $post->post_password ) ) {
-				$_COOKIE[ 'wp-postpass_' . COOKIEHASH ] = '';
-			}
 		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
+			/** This filter is documented in wp-includes/post-template.php */
+			$excerpt = apply_filters( 'the_excerpt', apply_filters( 'get_the_excerpt', $post->post_excerpt, $post ) );
 			$data['excerpt'] = array(
-				'raw'      => $post->post_excerpt,
-				'rendered' => $this->prepare_excerpt_response( $post->post_excerpt, $post ),
+				'raw'       => $post->post_excerpt,
+				'rendered'  => post_password_required( $post ) ? '' : $excerpt,
+				'protected' => (bool) $post->post_password,
 			);
+		}
+
+		if ( $has_password_filter ) {
+			// Reset filter.
+			remove_filter( 'post_password_required', '__return_false' );
 		}
 
 		if ( ! empty( $schema['properties']['author'] ) ) {
@@ -1265,6 +1282,20 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param WP_REST_Request    $request    Request object.
 		 */
 		return apply_filters( "rest_prepare_{$this->post_type}", $response, $post, $request );
+	}
+
+	/**
+	 * Overwrite the default protected title format.
+	 *
+	 * By default WordPress will show password protected posts with a title of
+	 * "Protected: %s", as the REST API communicates the protected status of a post
+	 * in a machine readable format, we remove the "Protected: " prefix.
+	 *
+	 * @param  string $format
+	 * @return string
+	 */
+	public function protected_title_format() {
+		return '%s';
 	}
 
 	/**
@@ -1438,11 +1469,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'password'        => array(
-					'description' => __( 'A password to protect access to the post.' ),
-					'type'        => 'string',
-					'context'     => array( 'edit' ),
-				),
 				'slug'            => array(
 					'description' => __( 'An alphanumeric identifier for the object unique to its type.' ),
 					'type'        => 'string',
@@ -1561,6 +1587,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'context'     => array( 'view', 'edit' ),
 								'readonly'    => true,
 							),
+							'protected'       => array(
+								'description' => __( 'Whether the content is protected with a password.' ),
+								'type'        => 'boolean',
+								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
+							),
 						),
 					);
 					break;
@@ -1587,6 +1619,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 							'rendered' => array(
 								'description' => __( 'HTML excerpt for the object, transformed for display.' ),
 								'type'        => 'string',
+								'context'     => array( 'view', 'edit', 'embed' ),
+								'readonly'    => true,
+							),
+							'protected'       => array(
+								'description' => __( 'Whether the excerpt is protected with a password.' ),
+								'type'        => 'boolean',
 								'context'     => array( 'view', 'edit', 'embed' ),
 								'readonly'    => true,
 							),
@@ -1642,6 +1680,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'description' => __( 'Whether or not the object should be treated as sticky.' ),
 				'type'        => 'boolean',
 				'context'     => array( 'view', 'edit' ),
+			);
+
+			$schema['properties']['password'] = array(
+				'description' => __( 'A password to protect access to the content and excerpt.' ),
+				'type'        => 'string',
+				'context'     => array( 'edit' ),
 			);
 		}
 
