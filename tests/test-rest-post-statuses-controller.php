@@ -46,6 +46,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 			'publish',
 			'private',
 			'pending',
+			'auto-draft',
 			'draft',
 			'trash',
 			'future',
