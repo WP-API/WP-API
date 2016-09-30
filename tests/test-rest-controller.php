@@ -52,10 +52,57 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			rest_validate_request_arg( false, $this->request, 'someboolean' )
 		);
 
-		$this->assertErrorResponse(
-			'rest_invalid_param',
+		$this->assertTrue(
 			rest_validate_request_arg( 'true', $this->request, 'someboolean' )
 		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'TRUE', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'false', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 'False', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( '1', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( '0', $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 1, $this->request, 'someboolean' )
+		);
+		$this->assertTrue(
+			rest_validate_request_arg( 0, $this->request, 'someboolean' )
+		);
+
+		// Check sanitize testing.
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 'false', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( '0', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 0, $this->request, 'someboolean' )
+		);
+		$this->assertEquals( false,
+			rest_sanitize_request_arg( 'FALSE', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 'true', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( '1', $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 1, $this->request, 'someboolean' )
+		);
+		$this->assertEquals( true,
+			rest_sanitize_request_arg( 'TRUE', $this->request, 'someboolean' )
+		);
+
 		$this->assertErrorResponse(
 			'rest_invalid_param',
 			rest_validate_request_arg( '123', $this->request, 'someboolean' )
