@@ -295,7 +295,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Edit context always gets access to passworded posts.
-		if ( $request['context'] === 'edit' ) {
+		if ( 'edit' === $request['context'] ) {
 			return true;
 		}
 
