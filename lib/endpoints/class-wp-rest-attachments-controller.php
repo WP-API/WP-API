@@ -181,6 +181,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = $this->get_post( $request['id'] );
+
+		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );

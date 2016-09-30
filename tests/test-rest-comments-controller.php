@@ -595,6 +595,39 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 	}
 
+	public function test_get_comment_with_children_link() {
+		$comment_id_1 = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$child_comment = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_parent'   => $comment_id_1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'children', $response->get_links() );
+	}
+
+	public function test_get_comment_without_children_link() {
+		$comment_id_1 = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'children', $response->get_links() );
+	}
+
 	public function test_create_item() {
 		wp_set_current_user( 0 );
 
@@ -1158,6 +1191,39 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 	}
 
+	public function test_update_comment_with_children_link() {
+		wp_set_current_user( $this->admin_id );
+		$comment_id_1 = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$child_comment = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		// Check if comment 1 does not have the child link.
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'children', $response->get_links() );
+
+		// Change the comment parent.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%s', $child_comment ) );
+		$request->set_param( 'parent', $comment_id_1 );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		// Check if comment 1 now has the child link.
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'children', $response->get_links() );
+	}
+
 	public function test_delete_item() {
 		wp_set_current_user( $this->admin_id );
 
@@ -1223,6 +1289,32 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+	}
+
+	public function test_delete_child_comment_link() {
+		wp_set_current_user( $this->admin_id );
+		$comment_id_1 = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$child_comment = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_parent'   => $comment_id_1,
+			'comment_post_ID'  => $this->post_id,
+			'user_id'          => $this->subscriber_id,
+		) );
+
+		$request = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/comments/%s', $child_comment ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		// Verify children link is gone.
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%s', $comment_id_1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'children', $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -1313,11 +1405,45 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$wp_rest_additional_fields = array();
 	}
 
+	public function test_additional_field_update_errors() {
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_rest_field( 'comment', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
+		) );
+
+		wp_set_current_user( $this->admin_id );
+
+		// Check for error on update.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->set_body_params(array(
+			'my_custom_int' => 'returnError',
+			'content' => 'abc',
+		));
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
 	public function additional_field_get_callback( $object ) {
 		return get_comment_meta( $object['id'], 'my_custom_int', true );
 	}
 
 	public function additional_field_update_callback( $value, $comment ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
 		update_comment_meta( $comment->comment_ID, 'my_custom_int', $value );
 	}
 
