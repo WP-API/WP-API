@@ -104,7 +104,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['paged']                = $request['page'];
 		$args['post__in']             = $request['include'];
 		$args['post__not_in']         = $request['exclude'];
-		$args['posts_per_page']       = $request['per_page'];
 		$args['name']                 = $request['slug'];
 		$args['post_parent__in']      = $request['parent'];
 		$args['post_parent__not_in']  = $request['parent_exclude'];
@@ -126,6 +125,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
+
+		// Ensure our per_page parameter overrides filter.
+		$args['posts_per_page'] = $request['per_page'];
 
 		if ( isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
