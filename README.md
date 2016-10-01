@@ -6,15 +6,12 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/WP-API/WP-API/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/WP-API/WP-API/?branch=develop)
 [![codecov.io](http://codecov.io/github/WP-API/WP-API/coverage.svg?branch=develop)](http://codecov.io/github/WP-API/WP-API?branch=develop)
 
-## WARNING
-
-The **"develop"** branch is undergoing substantial changes and is **NOT
-COMPLETE OR STABLE**. [Read the in-progress documentation](http://v2.wp-api.org/)
+The **"develop"** branch is version 2 which is "beta" but stable and recommended for production. [Read the  documentation](http://v2.wp-api.org/)
 to introduce yourself to endpoints, internal patterns, and implementation details.
 
-The **"master"** branch represents a **BETA** of our next version release.
+The **"master"** branch represents the **legacy** version of the REST API.
 
-The latest **stable** version is available from the [WordPress Plugin Directory](https://wordpress.org/plugins/rest-api/).
+The latest **stable** version is also available from the [WordPress Plugin Directory](https://wordpress.org/plugins/rest-api/).
 
 ## About
 
