@@ -710,6 +710,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'post_parent__not_in',
 			'posts_per_page',
 			'date_query',
+			'tax_query',
 		);
 		$valid_vars = array_merge( $valid_vars, $rest_valid );
 
@@ -1831,6 +1832,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$params['filter'] = array(
 			'description'       => __( 'Use WP Query arguments to modify the response; private query vars require appropriate authorization.' ),
+			'validate_callback' => array( $this, 'rest_validate_query_filter' ),
 		);
 
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
@@ -1873,5 +1875,74 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return true;
 		}
 		return new WP_Error( 'rest_forbidden_status', __( 'Status is forbidden' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	/**
+	 * Validate filter param.
+	 *
+	 * This function can be used to validate query params passed by the filter request param.
+	 *
+	 * @param  mixed           $value     Value of the parameter.
+	 * @param  WP_REST_Request $request   Request body.
+	 * @param  string          $parameter Name of the parameter. Should be tax_query.
+	 * @return WP_Error|boolean
+	 */
+	public function rest_validate_query_filter( $values, $request, $parameter ) {
+		// Returns true for validation by default if 'tax_query' is not set in the filter.
+		$is_valid = true;
+		if ( isset( $values['tax_query'] ) ) {
+			$is_valid = $this->rest_validate_tax_query( $values['tax_query'], $request, 'tax_query' );
+			// If an error is found exit early and it will throw an error for request->has_valid_params();
+			if ( is_wp_error( $is_valid ) ) {
+				return $is_valid;
+			}
+		}
+		return $is_valid;
+	}
+
+	/**
+	 * Validate tax query.
+	 *
+	 * @param  mixed           $value      Value of the parameter.
+	 * @param  WP_REST_Request $request    Request body.
+	 * @param  string          $parameter  Name of the parameter. Should be tax_query.
+	 * @param  array           $taxonomies Taxonomies that are to be shown in the REST API.
+	 * @return WP_Error|boolean
+	 */
+	public function rest_validate_tax_query( $values, $request, $parameter, $taxonomies = array() ) {
+		if ( 'tax_query' !== $parameter ) {
+			return new WP_Error( 'rest_invalid_param', __( 'This validation method is only used to validate a tax query.' ), array( 'status' => 400 ) );
+		}
+		$valid = true;
+		if ( ! empty( $values ) ) {
+			foreach ( $values as $key => $value ) {
+				// Switch statement to handle different cases.
+				if ( is_array( $value ) && 'terms' !== $key ) {
+					// Recursive call to function to handle nested taxonomy queries.
+					$valid = $this->rest_validate_tax_query( $value, $request, $parameter, $taxonomies );
+
+					// If an error is found keep returning it up the chain.
+					if ( is_wp_error( $valid ) ) {
+						return $valid;
+					}
+				}
+
+				if ( 'taxonomy' === $key ) {
+					// If $taxonomies is empty by default set it. On reoccurring calls the function overhead is avoided.
+					if ( empty( $taxonomies ) ) {
+						$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+					}
+
+					// Validate taxonomy.
+					if ( array_key_exists( $value, $taxonomies ) ) {
+						$valid = true;
+					} else {
+						/* translators: %s equals taxonomy name being checked. */
+						return new WP_Error( 'rest_invalid_param', sprintf( __( 'The taxonomy %s specified in the filter does not exist.' ), $value ), array( 'status' => 400 ) );
+					}
+				}
+			}
+		}
+		return $valid;
 	}
 }
