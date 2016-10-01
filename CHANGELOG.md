@@ -1,5 +1,256 @@
 # Changelog
 
+## 2.0 Beta 14.0 (September 30, 2016)
+
+- Add support for password protected posts
+
+  Password protected posts are now fully supported, you can create edit and read password protected posts in the REST API. There is now a `protected` attribute in the `content` and `excerpt` fields in post response.
+
+  To view password protected posts via the API, use the `password` query parameter to provide the post's password.
+
+  (props @joehoyle, [#2720][gh-2720])
+
+- Allow returning an error from field update callbacks
+
+  Fields added via `register_rest_field` can now return an instance of `WP_Error` in the `update_callback`.
+
+  (props @rmccue, [#2702][gh-2702])
+
+- Update the wp-api.js client from the client-js repo.
+
+  (props @joehoyle, [#2746][gh-2746])
+
+- Add `relevance` `orderby` to posts endpoint
+
+  (props @websupporter, [#2579][gh-2579])
+
+- Ability to order by `slug`, `email` and `url` on the users endpoints.
+
+  (props @joehoyle, [#2721][gh-2721])
+
+- Add `sticky` parameter to the posts endpoint.
+
+  (props @joehoyle, [#2708][gh-2708])
+
+- Add link to comment children, allowing threaded comment querying
+
+  (props @BE-Webdesign, [#2662][gh-2662], [#1612][gh-1612])
+
+- Avoid unnecessary SQL query by passing `$user_nicename`
+
+  (props @danielbachhuber, [#2435][gh-2435])
+
+- Don't allow reading / creating of posts with no parent
+
+  (props @rachelbaker, [#2744][gh-2744])
+
+- Mark Users' `capabilities` property as readonly
+
+  (props @danielbachhuber, [#2440][gh-2440])
+
+- Mark some post properties as readonly
+
+  (props @danielbachhuber, [#2438][gh-2438], [#2439][gh-2439])
+
+- Use WPINC instead of wp-includes/
+
+  (props @websupporter, [#2461][gh-2461])
+
+- Return error, if user can't list users & content=edit
+
+  (props @websupporter, [#2463][gh-2463])
+
+- Conditionally model the term response based on its schema
+
+  (props @danielbachhuber, [#2470][gh-2470])
+
+- Include Post data on the response object when declared
+
+  (props @websupporter, [#2423][gh-2423], [#2416][gh-2416])
+
+- Add boolean type support to rest_validate_request_arg()
+
+  (props @westonruter, [#2478][gh-2478])
+
+- Fix create/update requests not processing data included in the schema
+
+  (props @websupporter, [#2479][gh-2479])
+
+- Remove Unused Parameter in lib/endpoints/class-wp-rest-controller.php
+
+  (props @hideokamoto, [#2500][gh-2500])
+
+- Update post schema status description to reflect csv support.
+
+  (props @coderkevin, [#2534][gh-2534])
+
+- Allow Comments to be created with a passed `author_ip`
+
+  (props @rachelbaker, [#1880][gh-1880])
+
+- The get_the_excerpt filter expects the post object as of WP 4.5.
+
+  (props @lgedeon, [#2553][gh-2553])
+
+- Introduce WP_REST_Controller::get_post() for allowing plugins to mutate
+get_post()'s return value
+
+  (props @westonruter, [#2535][gh-2535])
+
+- Use `show_in_rest` to determine "public" post types to check
+
+  (props @danielbachhuber, [#2384][gh-2384])
+
+- #2426 Fix inconsistent type for user caps
+
+  (props @BE-Webdesign, [#2429][gh-2429], [#2426][gh-2426])
+
+- Define user `type` as a string, not an array
+
+  (props @danielbachhuber, [#2556][gh-2556])
+
+- Fix failing test: Typecast the user_id in search to a string
+
+  (props @rachelbaker, [#2617][gh-2617])
+
+- #2587 Fix registered date schema
+
+  (props @BE-Webdesign, [#2628][gh-2628], [#2587][gh-2587])
+
+- Fix forum url and installer-name in readme
+
+  (props @torounit, [#2656][gh-2656])
+
+- Document options of the "status" parameter for Post collection GETs
+
+  (props @kadamwhite, [#2645][gh-2645])
+
+- Improve WP_REST_Controller::filter_response_by_context().
+
+  (props @tfrommen, [#2641][gh-2641])
+
+- #2424 Consistent slashes in rest_url() usage
+
+  (props @BE-Webdesign, [#2428][gh-2428], [#2424][gh-2424])
+
+- Add filters to allow for relevance search
+
+  (props @websupporter, [#2665][gh-2665])
+
+- Alter default comment sort order to be "desc"
+
+  (props @kadamwhite, [#2684][gh-2684])
+
+- Add raw and rendered to revisions schema
+
+  (props @websupporter, [#2693][gh-2693])
+
+- "WP API" -> "WordPress REST API" in README files
+
+  (props @kadamwhite, [#2697][gh-2697])
+
+- Improve boolean validation from schema
+
+  (props @BE-Webdesign, [#2704][gh-2704], [#2616][gh-2616])
+
+- Fix typo (PUT vs POST) in readme.md
+
+  (props @kadamwhite, [#2716][gh-2716])
+
+- Add Codecov configuration
+
+  (props @danielbachhuber, [#2718][gh-2718])
+
+- Fix inefficiency in users endpoint using `search => **`
+
+  (props @joehoyle, [#2722][gh-2722])
+
+- Ensure the terms list is a list
+
+  (props @joehoyle, [#2724][gh-2724])
+
+- Added @return on handle_featured_media() doc
+
+  (props @vishalkakadiya, [#2725][gh-2725])
+
+- #2730 Update attachments fields added with `register_rest_field`
+
+  (props @BE-Webdesign, [#2731][gh-2731], [#2730][gh-2730])
+
+- #2582 Ensure the `roles` property is always an array
+
+  (props @BE-Webdesign, [#2728][gh-2728], [#2582][gh-2582])
+
+- Move post_password_required filtering to preparation
+
+  (props @rmccue, [#2735][gh-2735])
+
+- Use wrapper for `sanitize_title` to avoid messed up slugs.
+
+  (props @joehoyle, [#2723][gh-2723])
+
+- Force per_page to override the filter variable
+
+  (props @rmccue, [#2699][gh-2699])
+
+[gh-1612]: https://github.com/WP-API/WP-API/issues/1612
+[gh-1880]: https://github.com/WP-API/WP-API/issues/1880
+[gh-2384]: https://github.com/WP-API/WP-API/issues/2384
+[gh-2416]: https://github.com/WP-API/WP-API/issues/2416
+[gh-2423]: https://github.com/WP-API/WP-API/issues/2423
+[gh-2424]: https://github.com/WP-API/WP-API/issues/2424
+[gh-2426]: https://github.com/WP-API/WP-API/issues/2426
+[gh-2428]: https://github.com/WP-API/WP-API/issues/2428
+[gh-2429]: https://github.com/WP-API/WP-API/issues/2429
+[gh-2435]: https://github.com/WP-API/WP-API/issues/2435
+[gh-2436]: https://github.com/WP-API/WP-API/issues/2436
+[gh-2438]: https://github.com/WP-API/WP-API/issues/2438
+[gh-2439]: https://github.com/WP-API/WP-API/issues/2439
+[gh-2440]: https://github.com/WP-API/WP-API/issues/2440
+[gh-2441]: https://github.com/WP-API/WP-API/issues/2441
+[gh-2461]: https://github.com/WP-API/WP-API/issues/2461
+[gh-2463]: https://github.com/WP-API/WP-API/issues/2463
+[gh-2470]: https://github.com/WP-API/WP-API/issues/2470
+[gh-2478]: https://github.com/WP-API/WP-API/issues/2478
+[gh-2479]: https://github.com/WP-API/WP-API/issues/2479
+[gh-2500]: https://github.com/WP-API/WP-API/issues/2500
+[gh-2534]: https://github.com/WP-API/WP-API/issues/2534
+[gh-2535]: https://github.com/WP-API/WP-API/issues/2535
+[gh-2553]: https://github.com/WP-API/WP-API/issues/2553
+[gh-2556]: https://github.com/WP-API/WP-API/issues/2556
+[gh-2579]: https://github.com/WP-API/WP-API/issues/2579
+[gh-2582]: https://github.com/WP-API/WP-API/issues/2582
+[gh-2587]: https://github.com/WP-API/WP-API/issues/2587
+[gh-2616]: https://github.com/WP-API/WP-API/issues/2616
+[gh-2617]: https://github.com/WP-API/WP-API/issues/2617
+[gh-2628]: https://github.com/WP-API/WP-API/issues/2628
+[gh-2641]: https://github.com/WP-API/WP-API/issues/2641
+[gh-2645]: https://github.com/WP-API/WP-API/issues/2645
+[gh-2656]: https://github.com/WP-API/WP-API/issues/2656
+[gh-2662]: https://github.com/WP-API/WP-API/issues/2662
+[gh-2665]: https://github.com/WP-API/WP-API/issues/2665
+[gh-2684]: https://github.com/WP-API/WP-API/issues/2684
+[gh-2693]: https://github.com/WP-API/WP-API/issues/2693
+[gh-2697]: https://github.com/WP-API/WP-API/issues/2697
+[gh-2699]: https://github.com/WP-API/WP-API/issues/2699
+[gh-2702]: https://github.com/WP-API/WP-API/issues/2702
+[gh-2704]: https://github.com/WP-API/WP-API/issues/2704
+[gh-2708]: https://github.com/WP-API/WP-API/issues/2708
+[gh-2716]: https://github.com/WP-API/WP-API/issues/2716
+[gh-2718]: https://github.com/WP-API/WP-API/issues/2718
+[gh-2720]: https://github.com/WP-API/WP-API/issues/2720
+[gh-2721]: https://github.com/WP-API/WP-API/issues/2721
+[gh-2722]: https://github.com/WP-API/WP-API/issues/2722
+[gh-2723]: https://github.com/WP-API/WP-API/issues/2723
+[gh-2724]: https://github.com/WP-API/WP-API/issues/2724
+[gh-2725]: https://github.com/WP-API/WP-API/issues/2725
+[gh-2728]: https://github.com/WP-API/WP-API/issues/2728
+[gh-2730]: https://github.com/WP-API/WP-API/issues/2730
+[gh-2731]: https://github.com/WP-API/WP-API/issues/2731
+[gh-2735]: https://github.com/WP-API/WP-API/issues/2735
+[gh-2744]: https://github.com/WP-API/WP-API/issues/2744
+[gh-2746]: https://github.com/WP-API/WP-API/issues/2746
+
 ## 2.0 Beta 13.0 (March 29, 2016)
 
 - BREAKING CHANGE: Fix Content-Disposition header parsing.
