@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://v2.wp-api.org
- * Version: 2.0-beta13
+ * Version: 2.0-beta14
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -533,6 +533,33 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 					return sanitize_text_field( $value );
 			}
 		}
+
+		return $value;
+	}
+}
+
+
+if ( ! function_exists( 'rest_parse_request_arg' ) ) {
+	/**
+	 * Parse a request argument based on details registered to the route.
+	 *
+	 * Runs a validation check and sanitizes the value, primarily to be used via
+	 * the `sanitize_callback` arguments in the endpoint args registration.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_parse_request_arg( $value, $request, $param ) {
+
+		$is_valid = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		$value = rest_sanitize_request_arg( $value, $request, $param );
 
 		return $value;
 	}
