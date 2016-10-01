@@ -2,33 +2,39 @@
 
 ## 2.0 Beta 14.0 (September 30, 2016)
 
-- Password Protected Posts Support
+- Add support for password protected posts
+
+  Password protected posts are now fully supported, you can create edit and read password protected posts in the REST API. There is now a `protected` attribute in the `content` and `excerpt` fields in post response.
+
+  To view password protected posts via the API, use the `password` query parameter to provide the post's password.
 
   (props @joehoyle, [#2720][gh-2720])
 
 - Allow returning an error from field update callbacks
 
+  Fields added via `register_rest_field` can now return an instance of `WP_Error` in the `update_callback`.
+
   (props @rmccue, [#2702][gh-2702])
-
-- Add "relevance" orderby to posts endpoint
-
-  (props @websupporter, [#2579][gh-2579])
-
-- Ability to orderby slug, email and url on users endpoints.
-
-  (props @joehoyle, [#2721][gh-2721])
-
-- Add sticky parameter to the posts endpoint.
-
-  (props @joehoyle, [#2708][gh-2708])
-
-- #1612 Add link to comment children, allowing threaded comment querying
-
-  (props @BE-Webdesign, [#2662][gh-2662], [#1612][gh-1612])
 
 - Update the wp-api.js client from the client-js repo.
 
   (props @joehoyle, [#2746][gh-2746])
+
+- Add `relevance` `orderby` to posts endpoint
+
+  (props @websupporter, [#2579][gh-2579])
+
+- Ability to order by `slug`, `email` and `url` on the users endpoints.
+
+  (props @joehoyle, [#2721][gh-2721])
+
+- Add `sticky` parameter to the posts endpoint.
+
+  (props @joehoyle, [#2708][gh-2708])
+
+- Add link to comment children, allowing threaded comment querying
+
+  (props @BE-Webdesign, [#2662][gh-2662], [#1612][gh-1612])
 
 - Avoid unnecessary SQL query by passing `$user_nicename`
 
