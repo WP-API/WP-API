@@ -80,6 +80,13 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Post_Autosave_Controller class.
+ */
+if ( ! class_exists( 'WP_REST_Post_Autosave_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-post-autosave-controller.php';
+}
+
+/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
@@ -170,6 +177,9 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 				$revisions_controller = new WP_REST_Revisions_Controller( $post_type->name );
 				$revisions_controller->register_routes();
 			}
+
+			$autosave_controller = new WP_REST_Post_Autosave_Controller( $post_type->name );
+			$autosave_controller->register_routes();
 		}
 
 		// Post types.
