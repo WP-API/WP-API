@@ -15,6 +15,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 			'properties'           => array(
 				'somestring'       => array(
 					'type'         => 'string',
+					'description'  => 'A pretty string.',
 					'context'      => array( 'view' ),
 				),
 				'someinteger'      => array(

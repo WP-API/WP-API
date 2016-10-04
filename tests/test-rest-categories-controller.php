@@ -271,11 +271,27 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 'Cantaloupe', $data[2]['name'] );
 	}
 
-	public function test_get_items_post_args() {
+	protected function post_with_categories() {
 		$post_id = $this->factory->post->create();
-		$category1 = $this->factory->category->create( array( 'name' => 'DC' ) );
-		$category2 = $this->factory->category->create( array( 'name' => 'Marvel' ) );
-		wp_set_object_terms( $post_id, array( $category1, $category2 ), 'category' );
+		$category1 = $this->factory->category->create( array(
+			'name' => 'DC',
+			'description' => 'Purveyor of fine detective comics',
+		) );
+		$category2 = $this->factory->category->create( array(
+			'name' => 'Marvel',
+			'description' => 'Home of the Marvel Universe',
+		) );
+		$category3 = $this->factory->category->create( array(
+			'name' => 'Image',
+			'description' => 'American independent comic publisher',
+		) );
+		wp_set_object_terms( $post_id, array( $category1, $category2, $category3 ), 'category' );
+
+		return $post_id;
+	}
+
+	public function test_get_items_post_args() {
+		$post_id = $this->post_with_categories();
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
 		$request->set_param( 'post', $post_id );
@@ -283,8 +299,52 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEquals( 'DC', $data[0]['name'] );
+		$this->assertEquals( 3, count( $data ) );
+
+		// Check ordered by name by default
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Image', 'Marvel' ), $names );
+	}
+
+	public function test_get_items_post_ordered_by_description() {
+		$post_id = $this->post_with_categories();
+
+		// Regular request
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'orderby', 'description' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'Image', 'Marvel', 'DC' ), $names, 'Terms should be ordered by description' );
+
+		// Flip the order
+		$request->set_param( 'order', 'desc' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Marvel', 'Image' ), $names, 'Terms should be reverse-ordered by description' );
+	}
+
+	public function test_get_items_post_ordered_by_id() {
+		$post_id = $this->post_with_categories();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertEquals( 3, count( $data ) );
+		$names = wp_list_pluck( $data, 'name' );
+		$this->assertEquals( array( 'DC', 'Marvel', 'Image' ), $names );
 	}
 
 	public function test_get_items_custom_tax_post_args() {
@@ -380,9 +440,10 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 50, $headers['X-WP-Total'] );
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/categories' ) );
+			), rest_url( 'wp/v2/categories' ) );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// 3rd page
@@ -395,13 +456,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 10, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/categories' ) );
+			), rest_url( 'wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
 			'page'    => 4,
-			), rest_url( '/wp/v2/categories' ) );
+			), rest_url( 'wp/v2/categories' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
@@ -410,9 +472,10 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 1, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
-			), rest_url( '/wp/v2/categories' ) );
+			), rest_url( 'wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 		// Out of bounds
@@ -422,11 +485,37 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 0, $response->get_data() );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
-			), rest_url( '/wp/v2/categories' ) );
+			), rest_url( 'wp/v2/categories' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
+	}
+
+	public function test_get_items_per_page_exceeds_number_of_items() {
+		// Start of the index + Uncategorized default term
+		for ( $i = 0; $i < 17; $i++ ) {
+			$this->factory->category->create( array(
+				'name'   => "Category {$i}",
+				) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', 1 );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 18, $headers['X-WP-Total'] );
+		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 18, $response->get_data() );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+		$headers = $response->get_headers();
+		$this->assertEquals( 18, $headers['X-WP-Total'] );
+		$this->assertEquals( 1, $headers['X-WP-TotalPages'] );
+		$this->assertCount( 0, $response->get_data() );
 	}
 
 	public function test_get_item() {
@@ -670,7 +759,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( 1, $data['parent'] );
 
 		$links = $response->get_links();
-		$this->assertEquals( rest_url( '/wp/v2/categories/1' ), $links['up'][0]['href'] );
+		$this->assertEquals( rest_url( 'wp/v2/categories/1' ), $links['up'][0]['href'] );
 	}
 
 	public function test_get_item_schema() {
@@ -760,10 +849,21 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		} else {
 			$this->assertFalse( isset( $term->parent ) );
 		}
-		$this->assertArrayHasKey( 'self', $links );
-		$this->assertArrayHasKey( 'collection', $links );
+
+		$relations = array(
+			'self',
+			'collection',
+			'about',
+			'https://api.w.org/post_type',
+		);
+
+		if ( ! empty( $data['parent'] ) ) {
+			$relations[] = 'up';
+		}
+
+		$this->assertEqualSets( $relations, array_keys( $links ) );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response ) {

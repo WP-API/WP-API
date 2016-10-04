@@ -20,4 +20,16 @@ class WP_Test_Spy_REST_Server extends WP_REST_Server {
 	public function __call( $method, $args ) {
 		return call_user_func_array( array( $this, $method ), $args );
 	}
+
+	/**
+	 * Call dispatch() with the rest_post_dispatch filter
+	 */
+	public function dispatch( $request ) {
+		$result = parent::dispatch( $request );
+		$result = rest_ensure_response( $result );
+		if ( is_wp_error( $result ) ) {
+			$result = $this->error_to_response( $result );
+		}
+		return apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $request );
+	}
 }

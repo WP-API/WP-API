@@ -21,9 +21,22 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'role' => 'contributor',
 		) );
 
+		// Add an uploader role to test upload capabilities.
+		add_role( 'uploader', 'File upload role' );
+		$role = get_role( 'uploader' );
+		$role->add_cap( 'upload_files' );
+		$role->add_cap( 'read' );
+		$role->add_cap( 'level_0' );
+		$this->uploader_id = $this->factory->user->create( array(
+			'role' => 'uploader',
+		) );
+
 		$orig_file = dirname( __FILE__ ) . '/data/canola.jpg';
 		$this->test_file = '/tmp/canola.jpg';
 		copy( $orig_file, $this->test_file );
+		$orig_file2 = dirname( __FILE__ ) . '/data/codeispoetry.png';
+		$this->test_file2 = '/tmp/codeispoetry.png';
+		copy( $orig_file2, $this->test_file2 );
 
 	}
 
@@ -102,8 +115,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$keys = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
 		$this->assertEquals( array(
+			'after',
 			'author',
 			'author_exclude',
+			'before',
 			'context',
 			'exclude',
 			'filter',
@@ -297,6 +312,39 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( $attachment_id1, $data[0]['id'] );
 	}
 
+	public function test_get_items_invalid_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'after', rand_str() );
+		$request->set_param( 'before', rand_str() );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_valid_date() {
+		$id1 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-15T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$id2 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-16T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$id3 = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_date'      => '2016-01-17T00:00:00Z',
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+		) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
+		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id2, $data[0]['id'] );
+	}
+
 	public function test_get_item() {
 		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
 			'post_mime_type' => 'image/jpeg',
@@ -378,8 +426,42 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertEquals( 'The description for the image', $data['caption'] );
 	}
 
+	public function test_create_item_default_filename_title() {
+		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params( array(
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file2 ),
+				'name'     => 'codeispoetry.jpg',
+				'size'     => filesize( $this->test_file2 ),
+				'tmp_name' => $this->test_file2,
+			),
+		) );
+		$request->set_header( 'Content-MD5', md5_file( $this->test_file2 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( 'codeispoetry', $data['title']['raw'] );
+	}
+
 	public function test_create_item_with_files() {
 		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params( array(
+			'file' => array(
+				'file'     => file_get_contents( $this->test_file ),
+				'name'     => 'canola.jpg',
+				'size'     => filesize( $this->test_file ),
+				'tmp_name' => $this->test_file,
+			),
+		) );
+		$request->set_header( 'Content-MD5', md5_file( $this->test_file ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+	}
+
+	public function test_create_item_with_upload_files_role() {
+		wp_set_current_user( $this->uploader_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_file_params( array(
 			'file' => array(
@@ -455,6 +537,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function test_create_item_invalid_edit_permissions() {
 		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
 		wp_set_current_user( $this->author_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
+	}
+
+	public function test_create_item_invalid_upload_permissions() {
+		$post_id = $this->factory->post->create( array( 'post_author' => $this->editor_id ) );
+		wp_set_current_user( $this->uploader_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_param( 'post', $post_id );
 		$response = $this->server->dispatch( $request );
@@ -623,8 +714,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/media/%d', $attachment_id ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->check_post_data( $attachment, $data, 'view' );
-		$this->check_post_data( $attachment, $data, 'embed' );
+		$this->check_post_data( $attachment, $data, 'view', $response->get_links() );
+		$this->check_post_data( $attachment, $data, 'embed', $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -632,7 +723,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 23, count( $properties ) );
+		$this->assertEquals( 22, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -648,7 +739,6 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayHasKey( 'media_details', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'modified_gmt', $properties );
-		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
 		$this->assertArrayHasKey( 'ping_status', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
@@ -693,8 +783,48 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$wp_rest_additional_fields = array();
 	}
 
+	public function test_additional_field_update_errors() {
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_rest_field( 'attachment', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
+		) );
+
+		wp_set_current_user( $this->editor_id );
+		$attachment_id = $this->factory->attachment->create_object( $this->test_file, 0, array(
+			'post_mime_type' => 'image/jpeg',
+			'post_excerpt'   => 'A sample caption',
+			'post_author'    => $this->editor_id,
+		) );
+		// Check for error on update.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/media/%d', $attachment_id ) );
+		$request->set_body_params(array(
+			'my_custom_int' => 'returnError',
+		));
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
 	public function additional_field_get_callback( $object, $request ) {
 		return 123;
+	}
+
+	public function additional_field_update_callback( $value, $attachment ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
 	}
 
 	public function tearDown() {
@@ -702,10 +832,13 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		if ( file_exists( $this->test_file ) ) {
 			unlink( $this->test_file );
 		}
+		if ( file_exists( $this->test_file2 ) ) {
+			unlink( $this->test_file2 );
+		}
 	}
 
-	protected function check_post_data( $attachment, $data, $context = 'view' ) {
-		parent::check_post_data( $attachment, $data, $context );
+	protected function check_post_data( $attachment, $data, $context = 'view', $links ) {
+		parent::check_post_data( $attachment, $data, $context, $links );
 
 		$this->assertEquals( get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true ), $data['alt_text'] );
 		$this->assertEquals( $attachment->post_excerpt, $data['caption'] );

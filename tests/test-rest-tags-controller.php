@@ -224,6 +224,57 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 'DC', $data[0]['name'] );
 	}
 
+	public function test_get_terms_post_args_paging() {
+		$post_id = $this->factory->post->create();
+		$tag_ids = array();
+
+		for ( $i = 0; $i < 30; $i++ ) {
+			$tag_ids[] = $this->factory->tag->create( array(
+				'name'   => "Tag {$i}",
+			) );
+		}
+		wp_set_object_terms( $post_id, $tag_ids, 'post_tag' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'page', 1 );
+		$request->set_param( 'per_page', 15 );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$tags = $response->get_data();
+
+		$i = 0;
+		foreach ( $tags as $tag ) {
+			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$i++;
+		}
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'page', 2 );
+		$request->set_param( 'per_page', 15 );
+		$request->set_param( 'orderby', 'id' );
+		$response = $this->server->dispatch( $request );
+		$tags = $response->get_data();
+
+		foreach ( $tags as $tag ) {
+			$this->assertEquals( $tag['name'], "Tag {$i}" );
+			$i++;
+		}
+	}
+
+	public function test_get_items_post_empty() {
+		$post_id = $this->factory->post->create();
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_param( 'post', $post_id );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertCount( 0, $data );
+	}
+
 	public function test_get_items_custom_tax_post_args() {
 		register_taxonomy( 'batman', 'post', array( 'show_in_rest' => true ) );
 		$controller = new WP_REST_Terms_Controller( 'batman' );
@@ -302,7 +353,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 5, $headers['X-WP-TotalPages'] );
 		$next_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( 'wp/v2/tags' ) );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="prev"' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// 3rd page
@@ -317,11 +368,11 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 2,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( 'wp/v2/tags' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
 			'page'    => 4,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( 'wp/v2/tags' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 		// Last page
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -332,7 +383,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 5,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( 'wp/v2/tags' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 		// Out of bounds
@@ -344,7 +395,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 6, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
 			'page'    => 6,
-			), rest_url( '/wp/v2/tags' ) );
+			), rest_url( 'wp/v2/tags' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 	}
@@ -583,8 +634,44 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$wp_rest_additional_fields = array();
 	}
 
+	public function test_additional_field_update_errors() {
+		$schema = array(
+			'type'        => 'integer',
+			'description' => 'Some integer of mine',
+			'enum'        => array( 1, 2, 3, 4 ),
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		register_rest_field( 'tag', 'my_custom_int', array(
+			'schema'          => $schema,
+			'get_callback'    => array( $this, 'additional_field_get_callback' ),
+			'update_callback' => array( $this, 'additional_field_update_callback' ),
+		) );
+
+		wp_set_current_user( $this->administrator );
+		$tag_id = $this->factory->tag->create();
+		// Check for error on update.
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/tags/%d', $tag_id ) );
+		$request->set_body_params( array(
+			'my_custom_int' => 'returnError',
+		) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		global $wp_rest_additional_fields;
+		$wp_rest_additional_fields = array();
+	}
+
 	public function additional_field_get_callback( $object, $request ) {
 		return 123;
+	}
+
+	public function additional_field_update_callback( $value, $tag ) {
+		if ( 'returnError' === $value ) {
+			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
+		}
 	}
 
 	public function tearDown() {
@@ -622,10 +709,18 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$this->assertFalse( isset( $data['parent'] ) );
 		}
-		$this->assertArrayHasKey( 'self', $links );
-		$this->assertArrayHasKey( 'collection', $links );
+		$expected_links = array(
+			'self',
+			'collection',
+			'about',
+			'https://api.w.org/post_type',
+		);
+		if ( $taxonomy->hierarchical && $term->parent ) {
+			$expected_links[] = 'up';
+		}
+		$this->assertEqualSets( $expected_links, array_keys( $links ) );
 		$this->assertContains( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
-		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['http://api.w.org/v2/post_type'][0]['href'] );
+		$this->assertEquals( add_query_arg( 'tags', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 
 	protected function check_get_taxonomy_term_response( $response, $id ) {

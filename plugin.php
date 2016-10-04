@@ -3,8 +3,8 @@
  * Plugin Name: WP REST API
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
- * Author URI: http://wp-api.org
- * Version: 2.0-beta12
+ * Author URI: http://v2.wp-api.org
+ * Version: 2.0-beta14
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -96,7 +96,7 @@ add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
  *
  * @since 4.4.0
  *
- * @global array $wp_taxonomies Registered taxonomies.
+ * @global array $wp_post_types Registered post types.
  */
 function _add_extra_api_post_type_arguments() {
 	global $wp_post_types;
@@ -299,6 +299,10 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
 		}
 
+		if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $value, 'boolean' ) );
+		}
+
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
 		}
@@ -314,6 +318,11 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 				case 'email' :
 					if ( ! is_email( $value ) ) {
 						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
+					}
+					break;
+				case 'ipv4' :
+					if ( ! rest_is_ip_address( $value ) ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $value ) );
 					}
 					break;
 			}
@@ -378,6 +387,10 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 			return (int) $value;
 		}
 
+		if ( 'boolean' === $args['type'] ) {
+			return rest_sanitize_boolean( $value );
+		}
+
 		if ( isset( $args['format'] ) ) {
 			switch ( $args['format'] ) {
 				case 'date-time' :
@@ -391,10 +404,113 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 
 				case 'uri' :
 					return esc_url_raw( $value );
+
+				case 'ipv4' :
+					return sanitize_text_field( $value );
 			}
 		}
 
 		return $value;
 	}
+}
 
+
+if ( ! function_exists( 'rest_parse_request_arg' ) ) {
+	/**
+	 * Parse a request argument based on details registered to the route.
+	 *
+	 * Runs a validation check and sanitizes the value, primarily to be used via
+	 * the `sanitize_callback` arguments in the endpoint args registration.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_parse_request_arg( $value, $request, $param ) {
+
+		$is_valid = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		$value = rest_sanitize_request_arg( $value, $request, $param );
+
+		return $value;
+	}
+}
+
+if ( ! function_exists( 'rest_is_ip_address' ) ) {
+	/**
+	 * Determines if a IPv4 address is valid.
+	 *
+	 * Does not handle IPv6 addresses.
+	 *
+	 * @param  string $ipv4 IP 32-bit address.
+	 * @return string|false The valid IPv4 address, otherwise false.
+	 */
+	function rest_is_ip_address( $ipv4 ) {
+		$pattern = '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/';
+
+		if ( ! preg_match( $pattern, $ipv4 ) ) {
+			return false;
+		}
+
+		return $ipv4;
+	}
+}
+
+/**
+ * Changes a boolean-like value into the proper boolean value.
+ *
+ * @param bool|string|int $value The value being evaluated.
+ * @return boolean Returns the proper associated boolean value.
+ */
+if ( ! function_exists( 'rest_sanitize_boolean' ) ) {
+	function rest_sanitize_boolean( $value ) {
+		// String values are translated to `true`; make sure 'false' is false.
+		if ( is_string( $value )  ) {
+			$value = strtolower( $value );
+			if ( in_array( $value, array( 'false', '0' ), true ) ) {
+				$value = false;
+			}
+		}
+
+		// Everything else will map nicely to boolean.
+		return (boolean) $value;
+	}
+}
+
+/**
+ * Determines if a given value is boolean-like.
+ *
+ * @param bool|string $maybe_bool The value being evaluated.
+ * @return boolean True if a boolean, otherwise false.
+ */
+if ( ! function_exists( 'rest_is_boolean' ) ) {
+	function rest_is_boolean( $maybe_bool ) {
+		if ( is_bool( $maybe_bool ) ) {
+			return true;
+		}
+
+		if ( is_string( $maybe_bool ) ) {
+			$maybe_bool = strtolower( $maybe_bool );
+
+			$valid_boolean_values = array(
+				'false',
+				'true',
+				'0',
+				'1',
+			);
+
+			return in_array( $maybe_bool, $valid_boolean_values, true );
+		}
+
+		if ( is_int( $maybe_bool ) ) {
+			return in_array( $maybe_bool, array( 0, 1 ), true );
+		}
+
+		return false;
+	}
 }

@@ -2,7 +2,7 @@
 
 abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_Controller_Testcase {
 
-	protected function check_post_data( $post, $data, $context ) {
+	protected function check_post_data( $post, $data, $context, $links ) {
 		$post_type_obj = get_post_type_object( $post->post_type );
 
 		// Standard fields
@@ -63,6 +63,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			$this->assertEquals( is_sticky( $post->ID ), $data['sticky'] );
 		}
 
+		if ( 'post' === $post->post_type && 'edit' === $context ) {
+			$this->assertEquals( $post->post_password, $data['password'] );
+		}
+
 		if ( 'page' === $post->post_type ) {
 			$this->assertEquals( get_page_template_slug( $post->ID ), $data['template'] );
 		}
@@ -87,7 +91,9 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		// Check filtered values.
 		if ( post_type_supports( $post->post_type, 'title' ) ) {
+			add_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			$this->assertEquals( get_the_title( $post->ID ), $data['title']['rendered'] );
+			remove_filter( 'protected_title_format', array( $this, 'protected_title_format' ) );
 			if ( 'edit' === $context ) {
 				$this->assertEquals( $post->post_title, $data['title']['raw'] );
 			} else {
@@ -99,7 +105,10 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		if ( post_type_supports( $post->post_type, 'editor' ) ) {
 			// TODO: apply content filter for more accurate testing.
-			$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+			if ( ! $post->post_password ) {
+				$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+			}
+
 			if ( 'edit' === $context ) {
 				$this->assertEquals( $post->post_content, $data['content']['raw'] );
 			} else {
@@ -114,7 +123,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				// TODO: apply excerpt filter for more accurate testing.
 				$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
 			} else {
-				$this->assertEquals( 'There is no excerpt because this is a protected post.', $data['excerpt']['rendered'] );
+				// TODO: better testing for excerpts for password protected posts.
 			}
 			if ( 'edit' === $context ) {
 				$this->assertEquals( $post->post_excerpt, $data['excerpt']['raw'] );
@@ -130,7 +139,6 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $post->guid, $data['guid']['raw'] );
 			$this->assertEquals( $post->post_status, $data['status'] );
-			$this->assertEquals( $post->post_password, $data['password'] );
 
 			if ( '0000-00-00 00:00:00' === $post->post_date_gmt ) {
 				$this->assertNull( $data['date_gmt'] );
@@ -153,6 +161,48 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 			sort( $data[ $taxonomy->rest_base ] );
 			$this->assertEquals( $terms, $data[ $taxonomy->rest_base ] );
 		}
+
+		// test links
+		if ( $links ) {
+
+			$links = test_rest_expand_compact_links( $links );
+			$post_type = get_post_type_object( $data['type'] );
+			$this->assertEquals( $links['self'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base . '/' . $data['id'] ) );
+			$this->assertEquals( $links['collection'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base ) );
+			$this->assertEquals( $links['about'][0]['href'], rest_url( 'wp/v2/types/' . $data['type'] ) );
+
+			if ( post_type_supports( $post->post_type, 'author' ) && $data['author'] ) {
+				$this->assertEquals( $links['author'][0]['href'], rest_url( 'wp/v2/users/' . $data['author'] ) );
+			}
+
+			if ( post_type_supports( $post->post_type, 'comments' ) ) {
+				$this->assertEquals( $links['replies'][0]['href'], add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/comments' ) ) );
+			}
+
+			if ( post_type_supports( $post->post_type, 'revisions' ) ) {
+				$this->assertEquals( $links['version-history'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base . '/' . $data['id'] . '/revisions' ) );
+			}
+
+			if ( $post_type->hierarchical && ! empty( $data['parent'] ) ) {
+				$this->assertEquals( $links['up'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base . '/' . $data['parent'] ) );
+			}
+
+			if ( ! in_array( $data['type'], array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
+				$this->assertEquals( $links['https://api.w.org/attachment'][0]['href'], add_query_arg( 'parent', $data['id'], rest_url( 'wp/v2/media' ) ) );
+			}
+
+			if ( ! empty( $data['featured_media'] ) ) {
+				$this->assertEquals( $links['https://api.w.org/featuredmedia'][0]['href'], rest_url( 'wp/v2/media/' . $data['featured_media'] ) );
+			}
+
+			$num = 0;
+			foreach ( $taxonomies as $key => $taxonomy ) {
+				$this->assertEquals( $taxonomy->name, $links['https://api.w.org/term'][ $num ]['attributes']['taxonomy'] );
+				$this->assertEquals( add_query_arg( 'post', $data['id'], rest_url( 'wp/v2/' . $taxonomy->rest_base ) ), $links['https://api.w.org/term'][ $num ]['href'] );
+				$num++;
+			}
+		}
+
 	}
 
 	protected function check_get_posts_response( $response, $context = 'view' ) {
@@ -165,9 +215,21 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$all_data = $response->get_data();
-		$data = $all_data[0];
-		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, $context );
+		foreach ( $all_data as $data ) {
+			$post = get_post( $data['id'] );
+			// as the links for the post are "response_links" format in the data array we have to pull them
+			// out and parse them.
+			$links = $data['_links'];
+			foreach ( $links as &$links_array ) {
+				foreach ( $links_array as &$link ) {
+					$attributes = array_diff_key( $link, array( 'href' => 1, 'name' => 1 ) );
+					$link = array_diff_key( $link, $attributes );
+					$link['attributes'] = $attributes;
+				}
+			}
+
+			$this->check_post_data( $post, $data, $context, $links );
+		}
 	}
 
 	protected function check_get_post_response( $response, $context = 'view' ) {
@@ -177,7 +239,8 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, $context );
+		$this->check_post_data( $post, $data, $context, $response->get_links() );
+
 	}
 
 	protected function check_create_post_response( $response ) {
@@ -190,7 +253,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, 'edit' );
+		$this->check_post_data( $post, $data, 'edit', $response->get_links() );
 	}
 
 	protected function check_update_post_response( $response ) {
@@ -203,7 +266,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
-		$this->check_post_data( $post, $data, 'edit' );
+		$this->check_post_data( $post, $data, 'edit', $response->get_links() );
 	}
 
 	protected function set_post_data( $args = array() ) {
@@ -234,4 +297,17 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 		) ) );
 	}
 
+	/**
+	 * Overwrite the default protected title format.
+	 *
+	 * By default WordPress will show password protected posts with a title of
+	 * "Protected: %s", as the REST API communicates the protected status of a post
+	 * in a machine readable format, we remove the "Protected: " prefix.
+	 *
+	 * @param  string $format
+	 * @return string
+	 */
+	public function protected_title_format() {
+		return '%s';
+	}
 }
