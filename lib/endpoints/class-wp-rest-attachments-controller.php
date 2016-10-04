@@ -302,6 +302,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		if ( isset( $this->schema ) ) {
+			return $this->schema;
+		}
 
 		$schema = parent::get_item_schema();
 
@@ -360,7 +363,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
 		);
-		return $schema;
+
+		$this->schema = $schema;
+		return $this->schema;
 	}
 
 	/**

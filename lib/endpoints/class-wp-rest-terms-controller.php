@@ -8,6 +8,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $taxonomy;
 
 	/**
+	 * Response schema.
+	 *
+	 * @var array Cached schema from `get_item_schema()`
+	 */
+	protected $schema;
+
+	/**
 	 * @param string $taxonomy
 	 */
 	public function __construct( $taxonomy ) {
@@ -673,6 +680,10 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_item_schema() {
+		if ( isset( $this->schema ) ) {
+			return $this->schema;
+		}
+
 		$schema = array(
 			'$schema'              => 'http://json-schema.org/draft-04/schema#',
 			'title'                => 'post_tag' === $this->taxonomy ? 'tag' : $this->taxonomy,
@@ -739,7 +750,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'context'      => array( 'view', 'edit' ),
 			);
 		}
-		return $this->add_additional_fields_schema( $schema );
+
+		$this->schema = $this->add_additional_fields_schema( $schema );
+		return $this->schema;
 	}
 
 	/**
