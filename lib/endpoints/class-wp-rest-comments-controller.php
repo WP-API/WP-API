@@ -318,11 +318,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_exists', __( 'Cannot create existing comment.' ), array( 'status' => 400 ) );
 		}
 
-		if ( empty( $request['content'] ) || ! is_string( $request['content'] ) ) {
-			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
-		}
-
 		$prepared_comment = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_comment ) ) {
+			return $prepared_comment;
+		}
 
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
@@ -436,11 +435,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
 		}
 
-		if ( isset( $request['content'] ) && ! is_string( $request['content'] ) ) {
-			return new WP_Error( 'rest_comment_content_invalid', __( 'Invalid comment content.' ), array( 'status' => 400 ) );
-		}
-
 		$prepared_args = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_args ) ) {
+			return $prepared_args;
+		}
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
@@ -736,8 +734,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array();
 
-		if ( isset( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
+			if ( current_user_can( 'unfiltered_html' ) ) {
+				$prepared_comment['comment_content'] = wp_filter_post_kses( $request['content'] );
+			} else {
+				$prepared_comment['comment_content'] = wp_filter_kses( $request['content'] );
+			}
+		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
+			if ( current_user_can( 'unfiltered_html' ) ) {
+				$prepared_comment['comment_content'] = wp_filter_post_kses( $request['content']['raw'] );
+			} else {
+				$prepared_comment['comment_content'] = wp_filter_kses( $request['content']['raw'] );
+			}
+		} else {
+			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
 		}
 
 		if ( isset( $request['post'] ) ) {
