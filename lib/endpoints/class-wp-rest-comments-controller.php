@@ -751,15 +751,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_content'] = $request['content']['raw'];
 		} elseif ( isset( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
-		} else {
-			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
 		}
-		}
+
 		/**
 		 * Add additional sanitization for users without the 'unfiltered_html'
 		 * capability.
 		 */
-		if ( ! current_user_can( 'unfiltered_html' ) ) {
+		if ( ! current_user_can( 'unfiltered_html' ) && $prepared_comment['comment_content'] ) {
 			$prepared_comment['comment_content'] = wp_filter_kses( $prepared_comment['comment_content'] );
 		}
 
@@ -811,6 +809,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) = $date_data;
 			}
+		}
+
+		// Require 'comment_content' unless only the 'comment_status' is being
+		// updated.
+		if ( ! empty( $prepared_comment ) && ! isset( $prepared_comment['comment_content'] ) ) {
+			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
 		}
 
 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
