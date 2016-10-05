@@ -734,20 +734,30 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array();
 
-		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
-			if ( current_user_can( 'unfiltered_html' ) ) {
-				$prepared_comment['comment_content'] = wp_filter_post_kses( $request['content'] );
-			} else {
-				$prepared_comment['comment_content'] = wp_filter_kses( $request['content'] );
-			}
-		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
-			if ( current_user_can( 'unfiltered_html' ) ) {
-				$prepared_comment['comment_content'] = wp_filter_post_kses( $request['content']['raw'] );
-			} else {
-				$prepared_comment['comment_content'] = wp_filter_kses( $request['content']['raw'] );
-			}
+		/**
+		 * Allow the comment_content to be set via the 'content' or
+		 * the 'content.raw' properties of the Request object.
+		 */
+		if ( isset( $request['content']['raw'] ) ) {
+			$prepared_comment['comment_content'] = $request['content']['raw'];
+		} elseif ( isset( $request['content'] ) ) {
+			$prepared_comment['comment_content'] = $request['content'];
 		} else {
 			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
+		}
+		/**
+		 * Do not allow comment_content to be an empty string.
+		 * See `wp_handle_comment_submission()`.
+		 */
+		if ( '' === $prepared_comment['comment_content'] ) {
+			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
+		}
+		/**
+		 * Add additional sanitization for users without the 'unfiltered_html'
+		 * capability.
+		 */
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
+			$prepared_comment['comment_content'] = wp_filter_kses( $prepared_comment['comment_content'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -879,7 +889,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					),
 					'arg_options'  => array(
 						'sanitize_callback' => 'wp_filter_post_kses',
-						'default'           => '',
 					),
 				),
 				'date'             => array(
