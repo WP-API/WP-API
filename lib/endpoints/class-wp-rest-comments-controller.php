@@ -323,6 +323,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
+		/**
+		 * Do not allow a comment to be created with an empty string for
+		 * comment_content.
+		 * See `wp_handle_comment_submission()`.
+		 */
+		if ( '' === $prepared_comment['comment_content'] ) {
+			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
+		}
+
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
 		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
@@ -745,12 +754,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		} else {
 			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
 		}
-		/**
-		 * Do not allow comment_content to be an empty string.
-		 * See `wp_handle_comment_submission()`.
-		 */
-		if ( '' === $prepared_comment['comment_content'] ) {
-			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
 		}
 		/**
 		 * Add additional sanitization for users without the 'unfiltered_html'
