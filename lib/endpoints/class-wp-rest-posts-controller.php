@@ -94,50 +94,72 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term to order by relevance.' ), array( 'status' => 400 ) );
 		}
 
-		$registered           = $this->get_collection_params();
-		$args                 = array();
-		$args['offset']       = $request['offset'];
-		$args['order']        = $request['order'];
-		$args['orderby']      = $request['orderby'];
-		$args['paged']        = $request['page'];
-		$args['post__in']     = $request['include'];
-		$args['post__not_in'] = $request['exclude'];
-		$args['name']         = $request['slug'];
-		$args['post_status']  = $request['status'];
-		$args['s']            = $request['search'];
+		$registered = $this->get_collection_params();
+		$args       = array();
 
+		if ( isset( $registered['offset'] ) ) {
+			$args['offset'] = $request['offset'];
+		}
+		if ( isset( $registered['order'] ) ) {
+			$args['order'] = $request['order'];
+		}
+		if ( isset( $registered['orderby'] ) ) {
+			$args['orderby'] = $request['orderby'];
+		}
+		if ( isset( $registered['page'] ) ) {
+			$args['paged'] = $request['page'];
+		}
+		if ( isset( $registered['include'] ) ) {
+			$args['post__in'] = $request['include'];
+		}
+		if ( isset( $registered['exclude'] ) ) {
+			$args['post__not_in'] = $request['exclude'];
+		}
+		if ( isset( $registered['slug'] ) ) {
+			$args['name'] = $request['slug'];
+		}
+		if ( isset( $registered['status'] ) ) {
+			$args['post_status'] = $request['status'];
+		}
+		if ( isset( $registered['search'] ) ) {
+			$args['s'] = $request['search'];
+		}
 		if ( isset( $registered['author'] ) ) {
-			$args['author__in']     = $request['author'];
+			$args['author__in'] = $request['author'];
+		}
+		if ( isset( $registered['author_exclude'] ) ) {
 			$args['author__not_in'] = $request['author_exclude'];
 		}
-
 		if ( isset( $registered['menu_order'] ) ) {
 			$args['menu_order'] = $request['menu_order'];
 		}
-
 		if ( isset( $registered['parent'] ) ) {
-			$args['post_parent__in']      = $request['parent'];
+			$args['post_parent__in'] = $request['parent'];
+		}
+		if ( isset( $registered['parent_exclude'] ) ) {
 			$args['post_parent__not_in']  = $request['parent_exclude'];
 		}
 
 		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $request['before'] ) ) {
+		if ( isset( $registered['before'] && isset( $request['before'] ) ) {
 			$args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $request['after'] ) ) {
+		if ( isset( $registered['after'] && isset( $request['after'] ) ) {
 			$args['date_query'][0]['after'] = $request['after'];
 		}
 
-		if ( is_array( $request['filter'] ) ) {
+		if ( isset( $registered['filter'] && is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
 
 		// Ensure our per_page parameter overrides filter.
-		$args['posts_per_page'] = $request['per_page'];
+		if ( isset( $registered['per_page'] ) {
+			$args['posts_per_page'] = $request['per_page'];
+		}
 
 		if ( isset( $registered['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
