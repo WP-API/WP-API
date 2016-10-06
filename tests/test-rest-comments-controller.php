@@ -1061,7 +1061,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content'      => "Disco Stu doesn't advertise.",
+			'content'      => 'Disco Stu doesn\'t advertise.',
 			'author'       => $this->subscriber_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
@@ -1080,7 +1080,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
-		$this->assertEquals( $params['content'], $comment['content']['raw'] );
+		$this->assertEquals( $params['content'], $updated->comment_content );
 		$this->assertEquals( $params['author'], $comment['author'] );
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
