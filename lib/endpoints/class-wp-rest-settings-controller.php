@@ -56,21 +56,21 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			// Because get_option() is lossy, we have to
 			// cast values to the type they are registered with.
-			$response[ $name ] = $this->cast_value_to_type( $response[ $name ], $args['schema']['type'] );
+			$response[ $name ] = $this->prepare_value( $response[ $name ], $args['schema'] );
 		}
 
 		return $response;
 	}
 
 	/**
-	 * Convert a value to a given schema type.
+	 * Prepare a value for output based off a schema array.
 	 *
-	 * @param  mixed  $value
-	 * @param  string $type  Type that the data should be converted to.
+	 * @param  mixed $value
+	 * @param  array $schema
 	 * @return mixed
 	 */
-	protected function cast_value_to_type( $value, $type ) {
-		switch ( $type ) {
+	protected function prepare_value( $value, $schema ) {
+		switch ( $schema['type'] ) {
 			case 'string':
 				return strval( $value );
 			case 'number':
@@ -78,7 +78,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			case 'boolean':
 				return (bool) $value;
 			default:
-				return $value;
+				return null;
 		}
 	}
 
@@ -144,6 +144,12 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			// Skip over settings that don't have a defined type in the schema.
 			if ( empty( $rest_args['schema']['type'] ) ) {
+				continue;
+			}
+
+			// Whitelist the supported types for settings, as we don't want invalid types
+			// to be updated with arbitrary values that we can't do decent sanitizing for.
+			if ( ! in_array( $rest_args['schema']['type'], 'number', 'string', 'boolean', true ) ) {
 				continue;
 			}
 
