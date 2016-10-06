@@ -94,18 +94,17 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term to order by relevance.' ), array( 'status' => 400 ) );
 		}
 
-		$registered             = $this->get_collection_params();
-		$args                   = array();
-		$args['offset']         = $request['offset'];
-		$args['order']          = $request['order'];
-		$args['orderby']        = $request['orderby'];
-		$args['paged']          = $request['page'];
-		$args['post__in']       = $request['include'];
-		$args['post__not_in']   = $request['exclude'];
-		$args['posts_per_page'] = $request['per_page'];
-		$args['name']           = $request['slug'];
-		$args['post_status']    = $request['status'];
-		$args['s']              = $request['search'];
+		$registered           = $this->get_collection_params();
+		$args                 = array();
+		$args['offset']       = $request['offset'];
+		$args['order']        = $request['order'];
+		$args['orderby']      = $request['orderby'];
+		$args['paged']        = $request['page'];
+		$args['post__in']     = $request['include'];
+		$args['post__not_in'] = $request['exclude'];
+		$args['name']         = $request['slug'];
+		$args['post_status']  = $request['status'];
+		$args['s']            = $request['search'];
 
 		if ( isset( $registered['author'] ) ) {
 			$args['author__in']     = $request['author'];
@@ -136,6 +135,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
+
+		// Ensure our per_page parameter overrides filter.
+		$args['posts_per_page'] = $request['per_page'];
 
 		if ( isset( $registered['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
@@ -179,6 +181,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$tax_exclude = $base . '_exclude';
 
 			if ( ! empty( $request[ $base ] ) ) {
 				$query_args['tax_query'][] = array(
@@ -186,6 +189,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
 					'include_children' => false,
+				);
+			}
+
+			if ( ! empty( $request[ $tax_exclude ] ) ) {
+				$query_args['tax_query'][] = array(
+					'taxonomy'         => $taxonomy->name,
+					'field'            => 'term_id',
+					'terms'            => $request[ $tax_exclude ],
+					'include_children' => false,
+					'operator'         => 'NOT IN',
 				);
 			}
 		}
