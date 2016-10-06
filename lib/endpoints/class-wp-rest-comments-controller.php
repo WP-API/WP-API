@@ -432,7 +432,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
-		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
+		if ( isset( $request['type'] ) && get_comment_type( $id ) !== $request['type'] ) {
 			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
 		}
 
@@ -765,7 +765,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['type'] ) ) {
-			$prepared_comment['comment_type'] = $request['type'];
+			// Comment type "comment" needs to be created as an empty string.
+			$prepared_comment['comment_type'] = 'comment' === $request['type'] ? '' : $request['type'];
 		}
 
 		if ( isset( $request['karma'] ) ) {
@@ -920,9 +921,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => __( 'Type of Comment for the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'default'      => 'comment',
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => '',
 					),
 				),
 			),
