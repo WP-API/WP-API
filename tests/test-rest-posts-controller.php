@@ -774,10 +774,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * Test updating a draft post by sending in a null date.
+	 * Test creating a draft post, sending in null date data.
 	 *
-	 * When the API returns a null value for a field, such as for dates on draft
-	 * posts, it should also accept a null value for that field.
+	 * The API should accept a null value for date_gmt, modified_gmt for draft
+	 * posts, these are returned as null for draft posts.
 	 *
 	 * @issue 2696
 	 *
@@ -789,8 +789,46 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$params = $this->set_post_data();
 
+		// Draft post, null date_gmt and modified_gmt.
 		$params['status'] = 'draft';
 		$params['date_gmt'] = null;
+		$params['modified_gmt'] = null;
+
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$this->check_update_post_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+	}
+
+	/**
+	 * Test creating a draft post by sending in a empty string slug.
+	 *
+	 * The API should accept an empty string for slugs for draft posts.
+	 *
+	 * @issue 2696
+	 *
+	 */
+	public function test_update_draft_post_with_empty_slug() {
+
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$params = $this->set_post_data();
+
+		// Draft posts, empty slug.
+		$params['status'] = 'draft';
+		$params['slug'] = "";
+
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$this->check_update_post_response( $response );
+
+		$this->assertNotInstanceOf( 'WP_Error', $response );
+
+	}
+
 
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
