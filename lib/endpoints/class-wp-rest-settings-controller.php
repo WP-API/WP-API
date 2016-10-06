@@ -114,7 +114,6 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	protected function get_registered_options() {
-		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 		$rest_options = array();
 
 		foreach ( get_registered_settings() as $name => $args ) {
