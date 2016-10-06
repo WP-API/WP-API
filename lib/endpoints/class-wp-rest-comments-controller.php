@@ -8,6 +8,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'comments';
+
+		$this->meta = new WP_REST_Comment_Meta_Fields();
 	}
 
 	/**
@@ -370,6 +372,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$this->handle_status_param( $request['status'], $comment );
 		}
 
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], $comment_id );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
+
 		$comment = get_comment( $comment_id );
 		$fields_update = $this->update_additional_fields_for_object( $comment, $request );
 		if ( is_wp_error( $fields_update ) ) {
@@ -450,6 +460,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			if ( isset( $request['status'] ) ) {
 				$this->handle_status_param( $request['status'], $comment );
+			}
+		}
+
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], $id );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
 			}
 		}
 
@@ -579,6 +597,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['author_avatar_urls'] ) ) {
 			$data['author_avatar_urls'] = rest_get_avatar_urls( $comment->comment_author_email );
+		}
+
+		if ( ! empty( $schema['properties']['meta'] ) ) {
+			$data['meta'] = $this->meta->get_value( $comment->comment_ID, $request );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -945,6 +967,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'properties'    => $avatar_properties,
 			);
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
 		return $this->add_additional_fields_schema( $schema );
 	}

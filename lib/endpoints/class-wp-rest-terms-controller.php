@@ -15,6 +15,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$this->namespace = 'wp/v2';
 		$tax_obj = get_taxonomy( $taxonomy );
 		$this->rest_base = ! empty( $tax_obj->rest_base ) ? $tax_obj->rest_base : $tax_obj->name;
+
+		$this->meta = new WP_REST_Term_Meta_Fields( $taxonomy );
 	}
 
 	/**
@@ -371,6 +373,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
+
 		$fields_update = $this->update_additional_fields_for_object( $term, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -444,6 +453,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		/* This action is documented in lib/endpoints/class-wp-rest-terms-controller.php */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, false );
+
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
 
 		$fields_update = $this->update_additional_fields_for_object( $term, $request );
 		if ( is_wp_error( $fields_update ) ) {
@@ -593,6 +610,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['parent'] ) ) {
 			$data['parent'] = (int) $item->parent;
 		}
+		if ( ! empty( $schema['properties']['meta'] ) ) {
+			$data['meta'] = $this->meta->get_value( $item->term_id, $request );
+		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 		$data = $this->add_additional_fields_to_object( $data, $request );
@@ -739,6 +759,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'context'      => array( 'view', 'edit' ),
 			);
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 		return $this->add_additional_fields_schema( $schema );
 	}
 

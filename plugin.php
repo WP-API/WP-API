@@ -80,6 +80,41 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-meta-fields.php';
+}
+
+/**
+ * WP_REST_Comment_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Comment_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-comment-meta-fields.php';
+}
+
+/**
+ * WP_REST_Post_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Post_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-post-meta-fields.php';
+}
+
+/**
+ * WP_REST_Term_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Term_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-term-meta-fields.php';
+}
+
+/**
+ * WP_REST_User_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_User_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-user-meta-fields.php';
+}
+
+/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
