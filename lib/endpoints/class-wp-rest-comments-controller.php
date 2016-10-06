@@ -752,12 +752,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		} elseif ( isset( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
-
-		/**
-		 * Add additional sanitization for users without the 'unfiltered_html'
-		 * capability.
-		 */
-		if ( ! current_user_can( 'unfiltered_html' ) && $prepared_comment['comment_content'] ) {
+		if ( current_user_can( 'unfiltered_html' ) && $prepared_comment['comment_content'] ) {
+			$prepared_comment['comment_content'] = wp_filter_post_kses( $prepared_comment['comment_content'] );
+		} elseif ( $prepared_comment['comment_content'] ) {
 			$prepared_comment['comment_content'] = wp_filter_kses( $prepared_comment['comment_content'] );
 		}
 
@@ -893,9 +890,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
 						),
-					),
-					'arg_options'  => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
 					),
 				),
 				'date'             => array(
