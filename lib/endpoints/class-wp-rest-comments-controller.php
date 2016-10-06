@@ -920,9 +920,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => __( 'Type of Comment for the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'default'      => 'comment',
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => '',
 					),
 				),
 			),
