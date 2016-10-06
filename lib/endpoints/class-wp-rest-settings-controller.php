@@ -149,7 +149,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 			// Whitelist the supported types for settings, as we don't want invalid types
 			// to be updated with arbitrary values that we can't do decent sanitizing for.
-			if ( ! in_array( $rest_args['schema']['type'], 'number', 'string', 'boolean', true ) ) {
+			if ( ! in_array( $rest_args['schema']['type'], array( 'number', 'string', 'boolean' ), true ) ) {
 				continue;
 			}
 
