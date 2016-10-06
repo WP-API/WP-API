@@ -1061,12 +1061,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content'      => 'Disco Stu doesn\'t advertise.',
 			'author'       => $this->subscriber_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
 			'author_ip'    => '4.4.4.4',
+			'content'      => 'Testing.',
 			'date'         => '2014-11-07T10:14:25',
 			'karma'        => 100,
 			'post'         => $post_id,
