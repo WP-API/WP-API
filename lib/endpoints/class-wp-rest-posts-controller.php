@@ -94,22 +94,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term to order by relevance.' ), array( 'status' => 400 ) );
 		}
 
-		$args                         = array();
-		$args['author__in']           = $request['author'];
-		$args['author__not_in']       = $request['author_exclude'];
-		$args['menu_order']           = $request['menu_order'];
-		$args['offset']               = $request['offset'];
-		$args['order']                = $request['order'];
-		$args['orderby']              = $request['orderby'];
-		$args['paged']                = $request['page'];
-		$args['post__in']             = $request['include'];
-		$args['post__not_in']         = $request['exclude'];
-		$args['posts_per_page']       = $request['per_page'];
-		$args['name']                 = $request['slug'];
-		$args['post_parent__in']      = $request['parent'];
-		$args['post_parent__not_in']  = $request['parent_exclude'];
-		$args['post_status']          = $request['status'];
-		$args['s']                    = $request['search'];
+		$registered             = $this->get_collection_params();
+		$args                   = array();
+		$args['offset']         = $request['offset'];
+		$args['order']          = $request['order'];
+		$args['orderby']        = $request['orderby'];
+		$args['paged']          = $request['page'];
+		$args['post__in']       = $request['include'];
+		$args['post__not_in']   = $request['exclude'];
+		$args['posts_per_page'] = $request['per_page'];
+		$args['name']           = $request['slug'];
+		$args['post_status']    = $request['status'];
+		$args['s']              = $request['search'];
+
+		if ( isset( $registered['author'] ) ) {
+			$args['author__in']     = $request['author'];
+			$args['author__not_in'] = $request['author_exclude'];
+		}
+
+		if ( isset( $registered['menu_order'] ) ) {
+			$args['menu_order'] = $request['menu_order'];
+		}
+
+		if ( isset( $registered['parent'] ) ) {
+			$args['post_parent__in']      = $request['parent'];
+			$args['post_parent__not_in']  = $request['parent_exclude'];
+		}
 
 		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
@@ -127,7 +137,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			unset( $args['filter'] );
 		}
 
-		if ( isset( $request['sticky'] ) ) {
+		if ( isset( $registered['sticky'] ) && isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
 			if ( $sticky_posts && $request['sticky'] ) {
 				// As post__in will be used to only get sticky posts,
