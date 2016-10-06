@@ -1080,6 +1080,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$comment = $response->get_data();
 		$updated = get_comment( $this->approved_id );
+		$this->assertEquals( $params['content'], $comment['content']['raw'] );
 		$this->assertEquals( $params['author'], $comment['author'] );
 		$this->assertEquals( $params['author_name'], $comment['author_name'] );
 		$this->assertEquals( $params['author_url'], $comment['author_url'] );
