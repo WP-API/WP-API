@@ -829,14 +829,40 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 	}
 
+	/**
+	 * Test updating a draft post after making a small change.
+	 *
+	 * Ensure that the API accepts as valid all the fields it returns when
+	 * creating a new draft post.
+	 *
+	 * @issue 2696
+	 *
+	 */
+	public function test_update_draft_post_with_returned_draft_post_data() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data();
+
+		// Create a post with draft status, title as test, and no slug.
+		$params['status'] = 'draft';
+		$params['title']  = 'test';
+		unset( $params['name'] );
 
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
 
+		$this->check_create_post_response( $response );
+
+		// Use the returned data, change the title and update the post.
+		$params = (array) $response->data;
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $params['id'] ) );
+		$params['title']  = 'changed';
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
 		$this->check_update_post_response( $response );
-
-		$this->assertNotInstanceOf( 'WP_Error', $response );
-
 	}
 
 	public function test_create_post_private() {
