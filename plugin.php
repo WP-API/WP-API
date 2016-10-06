@@ -83,10 +83,7 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
  * WP_REST_Settings_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Settings_Controller' ) ) {
-	global $wp_version;
-	if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
-		require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
-	}
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
 }
 
 /**
@@ -333,9 +330,12 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 		$controller = new WP_REST_Comments_Controller;
 		$controller->register_routes();
 
-		// Settings.
-		$controller = new WP_REST_Settings_Controller;
-		$controller->register_routes();
+		// Settings. 4.7+ only.
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
+			$controller = new WP_REST_Settings_Controller;
+			$controller->register_routes();
+		}
 	}
 }
 
