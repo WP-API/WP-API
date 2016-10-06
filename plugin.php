@@ -162,6 +162,10 @@ function _add_extra_api_taxonomy_arguments() {
  * once / if core starts to register settings internally.
  */
 function rest_register_settings() {
+	global $wp_version;
+	if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+		return;
+	}
 	require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 	register_setting( 'general', 'blogname', array(
