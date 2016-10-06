@@ -83,7 +83,10 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
  * WP_REST_Settings_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Settings_Controller' ) ) {
-	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
+	global $wp_version;
+	if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
+		require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
+	}
 }
 
 /**
