@@ -765,7 +765,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['type'] ) ) {
-			$prepared_comment['comment_type'] = $request['type'];
+			// Comment type "comment" needs to be created as an empty string.
+			$prepared_comment['comment_type'] = 'comment' === $request['type'] ? '' : $request['type'];
 		}
 
 		if ( isset( $request['karma'] ) ) {
