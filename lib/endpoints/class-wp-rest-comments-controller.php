@@ -752,9 +752,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		} elseif ( isset( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
 		}
-		if ( current_user_can( 'unfiltered_html' ) && $prepared_comment['comment_content'] ) {
+		if ( current_user_can( 'unfiltered_html' ) && isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = wp_filter_post_kses( $prepared_comment['comment_content'] );
-		} elseif ( $prepared_comment['comment_content'] ) {
+		} elseif ( isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = wp_filter_kses( $prepared_comment['comment_content'] );
 		}
 
