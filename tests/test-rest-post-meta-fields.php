@@ -341,6 +341,34 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * Test removing only one item with duplicate items.
+	 */
+	public function test_set_value_remove_one() {
+		add_post_meta( $this->post_id, 'test_multi', 'c' );
+		add_post_meta( $this->post_id, 'test_multi', 'n' );
+		add_post_meta( $this->post_id, 'test_multi', 'n' );
+
+		$this->grant_write_permission();
+
+		$data = array(
+			'meta' => array(
+				'test_multi' => array( 'c', 'n' ),
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$meta = get_post_meta( $this->post_id, 'test_multi', false );
+		$this->assertNotEmpty( $meta );
+		$this->assertCount( 2, $meta );
+		$this->assertContains( 'c', $meta );
+		$this->assertContains( 'n', $meta );
+	}
+
+	/**
 	 * @depends test_set_value_multiple
 	 */
 	public function test_set_value_multiple_unauthenticated() {
