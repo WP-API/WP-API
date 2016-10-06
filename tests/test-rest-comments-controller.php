@@ -1443,7 +1443,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . $this->approved_id );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'content' => 'abc',
+			'content'       => 'abc',
 		));
 
 		wp_set_current_user( 1 );
@@ -1453,8 +1453,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'title' => 'hello',
-			'post' => $this->post_id,
+			'title'         => 'hello',
+			'content'       => 'goodbye',
+			'post'          => $this->post_id,
 		));
 
 		$response = $this->server->dispatch( $request );
