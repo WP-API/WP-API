@@ -1061,7 +1061,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'author'       => $this->subscriber_id,
+			'author'       => $this->admin_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
