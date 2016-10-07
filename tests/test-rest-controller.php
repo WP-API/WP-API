@@ -205,4 +205,42 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$this->rest_the_post_filter_apply_count += 1;
 		return $post;
 	}
+
+	public function test_filter_response_by_fields() {
+		$controller = new WP_REST_Test_Controller();
+		$fields = array( 'id', 'title' );
+		$data = array(
+			'id' => 1,
+			'title' => array(
+				'rendered' => 'Post Title',
+			),
+			'content' => array(
+				'rendered' => 'Post Content',
+			),
+		);
+		$filtered_data = $controller->filter_response_by_fields( $data, $fields );
+		$this->assertNotEquals( $data, $filtered_data );
+		$this->assertEquals( array(
+			'id' => 1,
+			'title' => array(
+				'rendered' => 'Post Title',
+			),
+		), $filtered_data );
+	}
+
+	public function test_filter_response_by_empty_fields() {
+		$controller = new WP_REST_Test_Controller();
+		$fields = array();
+		$data = array(
+			'id' => 1,
+			'title' => array(
+				'rendered' => 'Post Title',
+			),
+			'content' => array(
+				'rendered' => 'Post Content',
+			),
+		);
+		$filtered_data = $controller->filter_response_by_fields( $data, $fields );
+		$this->assertEquals( $data, $filtered_data );
+	}
 }
