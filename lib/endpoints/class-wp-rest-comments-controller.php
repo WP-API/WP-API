@@ -755,7 +755,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		if ( current_user_can( 'unfiltered_html' ) && isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = wp_kses_post( $prepared_comment['comment_content'] );
 		} elseif ( isset( $prepared_comment['comment_content'] ) ) {
-			$prepared_comment['comment_content'] = wp_kses( $prepared_comment['comment_content'] );
+			$prepared_comment['comment_content'] = wp_filter_kses( $prepared_comment['comment_content'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
