@@ -747,10 +747,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * Allow the comment_content to be set via the 'content' or
 		 * the 'content.raw' properties of the Request object.
 		 */
-		if ( isset( $request['content']['raw'] ) ) {
-			$prepared_comment['comment_content'] = $request['content']['raw'];
-		} elseif ( isset( $request['content'] ) ) {
+		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
 			$prepared_comment['comment_content'] = $request['content'];
+		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
+			$prepared_comment['comment_content'] = $request['content']['raw'];
 		}
 		if ( current_user_can( 'unfiltered_html' ) && isset( $prepared_comment['comment_content'] ) ) {
 			$prepared_comment['comment_content'] = wp_kses_post( $prepared_comment['comment_content'] );
