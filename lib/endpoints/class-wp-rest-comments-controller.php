@@ -295,6 +295,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_status', __( 'Sorry, you cannot set status for comments.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
+		if ( empty( $request['post'] ) && ! current_user_can( 'moderate_comments' ) ) {
+			return new WP_Error( 'rest_comment_invalid_post_id', __( 'Sorry, you cannot create this comment without a post' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		if ( ! empty( $request['post'] ) && $post = $this->get_post( (int) $request['post'] ) ) {
 
 			if ( ! $this->check_read_post_permission( $post ) ) {
@@ -438,7 +442,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_invalid_id', __( 'Invalid comment id.' ), array( 'status' => 404 ) );
 		}
 
-		if ( isset( $request['type'] ) && $request['type'] !== $comment->comment_type ) {
+		if ( isset( $request['type'] ) && get_comment_type( $id ) !== $request['type'] ) {
 			return new WP_Error( 'rest_comment_invalid_type', __( 'Sorry, you cannot change the comment type.' ), array( 'status' => 404 ) );
 		}
 
@@ -783,7 +787,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['type'] ) ) {
-			$prepared_comment['comment_type'] = $request['type'];
+			// Comment type "comment" needs to be created as an empty string.
+			$prepared_comment['comment_type'] = 'comment' === $request['type'] ? '' : $request['type'];
 		}
 
 		if ( isset( $request['karma'] ) ) {
@@ -938,9 +943,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'  => __( 'Type of Comment for the object.' ),
 					'type'         => 'string',
 					'context'      => array( 'view', 'edit', 'embed' ),
+					'default'      => 'comment',
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_key',
-						'default'           => '',
 					),
 				),
 			),
@@ -1172,9 +1177,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return boolean Can we read it?
 	 */
 	protected function check_read_permission( $comment ) {
-
-		if ( 1 === (int) $comment->comment_approved ) {
-			return true;
+		if ( ! empty( $comment->comment_post_ID ) ) {
+			$post = get_post( $comment->comment_post_ID );
+			if ( $post ) {
+				if ( $this->check_read_post_permission( $post ) && 1 === (int) $comment->comment_approved ) {
+					return true;
+				}
+			}
 		}
 
 		if ( 0 === get_current_user_id() ) {
@@ -1183,13 +1192,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		if ( empty( $comment->comment_post_ID ) && ! current_user_can( 'moderate_comments' ) ) {
 			return false;
-		}
-
-		$post = $this->get_post( $comment->comment_post_ID );
-		if ( $comment->comment_post_ID && $post ) {
-			if ( ! $this->check_read_post_permission( $post ) ) {
-				return false;
-			}
 		}
 
 		if ( ! empty( $comment->user_id ) && get_current_user_id() === (int) $comment->user_id ) {

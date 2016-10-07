@@ -106,7 +106,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['paged']                = $request['page'];
 		$args['post__in']             = $request['include'];
 		$args['post__not_in']         = $request['exclude'];
-		$args['posts_per_page']       = $request['per_page'];
 		$args['name']                 = $request['slug'];
 		$args['post_parent__in']      = $request['parent'];
 		$args['post_parent__not_in']  = $request['parent_exclude'];
@@ -128,6 +127,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
+
+		// Ensure our per_page parameter overrides filter.
+		$args['posts_per_page'] = $request['per_page'];
 
 		if ( isset( $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
@@ -171,6 +173,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$tax_exclude = $base . '_exclude';
 
 			if ( ! empty( $request[ $base ] ) ) {
 				$query_args['tax_query'][] = array(
@@ -178,6 +181,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
 					'include_children' => false,
+				);
+			}
+
+			if ( ! empty( $request[ $tax_exclude ] ) ) {
+				$query_args['tax_query'][] = array(
+					'taxonomy'         => $taxonomy->name,
+					'field'            => 'term_id',
+					'terms'            => $request[ $tax_exclude ],
+					'include_children' => false,
+					'operator'         => 'NOT IN',
 				);
 			}
 		}

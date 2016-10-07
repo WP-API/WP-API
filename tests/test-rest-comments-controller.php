@@ -12,6 +12,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected $subscriber_id;
 
 	protected $post_id;
+	protected $private_id;
 
 	protected $approved_id;
 	protected $hold_id;
@@ -32,6 +33,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		));
 
 		$this->post_id = $this->factory->post->create();
+		$this->private_id = $this->factory->post->create( array(
+			'post_status' => 'private',
+		));
 
 		$this->approved_id = $this->factory->comment->create( array(
 			'comment_approved' => 1,
@@ -116,6 +120,80 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comments = $response->get_data();
 		// We created 6 comments in this method, plus $this->approved_id.
 		$this->assertCount( 7, $comments );
+	}
+
+	public function test_get_items_without_private_post_permission() {
+		wp_set_current_user( 0 );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->private_id,
+		);
+		$private_comment = $this->factory->comment->create( $args );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$collection_data = $response->get_data();
+		$this->assertFalse( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ) ) );
+	}
+
+	public function test_get_items_with_private_post_permission() {
+		wp_set_current_user( $this->admin_id );
+
+		$args = array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->private_id,
+		);
+		$private_comment = $this->factory->comment->create( $args );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$collection_data = $response->get_data();
+		$this->assertTrue( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ) ) );
+	}
+
+	public function test_get_items_with_invalid_post() {
+		wp_set_current_user( 0 );
+
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+		));
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$collection_data = $response->get_data();
+		$this->assertFalse( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ) ) );
+
+		wp_delete_comment( $comment_id );
+	}
+
+	public function test_get_items_with_invalid_post_permission() {
+		wp_set_current_user( $this->admin_id );
+
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+		));
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$collection_data = $response->get_data();
+		$this->assertTrue( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ) ) );
+
+		wp_delete_comment( $comment_id );
 	}
 
 	public function test_get_items_no_permission_for_context() {
@@ -567,6 +645,19 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_get_comment_invalid_post_id() {
+		wp_set_current_user( 0 );
+		$comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+		));
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $comment_id );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_read', $response, 401 );
+	}
+
+	public function test_get_comment_invalid_post_id_as_admin() {
+		wp_set_current_user( $this->admin_id );
 		$comment_id = $this->factory->comment->create( array(
 			'comment_approved' => 1,
 			'comment_post_ID'  => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
@@ -917,6 +1008,45 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 201, $response->get_status() );
 	}
 
+	public function test_create_comment_no_post_id_no_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
+	public function test_create_comment_private_post_invalide_permission() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->private_id,
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'I\’d be a vegetarian if bacon grew on trees.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 403 );
+	}
+
 	public function test_create_item_duplicate() {
 		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 		$this->factory->comment->create(
@@ -1189,6 +1319,26 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+	}
+
+	public function test_update_comment_private_post_invalid_permission() {
+		$private_comment_id = $this->factory->comment->create( array(
+			'comment_approved' => 1,
+			'comment_post_ID'  => $this->private_id,
+			'user_id'          => 0,
+		));
+
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'content' => 'Disco Stu likes disco music.',
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $private_comment_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_edit', $response, 403 );
 	}
 
 	public function test_update_comment_with_children_link() {
