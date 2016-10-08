@@ -9,6 +9,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$this->namespace = 'wp/v2';
 		$obj = get_post_type_object( $post_type );
 		$this->rest_base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
+
+		$this->meta = new WP_REST_Post_Meta_Fields( $this->post_type );
 	}
 
 	/**
@@ -171,6 +173,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$tax_exclude = $base . '_exclude';
 
 			if ( ! empty( $request[ $base ] ) ) {
 				$query_args['tax_query'][] = array(
@@ -178,6 +181,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
 					'include_children' => false,
+				);
+			}
+
+			if ( ! empty( $request[ $tax_exclude ] ) ) {
+				$query_args['tax_query'][] = array(
+					'taxonomy'         => $taxonomy->name,
+					'field'            => 'term_id',
+					'terms'            => $request[ $tax_exclude ],
+					'include_children' => false,
+					'operator'         => 'NOT IN',
 				);
 			}
 		}
@@ -415,6 +428,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = $this->get_post( $post_id );
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
+
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -521,6 +541,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post = $this->get_post( $post_id );
+
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], $post->ID );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
+
 		$fields_update = $this->update_additional_fields_for_object( $post, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -1253,6 +1281,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if ( ! empty( $schema['properties']['meta'] ) ) {
+			$data['meta'] = $this->meta->get_value( $post->ID, $request );
+		}
+
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
@@ -1511,6 +1543,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'revisions',
 			'page-attributes',
 			'post-formats',
+			'custom-fields',
 		);
 		$fixed_schemas = array(
 			'post' => array(
@@ -1522,6 +1555,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'comments',
 				'revisions',
 				'post-formats',
+				'custom-fields',
 			),
 			'page' => array(
 				'title',
@@ -1532,12 +1566,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'comments',
 				'revisions',
 				'page-attributes',
+				'custom-fields',
 			),
 			'attachment' => array(
 				'title',
 				'author',
 				'comments',
 				'revisions',
+				'custom-fields',
 			),
 		);
 		foreach ( $post_type_attributes as $attribute ) {
@@ -1670,6 +1706,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						'enum'        => array_values( get_post_format_slugs() ),
 						'context'     => array( 'view', 'edit' ),
 					);
+					break;
+
+				case 'custom-fields':
+					$schema['properties']['meta'] = $this->meta->get_field_schema();
 					break;
 
 			}

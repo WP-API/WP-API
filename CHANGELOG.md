@@ -1,5 +1,59 @@
 # Changelog
 
+## 2.0 Beta 15.0 (October 07, 2016)
+
+- Introduce support for Post Meta, Term Meta, User Meta, and Comment Meta in
+their parent endpoints.
+
+  For your meta fields to be exposed in the REST API, you need to register
+  them. WordPress includes a `register_meta()` function which is not usually
+  required to get/set fields, but is required for API support.
+
+  To register your field, simply call register_meta and set the show_in_rest
+  flag to true. Note: register_meta must be called separately for each meta
+  key.
+
+  (props @rmccue, @danielbachhuber, @kjbenk, @duncanjbrown, [#2765][gh-2765])
+
+- Introduce Settings endpoint.
+
+  Expose options to the REST API with the `register_setting()` function, by
+  passing `$args = array( 'show_in_rest' => true )`. Note: WordPress 4.7 is
+  required. See changeset [38635][https://core.trac.wordpress.org/changeset/38635].
+
+  (props @joehoyle, @fjarrett, @danielbachhuber, @jonathanbardo,
+  @greatislander, [#2739][gh-2739])
+
+- Attachments controller, change permissions check to match core.  
+
+  Check for the `upload_files` capability when creating an attachment.
+
+  (props @nullvariable, @adamsilverstein, [#2743][gh-2743])
+
+- Add `?{taxonomy}_exclude=` query parameter
+
+  This mirrors our existing support for ?{taxonomy}= filtering in the posts
+  controller (which allows querying for only records with are associated with
+  any of the provided term IDs for the specified taxonomy) by adding an
+  equivalent `_exclude` variant to list IDs of terms for which associated posts
+  should NOT be returned.
+
+  (props @kadamwhite, [#2756][gh-2756])
+
+- Use `get_comment_type()` when comparing updating comment status.
+
+  Comments having a empty `comment_type` within WordPress bites us again.
+  Fixes a bug where comments could not be updated because of bad comparison
+  logic.
+
+  (props @joehoyle, [#2753][gh-2753])
+
+[gh-2765]: https://github.com/WP-API/WP-API/issues/2765
+[gh-2739]: https://github.com/WP-API/WP-API/issues/2739
+[gh-2743]: https://github.com/WP-API/WP-API/issues/2743
+[gh-2756]: https://github.com/WP-API/WP-API/issues/2756
+[gh-2753]: https://github.com/WP-API/WP-API/issues/2753
+
 ## 2.0 Beta 14.0 (September 30, 2016)
 
 - Add support for password protected posts
