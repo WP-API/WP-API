@@ -139,6 +139,8 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
 
 		if ( ! empty( $request['post'] ) ) {
+			// Used when calling wp_count_terms() below.
+			$prepared_args['object_id'] = $request['post'];
 			$query_result = wp_get_object_terms( $request['post'], $this->taxonomy, $prepared_args );
 		} else {
 			$query_result = get_terms( $this->taxonomy, $prepared_args );
@@ -148,12 +150,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		unset( $count_args['number'] );
 		unset( $count_args['offset'] );
 
-		if ( ! empty( $request['post'] ) ) {
-			$count_args['fields'] = 'count';
-			$total_terms = wp_get_object_terms( $request['post'], $this->taxonomy, $count_args );
-		} else {
-			$total_terms = wp_count_terms( $this->taxonomy, $count_args );
-		}
+		$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
 		// wp_count_terms can return a falsy value when the term has no children
 		if ( ! $total_terms ) {
