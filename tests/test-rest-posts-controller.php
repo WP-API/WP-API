@@ -819,7 +819,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		// Draft posts, empty slug.
 		$params['status'] = 'draft';
-		$params['slug'] = "";
+		$params['slug'] = '';
 
 		$request->set_body_params( $params );
 		$response = $this->server->dispatch( $request );
