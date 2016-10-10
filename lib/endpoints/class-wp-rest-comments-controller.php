@@ -774,14 +774,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * the 'content.raw' properties of the Request object.
 		 */
 		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+			$prepared_comment['comment_content'] = wp_filter_kses( $request['content'] );
 		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
-			$prepared_comment['comment_content'] = $request['content']['raw'];
-		}
-		if ( current_user_can( 'unfiltered_html' ) && isset( $prepared_comment['comment_content'] ) ) {
-			$prepared_comment['comment_content'] = wp_kses_post( $prepared_comment['comment_content'] );
-		} elseif ( isset( $prepared_comment['comment_content'] ) ) {
-			$prepared_comment['comment_content'] = wp_kses( $prepared_comment['comment_content'], 'pre_comment_content' );
+			$prepared_comment['comment_content'] = wp_filter_kses( $request['content']['raw'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
