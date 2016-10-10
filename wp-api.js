@@ -2,6 +2,9 @@
 
 	'use strict';
 
+	/**
+	 * Initialise the WP_API.
+	 */
 	function WP_API() {
 		this.models = {};
 		this.collections = {};
@@ -12,7 +15,7 @@
 	wp.api               = wp.api || new WP_API();
 	wp.api.versionString = wp.api.versionString || 'wp/v2/';
 
-	// Alias _includes to _.contains, ensuring it is available.
+	// Alias _includes to _.contains, ensuring it is available if lodash is used.
 	if ( ! _.isFunction( _.includes ) && _.isFunction( _.contains ) ) {
 	  _.includes = _.contains;
 	}
@@ -117,7 +120,7 @@
 	};
 
 	/**
-	 * Extract a route part based on negitive index.
+	 * Extract a route part based on negative index.
 	 *
 	 * @param {string} route The endpoint route.
 	 * @param {int}    part  The number of parts from the end of the route to retrieve. Default 1.
@@ -250,8 +253,8 @@
 					_.each( parseableDates, function( key ) {
 						if ( key in attributes ) {
 
-							// Don't convert null values
-							if ( ! _.isNull( attributes[ key ] ) ) {
+							// Only convert dates.
+							if ( _.isDate( attributes[ key ] )  ) {
 								attributes[ key ] = attributes[ key ].toISOString();
 							}
 						}
@@ -275,7 +278,7 @@
 							return;
 						}
 
-						// Don't convert null values
+						// Don't convert null values.
 						if ( ! _.isNull( response[ key ] ) ) {
 							timestamp = wp.api.utils.parseISO8601( response[ key ] );
 							response[ key ] = new Date( timestamp );
@@ -303,8 +306,8 @@
 				deferred  = jQuery.Deferred();
 				embeddeds = parentModel.get( '_embedded' ) || {};
 
-				// Verify that we have a valied author id.
-				if ( ! _.isNumber( modelId ) ) {
+				// Verify that we have a valied object id.
+				if ( ! _.isNumber( modelId ) || 0 === modelId ) {
 					deferred.reject();
 					return deferred;
 				}
@@ -619,11 +622,11 @@
 			},
 
 			/**
-			 * Add a helper function to retrieve the featured image.
+			 * Add a helper function to retrieve the featured media.
 			 */
-			FeaturedImageMixin = {
-				getFeaturedImage: function() {
-					return buildModelGetter( this, this.get( 'featured_image' ), 'Media', 'https://api.w.org/featuredmedia', 'source_url' );
+			FeaturedMediaMixin = {
+				getFeaturedMedia: function() {
+					return buildModelGetter( this, this.get( 'featured_media' ), 'Media', 'wp:featuredmedia', 'source_url' );
 				}
 			};
 
@@ -649,9 +652,9 @@
 			model = model.extend( AuthorMixin );
 		}
 
-		// Add the FeaturedImageMixin for models that contain a featured_image.
-		if ( ! _.isUndefined( model.prototype.args.featured_image ) ) {
-			model = model.extend( FeaturedImageMixin );
+		// Add the FeaturedMediaMixin for models that contain a featured_media.
+		if ( ! _.isUndefined( model.prototype.args.featured_media ) ) {
+			model = model.extend( FeaturedMediaMixin );
 		}
 
 		// Add the CategoriesMixin for models that support categories collections.
@@ -837,7 +840,7 @@
 			},
 
 			/**
-			 * Overwrite Backbone.Collection.sync to pagination state based on response headers.
+			 * Extend Backbone.Collection.sync to add nince and pagination support.
 			 *
 			 * Set nonce header before every Backbone sync.
 			 *
@@ -853,6 +856,7 @@
 				options    = options || {};
 				beforeSend = options.beforeSend;
 
+				// If we have a localized nonce, pass that along with each sync.
 				if ( 'undefined' !== typeof wpApiSettings.nonce ) {
 					options.beforeSend = function( xhr ) {
 						xhr.setRequestHeader( 'X-WP-Nonce', wpApiSettings.nonce );
@@ -863,6 +867,7 @@
 					};
 				}
 
+				// When reading, add pagination data.
 				if ( 'read' === method ) {
 					if ( options.data ) {
 						self.state.data = _.clone( options.data );
@@ -873,8 +878,8 @@
 					}
 
 					if ( 'undefined' === typeof options.data.page ) {
-						self.state.currentPage = null;
-						self.state.totalPages = null;
+						self.state.currentPage  = null;
+						self.state.totalPages   = null;
 						self.state.totalObjects = null;
 					} else {
 						self.state.currentPage = options.data.page - 1;
@@ -883,7 +888,7 @@
 					success = options.success;
 					options.success = function( data, textStatus, request ) {
 						if ( ! _.isUndefined( request ) ) {
-							self.state.totalPages = parseInt( request.getResponseHeader( 'x-wp-totalpages' ), 10 );
+							self.state.totalPages   = parseInt( request.getResponseHeader( 'x-wp-totalpages' ), 10 );
 							self.state.totalObjects = parseInt( request.getResponseHeader( 'x-wp-total' ), 10 );
 						}
 
@@ -899,6 +904,7 @@
 					};
 				}
 
+				// Continue by calling Bacckbone's sync.
 				return Backbone.sync( method, model, options );
 			},
 
@@ -957,11 +963,12 @@
 	window.wp = window.wp || {};
 	wp.api    = wp.api || {};
 
+	// If wpApiSettings is unavailable, try the default.
 	if ( _.isEmpty( wpApiSettings ) ) {
 		wpApiSettings.root = window.location.origin + '/wp-json/';
 	}
 
-	Endpoint = Backbone.Model.extend({
+	Endpoint = Backbone.Model.extend( {
 		defaults: {
 			apiRoot: wpApiSettings.root,
 			versionString: wp.api.versionString,
@@ -970,6 +977,9 @@
 			collections: {}
 		},
 
+		/**
+		 * Initialize the Endpoint model.
+		 */
 		initialize: function() {
 			var model = this, deferred;
 
@@ -981,8 +991,9 @@
 			model.schemaModel = new wp.api.models.Schema( null, {
 				apiRoot: model.get( 'apiRoot' ),
 				versionString: model.get( 'versionString' )
-			});
+			} );
 
+			// When the model loads, resolve the promise.
 			model.schemaModel.once( 'change', function() {
 				model.constructFromSchema();
 				deferred.resolve( model );
@@ -992,29 +1003,39 @@
 
 				// Use schema supplied as model attribute.
 				model.schemaModel.set( model.schemaModel.parse( model.get( 'schema' ) ) );
-			} else if ( ! _.isUndefined( sessionStorage ) && sessionStorage.getItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ) ) ) {
+			} else if (
+				! _.isUndefined( sessionStorage ) &&
+				( _.isUndefined( wpApiSettings.cacheSchema ) || wpApiSettings.cacheSchema ) &&
+				sessionStorage.getItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ) )
+			) {
 
 				// Used a cached copy of the schema model if available.
 				model.schemaModel.set( model.schemaModel.parse( JSON.parse( sessionStorage.getItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ) ) ) ) );
 			} else {
-				model.schemaModel.fetch({
+				model.schemaModel.fetch( {
 					/**
-					 * When the server return the schema model data, store the data in a sessionCache so we don't
+					 * When the server returns the schema model data, store the data in a sessionCache so we don't
 					 * have to retrieve it again for this session. Then, construct the models and collections based
 					 * on the schema model data.
 					 */
 					success: function( newSchemaModel ) {
 
 						// Store a copy of the schema model in the session cache if available.
-						if ( ! _.isUndefined( sessionStorage ) ) {
-							sessionStorage.setItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ), JSON.stringify( newSchemaModel ) );
+						if ( ! _.isUndefined( sessionStorage ) && wpApiSettings.cacheSchema ) {
+							try {
+								sessionStorage.setItem( 'wp-api-schema-model' + model.get( 'apiRoot' ) + model.get( 'versionString' ), JSON.stringify( newSchemaModel ) );
+							} catch ( error ) {
+
+								// Fail silently, fixes errors in safari private mode.
+							}
 						}
 					},
 
-					// @todo Handle the error condition.
-					error: function() {
+					// Log the error condition.
+					error: function( err ) {
+						window.console.log( err );
 					}
-				});
+				} );
 			}
 		},
 
@@ -1060,10 +1081,10 @@
 			 * Iterate thru the routes, picking up models and collections to build. Builds two arrays,
 			 * one for models and one for collections.
 			 */
-			modelRoutes                = [];
-			collectionRoutes           = [];
-			schemaRoot                 = routeModel.get( 'apiRoot' ).replace( wp.api.utils.getRootUrl(), '' );
-			loadingObjects             = {};
+			modelRoutes      = [];
+			collectionRoutes = [];
+			schemaRoot       = routeModel.get( 'apiRoot' ).replace( wp.api.utils.getRootUrl(), '' );
+			loadingObjects   = {};
 
 			/**
 			 * Tracking objects for models and collections.
@@ -1080,7 +1101,7 @@
 				) {
 
 					// Single items end with a regex (or the special case 'me').
-					if ( /.*[+)|me]$/.test( index ) ) {
+					if ( /(?:.*[+)]|\/me)$/.test( index ) ) {
 						modelRoutes.push( { index: index, route: route } );
 					} else {
 
@@ -1114,7 +1135,7 @@
 					modelClassName = mapping.models[ modelClassName ] || modelClassName;
 					loadingObjects.models[ modelClassName ] = wp.api.WPApiBaseModel.extend( {
 
-						// Function that returns a constructed url based on the parent and id.
+						// Return a constructed url based on the parent and id.
 						url: function() {
 							var url = routeModel.get( 'apiRoot' ) + routeModel.get( 'versionString' ) +
 									parentName +  '/' +
@@ -1138,6 +1159,7 @@
 						methods: modelRoute.route.methods,
 
 						initialize: function() {
+
 							/**
 							 * Posts and pages support trashing, other types don't support a trash
 							 * and require that you pass ?force=true to actually delete them.
@@ -1183,7 +1205,7 @@
 					} );
 				}
 
-				// Add defaults to the new model, pulled form the endpoint
+				// Add defaults to the new model, pulled form the endpoint.
 				wp.api.utils.decorateFromRoute( modelRoute.route.endpoints, loadingObjects.models[ modelClassName ] );
 
 			} );
@@ -1200,7 +1222,7 @@
 						routeName  = collectionRoute.index.slice( collectionRoute.index.lastIndexOf( '/' ) + 1 ),
 						parentName = wp.api.utils.extractRoutePart( collectionRoute.index, 3 );
 
-				// If the collection has a parent in its route, add that to its class name/
+				// If the collection has a parent in its route, add that to its class name.
 				if ( '' !== parentName && parentName !== routeName ) {
 
 					collectionClassName = wp.api.utils.capitalize( parentName ) + wp.api.utils.capitalize( routeName );
@@ -1252,7 +1274,7 @@
 					} );
 				}
 
-				// Add defaults to the new model, pulled form the endpoint
+				// Add defaults to the new model, pulled form the endpoint.
 				wp.api.utils.decorateFromRoute( collectionRoute.route.endpoints, loadingObjects.collections[ collectionClassName ] );
 			} );
 
@@ -1263,11 +1285,11 @@
 
 		}
 
-	});
+	} );
 
-	wp.api.endpoints = new Backbone.Collection({
+	wp.api.endpoints = new Backbone.Collection( {
 		model: Endpoint
-	});
+	} );
 
 	/**
 	 * Initialize the wp-api, optionally passing the API root.
@@ -1280,10 +1302,10 @@
 	wp.api.init = function( args ) {
 		var endpoint, attributes = {}, deferred, promise;
 
-		args = args || {};
-		attributes.apiRoot = args.apiRoot || wpApiSettings.root;
+		args                     = args || {};
+		attributes.apiRoot       = args.apiRoot || wpApiSettings.root;
 		attributes.versionString = args.versionString || wpApiSettings.versionString;
-		attributes.schema = args.schema || null;
+		attributes.schema        = args.schema || null;
 		if ( ! attributes.schema && attributes.apiRoot === wpApiSettings.root && attributes.versionString === wpApiSettings.versionString ) {
 			attributes.schema = wpApiSettings.schema;
 		}

@@ -335,7 +335,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'tags', array( $tag['term_id'] ) );
 
 		$response = $this->server->dispatch( $request );
-		$this->assertCount( 1, $response->get_data() );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id1, $data[0]['id'] );
+	}
+
+	public function test_get_items_tags_exclude_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags_exclude', array( $tag['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 3, $data );
+		$this->assertEquals( $id4, $data[0]['id'] );
+		$this->assertEquals( $id3, $data[1]['id'] );
+		$this->assertEquals( $id2, $data[2]['id'] );
 	}
 
 	public function test_get_items_tags_and_categories_query() {
@@ -356,6 +377,28 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$response = $this->server->dispatch( $request );
 		$this->assertCount( 1, $response->get_data() );
+	}
+
+	public function test_get_items_tags_and_categories_exclude_query() {
+		$id1 = $this->post_id;
+		$id2 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id3 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$id4 = $this->factory->post->create( array( 'post_status' => 'publish' ) );
+		$tag = wp_insert_term( 'My Tag', 'post_tag' );
+		$category = wp_insert_term( 'My Category', 'category' );
+
+		wp_set_object_terms( $id1, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id2, array( $tag['term_id'] ), 'post_tag' );
+		wp_set_object_terms( $id1, array( $category['term_id'] ), 'category' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param( 'tags', array( $tag['term_id'] ) );
+		$request->set_param( 'categories_exclude', array( $category['term_id'] ) );
+
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $id2, $data[0]['id'] );
 	}
 
 	public function test_get_items_sticky_query() {
@@ -503,19 +546,21 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$this->assertFalse( stripos( $headers['Link'], 'rel="next"' ) );
 
-		// With filter params.
+		// With query params.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => 5, 'paged' => 2 ) ) );
+		$request->set_query_params( array( 'per_page' => 5, 'page' => 2 ) );
 		$response = $this->server->dispatch( $request );
 		$headers = $response->get_headers();
 		$this->assertEquals( 51, $headers['X-WP-Total'] );
 		$this->assertEquals( 11, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg( array(
-			'page'    => 1,
+			'per_page' => 5,
+			'page'     => 1,
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $prev_link . '>; rel="prev"', $headers['Link'] );
 		$next_link = add_query_arg( array(
-			'page'    => 3,
+			'per_page' => 5,
+			'page'     => 3,
 			), rest_url( '/wp/v2/posts' ) );
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
@@ -536,6 +581,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		$this->assertCount( 1, $data );
 		$this->assertEquals( $draft_id, $data[0]['id'] );
+	}
+
+	public function test_get_items_invalid_per_page() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'per_page' => -1 ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	public function test_get_items_invalid_posts_per_page_ignored() {
+		// This test ensures that filter[posts_per_page] is ignored, and that -1
+		// cannot be used to sidestep per_page's valid range to retrieve all posts
+		for ( $i = 0; $i < 20; $i++ ) {
+			$this->factory->post->create( array( 'post_status' => 'publish' ) );
+		}
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'filter' => array( 'posts_per_page' => -1 ) ) );
+		$response = $this->server->dispatch( $request );
+		$this->assertCount( 10, $response->get_data() );
 	}
 
 	public function test_get_items_invalid_context() {
@@ -688,22 +752,66 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'post_password' => '$inthebananastand',
 		) );
 
-		wp_set_current_user( $this->editor_id );
-
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = $this->server->dispatch( $request );
 
 		$this->check_get_post_response( $response, 'view' );
+
+		$data = $response->get_data();
+		$this->assertTrue( $data['content']['protected'] );
+		$this->assertTrue( $data['excerpt']['protected'] );
+	}
+
+	public function test_get_post_with_password_using_password() {
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+			return $this->markTestSkipped( 'WordPress < 4.6 does not support filtering passwords for posts.' );
+		}
+
+		$post_id = $this->factory->post->create( array(
+			'post_password' => '$inthebananastand',
+			'post_content'  => 'Some secret content.',
+			'post_excerpt'  => 'Some secret excerpt.',
+		) );
+
+		$post = get_post( $post_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'password', '$inthebananastand' );
+		$response = $this->server->dispatch( $request );
+
+		$this->check_get_post_response( $response, 'view' );
+
+		$data = $response->get_data();
+		$this->assertEquals( wpautop( $post->post_content ), $data['content']['rendered'] );
+		$this->assertEquals( wpautop( $post->post_excerpt ), $data['excerpt']['rendered'] );
+	}
+
+	public function test_get_post_with_password_using_incorrect_password() {
+		$post_id = $this->factory->post->create( array(
+			'post_password' => '$inthebananastand',
+		) );
+
+		$post = get_post( $post_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
+		$request->set_param( 'password', 'wrongpassword' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_incorrect_password', $response, 403 );
 	}
 
 	public function test_get_post_with_password_without_permission() {
 		$post_id = $this->factory->post->create( array(
 			'post_password' => '$inthebananastand',
+			'post_content'  => 'Some secret content.',
+			'post_excerpt'  => 'Some secret excerpt.',
 		) );
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->check_get_post_response( $response, 'view' );
+		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertEquals( '', $data['excerpt']['rendered'] );
 
-		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
 	public function test_get_item_read_permission_custom_post_status() {
@@ -1021,26 +1129,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data = $response->get_data();
 		$this->assertEquals( 'testing', $data['password'] );
-	}
-
-	public function test_create_post_with_password_without_permission() {
-		wp_set_current_user( $this->author_id );
-		$user = wp_get_current_user();
-		$user->add_cap( 'publish_posts', false );
-		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
-		$user->get_role_caps();
-		$user->update_user_level_from_caps();
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
-		$params = $this->set_post_data( array(
-			'password' => 'testing',
-			'author'   => $this->author_id,
-			'status'   => 'draft',
-		) );
-		$request->set_body_params( $params );
-		$response = $this->server->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_cannot_publish', $response, 403 );
 	}
 
 	public function test_create_post_with_falsy_password() {
@@ -1728,7 +1816,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 22, count( $properties ) );
+		$this->assertEquals( 23, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -1740,6 +1828,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'format', $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'link', $properties );
+		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'modified', $properties );
 		$this->assertArrayHasKey( 'modified_gmt', $properties );
 		$this->assertArrayHasKey( 'password', $properties );
