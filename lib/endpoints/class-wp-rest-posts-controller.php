@@ -94,70 +94,59 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_no_search_term_defined', __( 'You need to define a search term to order by relevance.' ), array( 'status' => 400 ) );
 		}
 
+		// Retrieve the list of registered collection query parameters.
 		$registered = $this->get_collection_params();
-		$args       = array();
+		$args = array();
 
-		if ( isset( $registered['offset'] ) ) {
-			$args['offset'] = $request['offset'];
+		// This array defines mappings between public API query parameters whose
+		// values are accepted as-passed, and their internal WP_Query parameter
+		// name equivalents (some are the same). Only values which are also
+		// present in $registered will be set.
+		$parameter_mappings = array(
+			'author'         => 'author__in',
+			'author_exclude' => 'author__not_in',
+			'exclude'        => 'post__not_in',
+			'include'        => 'post__in',
+			'menu_order'     => 'menu_order',
+			'offset'         => 'offset',
+			'order'          => 'order',
+			'orderby'        => 'orderby',
+			'page'           => 'paged',
+			'parent'         => 'post_parent__in',
+			'parent_exclude' => 'post_parent__not_in',
+			'search'         => 's',
+			'slug'           => 'name',
+			'status'         => 'post_status',
+		);
+
+		// For each known parameter which is both registered and present in the request,
+		// set the parameter's value on the query $args.
+		foreach ( $parameter_mappings as $api_param => $wp_param ) {
+			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+				$args[ $wp_param ] = $request[ $api_param ];
+			}
 		}
-		if ( isset( $registered['order'] ) ) {
-			$args['order'] = $request['order'];
-		}
-		if ( isset( $registered['orderby'] ) ) {
-			$args['orderby'] = $request['orderby'];
-		}
-		if ( isset( $registered['page'] ) ) {
-			$args['paged'] = $request['page'];
-		}
-		if ( isset( $registered['include'] ) ) {
-			$args['post__in'] = $request['include'];
-		}
-		if ( isset( $registered['exclude'] ) ) {
-			$args['post__not_in'] = $request['exclude'];
-		}
-		if ( isset( $registered['slug'] ) ) {
-			$args['name'] = $request['slug'];
-		}
-		if ( isset( $registered['status'] ) ) {
-			$args['post_status'] = $request['status'];
-		}
-		if ( isset( $registered['search'] ) ) {
-			$args['s'] = $request['search'];
-		}
-		if ( isset( $registered['author'] ) ) {
-			$args['author__in'] = $request['author'];
-		}
-		if ( isset( $registered['author_exclude'] ) ) {
-			$args['author__not_in'] = $request['author_exclude'];
-		}
-		if ( isset( $registered['menu_order'] ) ) {
-			$args['menu_order'] = $request['menu_order'];
-		}
-		if ( isset( $registered['parent'] ) ) {
-			$args['post_parent__in'] = $request['parent'];
-		}
-		if ( isset( $registered['parent_exclude'] ) ) {
-			$args['post_parent__not_in']  = $request['parent_exclude'];
-		}
+
+		// Check for & assign any parameters which require special handling or setting.
 
 		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['before'] && isset( $request['before'] ) ) {
+		if ( isset( $registered['before'] ) && isset( $request['before'] ) ) {
 			$args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['after'] && isset( $request['after'] ) ) {
+		if ( isset( $registered['after'] ) && isset( $request['after'] ) ) {
 			$args['date_query'][0]['after'] = $request['after'];
 		}
 
-		if ( isset( $registered['filter'] && is_array( $request['filter'] ) ) {
+		if ( isset( $registered['filter'] ) && is_array( $request['filter'] ) ) {
 			$args = array_merge( $args, $request['filter'] );
 			unset( $args['filter'] );
 		}
 
-		// Ensure our per_page parameter overrides filter.
-		if ( isset( $registered['per_page'] ) {
+		// Ensure our per_page parameter overrides any provided posts_per_page filter.
+		if ( isset( $registered['per_page'] ) ) {
 			$args['posts_per_page'] = $request['per_page'];
 		}
 
