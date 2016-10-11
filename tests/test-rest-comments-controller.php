@@ -1048,6 +1048,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_item_duplicate() {
+		global $wp_version;
 		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
 			return $this->markTestSkipped( 'WordPress version not supported.' );
 		}
@@ -1107,6 +1108,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_two_times() {
+		global $wp_version;
 		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
 			return $this->markTestSkipped( 'WordPress version not supported.' );
 		}
