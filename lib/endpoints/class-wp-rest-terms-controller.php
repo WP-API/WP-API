@@ -85,25 +85,43 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get terms associated with a taxonomy
+	 * Get terms associated with a taxonomy.
 	 *
 	 * @param WP_REST_Request $request Full details about the request
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array(
-			'exclude'    => $request['exclude'],
-			'include'    => $request['include'],
-			'order'      => $request['order'],
-			'orderby'    => $request['orderby'],
-			'post'       => $request['post'],
-			'hide_empty' => $request['hide_empty'],
-			'number'     => $request['per_page'],
-			'search'     => $request['search'],
-			'slug'       => $request['slug'],
+
+		// Retrieve the list of registered collection query parameters.
+		$registered = $this->get_collection_params();
+
+		// This array defines mappings between public API query parameters whose
+		// values are accepted as-passed, and their internal WP_Query parameter
+		// name equivalents (some are the same). Only values which are also
+		// present in $registered will be set.
+		$parameter_mappings = array(
+			'exclude'    => 'exclude',
+			'include'    => 'include',
+			'order'      => 'order',
+			'orderby'    => 'orderby',
+			'post'       => 'post',
+			'hide_empty' => 'hide_empty',
+			'per_page'   => 'number',
+			'search'     => 'search',
+			'slug'       => 'slug',
 		);
 
-		if ( ! empty( $request['offset'] ) ) {
+		$prepared_args = array();
+
+		// For each known parameter which is both registered and present in the request,
+		// set the parameter's value on the query $prepared_args.
+		foreach ( $parameter_mappings as $api_param => $wp_param ) {
+			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+				$prepared_args[ $wp_param ] = $request[ $api_param ];
+			}
+		}
+
+		if ( isset( $registered['offset'] ) && ! empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $request['offset'];
 		} else {
 			$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
@@ -111,7 +129,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$taxonomy_obj = get_taxonomy( $this->taxonomy );
 
-		if ( $taxonomy_obj->hierarchical && isset( $request['parent'] ) ) {
+		if ( $taxonomy_obj->hierarchical && isset( $registered['parent'] ) && isset( $request['parent'] ) ) {
 			if ( 0 === $request['parent'] ) {
 				// Only query top-level terms.
 				$prepared_args['parent'] = 0;
