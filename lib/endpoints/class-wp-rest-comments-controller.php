@@ -115,42 +115,68 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function get_items( $request ) {
-		$prepared_args = array(
-			'author_email'    => isset( $request['author_email'] ) ? $request['author_email'] : '',
-			'comment__in'     => $request['include'],
-			'comment__not_in' => $request['exclude'],
-			'karma'           => isset( $request['karma'] ) ? $request['karma'] : '',
-			'number'          => $request['per_page'],
-			'post__in'        => $request['post'],
-			'parent__in'      => $request['parent'],
-			'parent__not_in'  => $request['parent_exclude'],
-			'search'          => $request['search'],
-			'offset'          => $request['offset'],
-			'orderby'         => $this->normalize_query_param( $request['orderby'] ),
-			'order'           => $request['order'],
-			'status'          => $request['status'],
-			'type'            => $request['type'],
-			'no_found_rows'   => false,
-			'author__in'      => $request['author'],
-			'author__not_in'  => $request['author_exclude'],
+
+		// Retrieve the list of registered collection query parameters.
+		$registered = $this->get_collection_params();
+
+		// This array defines mappings between public API query parameters whose
+		// values are accepted as-passed, and their internal WP_Query parameter
+		// name equivalents (some are the same). Only values which are also
+		// present in $registered will be set.
+		$parameter_mappings = array(
+			'author'         => 'author__in',
+			'author_email'   => 'author_email',
+			'author_exclude' => 'author__not_in',
+			'exclude'        => 'comment__not_in',
+			'include'        => 'comment__in',
+			'karma'          => 'karma',
+			'offset'         => 'offset',
+			'order'          => 'order',
+			'parent'         => 'parent__in',
+			'parent_exclude' => 'parent__not_in',
+			'per_page'       => 'number',
+			'post'           => 'post__in',
+			'search'         => 'search',
+			'status'         => 'status',
+			'type'           => 'type',
 		);
+
+		$prepared_args = array();
+
+		// For each known parameter which is both registered and present in the request,
+		// set the parameter's value on the query $prepared_args.
+		foreach ( $parameter_mappings as $api_param => $wp_param ) {
+			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+				$prepared_args[ $wp_param ] = $request[ $api_param ];
+			}
+		}
+
+		// Ensure certain parameter values default to empty strings.
+		foreach ( array( 'author_email', 'karma', 'search' ) as $param ) {
+			if ( ! isset( $prepared_args[ $param ] ) ) {
+				$prepared_args[ $param ] = '';
+			}
+		}
+
+		if ( isset( $registered['orderby'] ) ) {
+			$prepared_args['orderby'] = $this->normalize_query_param( $request['orderby'] );
+		}
+
+		$prepared_args['no_found_rows'] = false;
 
 		$prepared_args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $request['before'] ) ) {
+		if ( isset( $registered['before'] ) && isset( $request['before'] ) ) {
 			$prepared_args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $request['after'] ) ) {
+		if ( isset( $registered['after'] ) && isset( $request['after'] ) ) {
 			$prepared_args['date_query'][0]['after'] = $request['after'];
 		}
 
-		if ( empty( $request['offset'] ) ) {
+		if ( isset( $registered['page'] ) && empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $prepared_args['number'] * ( absint( $request['page'] ) - 1 );
-		}
-		if ( empty( $request['search'] ) ) {
-			$prepared_args['search'] = '';
 		}
 
 		/**
