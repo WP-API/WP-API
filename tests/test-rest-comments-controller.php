@@ -1048,7 +1048,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_item_duplicate() {
-		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 		$this->factory->comment->create(
 			array(
 				'comment_post_ID'      => $this->post_id,
@@ -1104,8 +1103,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_two_times() {
-
-		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
 
 		wp_set_current_user( 0 );
 
