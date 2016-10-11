@@ -230,373 +230,404 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @depends test_set_value
+	 * @depends test_get_value
 	 */
-	public function test_set_value_unauthenticated() {
-		$data = array(
+		public function test_set_duplicate_single_value() {
+			// Start with an existing metakey and value
+			$values = update_post_meta( $this->post_id, 'test_single', 'test_value' );
+			$this->assertEquals( 'test_value', get_post_meta( $this->post_id, 'test_single', true ) );
+
+			$this->grant_write_permission();
+
+			$data = array(
+				'meta' => array(
+					'test_single' => 'test_value',
+				),
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
+
+			$response = $this->server->dispatch( $request );
+			$this->assertEquals( 200, $response->get_status() );
+
+			$meta = get_post_meta( $this->post_id, 'test_single', true );
+			$this->assertNotEmpty( $meta );
+			$this->assertEquals( 'test_value', $meta );
+
+			$data = $response->get_data();
+			$meta = (array) $data['meta'];
+			$this->assertArrayHasKey( 'test_single', $meta );
+			$this->assertEquals( 'test_value', $meta['test_single'] );
+		}
+
+		/**
+		 * @depends test_set_value
+		 */
+		public function test_set_value_unauthenticated() {
+			$data = array(
 			'meta' => array(
 				'test_single' => 'test_value',
 			),
-		);
+			);
 
-		wp_set_current_user( 0 );
+			wp_set_current_user( 0 );
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+			$response = $this->server->dispatch( $request );
+			$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 
-		// Check that the value wasn't actually updated.
-		$this->assertEmpty( get_post_meta( $this->post_id, 'test_single', false ) );
-	}
+			// Check that the value wasn't actually updated.
+			$this->assertEmpty( get_post_meta( $this->post_id, 'test_single', false ) );
+		}
 
-	/**
-	 * @depends test_set_value
-	 */
-	public function test_set_value_blocked() {
-		$data = array(
+		/**
+		 * @depends test_set_value
+		 */
+		public function test_set_value_blocked() {
+			$data = array(
 			'meta' => array(
 				'test_bad_auth' => 'test_value',
 			),
-		);
+			);
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
-		$this->assertEmpty( get_post_meta( $this->post_id, 'test_bad_auth', false ) );
-	}
+			$response = $this->server->dispatch( $request );
+			$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
+			$this->assertEmpty( get_post_meta( $this->post_id, 'test_bad_auth', false ) );
+		}
 
-	/**
-	 * @depends test_set_value
-	 */
-	public function test_set_value_db_error() {
-		$data = array(
+		/**
+		 * @depends test_set_value
+		 */
+		public function test_set_value_db_error() {
+			$data = array(
 			'meta' => array(
 				'test_single' => 'test_value',
 			),
-		);
+			);
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		/**
+			/**
 		 * Disable showing error as the below is going to intentionally
 		 * trigger a DB error.
 		 */
-		global $wpdb;
-		$wpdb->suppress_errors = true;
-		add_filter( 'query', array( $this, 'error_insert_query' ) );
+			global $wpdb;
+			$wpdb->suppress_errors = true;
+			add_filter( 'query', array( $this, 'error_insert_query' ) );
 
-		$response = $this->server->dispatch( $request );
-		remove_filter( 'query', array( $this, 'error_insert_query' ) );
-		$wpdb->show_errors = true;
-	}
+			$response = $this->server->dispatch( $request );
+			remove_filter( 'query', array( $this, 'error_insert_query' ) );
+			$wpdb->show_errors = true;
+		}
 
-	public function test_set_value_multiple() {
-		// Ensure no data exists currently.
-		$values = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertEmpty( $values );
+		public function test_set_value_multiple() {
+			// Ensure no data exists currently.
+			$values = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertEmpty( $values );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_multi' => array( 'val1' ),
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+			$response = $this->server->dispatch( $request );
+			$this->assertEquals( 200, $response->get_status() );
 
-		$meta = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 1, $meta );
-		$this->assertEquals( 'val1', $meta[0] );
+			$meta = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertNotEmpty( $meta );
+			$this->assertCount( 1, $meta );
+			$this->assertEquals( 'val1', $meta[0] );
 
-		// Add another value.
-		$data = array(
+			// Add another value.
+			$data = array(
 			'meta' => array(
 				'test_multi' => array( 'val1', 'val2' ),
 			),
-		);
-		$request->set_body_params( $data );
+			);
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+			$response = $this->server->dispatch( $request );
+			$this->assertEquals( 200, $response->get_status() );
 
-		$meta = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 2, $meta );
-		$this->assertContains( 'val1', $meta );
-		$this->assertContains( 'val2', $meta );
-	}
+			$meta = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertNotEmpty( $meta );
+			$this->assertCount( 2, $meta );
+			$this->assertContains( 'val1', $meta );
+			$this->assertContains( 'val2', $meta );
+		}
 
-	/**
-	 * Test removing only one item with duplicate items.
-	 */
-	public function test_set_value_remove_one() {
-		add_post_meta( $this->post_id, 'test_multi', 'c' );
-		add_post_meta( $this->post_id, 'test_multi', 'n' );
-		add_post_meta( $this->post_id, 'test_multi', 'n' );
+		/**
+		 * Test removing only one item with duplicate items.
+		 */
+		public function test_set_value_remove_one() {
+			add_post_meta( $this->post_id, 'test_multi', 'c' );
+			add_post_meta( $this->post_id, 'test_multi', 'n' );
+			add_post_meta( $this->post_id, 'test_multi', 'n' );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_multi' => array( 'c', 'n' ),
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+			$response = $this->server->dispatch( $request );
+			$this->assertEquals( 200, $response->get_status() );
 
-		$meta = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertNotEmpty( $meta );
-		$this->assertCount( 2, $meta );
-		$this->assertContains( 'c', $meta );
-		$this->assertContains( 'n', $meta );
-	}
+			$meta = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertNotEmpty( $meta );
+			$this->assertCount( 2, $meta );
+			$this->assertContains( 'c', $meta );
+			$this->assertContains( 'n', $meta );
+		}
 
-	/**
-	 * @depends test_set_value_multiple
-	 */
-	public function test_set_value_multiple_unauthenticated() {
-		// Ensure no data exists currently.
-		$values = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertEmpty( $values );
+		/**
+		 * @depends test_set_value_multiple
+		 */
+		public function test_set_value_multiple_unauthenticated() {
+			// Ensure no data exists currently.
+			$values = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertEmpty( $values );
 
-		wp_set_current_user( 0 );
+			wp_set_current_user( 0 );
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_multi' => array( 'val1' ),
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
+			$response = $this->server->dispatch( $request );
+			$this->assertErrorResponse( 'rest_cannot_edit', $response, 401 );
 
-		$meta = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertEmpty( $meta );
-	}
+			$meta = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertEmpty( $meta );
+		}
 
-	/**
-	 * @depends test_set_value_multiple
-	 */
-	public function test_set_value_multiple_blocked() {
-		$data = array(
+		/**
+		 * @depends test_set_value_multiple
+		 */
+		public function test_set_value_multiple_blocked() {
+			$data = array(
 			'meta' => array(
 				'test_bad_auth_multi' => array( 'test_value' ),
 			),
-		);
+			);
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
-		$this->assertEmpty( get_post_meta( $this->post_id, 'test_bad_auth_multi', false ) );
-	}
+			$response = $this->server->dispatch( $request );
+			$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
+			$this->assertEmpty( get_post_meta( $this->post_id, 'test_bad_auth_multi', false ) );
+		}
 
-	public function test_add_multi_value_db_error() {
-		// Ensure no data exists currently.
-		$values = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertEmpty( $values );
+		public function test_add_multi_value_db_error() {
+			// Ensure no data exists currently.
+			$values = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertEmpty( $values );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_multi' => array( 'val1' ),
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		/**
+			/**
 		 * Disable showing error as the below is going to intentionally
 		 * trigger a DB error.
 		 */
-		global $wpdb;
-		$wpdb->suppress_errors = true;
-		add_filter( 'query', array( $this, 'error_insert_query' ) );
+			global $wpdb;
+			$wpdb->suppress_errors = true;
+			add_filter( 'query', array( $this, 'error_insert_query' ) );
 
-		$response = $this->server->dispatch( $request );
-		remove_filter( 'query', array( $this, 'error_insert_query' ) );
-		$wpdb->show_errors = true;
+			$response = $this->server->dispatch( $request );
+			remove_filter( 'query', array( $this, 'error_insert_query' ) );
+			$wpdb->show_errors = true;
 
-		$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
-	}
+			$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
+		}
 
-	public function test_remove_multi_value_db_error() {
-		add_post_meta( $this->post_id, 'test_multi', 'val1' );
-		$values = get_post_meta( $this->post_id, 'test_multi', false );
-		$this->assertEquals( array( 'val1' ), $values );
+		public function test_remove_multi_value_db_error() {
+			add_post_meta( $this->post_id, 'test_multi', 'val1' );
+			$values = get_post_meta( $this->post_id, 'test_multi', false );
+			$this->assertEquals( array( 'val1' ), $values );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_multi' => array(),
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		/**
+			/**
 		 * Disable showing error as the below is going to intentionally
 		 * trigger a DB error.
 		 */
-		global $wpdb;
-		$wpdb->suppress_errors = true;
-		add_filter( 'query', array( $this, 'error_delete_query' ) );
+			global $wpdb;
+			$wpdb->suppress_errors = true;
+			add_filter( 'query', array( $this, 'error_delete_query' ) );
 
-		$response = $this->server->dispatch( $request );
-		remove_filter( 'query', array( $this, 'error_delete_query' ) );
-		$wpdb->show_errors = true;
+			$response = $this->server->dispatch( $request );
+			remove_filter( 'query', array( $this, 'error_delete_query' ) );
+			$wpdb->show_errors = true;
 
-		$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
-	}
+			$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
+		}
 
-	public function test_delete_value() {
-		add_post_meta( $this->post_id, 'test_single', 'val1' );
-		$current = get_post_meta( $this->post_id, 'test_single', true );
-		$this->assertEquals( 'val1', $current );
+		public function test_delete_value() {
+			add_post_meta( $this->post_id, 'test_single', 'val1' );
+			$current = get_post_meta( $this->post_id, 'test_single', true );
+			$this->assertEquals( 'val1', $current );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_single' => null,
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+			$response = $this->server->dispatch( $request );
+			$this->assertEquals( 200, $response->get_status() );
 
-		$meta = get_post_meta( $this->post_id, 'test_single', false );
-		$this->assertEmpty( $meta );
-	}
+			$meta = get_post_meta( $this->post_id, 'test_single', false );
+			$this->assertEmpty( $meta );
+		}
 
-	/**
-	 * @depends test_delete_value
-	 */
-	public function test_delete_value_blocked() {
-		add_post_meta( $this->post_id, 'test_bad_auth', 'val1' );
-		$current = get_post_meta( $this->post_id, 'test_bad_auth', true );
-		$this->assertEquals( 'val1', $current );
+		/**
+		 * @depends test_delete_value
+		 */
+		public function test_delete_value_blocked() {
+			add_post_meta( $this->post_id, 'test_bad_auth', 'val1' );
+			$current = get_post_meta( $this->post_id, 'test_bad_auth', true );
+			$this->assertEquals( 'val1', $current );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_bad_auth' => null,
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
 
-		$response = $this->server->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
+			$response = $this->server->dispatch( $request );
+			$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 
-		$meta = get_post_meta( $this->post_id, 'test_bad_auth', true );
-		$this->assertEquals( 'val1', $meta );
-	}
+			$meta = get_post_meta( $this->post_id, 'test_bad_auth', true );
+			$this->assertEquals( 'val1', $meta );
+		}
 
-	/**
-	 * @depends test_delete_value
-	 */
-	public function test_delete_value_db_error() {
-		add_post_meta( $this->post_id, 'test_single', 'val1' );
-		$current = get_post_meta( $this->post_id, 'test_single', true );
-		$this->assertEquals( 'val1', $current );
+		/**
+		 * @depends test_delete_value
+		 */
+		public function test_delete_value_db_error() {
+			add_post_meta( $this->post_id, 'test_single', 'val1' );
+			$current = get_post_meta( $this->post_id, 'test_single', true );
+			$this->assertEquals( 'val1', $current );
 
-		$this->grant_write_permission();
+			$this->grant_write_permission();
 
-		$data = array(
+			$data = array(
 			'meta' => array(
 				'test_single' => null,
 			),
-		);
-		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$request->set_body_params( $data );
-		/**
+			);
+			$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$request->set_body_params( $data );
+			/**
 		 * Disable showing error as the below is going to intentionally
 		 * trigger a DB error.
 		 */
-		global $wpdb;
-		$wpdb->suppress_errors = true;
-		add_filter( 'query', array( $this, 'error_delete_query' ) );
+			global $wpdb;
+			$wpdb->suppress_errors = true;
+			add_filter( 'query', array( $this, 'error_delete_query' ) );
 
-		$response = $this->server->dispatch( $request );
-		remove_filter( 'query', array( $this, 'error_delete_query' ) );
-		$wpdb->show_errors = true;
+			$response = $this->server->dispatch( $request );
+			remove_filter( 'query', array( $this, 'error_delete_query' ) );
+			$wpdb->show_errors = true;
 
-		$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
-	}
-
-	public function test_get_schema() {
-		$request = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
-		$response = $this->server->dispatch( $request );
-
-		$data = $response->get_data();
-		$schema = $data['schema'];
-
-		$this->assertArrayHasKey( 'meta', $schema['properties'] );
-		$meta_schema = $schema['properties']['meta']['properties'];
-
-		$this->assertArrayHasKey( 'test_single', $meta_schema );
-		$this->assertEquals( 'string', $meta_schema['test_single']['type'] );
-
-		$this->assertArrayHasKey( 'test_multi', $meta_schema );
-		$this->assertEquals( 'array', $meta_schema['test_multi']['type'] );
-		$this->assertArrayHasKey( 'items', $meta_schema['test_multi'] );
-		$this->assertEquals( 'string', $meta_schema['test_multi']['items']['type'] );
-
-		$this->assertArrayHasKey( 'test_custom_schema', $meta_schema );
-		$this->assertEquals( 'number', $meta_schema['test_custom_schema']['type'] );
-
-		$this->assertArrayNotHasKey( 'test_no_rest', $meta_schema );
-		$this->assertArrayNotHasKey( 'test_rest_disabled', $meta_schema );
-		$this->assertArrayNotHasKey( 'test_invalid_type', $meta_schema );
-	}
-
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_insert_query( $query ) {
-		if ( strpos( $query, 'INSERT' ) === 0 ) {
-			$query = '],';
+			$this->assertErrorResponse( 'rest_meta_database_error', $response, 500 );
 		}
-		return $query;
-	}
 
-	/**
-	 * Internal function used to disable an insert query which
-	 * will trigger a wpdb error for testing purposes.
-	 */
-	public function error_delete_query( $query ) {
-		if ( strpos( $query, 'DELETE' ) === 0 ) {
-			$query = '],';
+		public function test_get_schema() {
+			$request = new WP_REST_Request( 'OPTIONS', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+			$response = $this->server->dispatch( $request );
+
+			$data = $response->get_data();
+			$schema = $data['schema'];
+
+			$this->assertArrayHasKey( 'meta', $schema['properties'] );
+			$meta_schema = $schema['properties']['meta']['properties'];
+
+			$this->assertArrayHasKey( 'test_single', $meta_schema );
+			$this->assertEquals( 'string', $meta_schema['test_single']['type'] );
+
+			$this->assertArrayHasKey( 'test_multi', $meta_schema );
+			$this->assertEquals( 'array', $meta_schema['test_multi']['type'] );
+			$this->assertArrayHasKey( 'items', $meta_schema['test_multi'] );
+			$this->assertEquals( 'string', $meta_schema['test_multi']['items']['type'] );
+
+			$this->assertArrayHasKey( 'test_custom_schema', $meta_schema );
+			$this->assertEquals( 'number', $meta_schema['test_custom_schema']['type'] );
+
+			$this->assertArrayNotHasKey( 'test_no_rest', $meta_schema );
+			$this->assertArrayNotHasKey( 'test_rest_disabled', $meta_schema );
+			$this->assertArrayNotHasKey( 'test_invalid_type', $meta_schema );
 		}
-		return $query;
-	}
+
+		/**
+		 * Internal function used to disable an insert query which
+		 * will trigger a wpdb error for testing purposes.
+		 */
+		public function error_insert_query( $query ) {
+			if ( strpos( $query, 'INSERT' ) === 0 ) {
+				$query = '],';
+			}
+			return $query;
+		}
+
+		/**
+		 * Internal function used to disable an insert query which
+		 * will trigger a wpdb error for testing purposes.
+		 */
+		public function error_delete_query( $query ) {
+			if ( strpos( $query, 'DELETE' ) === 0 ) {
+				$query = '],';
+			}
+			return $query;
+		}
 }

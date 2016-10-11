@@ -211,7 +211,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int $object Object ID.
 	 * @param string $name Key for the custom field.
-	 * @return bool|WP_Error True if meta field is deleted, error otherwise.
+	 * @return bool|WP_Error True if meta field is updated, error otherwise.
 	 */
 	protected function update_meta_value( $object, $name, $value ) {
 		if ( ! current_user_can( 'edit_post_meta', $object, $name ) ) {
@@ -222,7 +222,19 @@ abstract class WP_REST_Meta_Fields {
 			);
 		}
 
-		if ( ! update_metadata( $this->get_meta_type(), $object, wp_slash( $name ), wp_slash( $value ) ) ) {
+		$meta_type 	= $this->get_meta_type();
+		$meta_key  	= wp_slash( $name );
+		$meta_value 	= wp_slash( $value );
+
+		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
+		$old_value = get_metadata( $meta_type, $object, $meta_key );
+		if ( count( $old_value ) == 1 ) {
+			if ( $old_value[0] === $meta_value ) {
+				return true;
+			}
+		}
+
+		if ( ! update_metadata( $meta_type, $object, $meta_key, $meta_value ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not update meta value in database.' ),
