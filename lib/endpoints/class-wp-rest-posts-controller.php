@@ -1746,6 +1746,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 			);
+			$schema['properties'][ $base . '_exclude' ] = array(
+				'description' => sprintf( __( 'The terms in the %s taxonomy that should not be assigned to the object.' ), $taxonomy->name ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+			);
 		}
 
 		return $this->add_additional_fields_schema( $schema );
