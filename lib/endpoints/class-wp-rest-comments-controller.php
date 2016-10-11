@@ -360,11 +360,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$error_code = $prepared_comment['comment_approved']->get_error_code();
 			$error_message = $prepared_comment['comment_approved']->get_error_message();
 
-			if ( $error_code === 'comment_duplicate' ) {
+			if ( 'comment_duplicate' === $error_code ) {
 				return new WP_Error( $error_code, $error_message, array( 'status' => 409 ) );
 			}
 
-			if ( $error_code === 'comment_flood' ) {
+			if ( 'comment_flood' === $error_code ) {
 				return new WP_Error( $error_code, $error_message, array( 'status' => 400 ) );
 			}
 
