@@ -337,7 +337,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'        => true,
 		);
 		$schema['properties']['mime_type'] = array(
-			'description'     => __( 'Mime type of resource.' ),
+			'description'     => __( 'MIME type of resource.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
@@ -523,7 +523,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 		$params['mime_type'] = array(
 			'default'            => null,
-			'description'        => __( 'Limit result set to attachments of a particular mime type.' ),
+			'description'        => __( 'Limit result set to attachments of a particular MIME type.' ),
 			'type'               => 'string',
 		);
 		return $params;
@@ -588,7 +588,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Get the supported media types.
-	 * Media types are considered the mime type category
+	 * Media types are considered the MIME type category
 	 *
 	 * @return array
 	 */
