@@ -226,7 +226,7 @@ function rest_register_settings() {
 			),
 		),
 		'type'         => 'string',
-		'description'  => __( 'Site URL' ),
+		'description'  => __( 'Site URL.' ),
 	) );
 
 	register_setting( 'general', 'admin_email', array(
