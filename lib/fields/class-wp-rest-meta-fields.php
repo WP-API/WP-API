@@ -234,7 +234,7 @@ abstract class WP_REST_Meta_Fields {
 			}
 		}
 
-		if ( ! update_metadata(  $meta_type, $object, $meta_key, $meta_value ) ) {
+		if ( ! update_metadata( $meta_type, $object, $meta_key, $meta_value ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not update meta value in database.' ),
