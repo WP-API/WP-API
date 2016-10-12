@@ -130,7 +130,7 @@ require_once( dirname( __FILE__ ) . '/core-integration.php' );
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 add_action( 'rest_api_init', 'rest_register_settings', 0 );
-add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
+add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 
 /**
  * Adds extra post type registration arguments.
