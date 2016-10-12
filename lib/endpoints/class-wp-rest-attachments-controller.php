@@ -372,15 +372,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function upload_from_data( $data, $headers ) {
 		if ( empty( $data ) ) {
-			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied.' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $headers['content_type'] ) ) {
-			return new WP_Error( 'rest_upload_no_content_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_content_type', __( 'No Content-Type supplied.' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $headers['content_disposition'] ) ) {
-			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied.' ), array( 'status' => 400 ) );
 		}
 
 		$filename = $this->get_filename_from_disposition( $headers['content_disposition'] );
@@ -395,7 +395,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$actual   = md5( $data );
 
 			if ( $expected !== $actual ) {
-				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected.' ), array( 'status' => 412 ) );
 			}
 		}
 
@@ -411,7 +411,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$fp = fopen( $tmpfname, 'w+' );
 
 		if ( ! $fp ) {
-			return new WP_Error( 'rest_upload_file_error', __( 'Could not open file handle' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_upload_file_error', __( 'Could not open file handle.' ), array( 'status' => 500 ) );
 		}
 
 		fwrite( $fp, $data );
@@ -553,7 +553,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function upload_from_file( $files, $headers ) {
 		if ( empty( $files ) ) {
-			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied.' ), array( 'status' => 400 ) );
 		}
 
 		// Verify hash, if given
@@ -562,7 +562,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$expected = trim( $content_md5 );
 			$actual = md5_file( $files['file']['tmp_name'] );
 			if ( $expected !== $actual ) {
-				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected.' ), array( 'status' => 412 ) );
 			}
 		}
 
