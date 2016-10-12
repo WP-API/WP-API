@@ -229,12 +229,12 @@ abstract class WP_REST_Meta_Fields {
 		// Do the exact same check for a duplicate value as in update_metadata() to avoid update_metadata() returning false.
 		$old_value = get_metadata( $meta_type, $object, $meta_key );
 		if ( count( $old_value ) == 1 ) {
-			if ( $old_value[0] === $meta_value ) {
+			if ( $old_value[0] === $meta_value ){
 				return true;
 			}
 		}
 
-		if ( ! update_metadata( $meta_type, $object, $meta_key, $meta_value ) ) {
+		if ( ! update_metadata(  $meta_type, $object, $meta_key, $meta_value ) ) {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not update meta value in database.' ),
