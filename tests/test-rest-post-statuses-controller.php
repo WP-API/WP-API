@@ -108,7 +108,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$request = new WP_REST_Request;
 		$request->set_param( 'context', 'edit' );
 		$data = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->check_post_status_obj( $obj, $data->get_data() );
+		$this->check_post_status_obj( $obj, $data->get_data(), $data->get_links() );
 	}
 
 	public function test_get_item_schema() {
@@ -162,7 +162,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		return 123;
 	}
 
-	protected function check_post_status_obj( $status_obj, $data ) {
+	protected function check_post_status_obj( $status_obj, $data, $links ) {
 		$this->assertEquals( $status_obj->label, $data['name'] );
 		$this->assertEquals( $status_obj->private, $data['private'] );
 		$this->assertEquals( $status_obj->protected, $data['protected'] );
@@ -170,13 +170,16 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertEquals( $status_obj->publicly_queryable, $data['queryable'] );
 		$this->assertEquals( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
 		$this->assertEquals( $status_obj->name, $data['slug'] );
+		$this->assertEqualSets( array(
+			'archives',
+		), array_keys( $links ) );
 	}
 
 	protected function check_post_status_object_response( $response ) {
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
 		$obj = get_post_status_object( 'publish' );
-		$this->check_post_status_obj( $obj, $data );
+		$this->check_post_status_obj( $obj, $data, $response->get_links() );
 	}
 
 }

@@ -150,8 +150,9 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertEquals( $post_type_obj->name, $data['slug'] );
 		$this->assertEquals( $post_type_obj->description, $data['description'] );
 		$this->assertEquals( $post_type_obj->hierarchical, $data['hierarchical'] );
+
+		$links = test_rest_expand_compact_links( $links );
 		$this->assertEquals( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
-		$this->markTestSkipped( 'Curies need to be updated' );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
 			$this->assertEquals( $post_type_obj->cap, $data['capabilities'] );

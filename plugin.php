@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://v2.wp-api.org
- * Version: 2.0-beta12
+ * Version: 2.0-beta15
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -80,6 +80,48 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Settings_Controller class.
+ */
+if ( ! class_exists( 'WP_REST_Settings_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
+}
+
+/**
+ * WP_REST_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-meta-fields.php';
+}
+
+/**
+ * WP_REST_Comment_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Comment_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-comment-meta-fields.php';
+}
+
+/**
+ * WP_REST_Post_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Post_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-post-meta-fields.php';
+}
+
+/**
+ * WP_REST_Term_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Term_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-term-meta-fields.php';
+}
+
+/**
+ * WP_REST_User_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_User_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-user-meta-fields.php';
+}
+
+/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
@@ -87,6 +129,7 @@ require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
+add_action( 'rest_api_init', 'rest_register_settings', 0 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
 /**
@@ -144,6 +187,121 @@ function _add_extra_api_taxonomy_arguments() {
 		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 }
+
+
+/**
+ * Register the settings to be used in the REST API.
+ *
+ * This is required are WordPress Core does not internally register
+ * it's settings via `register_rest_setting()`. This should be removed
+ * once / if core starts to register settings internally.
+ */
+function rest_register_settings() {
+	global $wp_version;
+	if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+		return;
+	}
+
+	register_setting( 'general', 'blogname', array(
+		'show_in_rest' => array(
+			'name' => 'title',
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site title.' ),
+	) );
+
+	register_setting( 'general', 'blogdescription', array(
+		'show_in_rest' => array(
+			'name' => 'description',
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site description.' ),
+	) );
+
+	register_setting( 'general', 'siteurl', array(
+		'show_in_rest' => array(
+			'name'    => 'url',
+			'schema'  => array(
+				'format' => 'uri',
+			),
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site URL' ),
+	) );
+
+	register_setting( 'general', 'admin_email', array(
+		'show_in_rest' => array(
+			'name'    => 'email',
+			'schema'  => array(
+				'format' => 'email',
+			),
+		),
+		'type'         => 'string',
+		'description'  => __( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. The new address will not become active until confirmed.' ),
+	) );
+
+	register_setting( 'general', 'timezone_string', array(
+		'show_in_rest' => array(
+			'name' => 'timezone',
+		),
+		'type'         => 'string',
+		'description'  => __( 'A city in the same timezone as you.' ),
+	) );
+
+	register_setting( 'general', 'date_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'A date format for all date strings.' ),
+	) );
+
+	register_setting( 'general', 'time_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'A time format for all time strings.' ),
+	) );
+
+	register_setting( 'general', 'start_of_week', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'A day number of the week that the week should start on.' ),
+	) );
+
+	register_setting( 'general', 'WPLANG', array(
+		'show_in_rest' => array(
+			'name' => 'language',
+		),
+		'type'         => 'string',
+		'description'  => __( 'WordPress locale code.' ),
+		'default'      => 'en_US',
+	) );
+
+	register_setting( 'writing', 'use_smilies', array(
+		'show_in_rest' => true,
+		'type'         => 'boolean',
+		'description'  => __( 'Convert emoticons like :-) and :-P to graphics on display.' ),
+		'default'      => true,
+	) );
+
+	register_setting( 'writing', 'default_category', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'Default category.' ),
+	) );
+
+	register_setting( 'writing', 'default_post_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'Default post format.' ),
+	) );
+
+	register_setting( 'reading', 'posts_per_page', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'Blog pages show at most.' ),
+		'default'      => 10,
+	) );
+}
+
 
 if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 	/**
@@ -206,6 +364,13 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 		// Comments.
 		$controller = new WP_REST_Comments_Controller;
 		$controller->register_routes();
+
+		// Settings. 4.7+ only.
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
+			$controller = new WP_REST_Settings_Controller;
+			$controller->register_routes();
+		}
 	}
 }
 
@@ -311,6 +476,10 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
 		}
 
+		if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $value, 'boolean' ) );
+		}
+
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
 		}
@@ -326,6 +495,11 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 				case 'email' :
 					if ( ! is_email( $value ) ) {
 						return new WP_Error( 'rest_invalid_email', __( 'The email address you provided is invalid.' ) );
+					}
+					break;
+				case 'ipv4' :
+					if ( ! rest_is_ip_address( $value ) ) {
+						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $value ) );
 					}
 					break;
 			}
@@ -399,6 +573,10 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 			$value = (array) $value;
 		}
 
+		if ( 'boolean' === $args['type'] ) {
+			return rest_sanitize_boolean( $value );
+		}
+
 		if ( isset( $args['format'] ) ) {
 			switch ( $args['format'] ) {
 				case 'date-time' :
@@ -412,10 +590,113 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 
 				case 'uri' :
 					return esc_url_raw( $value );
+
+				case 'ipv4' :
+					return sanitize_text_field( $value );
 			}
 		}
 
 		return $value;
 	}
+}
 
+
+if ( ! function_exists( 'rest_parse_request_arg' ) ) {
+	/**
+	 * Parse a request argument based on details registered to the route.
+	 *
+	 * Runs a validation check and sanitizes the value, primarily to be used via
+	 * the `sanitize_callback` arguments in the endpoint args registration.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_parse_request_arg( $value, $request, $param ) {
+
+		$is_valid = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		$value = rest_sanitize_request_arg( $value, $request, $param );
+
+		return $value;
+	}
+}
+
+if ( ! function_exists( 'rest_is_ip_address' ) ) {
+	/**
+	 * Determines if a IPv4 address is valid.
+	 *
+	 * Does not handle IPv6 addresses.
+	 *
+	 * @param  string $ipv4 IP 32-bit address.
+	 * @return string|false The valid IPv4 address, otherwise false.
+	 */
+	function rest_is_ip_address( $ipv4 ) {
+		$pattern = '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/';
+
+		if ( ! preg_match( $pattern, $ipv4 ) ) {
+			return false;
+		}
+
+		return $ipv4;
+	}
+}
+
+/**
+ * Changes a boolean-like value into the proper boolean value.
+ *
+ * @param bool|string|int $value The value being evaluated.
+ * @return boolean Returns the proper associated boolean value.
+ */
+if ( ! function_exists( 'rest_sanitize_boolean' ) ) {
+	function rest_sanitize_boolean( $value ) {
+		// String values are translated to `true`; make sure 'false' is false.
+		if ( is_string( $value )  ) {
+			$value = strtolower( $value );
+			if ( in_array( $value, array( 'false', '0' ), true ) ) {
+				$value = false;
+			}
+		}
+
+		// Everything else will map nicely to boolean.
+		return (boolean) $value;
+	}
+}
+
+/**
+ * Determines if a given value is boolean-like.
+ *
+ * @param bool|string $maybe_bool The value being evaluated.
+ * @return boolean True if a boolean, otherwise false.
+ */
+if ( ! function_exists( 'rest_is_boolean' ) ) {
+	function rest_is_boolean( $maybe_bool ) {
+		if ( is_bool( $maybe_bool ) ) {
+			return true;
+		}
+
+		if ( is_string( $maybe_bool ) ) {
+			$maybe_bool = strtolower( $maybe_bool );
+
+			$valid_boolean_values = array(
+				'false',
+				'true',
+				'0',
+				'1',
+			);
+
+			return in_array( $maybe_bool, $valid_boolean_values, true );
+		}
+
+		if ( is_int( $maybe_bool ) ) {
+			return in_array( $maybe_bool, array( 0, 1 ), true );
+		}
+
+		return false;
+	}
 }

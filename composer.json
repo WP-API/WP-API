@@ -12,7 +12,7 @@
     ],
     "support": {
         "issues": "https://github.com/WP-API/WP-API/issues",
-        "forum": "https://wordpress.org/support/plugin/json-rest-api"
+        "forum": "https://wordpress.org/support/plugin/rest-api"
     },
     "require": {
         "composer/installers": "~1.0"
@@ -22,7 +22,7 @@
         "wp-coding-standards/wpcs": "0.6.0"
     },
     "extra": {
-        "installer-name": "json-rest-api"
+        "installer-name": "rest-api"
     },
     "scripts": {
         "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/wp-coding-standards/wpcs",
