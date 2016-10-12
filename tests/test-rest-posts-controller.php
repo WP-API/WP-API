@@ -631,6 +631,33 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( $post2, $data[0]['id'] );
 	}
 
+	// Test that the post date remains unchanged when updated with the original data.
+	public function test_update_items_valid_date() {
+		wp_set_current_user( $this->editor_id );
+
+		// Get the test post.
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$response = $this->server->dispatch( $request );
+		$data     = $response->get_data();
+
+		// Store current date data.
+		$initial_date     = $data['date'];
+		$initial_date_gmt = $data['date_gmt'];
+
+		// Send the data back to the server.
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data( $data );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		// Verify the dates are unchanged.
+		$data = $response->get_data();
+
+		$this->assertEquals( $initial_date, $data['date'] );
+		$this->assertEquals( $initial_date_gmt, $data['date_gmt'] );
+	}
+
 	public function test_get_item() {
 		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
 		$response = $this->server->dispatch( $request );
