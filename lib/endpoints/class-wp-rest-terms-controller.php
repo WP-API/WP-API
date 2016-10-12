@@ -148,7 +148,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $request['post'] ) ) {
 			// Used when calling wp_count_terms() below.
-			$prepared_args['object_id'] = $request['post'];
+			$prepared_args['object_ids'] = $request['post'];
 			$query_result = wp_get_object_terms( $request['post'], $this->taxonomy, $prepared_args );
 		} else {
 			$query_result = get_terms( $this->taxonomy, $prepared_args );
