@@ -162,7 +162,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * Enables adding extra arguments or setting defaults for a post
 		 * collection request.
 		 *
-		 * @see https://developer.wordpress.org/reference/classes/wp_user_query/
+		 * @see https://developer.wordpress.org/reference/classes/wp_query/
 		 *
 		 * @param array           $args    Key value array of query var to query value.
 		 * @param WP_REST_Request $request The request used.
@@ -1743,6 +1743,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 			$schema['properties'][ $base ] = array(
 				'description' => sprintf( __( 'The terms assigned to the object in the %s taxonomy.' ), $taxonomy->name ),
+				'type'        => 'array',
+				'context'     => array( 'view', 'edit' ),
+			);
+			$schema['properties'][ $base . '_exclude' ] = array(
+				'description' => sprintf( __( 'The terms in the %s taxonomy that should not be assigned to the object.' ), $taxonomy->name ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
 			);

@@ -745,6 +745,50 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $this->post_id, $data['post'] );
 	}
 
+	public function test_create_item_using_accepted_content_raw_value() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Reverend Lovejoy',
+			'author_email' => 'lovejoy@example.com',
+			'author_url'   => 'http://timothylovejoy.jr',
+			'content'      => array(
+				'raw' => 'Once something has been approved by the government, it\'s no longer immoral.',
+			),
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$new_comment = get_comment( $data['id'] );
+		$this->assertEquals( $params['content']['raw'], $new_comment->comment_content );
+	}
+
+	public function test_create_item_invalid_blank_content() {
+		wp_set_current_user( 0 );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_name'  => 'Reverend Lovejoy',
+			'author_email' => 'lovejoy@example.com',
+			'author_url'   => 'http://timothylovejoy.jr',
+			'content'      => '',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_content_invalid', $response, 400 );
+	}
+
 	public function test_create_item_invalid_date() {
 		wp_set_current_user( 0 );
 
@@ -764,6 +808,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
+
 
 	public function test_create_item_assign_different_user() {
 		$subscriber_id = $this->factory->user->create( array(
@@ -1146,12 +1191,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( $this->admin_id );
 
 		$params = array(
-			'content'      => "Disco Stu doesn't advertise.",
 			'author'       => $this->subscriber_id,
 			'author_name'  => 'Disco Stu',
 			'author_url'   => 'http://stusdisco.com',
 			'author_email' => 'stu@stusdisco.com',
 			'author_ip'    => '4.4.4.4',
+			'content'      => 'Testing.',
 			'date'         => '2014-11-07T10:14:25',
 			'karma'        => 100,
 			'post'         => $post_id,
@@ -1233,6 +1278,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$params = array(
 			'date_gmt' => '2015-05-07T10:14:25',
+			'content'  => 'I\'ll be deep in the cold, cold ground before I recognize Missouri.',
 		);
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
 		$request->add_header( 'content-type', 'application/json' );
@@ -1259,6 +1305,27 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_invalid_type', $response, 404 );
+	}
+
+	public function test_update_comment_with_raw_property() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'content' => array(
+				'raw' => 'What the heck kind of name is Persephone?',
+			),
+		);
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', $this->approved_id ) );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$comment = $response->get_data();
+		$updated = get_comment( $this->approved_id );
+		$this->assertEquals( $params['content']['raw'], $updated->comment_content );
 	}
 
 	public function test_update_item_invalid_date() {
@@ -1364,6 +1431,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Change the comment parent.
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%s', $child_comment ) );
 		$request->set_param( 'parent', $comment_id_1 );
+		$request->set_param( 'content', rand_str() );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 
@@ -1534,7 +1602,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments/' . $this->approved_id );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'content' => 'abc',
+			'content'       => 'abc',
 		));
 
 		wp_set_current_user( 1 );
@@ -1544,8 +1612,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(array(
 			'my_custom_int' => 123,
-			'title' => 'hello',
-			'post' => $this->post_id,
+			'title'         => 'hello',
+			'content'       => 'goodbye',
+			'post'          => $this->post_id,
 		));
 
 		$response = $this->server->dispatch( $request );
