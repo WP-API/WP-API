@@ -366,7 +366,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment['comment_agent'] = '';
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
+		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+
+		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
+			$error_code = $prepared_comment['comment_approved']->get_error_code();
+			$error_message = $prepared_comment['comment_approved']->get_error_message();
+
+			if ( 'comment_duplicate' === $error_code ) {
+				return new WP_Error( $error_code, $error_message, array( 'status' => 409 ) );
+			}
+
+			if ( 'comment_flood' === $error_code ) {
+				return new WP_Error( $error_code, $error_message, array( 'status' => 400 ) );
+			}
+
+			return $prepared_comment['comment_approved'];
+		}
 
 		/**
 		 * Filter a comment before it is inserted via the REST API.

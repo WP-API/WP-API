@@ -1093,7 +1093,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_item_duplicate() {
-		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+			return $this->markTestSkipped( 'WordPress version not supported.' );
+		}
+
 		$this->factory->comment->create(
 			array(
 				'comment_post_ID'      => $this->post_id,
@@ -1149,8 +1153,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_two_times() {
-
-		$this->markTestSkipped( 'Needs to be revisited after wp_die handling is added' );
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+			return $this->markTestSkipped( 'WordPress version not supported.' );
+		}
 
 		wp_set_current_user( 0 );
 
