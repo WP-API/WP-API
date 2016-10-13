@@ -456,20 +456,20 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 
 		if ( ! empty( $args['enum'] ) ) {
 			if ( ! in_array( $value, $args['enum'] ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: list of enum */ __( '%1$s is not one of %2$s' ), $param, implode( ', ', $args['enum'] ) ) );
+				return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: list of enum */ __( '%1$s is not one of %2$s.' ), $param, implode( ', ', $args['enum'] ) ) );
 			}
 		}
 
 		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s' ), $param, 'integer' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
 		}
 
 		if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s' ), $value, 'boolean' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $value, 'boolean' ) );
 		}
 
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s' ), $param, 'string' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
 		}
 
 		if ( isset( $args['format'] ) ) {
