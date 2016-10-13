@@ -1239,6 +1239,90 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 400, $response->get_status() );
 	}
 
+	public function test_create_comment_author_name_too_long() {
+		wp_set_current_user( 0 );
+		$max_lengths = wp_get_comment_fields_max_lengths();
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => str_repeat( 'a', $max_lengths['comment_author'] + 1 ),
+			'author_email' => 'murphy@gingivitis.com',
+			'author_url'   => 'http://jazz.gingivitis.com',
+			'content' => 'This isn\'t a saxophone. It\'s an umbrella.',
+			'date'    => '1995-04-30T10:22:00',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'comment_author_column_length', $response, 400 );
+	}
+
+	public function test_create_comment_author_email_too_long() {
+		wp_set_current_user( 0 );
+		$max_lengths = wp_get_comment_fields_max_lengths();
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Bleeding Gums Murphy',
+			'author_email'  => 'murphy@' . str_repeat( 'a', $max_lengths['comment_author_email'] - 10 ) . '.com',
+			'author_url'   => 'http://jazz.gingivitis.com',
+			'content' => 'This isn\'t a saxophone. It\'s an umbrella.',
+			'date'    => '1995-04-30T10:22:00',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'comment_author_email_column_length', $response, 400 );
+	}
+
+	public function test_create_comment_author_url_too_long() {
+		wp_set_current_user( 0 );
+		$max_lengths = wp_get_comment_fields_max_lengths();
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Bleeding Gums Murphy',
+			'author_email' => 'murphy@gingivitis.com',
+			'author_url'  => 'http://jazz.' . str_repeat( 'a', $max_lengths['comment_author_url'] - 15 ) . '.com',
+			'content' => 'This isn\'t a saxophone. It\'s an umbrella.',
+			'date'    => '1995-04-30T10:22:00',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'comment_author_url_column_length', $response, 400 );
+	}
+
+	public function test_create_comment_content_too_long() {
+		wp_set_current_user( 0 );
+		$max_lengths = wp_get_comment_fields_max_lengths();
+
+		$params = array(
+			'post'    => $this->post_id,
+			'author_name'  => 'Bleeding Gums Murphy',
+			'author_email' => 'murphy@gingivitis.com',
+			'author_url'   => 'http://jazz.gingivitis.com',
+			'content' => str_repeat( 'a', $max_lengths['comment_content'] + 1 ),
+			'date'    => '1995-04-30T10:22:00',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'comment_content_column_length', $response, 400 );
+	}
+
 	public function test_update_item() {
 		$post_id = $this->factory->post->create();
 
