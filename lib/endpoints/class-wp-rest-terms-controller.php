@@ -380,6 +380,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
+		$schema = $this->get_item_schema();
 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
 			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
 			if ( is_wp_error( $meta_update ) ) {
