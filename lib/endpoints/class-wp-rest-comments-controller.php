@@ -296,7 +296,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( empty( $request['post'] ) && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_comment_invalid_post_id', __( 'Sorry, you cannot create this comment without a post' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_comment_invalid_post_id', __( 'Sorry, you cannot create this comment without a post.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['post'] ) && $post = $this->get_post( (int) $request['post'] ) ) {
