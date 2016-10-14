@@ -401,7 +401,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
-			return new WP_Error( 'rest_user_invalid_argument', __( "Username isn't editable" ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_argument', __( "Username isn't editable." ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $request['slug'] ) && $request['slug'] !== $user->user_nicename && get_user_by( 'slug', $request['slug'] ) ) {
@@ -705,8 +705,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Determine if the current user is allowed to make the desired roles change.
 	 *
-	 * @param integer $user_id
-	 * @param array   $roles
+	 * @param integer $user_id User ID.
+	 * @param array   $roles   New user roles.
 	 * @return WP_Error|boolean
 	 */
 	protected function check_role_update( $user_id, $roles ) {
