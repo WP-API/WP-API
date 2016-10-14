@@ -596,7 +596,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
-		if ( $post->post_type === 'attachment' ) {
+		if ( 'attachment' === $post->post_type ) {
 			$supports_trash = $supports_trash && MEDIA_TRASH;
 		}
 
