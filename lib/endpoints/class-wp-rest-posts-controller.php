@@ -683,7 +683,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 
-		$valid_vars = array_flip( $this->get_allowed_query_vars() );
+		$valid_vars = array_flip( $this->get_allowed_query_vars( $request ) );
 		$query_args = array();
 		foreach ( $valid_vars as $var => $index ) {
 			if ( isset( $prepared_args[ $var ] ) ) {
@@ -713,9 +713,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Get all the WP Query vars that are allowed for the API request.
 	 *
+	 * @param WP_REST_Request $request
 	 * @return array
 	 */
-	protected function get_allowed_query_vars() {
+	protected function get_allowed_query_vars( $request = null ) {
 		global $wp;
 
 		/**
@@ -773,9 +774,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *    Array of allowed WP_Query query vars.
 		 *
 		 *    @param string $allowed_query_var The query var to allow.
+		 *    @param WP_REST_Request $request Request object.
 		 * }
 		 */
-		$valid_vars = apply_filters( 'rest_query_vars', $valid_vars );
+		$valid_vars = apply_filters( 'rest_query_vars', $valid_vars, $request );
 
 		return $valid_vars;
 	}
