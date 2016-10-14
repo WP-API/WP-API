@@ -705,8 +705,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Determine if the current user is allowed to make the desired roles change.
 	 *
-	 * @param integer $user_id
-	 * @param array   $roles
+	 * @param integer $user_id User ID.
+	 * @param array   $roles   New user roles.
 	 * @return WP_Error|boolean
 	 */
 	protected function check_role_update( $user_id, $roles ) {
