@@ -148,7 +148,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Delete a single revision
 	 *
-	 * @param WP_REST_Request $request Full details about the request
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_Error|boolean
 	 */
 	public function delete_item( $request ) {
@@ -174,7 +174,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare the revision for the REST response
 	 *
-	 * @param WP_Post $post Post revision object.
+	 * @param WP_Post         $post    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response $response
 	 */
@@ -272,8 +272,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
 	 *
-	 * @param string       $date_gmt
-	 * @param string|null  $date
+	 * @param string      $date_gmt GMT publication time.
+	 * @param string|null $date     Optional, default is null. Local publication time.
 	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
@@ -386,7 +386,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Check the post excerpt and prepare it for single post output.
 	 *
-	 * @param string       $excerpt
+	 * @param string      $excerpt The post excerpt.
+	 * @param int|WP_Post $post    Post revision object.
 	 * @return string|null $excerpt
 	 */
 	protected function prepare_excerpt_response( $excerpt, $post ) {
@@ -400,5 +401,4 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		return $excerpt;
 	}
-
 }
