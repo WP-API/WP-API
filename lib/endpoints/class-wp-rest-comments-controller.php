@@ -909,7 +909,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => '',
 					),
 				),
 				'author_url'       => array(
