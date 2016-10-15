@@ -29,7 +29,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'role' => 'subscriber',
 		));
 		$this->author_id = $this->factory->user->create( array(
-			'role' => 'author',
+			'role'         => 'author',
+			'display_name' => 'Sea Captain',
+			'first_name'   => 'Horatio',
+			'last_name'    => 'McCallister',
+			'user_email'   => 'captain@thefryingdutchman.com',
+			'user_url'     => 'http://thefryingdutchman.com',
 		));
 
 		$this->post_id = $this->factory->post->create();
@@ -914,7 +919,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content' => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
-			'author'    => 0,
+			'author'    => $this->subscriber_id,
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -924,7 +929,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['author'] );
+		$this->assertEquals( $this->subscriber_id, $data['author'] );
+		$this->assertEquals( 'Homer Jay Simpson', $data['author_name'] );
+		$this->assertEquals( 'chunkylover53@aol.com', $data['author_email'] );
+		$this->assertEquals( 'http://compuglobalhypermeganet.com', $data['author_url'] );
 	}
 
 	public function test_create_comment_other_user_without_permission() {
@@ -1167,6 +1175,29 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = $this->server->dispatch( $request );
 		$this->assertErrorResponse( 'rest_comment_author_invalid', $response, 400 );
+	}
+
+	public function test_create_item_pull_author_info() {
+		wp_set_current_user( $this->admin_id );
+
+		$author = new WP_User( $this->author_id );
+		$params = array(
+			'post'         => $this->post_id,
+			'author'       => $this->author_id,
+			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$result = $response->get_data();
+		$this->assertSame( $this->author_id, $result['author'] );
+		$this->assertSame( 'Sea Captain', $result['author_name'] );
+		$this->assertSame( 'captain@thefryingdutchman.com', $result['author_email'] );
+		$this->assertSame( 'http://thefryingdutchman.com', $result['author_url'] );
 	}
 
 	public function test_create_comment_two_times() {
