@@ -797,7 +797,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 		// Post slug.
-		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) && ! empty( $request['slug'] ) && ! is_object( $request['slug'] ) ) {
+		if ( ! empty( $schema['properties']['slug'] ) && isset( $request['slug'] ) && ! empty( $request['slug'] ) ) {
 			$prepared_post->post_name = $request['slug'];
 		}
 
