@@ -230,6 +230,37 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @depends test_get_value
+	 */
+	public function test_set_duplicate_single_value() {
+		// Start with an existing metakey and value.
+		$values = update_post_meta( $this->post_id, 'test_single', 'test_value' );
+		$this->assertEquals( 'test_value', get_post_meta( $this->post_id, 'test_single', true ) );
+
+		$this->grant_write_permission();
+
+		$data = array(
+			'meta' => array(
+				'test_single' => 'test_value',
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', $this->post_id ) );
+		$request->set_body_params( $data );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+
+		$meta = get_post_meta( $this->post_id, 'test_single', true );
+		$this->assertNotEmpty( $meta );
+		$this->assertEquals( 'test_value', $meta );
+
+		$data = $response->get_data();
+		$meta = (array) $data['meta'];
+		$this->assertArrayHasKey( 'test_single', $meta );
+		$this->assertEquals( 'test_value', $meta['test_single'] );
+	}
+
+	/**
 	 * @depends test_set_value
 	 */
 	public function test_set_value_unauthenticated() {

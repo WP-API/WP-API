@@ -146,14 +146,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
 
-		// Can we use the cached call?
-		$use_cache = ! empty( $prepared_args['post'] )
-			&& empty( $prepared_args['include'] )
-			&& empty( $prepared_args['exclude'] )
-			&& empty( $prepared_args['hide_empty'] )
-			&& empty( $prepared_args['search'] )
-			&& empty( $prepared_args['slug'] );
-
 		if ( ! empty( $prepared_args['post'] )  ) {
 			$query_result = $this->get_terms_for_post( $prepared_args );
 			$total_terms = $this->total_terms;
@@ -380,6 +372,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_insert_{$this->taxonomy}", $term, $request, true );
 
+		$schema = $this->get_item_schema();
 		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
 			$meta_update = $this->meta->update_value( $request['meta'], (int) $request['id'] );
 			if ( is_wp_error( $meta_update ) ) {

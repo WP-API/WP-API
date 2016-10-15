@@ -296,7 +296,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( empty( $request['post'] ) && ! current_user_can( 'moderate_comments' ) ) {
-			return new WP_Error( 'rest_comment_invalid_post_id', __( 'Sorry, you cannot create this comment without a post' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_comment_invalid_post_id', __( 'Sorry, you cannot create this comment without a post.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['post'] ) && $post = $this->get_post( (int) $request['post'] ) ) {
@@ -329,6 +329,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
+		/**
+		 * Do not allow a comment to be created with an empty string for
+		 * comment_content.
+		 * See `wp_handle_comment_submission()`.
+		 */
+		if ( '' === $prepared_comment['comment_content'] ) {
+			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
+		}
+
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
 		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
@@ -357,7 +366,22 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment['comment_agent'] = '';
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
+		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+
+		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
+			$error_code = $prepared_comment['comment_approved']->get_error_code();
+			$error_message = $prepared_comment['comment_approved']->get_error_message();
+
+			if ( 'comment_duplicate' === $error_code ) {
+				return new WP_Error( $error_code, $error_message, array( 'status' => 409 ) );
+			}
+
+			if ( 'comment_flood' === $error_code ) {
+				return new WP_Error( $error_code, $error_message, array( 'status' => 400 ) );
+			}
+
+			return $prepared_comment['comment_approved'];
+		}
 
 		/**
 		 * Filter a comment before it is inserted via the REST API.
@@ -450,6 +474,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_args = $this->prepare_item_for_database( $request );
+		if ( is_wp_error( $prepared_args ) ) {
+			return $prepared_args;
+		}
 
 		if ( empty( $prepared_args ) && isset( $request['status'] ) ) {
 			// Only the comment status is being changed.
@@ -761,8 +788,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected function prepare_item_for_database( $request ) {
 		$prepared_comment = array();
 
-		if ( isset( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+		/**
+		 * Allow the comment_content to be set via the 'content' or
+		 * the 'content.raw' properties of the Request object.
+		 */
+		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
+			$prepared_comment['comment_content'] = wp_filter_kses( $request['content'] );
+		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
+			$prepared_comment['comment_content'] = wp_filter_kses( $request['content']['raw'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -822,6 +855,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			if ( ! empty( $date_data ) ) {
 				list( $prepared_comment['comment_date'], $prepared_comment['comment_date_gmt'] ) = $date_data;
 			}
+		}
+
+		// Require 'comment_content' unless only the 'comment_status' is being
+		// updated.
+		if ( ! empty( $prepared_comment ) && ! isset( $prepared_comment['comment_content'] ) ) {
+			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
 		}
 
 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
@@ -900,10 +939,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							'type'            => 'string',
 							'context'         => array( 'view', 'edit', 'embed' ),
 						),
-					),
-					'arg_options'  => array(
-						'sanitize_callback' => 'wp_filter_post_kses',
-						'default'           => '',
 					),
 				),
 				'date'             => array(
