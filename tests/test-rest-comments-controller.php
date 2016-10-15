@@ -1152,6 +1152,23 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
 	}
 
+	public function test_create_item_invalid_author() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author'       => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_author_invalid', $response, 400 );
+	}
+
 	public function test_create_comment_two_times() {
 		global $wp_version;
 		if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
