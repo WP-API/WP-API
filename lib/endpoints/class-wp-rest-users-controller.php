@@ -103,28 +103,50 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
+		// Retrieve the list of registered collection query parameters.
+		$registered = $this->get_collection_params();
+
+		// This array defines mappings between public API query parameters whose
+		// values are accepted as-passed, and their internal WP_Query parameter
+		// name equivalents (some are the same). Only values which are also
+		// present in $registered will be set.
+		$parameter_mappings = array(
+			'exclude'  => 'exclude',
+			'include'  => 'include',
+			'order'    => 'order',
+			'per_page' => 'number',
+			'search'   => 'search',
+			'roles'    => 'role__in',
+		);
+
 		$prepared_args = array();
-		$prepared_args['exclude'] = $request['exclude'];
-		$prepared_args['include'] = $request['include'];
-		$prepared_args['order'] = $request['order'];
-		$prepared_args['number'] = $request['per_page'];
-		if ( ! empty( $request['offset'] ) ) {
+
+		// For each known parameter which is both registered and present in the request,
+		// set the parameter's value on the query $prepared_args.
+		foreach ( $parameter_mappings as $api_param => $wp_param ) {
+			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+				$prepared_args[ $wp_param ] = $request[ $api_param ];
+			}
+		}
+
+		if ( isset( $registered['offset'] ) && ! empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $request['offset'];
 		} else {
-			$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+			$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
 		}
-		$orderby_possibles = array(
-			'id'              => 'ID',
-			'include'         => 'include',
-			'name'            => 'display_name',
-			'registered_date' => 'registered',
-			'slug'            => 'user_nicename',
-			'email'           => 'user_email',
-			'url'             => 'user_url',
-		);
-		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
-		$prepared_args['search'] = $request['search'];
-		$prepared_args['role__in'] = $request['roles'];
+
+		if ( isset( $registered['orderby'] ) ) {
+			$orderby_possibles = array(
+				'id'              => 'ID',
+				'include'         => 'include',
+				'name'            => 'display_name',
+				'registered_date' => 'registered',
+				'slug'            => 'user_nicename',
+				'email'           => 'user_email',
+				'url'             => 'user_url',
+			);
+			$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
+		}
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
@@ -134,7 +156,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 
-		if ( ! empty( $request['slug'] ) ) {
+		if ( isset( $registered['slug'] ) && ! empty( $request['slug'] ) ) {
 			$prepared_args['search'] = $request['slug'];
 			$prepared_args['search_columns'] = array( 'user_nicename' );
 		}

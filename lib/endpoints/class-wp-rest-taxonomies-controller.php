@@ -65,7 +65,11 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function get_items( $request ) {
-		if ( ! empty( $request['type'] ) ) {
+
+		// Retrieve the list of registered collection query parameters.
+		$registered = $this->get_collection_params();
+
+		if ( isset( $registered['type'] ) && ! empty( $request['type'] ) ) {
 			$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
