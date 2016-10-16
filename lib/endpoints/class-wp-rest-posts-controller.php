@@ -1426,7 +1426,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => 'rest_sanitize_slug',
 					),
 				),
 				'status'          => array(

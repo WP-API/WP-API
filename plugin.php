@@ -487,3 +487,16 @@ if ( ! function_exists( 'rest_is_boolean' ) ) {
 		return false;
 	}
 }
+
+/**
+ * Sanitize a slug with `sanitize_title`.
+ *
+ * @param string $slug The slug the sanitize.
+ *
+ * @return string The sanitized slug.
+ */
+if ( ! function_exists( 'rest_sanitize_slug' ) ) {
+	function rest_sanitize_slug( $slug ) {
+		return sanitize_title( $slug );
+	}
+}
