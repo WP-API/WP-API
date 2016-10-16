@@ -59,7 +59,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( json_encode( $data ), '{}' );
+		$this->assertEquals( '{}', json_encode( $data ) );
 	}
 
 	public function test_get_item() {
