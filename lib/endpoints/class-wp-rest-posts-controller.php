@@ -825,9 +825,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['title'] ) && isset( $request['title'] ) ) {
 			if ( is_string( $request['title'] ) ) {
 				// wp_filter_kses slash handling is lossy: use the underlying methods directly
-				$prepared_post->post_title = wp_kses( $request['title'], current_filter() );
+				$prepared_post->post_title = wp_kses( $request['title'], 'title_save_pre' );
 			} elseif ( ! empty( $request['title']['raw'] ) ) {
-				$prepared_post->post_title = wp_kses( $request['title']['raw'], current_filter() );
+				$prepared_post->post_title = wp_kses( $request['title']['raw'], 'title_save_pre' );
 			}
 		}
 
