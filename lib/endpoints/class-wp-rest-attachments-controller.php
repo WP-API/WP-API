@@ -40,9 +40,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $ret;
 		}
 
-		// "upload_files" cap is returned for an attachment by $post_type_obj->cap->create_posts
-		$post_type_obj = get_post_type_object( $this->post_type );
-		if ( ! current_user_can( $post_type_obj->cap->create_posts ) || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
+		if ( ! current_user_can( 'upload_files' ) ) {
 			return new WP_Error( 'rest_cannot_create', __( 'Sorry, you are not allowed to upload media on this site.' ), array( 'status' => 400 ) );
 		}
 
@@ -181,6 +179,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = $this->get_post( $request['id'] );
+
+		$fields_update = $this->update_additional_fields_for_object( $attachment, $request );
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
@@ -332,7 +336,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'readonly'        => true,
 		);
 		$schema['properties']['mime_type'] = array(
-			'description'     => __( 'Mime type of resource.' ),
+			'description'     => __( 'MIME type of resource.' ),
 			'type'            => 'string',
 			'context'         => array( 'view', 'edit', 'embed' ),
 			'readonly'        => true,
@@ -367,15 +371,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function upload_from_data( $data, $headers ) {
 		if ( empty( $data ) ) {
-			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied.' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $headers['content_type'] ) ) {
-			return new WP_Error( 'rest_upload_no_content_type', __( 'No Content-Type supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_content_type', __( 'No Content-Type supplied.' ), array( 'status' => 400 ) );
 		}
 
 		if ( empty( $headers['content_disposition'] ) ) {
-			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied.' ), array( 'status' => 400 ) );
 		}
 
 		$filename = $this->get_filename_from_disposition( $headers['content_disposition'] );
@@ -390,7 +394,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$actual   = md5( $data );
 
 			if ( $expected !== $actual ) {
-				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected.' ), array( 'status' => 412 ) );
 			}
 		}
 
@@ -406,7 +410,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$fp = fopen( $tmpfname, 'w+' );
 
 		if ( ! $fp ) {
-			return new WP_Error( 'rest_upload_file_error', __( 'Could not open file handle' ), array( 'status' => 500 ) );
+			return new WP_Error( 'rest_upload_file_error', __( 'Could not open file handle.' ), array( 'status' => 500 ) );
 		}
 
 		fwrite( $fp, $data );
@@ -518,7 +522,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 		$params['mime_type'] = array(
 			'default'            => null,
-			'description'        => __( 'Limit result set to attachments of a particular mime type.' ),
+			'description'        => __( 'Limit result set to attachments of a particular MIME type.' ),
 			'type'               => 'string',
 		);
 		return $params;
@@ -548,7 +552,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function upload_from_file( $files, $headers ) {
 		if ( empty( $files ) ) {
-			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_upload_no_data', __( 'No data supplied.' ), array( 'status' => 400 ) );
 		}
 
 		// Verify hash, if given
@@ -557,7 +561,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$expected = trim( $content_md5 );
 			$actual = md5_file( $files['file']['tmp_name'] );
 			if ( $expected !== $actual ) {
-				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected' ), array( 'status' => 412 ) );
+				return new WP_Error( 'rest_upload_hash_mismatch', __( 'Content hash did not match expected.' ), array( 'status' => 412 ) );
 			}
 		}
 
@@ -583,7 +587,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Get the supported media types.
-	 * Media types are considered the mime type category
+	 * Media types are considered the MIME type category
 	 *
 	 * @return array
 	 */

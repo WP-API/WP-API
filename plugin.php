@@ -4,7 +4,7 @@
  * Description: JSON-based REST API for WordPress, originally developed as part of GSoC 2013.
  * Author: WP REST API Team
  * Author URI: http://v2.wp-api.org
- * Version: 2.0-beta13
+ * Version: 2.0-beta15
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
  */
@@ -80,6 +80,48 @@ if ( ! class_exists( 'WP_REST_Comments_Controller' ) ) {
 }
 
 /**
+ * WP_REST_Settings_Controller class.
+ */
+if ( ! class_exists( 'WP_REST_Settings_Controller' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/endpoints/class-wp-rest-settings-controller.php';
+}
+
+/**
+ * WP_REST_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-meta-fields.php';
+}
+
+/**
+ * WP_REST_Comment_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Comment_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-comment-meta-fields.php';
+}
+
+/**
+ * WP_REST_Post_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Post_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-post-meta-fields.php';
+}
+
+/**
+ * WP_REST_Term_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_Term_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-term-meta-fields.php';
+}
+
+/**
+ * WP_REST_User_Meta_Fields class.
+ */
+if ( ! class_exists( 'WP_REST_User_Meta_Fields' ) ) {
+	require_once dirname( __FILE__ ) . '/lib/fields/class-wp-rest-user-meta-fields.php';
+}
+
+/**
  * REST extras.
  */
 include_once( dirname( __FILE__ ) . '/extras.php' );
@@ -87,6 +129,7 @@ require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
+add_action( 'rest_api_init', 'rest_register_settings', 0 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
 
 /**
@@ -144,6 +187,121 @@ function _add_extra_api_taxonomy_arguments() {
 		$wp_taxonomies['post_tag']->rest_controller_class = 'WP_REST_Terms_Controller';
 	}
 }
+
+
+/**
+ * Register the settings to be used in the REST API.
+ *
+ * This is required are WordPress Core does not internally register
+ * it's settings via `register_rest_setting()`. This should be removed
+ * once / if core starts to register settings internally.
+ */
+function rest_register_settings() {
+	global $wp_version;
+	if ( version_compare( $wp_version, '4.7-alpha', '<' ) ) {
+		return;
+	}
+
+	register_setting( 'general', 'blogname', array(
+		'show_in_rest' => array(
+			'name' => 'title',
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site title.' ),
+	) );
+
+	register_setting( 'general', 'blogdescription', array(
+		'show_in_rest' => array(
+			'name' => 'description',
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site description.' ),
+	) );
+
+	register_setting( 'general', 'siteurl', array(
+		'show_in_rest' => array(
+			'name'    => 'url',
+			'schema'  => array(
+				'format' => 'uri',
+			),
+		),
+		'type'         => 'string',
+		'description'  => __( 'Site URL.' ),
+	) );
+
+	register_setting( 'general', 'admin_email', array(
+		'show_in_rest' => array(
+			'name'    => 'email',
+			'schema'  => array(
+				'format' => 'email',
+			),
+		),
+		'type'         => 'string',
+		'description'  => __( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. The new address will not become active until confirmed.' ),
+	) );
+
+	register_setting( 'general', 'timezone_string', array(
+		'show_in_rest' => array(
+			'name' => 'timezone',
+		),
+		'type'         => 'string',
+		'description'  => __( 'A city in the same timezone as you.' ),
+	) );
+
+	register_setting( 'general', 'date_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'A date format for all date strings.' ),
+	) );
+
+	register_setting( 'general', 'time_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'A time format for all time strings.' ),
+	) );
+
+	register_setting( 'general', 'start_of_week', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'A day number of the week that the week should start on.' ),
+	) );
+
+	register_setting( 'general', 'WPLANG', array(
+		'show_in_rest' => array(
+			'name' => 'language',
+		),
+		'type'         => 'string',
+		'description'  => __( 'WordPress locale code.' ),
+		'default'      => 'en_US',
+	) );
+
+	register_setting( 'writing', 'use_smilies', array(
+		'show_in_rest' => true,
+		'type'         => 'boolean',
+		'description'  => __( 'Convert emoticons like :-) and :-P to graphics on display.' ),
+		'default'      => true,
+	) );
+
+	register_setting( 'writing', 'default_category', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'Default category.' ),
+	) );
+
+	register_setting( 'writing', 'default_post_format', array(
+		'show_in_rest' => true,
+		'type'         => 'string',
+		'description'  => __( 'Default post format.' ),
+	) );
+
+	register_setting( 'reading', 'posts_per_page', array(
+		'show_in_rest' => true,
+		'type'         => 'number',
+		'description'  => __( 'Blog pages show at most.' ),
+		'default'      => 10,
+	) );
+}
+
 
 if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 	/**
@@ -206,6 +364,13 @@ if ( ! function_exists( 'create_initial_rest_routes' ) ) {
 		// Comments.
 		$controller = new WP_REST_Comments_Controller;
 		$controller->register_routes();
+
+		// Settings. 4.7+ only.
+		global $wp_version;
+		if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
+			$controller = new WP_REST_Settings_Controller;
+			$controller->register_routes();
+		}
 	}
 }
 
@@ -291,20 +456,20 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 
 		if ( ! empty( $args['enum'] ) ) {
 			if ( ! in_array( $value, $args['enum'] ) ) {
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not one of %s' ), $param, implode( ', ', $args['enum'] ) ) );
+				return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: list of valid values */ __( '%1$s is not one of %2$s.' ), $param, implode( ', ', $args['enum'] ) ) );
 			}
 		}
 
 		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'integer' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
 		}
 
 		if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $value, 'boolean' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $value, 'boolean' ) );
 		}
 
 		if ( 'string' === $args['type'] && ! is_string( $value ) ) {
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'string' ) );
+			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
 		}
 
 		if ( isset( $args['format'] ) ) {
@@ -331,32 +496,32 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
 			if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
 				if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (exclusive)' ), $param, $args['minimum'] ) );
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d (exclusive)' ), $param, $args['minimum'] ) );
 				} else if ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be greater than %d (inclusive)' ), $param, $args['minimum'] ) );
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d (inclusive)' ), $param, $args['minimum'] ) );
 				}
 			} else if ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
 				if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (exclusive)' ), $param, $args['maximum'] ) );
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d (exclusive)' ), $param, $args['maximum'] ) );
 				} else if ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be less than %d (inclusive)' ), $param, $args['maximum'] ) );
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d (inclusive)' ), $param, $args['maximum'] ) );
 				}
 			} else if ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
 				if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
-						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
 				} else if ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
-						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
 				} else if ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
-						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (exclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
 				} else if ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
-						return new WP_Error( 'rest_invalid_param', sprintf( __( '%s must be between %d (inclusive) and %d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
 				}
 			}
@@ -409,6 +574,33 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 					return sanitize_text_field( $value );
 			}
 		}
+
+		return $value;
+	}
+}
+
+
+if ( ! function_exists( 'rest_parse_request_arg' ) ) {
+	/**
+	 * Parse a request argument based on details registered to the route.
+	 *
+	 * Runs a validation check and sanitizes the value, primarily to be used via
+	 * the `sanitize_callback` arguments in the endpoint args registration.
+	 *
+	 * @param  mixed            $value
+	 * @param  WP_REST_Request  $request
+	 * @param  string           $param
+	 * @return mixed
+	 */
+	function rest_parse_request_arg( $value, $request, $param ) {
+
+		$is_valid = rest_validate_request_arg( $value, $request, $param );
+
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
+		}
+
+		$value = rest_sanitize_request_arg( $value, $request, $param );
 
 		return $value;
 	}

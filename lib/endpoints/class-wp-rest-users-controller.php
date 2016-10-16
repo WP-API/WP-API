@@ -8,6 +8,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'users';
+
+		$this->meta = new WP_REST_User_Meta_Fields();
 	}
 
 	/**
@@ -86,6 +88,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you cannot view this resource with edit context.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
+		if ( in_array( $request['orderby'], array( 'email', 'registered_date' ), true ) && ! current_user_can( 'list_users' ) ) {
+			return new WP_Error( 'rest_forbidden_orderby', __( 'Sorry, you cannot order by this parameter.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		return true;
 	}
 
@@ -97,25 +103,50 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
+		// Retrieve the list of registered collection query parameters.
+		$registered = $this->get_collection_params();
+
+		// This array defines mappings between public API query parameters whose
+		// values are accepted as-passed, and their internal WP_Query parameter
+		// name equivalents (some are the same). Only values which are also
+		// present in $registered will be set.
+		$parameter_mappings = array(
+			'exclude'  => 'exclude',
+			'include'  => 'include',
+			'order'    => 'order',
+			'per_page' => 'number',
+			'search'   => 'search',
+			'roles'    => 'role__in',
+		);
+
 		$prepared_args = array();
-		$prepared_args['exclude'] = $request['exclude'];
-		$prepared_args['include'] = $request['include'];
-		$prepared_args['order'] = $request['order'];
-		$prepared_args['number'] = $request['per_page'];
-		if ( ! empty( $request['offset'] ) ) {
+
+		// For each known parameter which is both registered and present in the request,
+		// set the parameter's value on the query $prepared_args.
+		foreach ( $parameter_mappings as $api_param => $wp_param ) {
+			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+				$prepared_args[ $wp_param ] = $request[ $api_param ];
+			}
+		}
+
+		if ( isset( $registered['offset'] ) && ! empty( $request['offset'] ) ) {
 			$prepared_args['offset'] = $request['offset'];
 		} else {
-			$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['number'];
+			$prepared_args['offset']  = ( $request['page'] - 1 ) * $prepared_args['number'];
 		}
-		$orderby_possibles = array(
-			'id'              => 'ID',
-			'include'         => 'include',
-			'name'            => 'display_name',
-			'registered_date' => 'registered',
-		);
-		$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
-		$prepared_args['search'] = $request['search'];
-		$prepared_args['role__in'] = $request['roles'];
+
+		if ( isset( $registered['orderby'] ) ) {
+			$orderby_possibles = array(
+				'id'              => 'ID',
+				'include'         => 'include',
+				'name'            => 'display_name',
+				'registered_date' => 'registered',
+				'slug'            => 'user_nicename',
+				'email'           => 'user_email',
+				'url'             => 'user_url',
+			);
+			$prepared_args['orderby'] = $orderby_possibles[ $request['orderby'] ];
+		}
 
 		if ( ! current_user_can( 'list_users' ) ) {
 			$prepared_args['has_published_posts'] = true;
@@ -125,7 +156,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
 		}
 
-		if ( ! empty( $request['slug'] ) ) {
+		if ( isset( $registered['slug'] ) && ! empty( $request['slug'] ) ) {
 			$prepared_args['search'] = $request['slug'];
 			$prepared_args['search_columns'] = array( 'user_nicename' );
 		}
@@ -322,6 +353,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			array_map( array( $user, 'add_role' ), $request['roles'] );
 		}
 
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], $user_id );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
+		}
+
 		$fields_update = $this->update_additional_fields_for_object( $user, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -385,7 +423,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
-			return new WP_Error( 'rest_user_invalid_argument', __( "Username isn't editable" ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_user_invalid_argument', __( "Username isn't editable." ), array( 'status' => 400 ) );
 		}
 
 		if ( ! empty( $request['slug'] ) && $request['slug'] !== $user->user_nicename && get_user_by( 'slug', $request['slug'] ) ) {
@@ -412,6 +450,14 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$user = get_user_by( 'id', $id );
 		if ( ! empty( $request['roles'] ) ) {
 			array_map( array( $user, 'add_role' ), $request['roles'] );
+		}
+
+		$schema = $this->get_item_schema();
+		if ( ! empty( $schema['properties']['meta'] ) && isset( $request['meta'] ) ) {
+			$meta_update = $this->meta->update_value( $request['meta'], $id );
+			if ( is_wp_error( $meta_update ) ) {
+				return $meta_update;
+			}
 		}
 
 		$fields_update = $this->update_additional_fields_for_object( $user, $request );
@@ -552,7 +598,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $schema['properties']['roles'] ) ) {
-			$data['roles'] = $user->roles;
+			// Defensively call array_values() to ensure an array is returned.
+			$data['roles'] = array_values( $user->roles );
 		}
 
 		if ( ! empty( $schema['properties']['registered_date'] ) ) {
@@ -569,6 +616,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		if ( ! empty( $schema['properties']['avatar_urls'] ) ) {
 			$data['avatar_urls'] = rest_get_avatar_urls( $user->user_email );
+		}
+
+		if ( ! empty( $schema['properties']['meta'] ) ) {
+			$data['meta'] = $this->meta->get_value( $user->ID, $request );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'embed';
@@ -676,8 +727,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Determine if the current user is allowed to make the desired roles change.
 	 *
-	 * @param integer $user_id
-	 * @param array   $roles
+	 * @param integer $user_id User ID.
+	 * @param array   $roles   New user roles.
 	 * @return WP_Error|boolean
 	 */
 	protected function check_role_update( $user_id, $roles ) {
@@ -802,7 +853,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'sanitize_title',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'registered_date' => array(
@@ -858,8 +909,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'readonly'    => true,
 				'properties'  => $avatar_properties,
 			);
-
 		}
+
+		$schema['properties']['meta'] = $this->meta->get_field_schema();
 
 		return $this->add_additional_fields_schema( $schema );
 	}
@@ -908,6 +960,9 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'include',
 				'name',
 				'registered_date',
+				'slug',
+				'email',
+				'url',
 			),
 			'sanitize_callback'  => 'sanitize_key',
 			'type'               => 'string',
