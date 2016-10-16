@@ -413,7 +413,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( is_wp_error( $post_id ) ) {
 
-			if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ) ) ) {
+			if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ), true ) ) {
 				$post_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$post_id->add_data( array( 'status' => 400 ) );
@@ -526,7 +526,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// convert the post object to an array, otherwise wp_update_post will expect non-escaped input
 		$post_id = wp_update_post( (array) $post, true );
 		if ( is_wp_error( $post_id ) ) {
-			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ) ) ) {
+			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ), true ) ) {
 				$post_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$post_id->add_data( array( 'status' => 400 ) );
@@ -1021,7 +1021,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param integer $post_id
 	 */
 	public function handle_template( $template, $post_id ) {
-		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( $this->get_post( $post_id ) ) ) ) ) {
+		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( $this->get_post( $post_id ) ) ), true ) ) {
 			update_post_meta( $post_id, '_wp_page_template', $template );
 		} else {
 			update_post_meta( $post_id, '_wp_page_template', '' );
@@ -1375,7 +1375,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'author' ) )
+		if ( ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'author' ) )
 			&& ! empty( $post->post_author ) ) {
 			$links['author'] = array(
 				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
@@ -1383,7 +1383,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		};
 
-		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'comments' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$replies_url = rest_url( 'wp/v2/comments' );
 			$replies_url = add_query_arg( 'post', $post->ID, $replies_url );
 			$links['replies'] = array(
@@ -1392,7 +1392,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( in_array( $post->post_type, array( 'post', 'page' ) ) || post_type_supports( $post->post_type, 'revisions' ) ) {
+		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'revisions' ) ) {
 			$links['version-history'] = array(
 				'href' => rest_url( trailingslashit( $base ) . $post->ID . '/revisions' ),
 			);
@@ -1413,7 +1413,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'embeddable' => true,
 			);
 		}
-		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
+		if ( ! in_array( $post->post_type, array( 'attachment', 'nav_menu_item', 'revision' ), true ) ) {
 			$attachments_url = rest_url( 'wp/v2/media' );
 			$attachments_url = add_query_arg( 'parent', $post->ID, $attachments_url );
 			$links['https://api.w.org/attachment'] = array(
@@ -1600,9 +1600,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 		foreach ( $post_type_attributes as $attribute ) {
-			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ] ) ) {
+			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
-			} elseif ( ! in_array( $this->post_type, array_keys( $fixed_schemas ) ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			} elseif ( ! in_array( $this->post_type, array_keys( $fixed_schemas ), true ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 

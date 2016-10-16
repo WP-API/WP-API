@@ -187,7 +187,7 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 				$this->assertEquals( $links['up'][0]['href'], rest_url( 'wp/v2/' . $post_type->rest_base . '/' . $data['parent'] ) );
 			}
 
-			if ( ! in_array( $data['type'], array( 'attachment', 'nav_menu_item', 'revision' ) ) ) {
+			if ( ! in_array( $data['type'], array( 'attachment', 'nav_menu_item', 'revision' ), true ) ) {
 				$this->assertEquals( $links['https://api.w.org/attachment'][0]['href'], add_query_arg( 'parent', $data['id'], rest_url( 'wp/v2/media' ) ) );
 			}
 
