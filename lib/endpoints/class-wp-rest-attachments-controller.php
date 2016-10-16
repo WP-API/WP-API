@@ -21,7 +21,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 		if ( ! empty( $request['mime_type'] ) ) {
 			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ] ), true ) {
+			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
 				$query_args['post_mime_type'] = $request['mime_type'];
 			}
 		}
