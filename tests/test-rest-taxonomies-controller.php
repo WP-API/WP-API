@@ -46,11 +46,20 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertErrorResponse( 'rest_cannot_view', $response, 401 );
 	}
 
-	public function test_get_taxonomies_with_types() {
+	public function test_get_taxonomies_for_type() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
 		$request->set_param( 'type', 'post' );
 		$response = $this->server->dispatch( $request );
 		$this->check_taxonomies_for_type_response( 'post', $response );
+	}
+
+	public function test_get_taxonomies_for_invalid_type() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( 'type', 'wingding' );
+		$response = $this->server->dispatch( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertEquals( json_encode( $data ), '{}' );
 	}
 
 	public function test_get_item() {
