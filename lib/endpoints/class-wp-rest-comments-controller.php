@@ -76,7 +76,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$post = $this->get_post( $post_id );
 				if ( ! empty( $post_id ) && $post && ! $this->check_read_post_permission( $post ) ) {
 					return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
-				} else if ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
+				} elseif ( 0 === $post_id && ! current_user_can( 'moderate_comments' ) ) {
 					return new WP_Error( 'rest_cannot_read', __( 'Sorry, you cannot read comments without a post.' ), array( 'status' => rest_authorization_required_code() ) );
 				}
 			}
@@ -94,11 +94,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					if ( 'approve' !== $request[ $param ] ) {
 						$forbidden_params[] = $param;
 					}
-				} else if ( 'type' === $param ) {
+				} elseif ( 'type' === $param ) {
 					if ( 'comment' !== $request[ $param ] ) {
 						$forbidden_params[] = $param;
 					}
-				} else if ( ! empty( $request[ $param ] ) ) {
+				} elseif ( ! empty( $request[ $param ] ) ) {
 					$forbidden_params[] = $param;
 				}
 			}
