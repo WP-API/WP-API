@@ -493,7 +493,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
-		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ), true ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
 			if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
 				if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d (exclusive)' ), $param, $args['minimum'] ) );
