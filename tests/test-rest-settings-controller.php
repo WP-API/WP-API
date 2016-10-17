@@ -104,6 +104,50 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
+	public function test_get_item_with_invalid_value_array_in_options() {
+		wp_set_current_user( $this->administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest',
+				'schema' => array(
+					'enum'    => array( 'validvalue1', 'validvalue2' ),
+					'default' => 'validvalue1',
+				),
+			),
+			'type'         => 'string',
+		) );
+
+		update_option( 'mycustomsetting', array( 'A sneaky array!' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsettinginrest'] );
+	}
+
+	public function test_get_item_with_invalid_object_array_in_options() {
+		wp_set_current_user( $this->administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest',
+				'schema' => array(
+					'enum'    => array( 'validvalue1', 'validvalue2' ),
+					'default' => 'validvalue1',
+				),
+			),
+			'type'         => 'string',
+		) );
+
+		update_option( 'mycustomsetting', (object) array( 'A sneaky array!' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsettinginrest'] );
+	}
+
 	public function test_create_item() {
 	}
 

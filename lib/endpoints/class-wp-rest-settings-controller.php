@@ -70,6 +70,11 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return mixed
 	 */
 	protected function prepare_value( $value, $schema ) {
+		// if the value is not a scaler, it's not possible to cast it to anything.
+		if ( ! is_scalar( $value ) ) {
+			return null;
+		}
+
 		switch ( $schema['type'] ) {
 			case 'string':
 				return strval( $value );
