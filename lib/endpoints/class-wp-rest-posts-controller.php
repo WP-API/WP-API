@@ -165,7 +165,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				// so we have to fake it a bit.
 				if ( ! $args['post__in'] ) {
 					$args['post__in'] = array( -1 );
-		}
+				}
 			} elseif ( $sticky_posts ) {
 				// As post___not_in will be used to only get posts that
 				// are not sticky, we have to support the case where post__not_in
@@ -201,10 +201,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'taxonomy'         => $taxonomy->name,
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
-
 					'include_children' => false,
 				);
 			}
+
 			if ( ! empty( $request[ $tax_exclude ] ) ) {
 				$query_args['tax_query'][] = array(
 					'taxonomy'         => $taxonomy->name,
@@ -213,7 +213,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'include_children' => false,
 					'operator'         => 'NOT IN',
 				);
-		}
+			}
 		}
 
 		$posts_query = new WP_Query();
@@ -492,10 +492,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( $post && ! $this->check_update_permission( $post ) ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to update this post.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( ! empty( $request['password'] ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
-			return new WP_Error( 'rest_cannot_publish', __( 'Sorry, you are not allowed to create password protected posts in this post type' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! empty( $request['author'] ) && get_current_user_id() !== $request['author'] && ! current_user_can( $post_type->cap->edit_others_posts ) ) {
@@ -807,7 +803,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Return the formatted datetime.
 		return mysql_to_rfc3339( $date_gmt );
-		}
+	}
 
 	/**
 	 * Prepare a single post for create or update.
@@ -1238,7 +1234,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			// Allow access to the post, permissions already checked before.
 			add_filter( 'post_password_required', '__return_false' );
 			$has_password_filter = true;
-			}
+		}
 
 		if ( ! empty( $schema['properties']['content'] ) ) {
 			$data['content'] = array(
@@ -1247,7 +1243,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'rendered'  => post_password_required( $post ) ? '' : apply_filters( 'the_content', $post->post_content ),
 				'protected' => (bool) $post->post_password,
 			);
-			}
+		}
 
 		if ( ! empty( $schema['properties']['excerpt'] ) ) {
 			/** This filter is documented in wp-includes/post-template.php */
@@ -1533,7 +1529,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'arg_options' => array(
-						'sanitize_callback' => 'rest_sanitize_slug',
+						'sanitize_callback' => array( $this, 'sanitize_slug' ),
 					),
 				),
 				'status'          => array(
@@ -1655,7 +1651,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 								'type'        => 'boolean',
 								'context'     => array( 'view', 'edit', 'embed' ),
 								'readonly'    => true,
-						),
+							),
 						),
 					);
 					break;
