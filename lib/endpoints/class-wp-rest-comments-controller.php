@@ -1073,20 +1073,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to comments assigned to specific user ids. Requires authorization.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author_exclude'] = array(
 			'description'       => __( 'Ensure result set excludes comments assigned to specific user ids. Requires authorization.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author_email'] = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to that from a specific author email. Requires authorization.' ),
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
-			'validate_callback' => 'rest_validate_request_arg',
 			'type'              => 'string',
 		);
 		$query_params['before'] = array(
@@ -1100,14 +1097,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
-			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
-			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
@@ -1154,21 +1149,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to resources of specific parent ids.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['parent_exclude'] = array(
 			'default'           => array(),
 			'description'       => __( 'Ensure result set excludes specific parent ids.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['post']   = array(
 			'default'           => array(),
 			'description'       => __( 'Limit result set to resources assigned to specific post ids.' ),
 			'type'              => 'array',
 			'sanitize_callback' => 'wp_parse_id_list',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',

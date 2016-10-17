@@ -1801,14 +1801,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 			$params['author_exclude'] = array(
 				'description'         => __( 'Ensure result set excludes posts assigned to specific authors.' ),
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
 		$params['before'] = array(
