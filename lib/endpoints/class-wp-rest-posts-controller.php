@@ -1927,10 +1927,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param  mixed $value
 	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
 	 * @return WP_Error|boolean
 	 */
-	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {
+	public function validate_user_can_query_private_statuses( $value, $request ) {
 		if ( 'publish' === $value ) {
 			return true;
 		}
