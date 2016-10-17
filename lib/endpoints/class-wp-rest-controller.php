@@ -187,7 +187,7 @@ abstract class WP_REST_Controller {
 				continue;
 			}
 
-			if ( ! in_array( $context, $schema['properties'][ $key ]['context'] ) ) {
+			if ( ! in_array( $context, $schema['properties'][ $key ]['context'], true ) ) {
 				unset( $data[ $key ] );
 				continue;
 			}
@@ -197,7 +197,7 @@ abstract class WP_REST_Controller {
 					if ( empty( $details['context'] ) ) {
 						continue;
 					}
-					if ( ! in_array( $context, $details['context'] ) ) {
+					if ( ! in_array( $context, $details['context'], true ) ) {
 						if ( isset( $data[ $key ][ $attribute ] ) ) {
 							unset( $data[ $key ][ $attribute ] );
 						}

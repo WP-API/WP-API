@@ -83,6 +83,12 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 			$tax = $this->prepare_response_for_collection( $tax );
 			$data[ $tax_type ] = $tax;
 		}
+
+		if ( empty( $data ) ) {
+			// Response should still be returned as a JSON object when it is empty.
+			$data = (object) $data;
+		}
+
 		return rest_ensure_response( $data );
 	}
 

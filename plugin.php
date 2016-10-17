@@ -129,8 +129,8 @@ require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
-add_action( 'rest_api_init', 'rest_register_settings', 0 );
-add_action( 'rest_api_init', 'create_initial_rest_routes', 0 );
+add_action( 'rest_api_init', 'rest_register_settings', 10 );
+add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 
 /**
  * Adds extra post type registration arguments.
@@ -493,33 +493,33 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
-		if ( in_array( $args['type'], array( 'numeric', 'integer' ) ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
+		if ( in_array( $args['type'], array( 'numeric', 'integer' ), true ) && ( isset( $args['minimum'] ) || isset( $args['maximum'] ) ) ) {
 			if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
 				if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d (exclusive)' ), $param, $args['minimum'] ) );
-				} else if ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
+				} elseif ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d (inclusive)' ), $param, $args['minimum'] ) );
 				}
-			} else if ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
+			} elseif ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
 				if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d (exclusive)' ), $param, $args['maximum'] ) );
-				} else if ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
+				} elseif ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d (inclusive)' ), $param, $args['maximum'] ) );
 				}
-			} else if ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
+			} elseif ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
 				if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
 						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
-				} else if ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
+				} elseif ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
 						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
-				} else if ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+				} elseif ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
 						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}
-				} else if ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
+				} elseif ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 					if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
 						return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: minimum number, 3: maximum number */ __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 					}

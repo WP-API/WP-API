@@ -12,16 +12,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = parent::prepare_items_query( $prepared_args, $request );
-		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ) ) ) {
+		if ( empty( $query_args['post_status'] ) || ! in_array( $query_args['post_status'], array( 'inherit', 'private', 'trash' ), true ) ) {
 			$query_args['post_status'] = 'inherit';
 		}
 		$media_types = $this->get_media_types();
-		if ( ! empty( $request['media_type'] ) && in_array( $request['media_type'], array_keys( $media_types ) ) ) {
+		if ( ! empty( $request['media_type'] ) && in_array( $request['media_type'], array_keys( $media_types ), true ) ) {
 			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
 		}
 		if ( ! empty( $request['mime_type'] ) ) {
 			$parts = explode( '/', $request['mime_type'] );
-			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ] ) ) {
+			if ( isset( $media_types[ $parts[0] ] ) && in_array( $request['mime_type'], $media_types[ $parts[0] ], true ) ) {
 				$query_args['post_mime_type'] = $request['mime_type'];
 			}
 		}
@@ -64,7 +64,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	public function create_item( $request ) {
 
-		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ), true ) ) {
 			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
 		}
 
@@ -114,7 +114,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$id = wp_insert_post( $attachment, true );
 		if ( is_wp_error( $id ) ) {
-			if ( in_array( $id->get_error_code(), array( 'db_update_error' ) ) ) {
+			if ( in_array( $id->get_error_code(), array( 'db_update_error' ), true ) ) {
 				$id->add_data( array( 'status' => 500 ) );
 			} else {
 				$id->add_data( array( 'status' => 400 ) );
@@ -163,7 +163,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function update_item( $request ) {
-		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ) ) ) {
+		if ( ! empty( $request['post'] ) && in_array( get_post_type( $request['post'] ), array( 'revision', 'attachment' ), true ) ) {
 			return new WP_Error( 'rest_invalid_param', __( 'Invalid parent type.' ), array( 'status' => 400 ) );
 		}
 		$response = parent::update_item( $request );

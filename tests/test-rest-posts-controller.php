@@ -666,7 +666,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				$tag_link = $link;
 			} elseif ( 'category' === $link['attributes']['taxonomy'] ) {
 				$cat_link = $link;
-			} else if ( 'post_format' === $link['attributes']['taxonomy'] ) {
+			} elseif ( 'post_format' === $link['attributes']['taxonomy'] ) {
 				$format_link = $link;
 			}
 		}
