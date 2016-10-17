@@ -17,7 +17,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Register routes for revisions based on post types supporting revisions
-	 * 
+	 *
 	 * @access public
 	 */
 	public function register_routes() {
@@ -53,7 +53,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Check if a given request has access to get revisions
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -75,7 +75,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get a collection of revisions
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -100,7 +100,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Check if a given request has access to get a specific revision
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -112,7 +112,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get one revision from the collection
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_REST_Request $request Full data about the request.
@@ -136,7 +136,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Check if a given request has access to delete a revision
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
@@ -159,7 +159,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Delete a single revision
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
@@ -187,7 +187,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepare the revision for the REST response
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @param WP_Post         $post    Post revision object.
@@ -287,7 +287,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	/**
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
-	 * 
+	 *
 	 * @access protected
 	 *
 	 * @param string      $date_gmt GMT publication time.
@@ -308,7 +308,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get the revision's schema, conforming to JSON Schema
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @return array
@@ -394,7 +394,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Get the query params for collections
-	 * 
+	 *
 	 * @access public
 	 *
 	 * @return array
@@ -407,7 +407,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 	/**
 	 * Check the post excerpt and prepare it for single post output.
-	 * 
+	 *
 	 * @access protected
 	 *
 	 * @param string  $excerpt The post excerpt.
