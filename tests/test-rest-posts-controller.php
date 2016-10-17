@@ -1275,6 +1275,45 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertEquals( "Rob O'Rourke's Diary", $new_data['title']['raw'] );
 	}
 
+	public function test_create_post_with_acceptable_html_in_title() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'title' => 'An <em>Emphatic</em> Headline',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'An <em>Emphatic</em> Headline', $new_data['title']['raw'] );
+	}
+
+	public function test_create_post_with_unacceptable_html_in_title() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'title' => 'A House <div>Divided</div>',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( 'A House Divided', $new_data['title']['raw'] );
+	}
+
+	public function test_create_post_with_backslashes_in_title() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'title' => '\o/',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+		$new_data = $response->get_data();
+		$this->assertEquals( '\o/', $new_data['title']['raw'] );
+	}
+
 	public function test_create_post_with_categories() {
 		wp_set_current_user( $this->editor_id );
 		$category = wp_insert_term( 'Test Category', 'category' );
