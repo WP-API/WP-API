@@ -103,7 +103,19 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			}
 			// A null value means reset the option, which is essentially deleting it
 			// from the database and then relying on the default value.
+			//
+			// However, bacause a saved "invalid" value in the database will
+			// cause a null in the response to the client, we only allow deleting of
+			// options that have a scalar value. Otherwise, sending the response back to
+			// the server will cause a delete of all invalid options.
 			if ( is_null( $request[ $name ] ) ) {
+				if ( ! is_scalar( get_option( $args['option_name'], false ) ) ) {
+					return new WP_Error(
+						'rest_invalid_stored_value',
+						sprintf( __( 'The %s property has an invalid stored value, and was not able to be updated to null.' ), $name ),
+						array( 'status' => 500 )
+					);
+				}
 				delete_option( $args['option_name'] );
 			} else {
 				update_option( $args['option_name'], $request[ $name ] );
