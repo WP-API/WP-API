@@ -43,8 +43,16 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		));
 		register_meta( 'post', 'test_invalid_type', array(
 			'single' => true,
-			'type' => false,
+			'type' => 'mycomplexobject',
 			'show_in_rest' => true,
+		));
+		register_meta( 'post', 'test_invalid_type_in_schema', array(
+			'single' => true,
+			'show_in_rest' => array(
+				'schema' => array(
+					'type' => 'mycomplexobject',
+				),
+			),
 		));
 
 		/** @var WP_REST_Server $wp_rest_server */
@@ -607,6 +615,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'test_no_rest', $meta_schema );
 		$this->assertArrayNotHasKey( 'test_rest_disabled', $meta_schema );
 		$this->assertArrayNotHasKey( 'test_invalid_type', $meta_schema );
+		$this->assertArrayNotHasKey( 'test_invalid_type_in_schema', $meta_schema );
 	}
 
 	/**
