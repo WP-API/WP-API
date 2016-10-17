@@ -1613,6 +1613,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						'description' => __( 'The title for the object.' ),
 						'type'        => 'object',
 						'context'     => array( 'view', 'edit', 'embed' ),
+						'arg_options' => array(
+							'sanitize_callback' => null,
+						),
 						'properties'  => array(
 							'raw' => array(
 								'description' => __( 'Title for the object, as it exists in the database.' ),
@@ -1634,6 +1637,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						'description' => __( 'The content for the object.' ),
 						'type'        => 'object',
 						'context'     => array( 'view', 'edit' ),
+						'arg_options' => array(
+							'sanitize_callback' => null,
+						),
 						'properties'  => array(
 							'raw' => array(
 								'description' => __( 'Content for the object, as it exists in the database.' ),
@@ -1669,6 +1675,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						'description' => __( 'The excerpt for the object.' ),
 						'type'        => 'object',
 						'context'     => array( 'view', 'edit', 'embed' ),
+						'arg_options' => array(
+							'sanitize_callback' => null,
+						),
 						'properties'  => array(
 							'raw' => array(
 								'description' => __( 'Excerpt for the object, as it exists in the database.' ),

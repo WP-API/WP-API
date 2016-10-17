@@ -953,6 +953,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'description'     => __( 'The content for the object.' ),
 					'type'            => 'object',
 					'context'         => array( 'view', 'edit', 'embed' ),
+					'arg_options' => array(
+						'sanitize_callback' => null,
+					),
 					'properties'      => array(
 						'raw'         => array(
 							'description'     => __( 'Content for the object, as it exists in the database.' ),
