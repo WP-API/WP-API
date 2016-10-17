@@ -802,7 +802,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Reverend Lovejoy',
 			'author_email' => 'lovejoy@example.com',
 			'author_url'   => 'http://timothylovejoy.jr',
-			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
 			'date'         => rand_str(),
 		);
 
@@ -1166,7 +1166,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'post'         => $this->post_id,
 			'author'       => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
-			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -1184,7 +1184,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'post'         => $this->post_id,
 			'author'       => $this->author_id,
-			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
