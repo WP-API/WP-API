@@ -511,6 +511,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return new WP_Error( 'rest_comment_failed_edit', __( 'Updating comment status failed.' ), array( 'status' => 500 ) );
 			}
 		} else {
+			if ( is_wp_error( $prepared_args ) ) {
+				return $prepared_args;
+			}
+
 			$prepared_args['comment_ID'] = $id;
 
 			$updated = wp_update_comment( $prepared_args );
@@ -829,7 +833,15 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( isset( $request['author'] ) ) {
-			$prepared_comment['user_id'] = $request['author'];
+			$user = new WP_User( $request['author'] );
+			if ( $user->exists() ) {
+				$prepared_comment['user_id'] = $user->ID;
+				$prepared_comment['comment_author'] = $user->display_name;
+				$prepared_comment['comment_author_email'] = $user->user_email;
+				$prepared_comment['comment_author_url'] = $user->user_url;
+			} else {
+				return new WP_Error( 'rest_comment_author_invalid', __( 'Invalid comment author id.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		if ( isset( $request['author_name'] ) ) {
@@ -923,7 +935,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'context'      => array( 'view', 'edit', 'embed' ),
 					'arg_options'  => array(
 						'sanitize_callback' => 'sanitize_text_field',
-						'default'           => '',
 					),
 				),
 				'author_url'       => array(
