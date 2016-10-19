@@ -382,7 +382,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error( 'rest_upload_no_content_disposition', __( 'No Content-Disposition supplied.' ), array( 'status' => 400 ) );
 		}
 
-		$filename = $this->get_filename_from_disposition( $headers['content_disposition'] );
+		$filename = self::get_filename_from_disposition( $headers['content_disposition'] );
 
 		if ( empty( $filename ) ) {
 			return new WP_Error( 'rest_upload_invalid_disposition', __( 'Invalid Content-Disposition supplied. Content-Disposition needs to be formatted as `attachment; filename="image.png"` or similar.' ), array( 'status' => 400 ) );
