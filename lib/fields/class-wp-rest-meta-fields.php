@@ -345,10 +345,10 @@ abstract class WP_REST_Meta_Fields {
 
 		switch ( $type ) {
 			case 'string':
-				$value = strval( $value );
+				$value = (string) $value;
 				break;
 			case 'number':
-				$value = floatval( $value );
+				$value = (float) $value;
 				break;
 			case 'boolean':
 				$value = (bool) $value;
