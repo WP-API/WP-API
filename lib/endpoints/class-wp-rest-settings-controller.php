@@ -114,6 +114,26 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			if ( ! array_key_exists( $name, $params ) ) {
 				continue;
 			}
+
+			/**
+			 * Filters whether to preempt a setting value update.
+			 *
+			 * Allow hijacking the setting update logic and overriding the built-in behavior by
+			 * returning true.
+			 *
+			 * @since 4.7.0
+			 *
+			 * @param boolean $result Whether to override the default behavior for updating the
+			 *                        value of a setting.
+			 * @param string  $name   Setting name (as shown in REST API responses).
+			 * @param mixed   $value  Updated setting value.
+			 * @param array   $args   Arguments passed to `register_setting()` for this setting.
+			 */
+			$updated = apply_filters( 'rest_update_setting', false, $name, $request[ $name ], $args );
+			if ( $updated ) {
+				continue;
+			}
+
 			// A null value means reset the option, which is essentially deleting it
 			// from the database and then relying on the default value.
 			if ( is_null( $request[ $name ] ) ) {

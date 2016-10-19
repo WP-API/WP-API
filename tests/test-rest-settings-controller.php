@@ -165,6 +165,46 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
 	}
 
+	public function update_setting_custom_callback( $result, $name, $value, $args ) {
+		if ( $name === 'title' && $value === 'The new title!' ) {
+			// Do not allow changing the title in this case
+			return true;
+		}
+
+		return false;
+	}
+
+	public function test_update_item_with_filter() {
+		wp_set_current_user( $this->administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The old title!' );
+		$request->set_param( 'description', 'The old description!' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'The old title!', $data['title'] );
+		$this->assertEquals( 'The old description!', $data['description'] );
+		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
+		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
+
+		add_filter( 'rest_update_setting', array( $this, 'update_setting_custom_callback' ), 10, 4 );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The new title!' );
+		$request->set_param( 'description', 'The new description!' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'The old title!', $data['title'] );
+		$this->assertEquals( 'The new description!', $data['description'] );
+		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
+		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
+
+		remove_all_filters( 'rest_update_setting' );
+	}
+
 	public function test_update_item_with_invalid_type() {
 		wp_set_current_user( $this->administrator );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
