@@ -1128,7 +1128,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_trash_post', $response, 403 );
 	}
 
-	public function test_create_comment_private_post_invalide_permission() {
+	public function test_create_comment_private_post_invalid_permission() {
 		wp_set_current_user( $this->subscriber_id );
 
 		$params = array(
