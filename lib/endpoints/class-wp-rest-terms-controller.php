@@ -22,6 +22,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $meta;
 
 	/**
+	 * Column to have the terms be sorted by.
+	 *
+	 * @access protected
+	 * @var string
+	 */
+	protected $sort_column;
+
+	/**
 	 * Number of terms that were found.
 	 *
 	 * @access protected
