@@ -1041,7 +1041,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param  int             $post_id The post ID to update the terms form.
 	 * @param  WP_REST_Request $request The request object with post and terms data.
-	 * @return null|WP_Error   WP_Error on an error assigning any of ther terms.
+	 * @return null|WP_Error   WP_Error on an error assigning any of the terms.
 	 */
 	protected function handle_terms( $post_id, $request ) {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
