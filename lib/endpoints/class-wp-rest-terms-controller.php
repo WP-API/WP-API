@@ -14,6 +14,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $taxonomy;
 
 	/**
+	 * Instance of a term meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_Term_Meta_Fields
+	 */
+	protected $meta;
+
+	/**
 	 * Number of terms that were found.
 	 *
 	 * @access protected
