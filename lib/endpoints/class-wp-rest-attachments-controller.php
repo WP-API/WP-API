@@ -16,7 +16,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$query_args['post_status'] = 'inherit';
 		}
 		$media_types = $this->get_media_types();
-		if ( ! empty( $request['media_type'] ) && in_array( $request['media_type'], array_keys( $media_types ), true ) ) {
+		if ( ! empty( $request['media_type'] ) && isset( $media_types[ $request['media_type'] ] ) ) {
 			$query_args['post_mime_type'] = $media_types[ $request['media_type'] ];
 		}
 		if ( ! empty( $request['mime_type'] ) ) {

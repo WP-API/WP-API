@@ -1602,7 +1602,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
-			} elseif ( ! in_array( $this->post_type, array_keys( $fixed_schemas ), true ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			} elseif ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 
