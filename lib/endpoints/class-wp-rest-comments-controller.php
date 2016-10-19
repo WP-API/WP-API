@@ -410,7 +410,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Check author name and email if required.
-		if ( get_option( 'require_name_email' ) && ! isset( $prepared_comment['comment_author'] ) ) {
+		if ( get_option( 'require_name_email' ) ) {
 			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
 				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
 			} elseif ( ! isset( $prepared_comment['comment_author'] ) ) {
