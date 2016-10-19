@@ -5,6 +5,14 @@
  */
 class WP_REST_Users_Controller extends WP_REST_Controller {
 
+	/**
+	 * Instance of a user meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_User_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'users';
