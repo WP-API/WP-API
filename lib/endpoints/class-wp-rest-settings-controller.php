@@ -101,14 +101,24 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			if ( ! array_key_exists( $name, $params ) ) {
 				continue;
 			}
-			// A null value means reset the option, which is essentially deleting it
-			// from the database and then relying on the default value.
-			//
-			// However, bacause a saved "invalid" value in the database will
-			// cause a null in the response to the client, we only allow deleting of
-			// options that have a scalar value. Otherwise, sending the response back to
-			// the server will cause a delete of all invalid options.
+
+			/**
+			* A `null` value for an option would have the same effect as
+			* deleting the option from the database, and relying on the
+			* default value.
+			*/
 			if ( is_null( $request[ $name ] ) ) {
+				/**
+				 * A `null` value is returned in the response for any option
+				 * that has a non-scalar value.
+				 *
+				 * To protect clients from accidentally including the `null`
+				 * values from a response object in a request, we do not allow
+				 * options with non-scalar values to be updated to `null`.
+				 * Without this added protection a client could mistakenly
+				 * delete all options that have non-scalar values from the
+				 * database.
+				 */
 				if ( ! is_scalar( get_option( $args['option_name'], false ) ) ) {
 					return new WP_Error(
 						'rest_invalid_stored_value',
