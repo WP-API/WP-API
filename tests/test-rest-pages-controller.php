@@ -56,7 +56,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'before',
 			'context',
 			'exclude',
-			'filter',
 			'include',
 			'menu_order',
 			'offset',
@@ -170,17 +169,15 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
 	}
 
-	public function test_get_items_private_filter_query_var() {
+	public function test_get_items_post_status_draft() {
 		// Private query vars inaccessible to unauthorized users
 		wp_set_current_user( 0 );
 		$page_id = $this->factory->post->create( array( 'post_status' => 'publish', 'post_type' => 'page' ) );
 		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft', 'post_type' => 'page' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
-		$request->set_param( 'filter', array( 'post_status' => 'draft' ) );
+		$request->set_param( 'status', 'draft' );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertEquals( $page_id, $data[0]['id'] );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		// But they are accessible to authorized users
 		wp_set_current_user( $this->editor_id );
 		$response = $this->server->dispatch( $request );

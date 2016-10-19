@@ -64,7 +64,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'categories',
 			'context',
 			'exclude',
-			'filter',
 			'include',
 			'offset',
 			'order',
@@ -94,7 +93,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_items_empty_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_query_params( array(
-			'filter' => array( 'year' => 2008 ),
+			'search' => 'No result for this search',
 		) );
 		$response = $this->server->dispatch( $request );
 		$this->assertEquals( array(), $response->get_data() );
@@ -565,16 +564,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertContains( '<' . $next_link . '>; rel="next"', $headers['Link'] );
 	}
 
-	public function test_get_items_private_filter_query_var() {
+	public function test_get_items_post_status_draft() {
 		// Private query vars inaccessible to unauthorized users
 		wp_set_current_user( 0 );
 		$draft_id = $this->factory->post->create( array( 'post_status' => 'draft' ) );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'filter', array( 'post_status' => 'draft' ) );
+		$request->set_param( 'status', 'draft' );
 		$response = $this->server->dispatch( $request );
-		$data = $response->get_data();
-		$this->assertCount( 1, $data );
-		$this->assertEquals( $this->post_id, $data[0]['id'] );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		// But they are accessible to authorized users
 		wp_set_current_user( $this->editor_id );
 		$response = $this->server->dispatch( $request );
