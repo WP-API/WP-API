@@ -150,7 +150,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ) ) );
+		$this->assertFalse( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
 	}
 
 	public function test_get_items_with_private_post_permission() {
@@ -168,7 +168,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ) ) );
+		$this->assertTrue( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
 	}
 
 	public function test_get_items_with_invalid_post() {
@@ -185,7 +185,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ) ) );
+		$this->assertFalse( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
 
 		wp_delete_comment( $comment_id );
 	}
@@ -204,7 +204,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ) ) );
+		$this->assertTrue( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
 
 		wp_delete_comment( $comment_id );
 	}
@@ -296,13 +296,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
-		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ), true ) );
+		$this->assertTrue( in_array( $id2, wp_list_pluck( $data, 'id' ), true ) );
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ) ) );
-		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ) ) );
+		$this->assertTrue( in_array( $id1, wp_list_pluck( $data, 'id' ), true ) );
+		$this->assertFalse( in_array( $id2, wp_list_pluck( $data, 'id' ), true ) );
 	}
 
 	public function test_get_items_offset_query() {
