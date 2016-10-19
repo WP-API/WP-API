@@ -455,7 +455,7 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 		$args = $attributes['args'][ $param ];
 
 		if ( ! empty( $args['enum'] ) ) {
-			if ( ! in_array( $value, $args['enum'] ) ) {
+			if ( ! in_array( $value, $args['enum'], true ) ) {
 				return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: list of valid values */ __( '%1$s is not one of %2$s.' ), $param, implode( ', ', $args['enum'] ) ) );
 			}
 		}
