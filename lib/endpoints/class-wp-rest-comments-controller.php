@@ -364,6 +364,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
 		}
 
+		// Check that comment has content.
+		if ( empty( $prepared_comment['comment_content'] ) ) {
+			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 400 ) );
+		}
+
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
 		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
@@ -407,6 +412,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			return $prepared_comment['comment_approved'];
+		}
+
+		// Check author name and email if required.
+		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
+			if ( empty( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_require_valid_comment', __( 'Required fields (name, email) missing.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		/**
