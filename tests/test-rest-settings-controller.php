@@ -166,7 +166,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function update_setting_custom_callback( $result, $name, $value, $args ) {
-		if ( $name === 'title' && $value === 'The new title!' ) {
+		if ( 'title' === $name && 'The new title!' === $value ) {
 			// Do not allow changing the title in this case
 			return true;
 		}
