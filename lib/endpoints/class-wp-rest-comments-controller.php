@@ -384,6 +384,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_author_url'] = $user->user_url;
 		}
 
+		// Check author name and email if required.
+		if ( get_option( 'require_name_email' ) ) {
+			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
+			} elseif ( ! isset( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_comment_author_required', __( 'Creating a comment requires a valid author name.' ), array( 'status' => 400 ) );
+			} elseif ( ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_email_required', __( 'Creating a comment requires a valid author email.' ), array( 'status' => 400 ) );
+			}
+		}
+
 		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
 			$prepared_comment['comment_author_email'] = '';
 		}
@@ -407,17 +418,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			return $prepared_comment['comment_approved'];
-		}
-
-		// Check author name and email if required.
-		if ( get_option( 'require_name_email' ) ) {
-			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
-				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
-			} elseif ( ! isset( $prepared_comment['comment_author'] ) ) {
-				return new WP_Error( 'rest_comment_author_required', __( 'Creating a comment requires a valid author name.' ), array( 'status' => 400 ) );
-			} elseif ( ! isset( $prepared_comment['comment_author_email'] ) ) {
-				return new WP_Error( 'rest_comment_author_email_required', __( 'Creating a comment requires a valid author email.' ), array( 'status' => 400 ) );
-			}
 		}
 
 		/**
