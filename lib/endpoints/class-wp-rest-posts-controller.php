@@ -323,14 +323,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Can the user access passworded content?
+	 * Can the user access password-protected content?
 	 *
 	 * This method determines whether we need to override the regular password
 	 * check in core with a filter.
 	 *
 	 * @param WP_Post $post Post to check against.
 	 * @param WP_REST_Request $request Request data to check.
-	 * @return bool True if the user can access passworded content, false otherwise.
+	 * @return bool True if the user can access password-protected content, false otherwise.
 	 */
 	protected function can_access_password_content( $post, $request ) {
 		if ( empty( $post->post_password ) ) {
@@ -338,7 +338,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		// Edit context always gets access to passworded posts.
+		// Edit context always gets access to password-protected posts.
 		if ( 'edit' === $request['context'] ) {
 			return true;
 		}
