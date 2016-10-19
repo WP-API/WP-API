@@ -4,6 +4,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	protected $post_type;
 
+	/**
+	 * Instance of a post meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
 		$this->namespace = 'wp/v2';
