@@ -195,8 +195,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$query_result = get_terms( $this->taxonomy, $prepared_args );
 
 			$count_args = $prepared_args;
-			unset( $count_args['number'] );
-			unset( $count_args['offset'] );
+			unset( $count_args['number'], $count_args['offset'] );
 			$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
 			// wp_count_terms can return a falsy value when the term has no children
@@ -395,7 +394,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			 * If we're going to inform the client that the term already exists,
 			 * give them the identifier for future use.
 			 */
-			if ( ( $term_id = $term->get_error_data( 'term_exists' ) ) ) {
+			if ( $term_id = $term->get_error_data( 'term_exists' ) ) {
 				$existing_term = get_term( $term_id, $this->taxonomy );
 				$term->add_data( $existing_term->term_id, 'term_exists' );
 			}
@@ -895,7 +894,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Checks that the taxonomy is valid.
 	 *
-	 * @param string
+	 * @param string $taxonomy Taxonomy to check.
 	 * @return WP_Error|boolean
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {

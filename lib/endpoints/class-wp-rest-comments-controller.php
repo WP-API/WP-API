@@ -216,8 +216,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$max_pages = (int) $query->max_num_pages;
 		if ( $total_comments < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count
-			unset( $prepared_args['number'] );
-			unset( $prepared_args['offset'] );
+			unset( $prepared_args['number'], $prepared_args['offset'] );
 			$query = new WP_Comment_Query;
 			$prepared_args['count'] = true;
 
@@ -397,6 +396,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_author'] = $user->display_name;
 			$prepared_comment['comment_author_email'] = $user->user_email;
 			$prepared_comment['comment_author_url'] = $user->user_url;
+		}
+
+		// Honor the discussion setting that requires a name and email address
+		// of the comment author.
+		if ( get_option( 'require_name_email' ) ) {
+			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
+			}
+			if ( ! isset( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_comment_author_required', __( 'Creating a comment requires a valid author name.' ), array( 'status' => 400 ) );
+			}
+			if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_email_required', __( 'Creating a comment requires a valid author email.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
