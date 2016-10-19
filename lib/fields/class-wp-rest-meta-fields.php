@@ -137,7 +137,7 @@ abstract class WP_REST_Meta_Fields {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not delete meta value from database.' ),
-				array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+				array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 			);
 		}
 
@@ -191,7 +191,7 @@ abstract class WP_REST_Meta_Fields {
 				return new WP_Error(
 					'rest_meta_database_error',
 					__( 'Could not update meta value in database.' ),
-					array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+					array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 				);
 			}
 		}
@@ -200,7 +200,7 @@ abstract class WP_REST_Meta_Fields {
 				return new WP_Error(
 					'rest_meta_database_error',
 					__( 'Could not update meta value in database.' ),
-					array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+					array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 				);
 			}
 		}
@@ -241,7 +241,7 @@ abstract class WP_REST_Meta_Fields {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not update meta value in database.' ),
-				array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+				array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 			);
 		}
 
