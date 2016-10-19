@@ -13,6 +13,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	protected $post_id;
 	protected $private_id;
+	protected $draft_id;
+	protected $trash_id;
 
 	protected $approved_id;
 	protected $hold_id;
@@ -40,6 +42,12 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->post_id = $this->factory->post->create();
 		$this->private_id = $this->factory->post->create( array(
 			'post_status' => 'private',
+		));
+		$this->draft_id = $this->factory->post->create( array(
+			'post_status' => 'draft',
+		));
+		$this->trash_id = $this->factory->post->create( array(
+			'post_status' => 'trash',
 		));
 
 		$this->approved_id = $this->factory->comment->create( array(
@@ -1078,6 +1086,46 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = $this->server->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
+	public function test_create_comment_draft_post() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->draft_id,
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Call me Ishmael.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_draft_post', $response, 403 );
+	}
+
+	public function test_create_comment_trash_post() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->trash_id,
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Call me Ishmael.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_trash_post', $response, 403 );
 	}
 
 	public function test_create_comment_private_post_invalide_permission() {
