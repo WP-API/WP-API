@@ -5,6 +5,14 @@
  */
 class WP_REST_Comments_Controller extends WP_REST_Controller {
 
+	/**
+	 * Instance of a comment meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_Comment_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'comments';
@@ -148,7 +156,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// For each known parameter which is both registered and present in the request,
 		// set the parameter's value on the query $prepared_args.
 		foreach ( $parameter_mappings as $api_param => $wp_param ) {
-			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+			if ( isset( $registered[ $api_param ], $request[ $api_param ] ) ) {
 				$prepared_args[ $wp_param ] = $request[ $api_param ];
 			}
 		}
@@ -168,12 +176,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['before'] ) && isset( $request['before'] ) ) {
+		if ( isset( $registered['before'], $request['before'] ) ) {
 			$prepared_args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['after'] ) && isset( $request['after'] ) ) {
+		if ( isset( $registered['after'], $request['after'] ) ) {
 			$prepared_args['date_query'][0]['after'] = $request['after'];
 		}
 
@@ -208,8 +216,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$max_pages = (int) $query->max_num_pages;
 		if ( $total_comments < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count
-			unset( $prepared_args['number'] );
-			unset( $prepared_args['offset'] );
+			unset( $prepared_args['number'], $prepared_args['offset'] );
 			$query = new WP_Comment_Query;
 			$prepared_args['count'] = true;
 
@@ -326,6 +333,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! empty( $request['post'] ) && $post = $this->get_post( (int) $request['post'] ) ) {
+			if ( 'draft' === $post->post_status ) {
+				return new WP_Error( 'rest_comment_draft_post', __( 'Sorry, you cannot create a comment on this post.' ), array( 'status' => 403 ) );
+			}
+
+			if ( 'trash' === $post->post_status ) {
+				return new WP_Error( 'rest_comment_trash_post', __( 'Sorry, you cannot create a comment on this post.' ), array( 'status' => 403 ) );
+			}
 
 			if ( ! $this->check_read_post_permission( $post ) ) {
 				return new WP_Error( 'rest_cannot_read_post', __( 'Sorry, you cannot read the post for this comment.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -382,6 +396,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			$prepared_comment['comment_author'] = $user->display_name;
 			$prepared_comment['comment_author_email'] = $user->user_email;
 			$prepared_comment['comment_author_url'] = $user->user_url;
+		}
+
+		// Honor the discussion setting that requires a name and email address
+		// of the comment author.
+		if ( get_option( 'require_name_email' ) ) {
+			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
+			}
+			if ( ! isset( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_comment_author_required', __( 'Creating a comment requires a valid author name.' ), array( 'status' => 400 ) );
+			}
+			if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_email_required', __( 'Creating a comment requires a valid author email.' ), array( 'status' => 400 ) );
+			}
 		}
 
 		if ( ! isset( $prepared_comment['comment_author_email'] ) ) {
@@ -1073,20 +1101,17 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to comments assigned to specific user ids. Requires authorization.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author_exclude'] = array(
 			'description'       => __( 'Ensure result set excludes comments assigned to specific user ids. Requires authorization.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['author_email'] = array(
 			'default'           => null,
 			'description'       => __( 'Limit result set to that from a specific author email. Requires authorization.' ),
 			'format'            => 'email',
 			'sanitize_callback' => 'sanitize_email',
-			'validate_callback' => 'rest_validate_request_arg',
 			'type'              => 'string',
 		);
 		$query_params['before'] = array(
@@ -1100,14 +1125,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
-			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['include'] = array(
 			'description'        => __( 'Limit result set to specific ids.' ),
 			'type'               => 'array',
 			'default'            => array(),
 			'sanitize_callback'  => 'wp_parse_id_list',
-			'validate_callback'  => 'rest_validate_request_arg',
 		);
 		$query_params['karma'] = array(
 			'default'           => null,
@@ -1154,21 +1177,18 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'description'       => __( 'Limit result set to resources of specific parent ids.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['parent_exclude'] = array(
 			'default'           => array(),
 			'description'       => __( 'Ensure result set excludes specific parent ids.' ),
 			'sanitize_callback' => 'wp_parse_id_list',
 			'type'              => 'array',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['post']   = array(
 			'default'           => array(),
 			'description'       => __( 'Limit result set to resources assigned to specific post ids.' ),
 			'type'              => 'array',
 			'sanitize_callback' => 'wp_parse_id_list',
-			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$query_params['status'] = array(
 			'default'           => 'approve',

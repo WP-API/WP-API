@@ -51,8 +51,26 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$response = array();
 
 		foreach ( $options as $name => $args ) {
-			// Default to a null value as "null" in the response means "not set".
-			$response[ $name ] = get_option( $args['option_name'], $args['schema']['default'] );
+			/**
+			 * Filters the value of a setting recognized by the REST API.
+			 *
+			 * Allow hijacking the setting value and overriding the built-in behavior by returning a
+			 * non-null value.  The returned value will be presented as the setting value instead.
+			 *
+			 * @since 4.7.0
+			 *
+			 * @param mixed  $result  Value to use for the requested setting. Can be a scalar
+			 *                        matching the registered schema for the setting, or null to
+			 *                        follow the default `get_option` behavior.
+			 * @param string $name    Setting name (as shown in REST API responses).
+			 * @param array  $args    Arguments passed to `register_setting()` for this setting.
+			 */
+			$response[ $name ] = apply_filters( 'rest_pre_get_setting', null, $name, $args );
+
+			if ( is_null( $response[ $name ] ) ) {
+				// Default to a null value as "null" in the response means "not set".
+				$response[ $name ] = get_option( $args['option_name'], $args['schema']['default'] );
+			}
 
 			// Because get_option() is lossy, we have to
 			// cast values to the type they are registered with.
@@ -78,9 +96,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 		switch ( $schema['type'] ) {
 			case 'string':
-				return strval( $value );
+				return (string) $value;
 			case 'number':
-				return floatval( $value );
+				return (float) $value;
 			case 'boolean':
 				return (bool) $value;
 			default:
@@ -100,6 +118,25 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 		foreach ( $options as $name => $args ) {
 			if ( ! array_key_exists( $name, $params ) ) {
+				continue;
+			}
+
+			/**
+			 * Filters whether to preempt a setting value update.
+			 *
+			 * Allow hijacking the setting update logic and overriding the built-in behavior by
+			 * returning true.
+			 *
+			 * @since 4.7.0
+			 *
+			 * @param boolean $result Whether to override the default behavior for updating the
+			 *                        value of a setting.
+			 * @param string  $name   Setting name (as shown in REST API responses).
+			 * @param mixed   $value  Updated setting value.
+			 * @param array   $args   Arguments passed to `register_setting()` for this setting.
+			 */
+			$updated = apply_filters( 'rest_pre_update_setting', false, $name, $request[ $name ], $args );
+			if ( $updated ) {
 				continue;
 			}
 

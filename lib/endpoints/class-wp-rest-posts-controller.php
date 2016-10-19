@@ -2,8 +2,27 @@
 
 class WP_REST_Posts_Controller extends WP_REST_Controller {
 
+	/**
+	 * Post type.
+	 *
+	 * @access protected
+	 * @var string
+	 */
 	protected $post_type;
 
+	/**
+	 * Instance of a post meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param string $post_type Post type.
+	 */
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
 		$this->namespace = 'wp/v2';
@@ -124,7 +143,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// For each known parameter which is both registered and present in the request,
 		// set the parameter's value on the query $args.
 		foreach ( $parameter_mappings as $api_param => $wp_param ) {
-			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+			if ( isset( $registered[ $api_param ], $request[ $api_param ] ) ) {
 				$args[ $wp_param ] = $request[ $api_param ];
 			}
 		}
@@ -133,12 +152,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['before'] ) && isset( $request['before'] ) ) {
+		if ( isset( $registered['before'], $request['before'] ) ) {
 			$args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['after'] ) && isset( $request['after'] ) ) {
+		if ( isset( $registered['after'], $request['after'] ) ) {
 			$args['date_query'][0]['after'] = $request['after'];
 		}
 
@@ -152,7 +171,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['posts_per_page'] = $request['per_page'];
 		}
 
-		if ( isset( $registered['sticky'] ) && isset( $request['sticky'] ) ) {
+		if ( isset( $registered['sticky'], $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
 			if ( $sticky_posts && $request['sticky'] ) {
 				// As post__in will be used to only get sticky posts,
@@ -243,7 +262,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count
+			// Out-of-bounds, run the query again without LIMIT for total count.
 			unset( $query_args['paged'] );
 			$count_query = new WP_Query();
 			$count_query->query( $query_args );
@@ -259,8 +278,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$request_params = $request->get_query_params();
 		if ( ! empty( $request_params['filter'] ) ) {
 			// Normalize the pagination params.
-			unset( $request_params['filter']['posts_per_page'] );
-			unset( $request_params['filter']['paged'] );
+			unset( $request_params['filter']['posts_per_page'], $request_params['filter']['paged'] );
 		}
 		$base = add_query_arg( $request_params, rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
 
@@ -315,14 +333,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Can the user access passworded content?
+	 * Can the user access password-protected content?
 	 *
 	 * This method determines whether we need to override the regular password
 	 * check in core with a filter.
 	 *
-	 * @param WP_Post $post Post to check against.
+	 * @param WP_Post         $post    Post to check against.
 	 * @param WP_REST_Request $request Request data to check.
-	 * @return bool True if the user can access passworded content, false otherwise.
+	 * @return bool True if the user can access password-protected content, false otherwise.
 	 */
 	protected function can_access_password_content( $post, $request ) {
 		if ( empty( $post->post_password ) ) {
@@ -330,7 +348,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		// Edit context always gets access to passworded posts.
+		// Edit context always gets access to password-protected posts.
 		if ( 'edit' === $request['context'] ) {
 			return true;
 		}
@@ -413,7 +431,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		if ( is_wp_error( $post_id ) ) {
 
-			if ( in_array( $post_id->get_error_code(), array( 'db_insert_error' ), true ) ) {
+			if ( 'db_insert_error' === $post_id->get_error_code() ) {
 				$post_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$post_id->add_data( array( 'status' => 400 ) );
@@ -523,10 +541,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
-		// convert the post object to an array, otherwise wp_update_post will expect non-escaped input
+		// convert the post object to an array, otherwise wp_update_post will expect non-escaped input.
 		$post_id = wp_update_post( (array) $post, true );
 		if ( is_wp_error( $post_id ) ) {
-			if ( in_array( $post_id->get_error_code(), array( 'db_update_error' ), true ) ) {
+			if ( 'db_update_error' === $post_id->get_error_code() ) {
 				$post_id->add_data( array( 'status' => 500 ) );
 			} else {
 				$post_id->add_data( array( 'status' => 400 ) );
@@ -677,8 +695,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determine the allowed query_vars for a get_items() response and
 	 * prepare for WP_Query.
 	 *
-	 * @param array           $prepared_args
-	 * @param WP_REST_Request $request
+	 * @param array           $prepared_args Prepared WP_Query arguments.
+	 * @param WP_REST_Request $request       Full details about the request.
 	 * @return array          $query_args
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
@@ -693,7 +711,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				 * The dynamic portion of the hook name, $var, refers to the query_var key.
 				 *
 				 * @param mixed $prepared_args[ $var ] The query_var value.
-				 *
 				 */
 				$query_args[ $var ] = apply_filters( "rest_query_var-{$var}", $prepared_args[ $var ] );
 			}
@@ -713,7 +730,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Get all the WP Query vars that are allowed for the API request.
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array
 	 */
 	protected function get_allowed_query_vars( $request = null ) {
@@ -786,8 +803,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Check the post_date_gmt or modified_gmt and prepare any post or
 	 * modified date for single post output.
 	 *
-	 * @param string       $date_gmt
-	 * @param string|null  $date
+	 * @param string      $date_gmt GMT publication time.
+	 * @param string|null $date     Optional, default is null. Local publication time.
 	 * @return string|null ISO8601/RFC3339 formatted datetime.
 	 */
 	protected function prepare_date_response( $date_gmt, $date = null ) {
@@ -887,7 +904,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$prepared_post->post_name = $request['slug'];
 		}
 
-		// Author
+		// Author.
 		if ( ! empty( $schema['properties']['author'] ) && ! empty( $request['author'] ) ) {
 			$post_author = (int) $request['author'];
 			if ( get_current_user_id() !== $post_author ) {
@@ -959,8 +976,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Determine validity and normalize provided status param.
 	 *
-	 * @param string $post_status
-	 * @param object $post_type
+	 * @param string $post_status Post status.
+	 * @param object $post_type   Post type.
 	 * @return WP_Error|string $post_status
 	 */
 	protected function handle_status_param( $post_status, $post_type ) {
@@ -993,9 +1010,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Determine the featured media based on a request param.
 	 *
-	 * @param int $featured_media
-	 * @param int $post_id
-	 *
+	 * @param int $featured_media Featured Media ID.
+	 * @param int $post_id        Post ID.
 	 * @return bool|WP_Error
 	 */
 	protected function handle_featured_media( $featured_media, $post_id ) {
@@ -1017,8 +1033,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Set the template for a page.
 	 *
-	 * @param string $template
-	 * @param integer $post_id
+	 * @param string  $template Page template filename.
+	 * @param integer $post_id  Post ID.
 	 */
 	public function handle_template( $template, $post_id ) {
 		if ( in_array( $template, array_keys( wp_get_theme()->get_page_templates( $this->get_post( $post_id ) ) ), true ) ) {
@@ -1033,7 +1049,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 *
 	 * @param  int             $post_id The post ID to update the terms form.
 	 * @param  WP_REST_Request $request The request object with post and terms data.
-	 * @return null|WP_Error   WP_Error on an error assigning any of ther terms.
+	 * @return null|WP_Error   WP_Error on an error assigning any of the terms.
 	 */
 	protected function handle_terms( $post_id, $request ) {
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
@@ -1054,7 +1070,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Check if a given post type should be viewed or managed.
 	 *
-	 * @param object|string $post_type
+	 * @param object|string $post_type Post type name or object.
 	 * @return boolean Is post type allowed?
 	 */
 	protected function check_is_post_type_allowed( $post_type ) {
@@ -1159,7 +1175,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Prepare a single post output for response.
 	 *
-	 * @param WP_Post $post Post object.
+	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response $data
 	 */
@@ -1346,7 +1362,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * "Protected: %s", as the REST API communicates the protected status of a post
 	 * in a machine readable format, we remove the "Protected: " prefix.
 	 *
-	 * @param  string $format
 	 * @return string
 	 */
 	public function protected_title_format() {
@@ -1362,7 +1377,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function prepare_links( $post ) {
 		$base = sprintf( '%s/%s', $this->namespace, $this->rest_base );
 
-		// Entity meta
+		// Entity meta.
 		$links = array(
 			'self' => array(
 				'href'   => rest_url( trailingslashit( $base ) . $post->ID ),
@@ -1381,7 +1396,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
-		};
+		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$replies_url = rest_url( 'wp/v2/comments' );
@@ -1602,7 +1617,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
-			} elseif ( ! in_array( $this->post_type, array_keys( $fixed_schemas ), true ) && ! post_type_supports( $this->post_type, $attribute ) ) {
+			} elseif ( ! isset( $fixed_schemas[ $this->post_type ] ) && ! post_type_supports( $this->post_type, $attribute ) ) {
 				continue;
 			}
 
@@ -1801,14 +1816,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 			$params['author_exclude'] = array(
 				'description'         => __( 'Ensure result set excludes posts assigned to specific authors.' ),
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
 		$params['before'] = array(
@@ -1925,11 +1938,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Validate whether the user can query private statuses
+	 * Validate whether the user can query private statuses.
 	 *
-	 * @param  mixed $value
-	 * @param  WP_REST_Request $request
-	 * @param  string $parameter
+	 * @param  mixed           $value     Post status.
+	 * @param  WP_REST_Request $request   Full details about the request.
+	 * @param  string          $parameter
 	 * @return WP_Error|boolean
 	 */
 	public function validate_user_can_query_private_statuses( $value, $request, $parameter ) {

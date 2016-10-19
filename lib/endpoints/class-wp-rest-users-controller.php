@@ -5,6 +5,14 @@
  */
 class WP_REST_Users_Controller extends WP_REST_Controller {
 
+	/**
+	 * Instance of a user meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_User_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'users';
@@ -124,7 +132,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// For each known parameter which is both registered and present in the request,
 		// set the parameter's value on the query $prepared_args.
 		foreach ( $parameter_mappings as $api_param => $wp_param ) {
-			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+			if ( isset( $registered[ $api_param ], $request[ $api_param ] ) ) {
 				$prepared_args[ $wp_param ] = $request[ $api_param ];
 			}
 		}
@@ -181,7 +189,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $users );
 
-		// Store pagation values for headers then unset for count query.
+		// Store pagination values for headers then unset for count query.
 		$per_page = (int) $prepared_args['number'];
 		$page = ceil( ( ( (int) $prepared_args['offset'] ) / $per_page ) + 1 );
 
@@ -190,8 +198,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$total_users = $query->get_total();
 		if ( $total_users < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count
-			unset( $prepared_args['number'] );
-			unset( $prepared_args['offset'] );
+			unset( $prepared_args['number'], $prepared_args['offset'] );
 			$count_query = new WP_User_Query( $prepared_args );
 			$total_users = $count_query->get_total();
 		}
@@ -291,7 +298,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access create users
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -387,7 +394,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access update a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -478,7 +485,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access delete a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 

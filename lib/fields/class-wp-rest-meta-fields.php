@@ -36,7 +36,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
-	 * @return WP_Error|array
+	 * @return WP_Error|object
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
@@ -137,7 +137,7 @@ abstract class WP_REST_Meta_Fields {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not delete meta value from database.' ),
-				array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+				array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 			);
 		}
 
@@ -191,7 +191,7 @@ abstract class WP_REST_Meta_Fields {
 				return new WP_Error(
 					'rest_meta_database_error',
 					__( 'Could not update meta value in database.' ),
-					array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+					array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 				);
 			}
 		}
@@ -200,7 +200,7 @@ abstract class WP_REST_Meta_Fields {
 				return new WP_Error(
 					'rest_meta_database_error',
 					__( 'Could not update meta value in database.' ),
-					array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+					array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 				);
 			}
 		}
@@ -241,7 +241,7 @@ abstract class WP_REST_Meta_Fields {
 			return new WP_Error(
 				'rest_meta_database_error',
 				__( 'Could not update meta value in database.' ),
-				array( 'key' => $name, 'status' => WP_HTTP::INTERNAL_SERVER_ERROR )
+				array( 'key' => $name, 'status' => WP_Http::INTERNAL_SERVER_ERROR )
 			);
 		}
 
@@ -345,10 +345,10 @@ abstract class WP_REST_Meta_Fields {
 
 		switch ( $type ) {
 			case 'string':
-				$value = strval( $value );
+				$value = (string) $value;
 				break;
 			case 'number':
-				$value = floatval( $value );
+				$value = (float) $value;
 				break;
 			case 'boolean':
 				$value = (bool) $value;
