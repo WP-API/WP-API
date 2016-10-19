@@ -241,51 +241,47 @@
 			 * @type {{toJSON: toJSON, parse: parse}}.
 			 */
 			TimeStampedMixin = {
+
 				/**
-				 * Serialize the entity pre-sync.
+				 * Prepare a JavaScript Date for transmitting to the server.
 				 *
-				 * @returns {*}.
+				 * This helper function accepts a field and Date object. It converts the passed Date
+				 * to an ISO string and sets that on the model field.
+				 *
+				 * @param {Date}   date   A JavaScript date object. WordPress expects dates in UTC.
+				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
 				 */
-				toJSON: function() {
-					var attributes = _.clone( this.attributes );
+				setDate: function( date, field ) {
+					var theField = field || 'date';
 
-					// Serialize Date objects back into 8601 strings.
-					_.each( parseableDates, function( key ) {
-						if ( key in attributes ) {
+					// Don't alter non parsable date fields.
+					if ( _.indexOf( parseableDates, theField ) < 0 ) {
+						return false;
+					}
 
-							// Only convert dates.
-							if ( _.isDate( attributes[ key ] )  ) {
-								attributes[ key ] = attributes[ key ].toISOString();
-							}
-						}
-					} );
-
-					return attributes;
+					this.set( theField, date.toISOString() );
 				},
 
 				/**
-				 * Unserialize the fetched response.
+				 * Get a JavaScript Date from the passed field.
 				 *
-				 * @param {*} response.
-				 * @returns {*}.
+				 * WordPress returns 'date' and 'date_modified' in the timezone of the server as well as
+				 * UTC dates as 'date_gmt' and 'date_modified_gmt'. Draft posts do not include UTC dates.
+				 *
+				 * @param {string} field  The date field to set. One of 'date', 'date_gmt', 'date_modified'
+				 *                        or 'date_modified_gmt'. Optional, defaults to 'date'.
 				 */
-				parse: function( response ) {
-					var timestamp;
+				getDate: function( field ) {
+					var theField   = field || 'date',
+						theISODate = this.get( theField );
 
-					// Parse dates into native Date objects.
-					_.each( parseableDates, function( key ) {
-						if ( ! ( key in response ) ) {
-							return;
-						}
+					// Only get date fields and non null values.
+					if ( _.indexOf( parseableDates, theField ) < 0 || _.isNull( theISODate ) ) {
+						return false;
+					}
 
-						// Don't convert null values.
-						if ( ! _.isNull( response[ key ] ) ) {
-							timestamp = wp.api.utils.parseISO8601( response[ key ] );
-							response[ key ] = new Date( timestamp );
-						}
-					});
-
-					return response;
+					return new Date( wp.api.utils.parseISO8601( theISODate ) );
 				}
 			},
 
