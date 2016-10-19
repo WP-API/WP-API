@@ -1381,7 +1381,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
 				'embeddable' => true,
 			);
-		};
+		}
 
 		if ( in_array( $post->post_type, array( 'post', 'page' ), true ) || post_type_supports( $post->post_type, 'comments' ) ) {
 			$replies_url = rest_url( 'wp/v2/comments' );
