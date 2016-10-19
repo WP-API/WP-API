@@ -4,6 +4,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	protected $post_type;
 
+	/**
+	 * Instance of a post meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_Post_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct( $post_type ) {
 		$this->post_type = $post_type;
 		$this->namespace = 'wp/v2';
@@ -124,7 +132,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// For each known parameter which is both registered and present in the request,
 		// set the parameter's value on the query $args.
 		foreach ( $parameter_mappings as $api_param => $wp_param ) {
-			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+			if ( isset( $registered[ $api_param ], $request[ $api_param ] ) ) {
 				$args[ $wp_param ] = $request[ $api_param ];
 			}
 		}
@@ -133,12 +141,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$args['date_query'] = array();
 		// Set before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['before'] ) && isset( $request['before'] ) ) {
+		if ( isset( $registered['before'], $request['before'] ) ) {
 			$args['date_query'][0]['before'] = $request['before'];
 		}
 
 		// Set after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['after'] ) && isset( $request['after'] ) ) {
+		if ( isset( $registered['after'], $request['after'] ) ) {
 			$args['date_query'][0]['after'] = $request['after'];
 		}
 
@@ -152,7 +160,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$args['posts_per_page'] = $request['per_page'];
 		}
 
-		if ( isset( $registered['sticky'] ) && isset( $request['sticky'] ) ) {
+		if ( isset( $registered['sticky'], $request['sticky'] ) ) {
 			$sticky_posts = get_option( 'sticky_posts', array() );
 			if ( $sticky_posts && $request['sticky'] ) {
 				// As post__in will be used to only get sticky posts,
@@ -1801,14 +1809,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 			$params['author_exclude'] = array(
 				'description'         => __( 'Ensure result set excludes posts assigned to specific authors.' ),
 				'type'                => 'array',
 				'default'             => array(),
 				'sanitize_callback'   => 'wp_parse_id_list',
-				'validate_callback'   => 'rest_validate_request_arg',
 			);
 		}
 		$params['before'] = array(

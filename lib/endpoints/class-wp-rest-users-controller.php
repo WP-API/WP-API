@@ -5,6 +5,14 @@
  */
 class WP_REST_Users_Controller extends WP_REST_Controller {
 
+	/**
+	 * Instance of a user meta fields object.
+	 *
+	 * @access protected
+	 * @var WP_REST_User_Meta_Fields
+	 */
+	protected $meta;
+
 	public function __construct() {
 		$this->namespace = 'wp/v2';
 		$this->rest_base = 'users';
@@ -124,7 +132,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		// For each known parameter which is both registered and present in the request,
 		// set the parameter's value on the query $prepared_args.
 		foreach ( $parameter_mappings as $api_param => $wp_param ) {
-			if ( isset( $registered[ $api_param ] ) && isset( $request[ $api_param ] ) ) {
+			if ( isset( $registered[ $api_param ], $request[ $api_param ] ) ) {
 				$prepared_args[ $wp_param ] = $request[ $api_param ];
 			}
 		}
