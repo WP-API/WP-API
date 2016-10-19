@@ -14,6 +14,14 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	protected $taxonomy;
 
 	/**
+	 * Number of terms that were found.
+	 *
+	 * @access protected
+	 * @var int
+	 */
+	protected $total_terms;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string $taxonomy Taxonomy key.
