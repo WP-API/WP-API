@@ -299,7 +299,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access create users
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function create_item_permissions_check( $request ) {
 
@@ -395,7 +395,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access update a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function update_item_permissions_check( $request ) {
 
@@ -486,7 +486,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Check if a given request has access delete a user
 	 *
 	 * @param  WP_REST_Request $request Full details about the request.
-	 * @return boolean
+	 * @return WP_Error|boolean
 	 */
 	public function delete_item_permissions_check( $request ) {
 

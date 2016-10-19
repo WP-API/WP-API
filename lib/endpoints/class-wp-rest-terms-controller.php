@@ -895,7 +895,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	/**
 	 * Checks that the taxonomy is valid.
 	 *
-	 * @param string
+	 * @param string $taxonomy Taxonomy to check.
 	 * @return WP_Error|boolean
 	 */
 	protected function check_is_taxonomy_allowed( $taxonomy ) {

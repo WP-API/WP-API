@@ -36,7 +36,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
-	 * @return WP_Error|array
+	 * @return WP_Error|object
 	 */
 	public function get_value( $object_id, $request ) {
 		$fields   = $this->get_registered_fields();
