@@ -72,9 +72,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	protected function prepare_value( $value, $schema ) {
 		switch ( $schema['type'] ) {
 			case 'string':
-				return strval( $value );
+				return (string) $value;
 			case 'number':
-				return floatval( $value );
+				return (float) $value;
 			case 'boolean':
 				return (bool) $value;
 			default:
