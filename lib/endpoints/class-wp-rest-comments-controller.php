@@ -364,11 +364,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return new WP_Error( 'rest_comment_content_invalid', __( 'Comment content is invalid.' ), array( 'status' => 400 ) );
 		}
 
-		// Check that comment has content.
-		if ( empty( $prepared_comment['comment_content'] ) ) {
-			return new WP_Error( 'rest_require_valid_comment', __( 'Comment content required.' ), array( 'status' => 400 ) );
-		}
-
 		// Setting remaining values before wp_insert_comment so we can
 		// use wp_allow_comment().
 		if ( ! isset( $prepared_comment['comment_date_gmt'] ) ) {
