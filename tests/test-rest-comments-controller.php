@@ -13,6 +13,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	protected $post_id;
 	protected $private_id;
+	protected $draft_id;
+	protected $trash_id;
 
 	protected $approved_id;
 	protected $hold_id;
@@ -29,12 +31,23 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'role' => 'subscriber',
 		));
 		$this->author_id = $this->factory->user->create( array(
-			'role' => 'author',
+			'role'         => 'author',
+			'display_name' => 'Sea Captain',
+			'first_name'   => 'Horatio',
+			'last_name'    => 'McCallister',
+			'user_email'   => 'captain@thefryingdutchman.com',
+			'user_url'     => 'http://thefryingdutchman.com',
 		));
 
 		$this->post_id = $this->factory->post->create();
 		$this->private_id = $this->factory->post->create( array(
 			'post_status' => 'private',
+		));
+		$this->draft_id = $this->factory->post->create( array(
+			'post_status' => 'draft',
+		));
+		$this->trash_id = $this->factory->post->create( array(
+			'post_status' => 'trash',
 		));
 
 		$this->approved_id = $this->factory->comment->create( array(
@@ -770,6 +783,62 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( $params['content']['raw'], $new_comment->comment_content );
 	}
 
+	public function test_create_comment_missing_required_author_name_and_email_per_option_value() {
+		update_option( 'require_name_email', 1 );
+
+		$params = array(
+			'post'    => $this->post_id,
+			'content' => 'Now, I don\'t want you to worry class. These tests will have no affect on your grades. They merely determine your future social status and financial success. If any.',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_author_data_required', $response, 400 );
+
+		update_option( 'require_name_email', 0 );
+	}
+
+	public function test_create_comment_missing_required_author_name_per_option_value() {
+		update_option( 'require_name_email', 1 );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author_email' => 'ekrabappel@springfield-elementary.edu',
+			'content'      => 'Now, I don\'t want you to worry class. These tests will have no affect on your grades. They merely determine your future social status and financial success. If any.',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_author_required', $response, 400 );
+
+		update_option( 'require_name_email', 0 );
+	}
+
+	public function test_create_comment_missing_required_author_email_per_option_value() {
+		update_option( 'require_name_email', 1 );
+
+		$params = array(
+			'post'        => $this->post_id,
+			'author_name' => 'Edna Krabappel',
+			'content'     => 'Now, I don\'t want you to worry class. These tests will have no affect on your grades. They merely determine your future social status and financial success. If any.',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_author_email_required', $response, 400 );
+
+		update_option( 'require_name_email', 0 );
+	}
+
 	public function test_create_item_invalid_blank_content() {
 		wp_set_current_user( 0 );
 
@@ -797,7 +866,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_name'  => 'Reverend Lovejoy',
 			'author_email' => 'lovejoy@example.com',
 			'author_url'   => 'http://timothylovejoy.jr',
-			'content'      => "It\'s all over\, people! We don\'t have a prayer!",
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
 			'date'         => rand_str(),
 		);
 
@@ -914,7 +983,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			'author_email' => 'chunkylover53@aol.com',
 			'author_url'   => 'http://compuglobalhypermeganet.com',
 			'content' => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
-			'author'    => 0,
+			'author'    => $this->subscriber_id,
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
@@ -924,7 +993,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals( 201, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 0, $data['author'] );
+		$this->assertEquals( $this->subscriber_id, $data['author'] );
+		$this->assertEquals( 'Homer Jay Simpson', $data['author_name'] );
+		$this->assertEquals( 'chunkylover53@aol.com', $data['author_email'] );
+		$this->assertEquals( 'http://compuglobalhypermeganet.com', $data['author_url'] );
 	}
 
 	public function test_create_comment_other_user_without_permission() {
@@ -1072,7 +1144,47 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
-	public function test_create_comment_private_post_invalide_permission() {
+	public function test_create_comment_draft_post() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->draft_id,
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Call me Ishmael.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_draft_post', $response, 403 );
+	}
+
+	public function test_create_comment_trash_post() {
+		wp_set_current_user( $this->subscriber_id );
+
+		$params = array(
+			'post'         => $this->trash_id,
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Call me Ishmael.',
+			'author'       => $this->subscriber_id,
+		);
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_comment_trash_post', $response, 403 );
+	}
+
+	public function test_create_comment_private_post_invalid_permission() {
 		wp_set_current_user( $this->subscriber_id );
 
 		$params = array(
@@ -1150,6 +1262,46 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 401, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertEquals( 'rest_comment_login_required', $data['code'] );
+	}
+
+	public function test_create_item_invalid_author() {
+		wp_set_current_user( $this->admin_id );
+
+		$params = array(
+			'post'         => $this->post_id,
+			'author'       => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_author_invalid', $response, 400 );
+	}
+
+	public function test_create_item_pull_author_info() {
+		wp_set_current_user( $this->admin_id );
+
+		$author = new WP_User( $this->author_id );
+		$params = array(
+			'post'         => $this->post_id,
+			'author'       => $this->author_id,
+			'content'      => 'It\'s all over\, people! We don\'t have a prayer!',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = $this->server->dispatch( $request );
+
+		$result = $response->get_data();
+		$this->assertSame( $this->author_id, $result['author'] );
+		$this->assertSame( 'Sea Captain', $result['author_name'] );
+		$this->assertSame( 'captain@thefryingdutchman.com', $result['author_email'] );
+		$this->assertSame( 'http://thefryingdutchman.com', $result['author_url'] );
 	}
 
 	public function test_create_comment_two_times() {
