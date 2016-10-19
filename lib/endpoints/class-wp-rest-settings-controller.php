@@ -123,7 +123,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				if ( ! is_scalar( get_option( $args['option_name'], false ) ) ) {
 					return new WP_Error(
 						'rest_invalid_stored_value',
-						sprintf( __( 'The %s property has an invalid stored value, and was not able to be updated to null.' ), $name ),
+						sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 						array( 'status' => 500 )
 					);
 				}
