@@ -410,9 +410,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		// Check author name and email if required.
-		if ( get_option( 'require_name_email' ) && ! isset( $user ) ) {
-			if ( empty( $prepared_comment['comment_author_email'] ) || empty( $prepared_comment['comment_author'] ) ) {
-				return new WP_Error( 'rest_require_valid_comment', __( 'Required fields (name, email) missing.' ), array( 'status' => 400 ) );
+		if ( get_option( 'require_name_email' ) && ! isset( $prepared_comment['comment_author'] ) ) {
+			if ( ! isset( $prepared_comment['comment_author'] ) && ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_data_required', __( 'Creating a comment requires valid author name and email values.' ), array( 'status' => 400 ) );
+			} elseif ( ! isset( $prepared_comment['comment_author'] ) ) {
+				return new WP_Error( 'rest_comment_author_required', __( 'Creating a comment requires a valid author name.' ), array( 'status' => 400 ) );
+			} elseif ( ! isset( $prepared_comment['comment_author_email'] ) ) {
+				return new WP_Error( 'rest_comment_author_email_required', __( 'Creating a comment requires a valid author email.' ), array( 'status' => 400 ) );
 			}
 		}
 
