@@ -409,24 +409,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment['comment_approved'];
 		}
 
-		$max_lengths = wp_get_comment_fields_max_lengths();
-
-		if ( isset( $prepared_comment['comment_author'] ) && $max_lengths['comment_author'] < mb_strlen( $prepared_comment['comment_author'], '8bit' ) ) {
-			return new WP_Error( 'comment_author_column_length', __( '<strong>ERROR</strong>: your name is too long.' ), array( 'status' => 400 ) );
-		}
-
-		if ( isset( $prepared_comment['comment_author_email'] ) && $max_lengths['comment_author_email'] < strlen( $prepared_comment['comment_author_email'] ) ) {
-			return new WP_Error( 'comment_author_email_column_length', __( '<strong>ERROR</strong>: your email address is too long.' ), array( 'status' => 400 ) );
-		}
-
-		if ( isset( $prepared_comment['comment_author_url'] ) && $max_lengths['comment_author_url'] < strlen( $prepared_comment['comment_author_url'] ) ) {
-			return new WP_Error( 'comment_author_url_column_length', __( '<strong>ERROR</strong>: your url is too long.' ), array( 'status' => 400 ) );
-		}
-
-		if ( isset( $prepared_comment['comment_content'] ) && $max_lengths['comment_content'] < mb_strlen( $prepared_comment['comment_content'], '8bit' ) ) {
-			return new WP_Error( 'comment_content_column_length', __( '<strong>ERROR</strong>: your comment is too long.' ), array( 'status' => 400 ) );
-		}
-
 		/**
 		 * Filter a comment before it is inserted via the REST API.
 		 *
@@ -905,6 +887,24 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		// updated.
 		if ( ! empty( $prepared_comment ) && ! isset( $prepared_comment['comment_content'] ) ) {
 			return new WP_Error( 'rest_comment_content_required', __( 'Missing comment content.' ), array( 'status' => 400 ) );
+		}
+
+		$max_lengths = wp_get_comment_fields_max_lengths();
+
+		if ( isset( $prepared_comment['comment_author'] ) && $max_lengths['comment_author'] < mb_strlen( $prepared_comment['comment_author'], '8bit' ) ) {
+			return new WP_Error( 'comment_author_column_length', __( '<strong>ERROR</strong>: your name is too long.' ), array( 'status' => 400 ) );
+		}
+
+		if ( isset( $prepared_comment['comment_author_email'] ) && $max_lengths['comment_author_email'] < strlen( $prepared_comment['comment_author_email'] ) ) {
+			return new WP_Error( 'comment_author_email_column_length', __( '<strong>ERROR</strong>: your email address is too long.' ), array( 'status' => 400 ) );
+		}
+
+		if ( isset( $prepared_comment['comment_author_url'] ) && $max_lengths['comment_author_url'] < strlen( $prepared_comment['comment_author_url'] ) ) {
+			return new WP_Error( 'comment_author_url_column_length', __( '<strong>ERROR</strong>: your url is too long.' ), array( 'status' => 400 ) );
+		}
+
+		if ( isset( $prepared_comment['comment_content'] ) && $max_lengths['comment_content'] < mb_strlen( $prepared_comment['comment_content'], '8bit' ) ) {
+			return new WP_Error( 'comment_content_column_length', __( '<strong>ERROR</strong>: your comment is too long.' ), array( 'status' => 400 ) );
 		}
 
 		return apply_filters( 'rest_preprocess_comment', $prepared_comment, $request );
