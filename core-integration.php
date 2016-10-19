@@ -28,11 +28,7 @@ if ( ! function_exists( 'wp_parse_slug_list' ) ) {
 			$list = preg_split( '/[\s,]+/', $list );
 		}
 
-		foreach ( $list as $key => $value ) {
-			$list[ $key ] = sanitize_title( $value );
-		}
-
-		return array_unique( $list );
+		return array_unique( array_map( 'sanitize_title', $list ) );
 	}
 }
 
