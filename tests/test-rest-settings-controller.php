@@ -115,7 +115,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_item_with_filter() {
 		wp_set_current_user( $this->administrator );
 
-		add_filter( 'rest_get_setting', array( $this, 'get_setting_custom_callback' ), 10, 3 );
+		add_filter( 'rest_pre_get_setting', array( $this, 'get_setting_custom_callback' ), 10, 3 );
 
 		register_setting( 'somegroup', 'mycustomsetting1', array(
 			'show_in_rest' => array(
@@ -147,7 +147,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 'unfiltered2', $data['mycustomsettinginrest2'] );
 
 		unregister_setting( 'somegroup', 'mycustomsetting' );
-		remove_all_filters( 'get_setting_custom_callback' );
+		remove_all_filters( 'rest_pre_get_setting' );
 	}
 
 	public function test_create_item() {
@@ -188,7 +188,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
 		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
 
-		add_filter( 'rest_update_setting', array( $this, 'update_setting_custom_callback' ), 10, 4 );
+		add_filter( 'rest_pre_update_setting', array( $this, 'update_setting_custom_callback' ), 10, 4 );
 
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
 		$request->set_param( 'title', 'The new title!' );
@@ -202,7 +202,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
 		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
 
-		remove_all_filters( 'rest_update_setting' );
+		remove_all_filters( 'rest_pre_update_setting' );
 	}
 
 	public function test_update_item_with_invalid_type() {
