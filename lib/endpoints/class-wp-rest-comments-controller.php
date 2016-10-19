@@ -216,8 +216,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$max_pages = (int) $query->max_num_pages;
 		if ( $total_comments < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count
-			unset( $prepared_args['number'] );
-			unset( $prepared_args['offset'] );
+			unset( $prepared_args['number'], $prepared_args['offset'] );
 			$query = new WP_Comment_Query;
 			$prepared_args['count'] = true;
 

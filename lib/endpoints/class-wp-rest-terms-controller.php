@@ -195,8 +195,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 			$query_result = get_terms( $this->taxonomy, $prepared_args );
 
 			$count_args = $prepared_args;
-			unset( $count_args['number'] );
-			unset( $count_args['offset'] );
+			unset( $count_args['number'], $count_args['offset'] );
 			$total_terms = wp_count_terms( $this->taxonomy, $count_args );
 
 			// wp_count_terms can return a falsy value when the term has no children
