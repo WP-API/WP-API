@@ -104,6 +104,52 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
+	public function get_setting_custom_callback( $result, $name, $args ) {
+		switch ( $name ) {
+			case 'mycustomsetting1':
+				return 'filtered1';
+		}
+		return $result;
+	}
+
+	public function test_get_item_with_filter() {
+		wp_set_current_user( $this->administrator );
+
+		add_filter( 'rest_pre_get_setting', array( $this, 'get_setting_custom_callback' ), 10, 3 );
+
+		register_setting( 'somegroup', 'mycustomsetting1', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest1',
+			),
+			'type'         => 'string',
+		) );
+
+		register_setting( 'somegroup', 'mycustomsetting2', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest2',
+			),
+			'type'         => 'string',
+		) );
+
+		update_option( 'mycustomsetting1', 'unfiltered1' );
+		update_option( 'mycustomsetting2', 'unfiltered2' );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$this->assertArrayHasKey( 'mycustomsettinginrest1', $data );
+		$this->assertEquals( 'unfiltered1', $data['mycustomsettinginrest1'] );
+
+		$this->assertArrayHasKey( 'mycustomsettinginrest2', $data );
+		$this->assertEquals( 'unfiltered2', $data['mycustomsettinginrest2'] );
+
+		unregister_setting( 'somegroup', 'mycustomsetting' );
+		remove_all_filters( 'rest_pre_get_setting' );
+	}
+
 	public function test_create_item() {
 	}
 
@@ -117,6 +163,46 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 'The new title!', $data['title'] );
 		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
+	}
+
+	public function update_setting_custom_callback( $result, $name, $value, $args ) {
+		if ( 'title' === $name && 'The new title!' === $value ) {
+			// Do not allow changing the title in this case
+			return true;
+		}
+
+		return false;
+	}
+
+	public function test_update_item_with_filter() {
+		wp_set_current_user( $this->administrator );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The old title!' );
+		$request->set_param( 'description', 'The old description!' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'The old title!', $data['title'] );
+		$this->assertEquals( 'The old description!', $data['description'] );
+		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
+		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
+
+		add_filter( 'rest_pre_update_setting', array( $this, 'update_setting_custom_callback' ), 10, 4 );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'title', 'The new title!' );
+		$request->set_param( 'description', 'The new description!' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEquals( 'The old title!', $data['title'] );
+		$this->assertEquals( 'The new description!', $data['description'] );
+		$this->assertEquals( get_option( 'blogname' ), $data['title'] );
+		$this->assertEquals( get_option( 'blogdescription' ), $data['description'] );
+
+		remove_all_filters( 'rest_pre_update_setting' );
 	}
 
 	public function test_update_item_with_invalid_type() {
