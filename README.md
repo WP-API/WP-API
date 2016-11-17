@@ -44,15 +44,90 @@ There's no fixed timeline for integration into core at this time, but getting
 closer!
 
 
-## Installation
+## Quick Setup
 
-Drop this directory into your plugins folder and activate it. You need to be
-using pretty permalinks to use the plugin, as it uses custom rewrite rules to
-power the API.
+Want to test out the WP REST API?  The easiest way is just to install a
+recent development version of WordPress (for starters, try
+[4.7 beta 4](https://wordpress.org/news/2016/11/wordpress-4-7-beta-4/).
 
-Also, be sure to use the Subversion `trunk` branch of WordPress Core as there
-are potentially recent commits to Core that the REST API relies on. See the
-[WordPress.org website](https://wordpress.org/download/svn/) for simple instructions.
+### Testing
+
+You can also set up a development environment to work on the API code.
+
+See the
+[instructions for running the WordPress PHPUnit test suite](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/)
+to get started.
+
+Here is another way to set up a development environment using a virtual
+machine:
+
+1. Install [Vagrant](http://vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/).
+2. Clone [Chassis](https://github.com/Chassis/Chassis):
+
+   ```bash
+   git clone --recursive git@github.com:Chassis/Chassis.git api-tester
+   ```
+
+3. Clone the [Tester extension](https://github.com/Chassis/Tester) for Chassis:
+
+   ```bash
+   # From your base directory, api-tester if following the steps from before
+   git clone --recursive https://github.com/Chassis/Tester.git extensions/tester
+   ```
+
+4. Update the `wpdevel` submodule in Chassis to latest on master from [WordPress Git Mirror](https://make.wordpress.org/core/2014/01/15/git-mirrors-for-wordpress/):
+
+   ```bash
+   # From your base directory, api-tester if following the steps from before
+   cd extensions/tester/wpdevel
+   git checkout master
+   git pull
+   cd ../../..
+   ```
+
+5. Start the virtual machine:
+
+   ```bash
+   vagrant up
+   ```
+
+6. Set the permalink structure to something other than the default, in order to
+   enable the http://vagrant.local/wp-json/ endpoint URL (if you skip this
+   step, it can be accessed at http://vagrant.local/?json_route=/):
+
+   ```bash
+   vagrant ssh -c "cd /vagrant && wp rewrite structure '/%postname%/'"
+   ```
+
+7. Log in to the virtual machine and run the testing suite:
+
+   ```bash
+   vagrant ssh
+   cd /vagrant/extensions/tester/wpdevel/
+   phpunit --filter REST
+   ```
+
+   **TODO: This is broken: PHP Fatal error:  Class 'DOMDocument' not found ...**
+
+   **TODO: How to keep `wpdevel/src/` and `/vagrant/wp/` in sync?**
+
+   You can also execute the tests in the context of the VM without SSHing
+   into the virtual machine (this is equivalent to the above):
+
+   ```bash
+   vagrant ssh -c 'cd /vagrant/extensions/tester/wpdevel/ && phpunit --filter REST'
+   ```
+
+You're done! You should now have a WordPress site available at
+http://vagrant.local; you can access the API via http://vagrant.local/wp-json/
+
+To access the admin interface, visit http://vagrant.local/wp/wp-admin and log
+in with the credentials below:
+
+   ```
+   Username: admin
+   Password: password
+   ```
 
 ## Issue Tracking
 
