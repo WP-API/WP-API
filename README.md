@@ -56,8 +56,13 @@ are potentially recent commits to Core that the REST API relies on. See the
 
 ## Issue Tracking
 
-All tickets for the project are being tracked on [GitHub][]. You can also take
-a look at the [recent updates][] for the project.
+All tickets for the project are being tracked on
+[WordPress core Trac](https://core.trac.wordpress.org).
+
+Some previous issues can be found on the
+[issue tracker for this repository](/WP-API/WP-API/issues);
+however, now that development of the API has moved to core Trac, new issues
+**should not be filed here**.
 
 ## Contributing
 
@@ -85,7 +90,5 @@ WordPress on your own server. **Do not test on servers you do not own.**)
 [GPLv2+](http://www.gnu.org/licenses/gpl-2.0.html)
 
 [docs]: http://v2.wp-api.org/
-[GitHub]: https://github.com/WP-API/WP-API/issues
 [contributing]: CONTRIBUTING.md
-[recent updates]: https://make.wordpress.org/core/tag/json-api/
 [hackerone]: https://hackerone.com/wp-api
