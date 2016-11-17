@@ -40,8 +40,12 @@ Check out [our documentation][docs] for information on what's available in the
 API and how to use it. We've also got documentation on extending the API with
 extra data for plugin and theme developers!
 
-There's no fixed timeline for integration into core at this time, but getting
-closer!
+The API code in this plugin is currently integrated into core WordPress in the
+trunk (latest) and 4.7 beta versions.
+
+**Development is no longer taking place in this repository** - see
+[WordPress core Trac](https://core.trac.wordpress.org)
+instead.
 
 
 ## Quick Setup
