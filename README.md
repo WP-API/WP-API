@@ -40,24 +40,37 @@ Check out [our documentation][docs] for information on what's available in the
 API and how to use it. We've also got documentation on extending the API with
 extra data for plugin and theme developers!
 
-There's no fixed timeline for integration into core at this time, but getting
-closer!
+The API code in this plugin is currently integrated into core WordPress in the
+trunk (latest) and 4.7 beta versions.
+
+**Development is no longer taking place in this repository** - see
+[WordPress core Trac](https://core.trac.wordpress.org)
+instead.
 
 
-## Installation
+## Quick Setup
 
-Drop this directory into your plugins folder and activate it. You need to be
-using pretty permalinks to use the plugin, as it uses custom rewrite rules to
-power the API.
+Want to test out the WP REST API?  The easiest way is just to install a
+recent development version of WordPress (for starters, try
+[4.7 beta 4](https://wordpress.org/news/2016/11/wordpress-4-7-beta-4/).
 
-Also, be sure to use the Subversion `trunk` branch of WordPress Core as there
-are potentially recent commits to Core that the REST API relies on. See the
-[WordPress.org website](https://wordpress.org/download/svn/) for simple instructions.
+### Testing
+
+You can also set up a development environment to work on the API code.
+
+See the
+[instructions for running the WordPress PHPUnit test suite](https://make.wordpress.org/core/handbook/testing/automated-testing/phpunit/)
+to get started.
 
 ## Issue Tracking
 
-All tickets for the project are being tracked on [GitHub][]. You can also take
-a look at the [recent updates][] for the project.
+All tickets for the project are being tracked on
+[WordPress core Trac](https://core.trac.wordpress.org).
+
+Some previous issues can be found on the
+[issue tracker for this repository](/WP-API/WP-API/issues);
+however, now that development of the API has moved to core Trac, new issues
+**should not be filed here**.
 
 ## Contributing
 
@@ -85,7 +98,5 @@ WordPress on your own server. **Do not test on servers you do not own.**)
 [GPLv2+](http://www.gnu.org/licenses/gpl-2.0.html)
 
 [docs]: http://v2.wp-api.org/
-[GitHub]: https://github.com/WP-API/WP-API/issues
 [contributing]: CONTRIBUTING.md
-[recent updates]: https://make.wordpress.org/core/tag/json-api/
 [hackerone]: https://hackerone.com/wp-api
