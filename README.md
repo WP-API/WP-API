@@ -52,7 +52,7 @@ instead.
 
 Want to test out the WP REST API?  The easiest way is just to install a
 recent development version of WordPress (for starters, try
-[4.7 beta 4](https://wordpress.org/news/2016/11/wordpress-4-7-beta-4/).
+[4.7 beta 4](https://wordpress.org/news/2016/11/wordpress-4-7-beta-4/)).
 
 ### Testing
 
