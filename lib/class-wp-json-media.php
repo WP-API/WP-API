@@ -128,7 +128,11 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			$data['meta']['links']['up'] = json_url( '/media/' . (int) $post['post_parent'] );
 		}
 
-		return apply_filters( 'json_prepare_attachment', $data, $post, $context );
+		// json_prepare_attachment filters all objects requested via this endpoint
+		$data = apply_filters( 'json_prepare_attachment', $data, $post, $context );
+
+		// Run post type-specific filters
+		return apply_filters( "json_prepare_type-attachment", $data, $post, $context );
 	}
 
 	/**
@@ -191,7 +195,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {

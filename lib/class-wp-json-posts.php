@@ -688,7 +688,12 @@ class WP_JSON_Posts {
 		if ( $previous_post ) {
 			setup_postdata( $previous_post );
 		}
-		return apply_filters( 'json_prepare_post', $_post, $post, $context );
+
+		// json_prepare_post filters all objects requested via /posts
+		$_post = apply_filters( 'json_prepare_post', $_post, $post, $context );
+
+		// Run post type-specific filters
+		return apply_filters( "json_prepare_type-{$post['post_type']}", $_post, $post, $context );
 	}
 
 	/**
