@@ -558,6 +558,7 @@ class WP_JSON_Posts {
 			'author'          => (int) $post['post_author'],
 			'content'         => apply_filters( 'the_content', $post['post_content'] ),
 			'parent'          => (int) $post['post_parent'],
+			'content_raw'     => $post['post_content'],
 			#'post_mime_type' => $post['post_mime_type'],
 			'link'            => get_permalink( $post['ID'] ),
 		);
