@@ -974,6 +974,25 @@ class WP_JSON_Posts {
 			}
 		}
 
+		if ( ! empty( $data['tax_input'] ) ) {
+
+			foreach ( $data['tax_input'] as $tax_slug => $terms ) {
+
+				if ( ! taxonomy_exists( $tax_slug ) ){
+					continue;
+				}
+
+				$append = ( array_key_exists( 'append', $terms ) ) ? $terms['append'] : false;
+
+				$terms_to_insert = array_filter( array_unique( $terms ) );
+
+				// Sanitization is handled in wp_set_post_terms
+				wp_set_post_terms( $post_ID, $terms_to_insert, $tax_slug, $append );
+
+			}
+
+		}
+
 		do_action( 'json_insert_post', $post, $data, $update );
 
 		return $post_ID;
