@@ -10,6 +10,16 @@
  */
 
 /**
+ * No-op on 4.7. This plugin is no longer required when using WordPress 4.7. Though there's
+ * no big compatibility issues actually running the plugin along with 4.7, there's a chance
+ * the filters and actions registered can cause odd edgecases.
+ */
+global $wp_version;
+if ( version_compare( $wp_version, '4.7-alpha', '>=' ) ) {
+	return;
+}
+
+/**
  * WP_REST_Controller class.
  */
 if ( ! class_exists( 'WP_REST_Controller' ) ) {
