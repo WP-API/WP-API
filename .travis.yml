@@ -8,25 +8,23 @@ sudo: false
 matrix:
   include:
   - php: 5.6
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
-  - php: 5.6
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=latest
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: 5.6
     env: WP_TRAVISCI=travis:phpvalidate
   - php: 5.6
     env: WP_TRAVISCI=travis:codecoverage
   - php: 5.5
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: 5.4
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: 5.3
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: 5.2
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: hhvm
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   - php: 7.0
-    env: WP_TRAVISCI=travis:phpunit WP_VERSION=nightly
+    env: WP_TRAVISCI=travis:phpunit WP_VERSION=4.6.1
   allow_failures:
   - php: hhvm
   fast_finish: true
