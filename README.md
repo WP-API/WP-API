@@ -1,16 +1,20 @@
-# WP REST API v2.0 (WP-API)
+# WP REST API v2.0 (formerly known as WP-API)
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 [![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=develop)](https://travis-ci.org/WP-API/WP-API)
 [![codecov.io](http://codecov.io/github/WP-API/WP-API/coverage.svg?branch=develop)](http://codecov.io/github/WP-API/WP-API?branch=develop)
 
-The **"develop"** branch is version 2 which is "beta" but stable and recommended for production. [Read the  documentation](http://v2.wp-api.org/)
+**Development is no longer taking place in this repository** - see
+[WordPress core Trac](https://core.trac.wordpress.org)
+instead.
+
+The **"develop"** branch is version 2 which represents the last "beta" versions of the
+[plugin](https://wordpress.org/plugins/rest-api/).
+[Read the documentation](https://developer.wordpress.org/rest-api/)
 to introduce yourself to endpoints, internal patterns, and implementation details.
 
 The **"master"** branch represents the **legacy** version of the REST API.
-
-The latest **stable** version is also available from the [WordPress Plugin Directory](https://wordpress.org/plugins/rest-api/).
 
 ## About
 
@@ -40,19 +44,18 @@ Check out [our documentation][docs] for information on what's available in the
 API and how to use it. We've also got documentation on extending the API with
 extra data for plugin and theme developers!
 
-The API code in this plugin is currently integrated into core WordPress in the
-trunk (latest) and 4.7 beta versions.
+The API code in this plugin is currently integrated into core WordPress starting in
+[4.7](https://wordpress.org/news/2016/12/vaughan/).
 
 **Development is no longer taking place in this repository** - see
 [WordPress core Trac](https://core.trac.wordpress.org)
 instead.
 
-
 ## Quick Setup
 
 Want to test out the WP REST API?  The easiest way is just to install a
-recent development version of WordPress (for starters, try
-[4.7 beta 4](https://wordpress.org/news/2016/11/wordpress-4-7-beta-4/)).
+recent version of WordPress
+([4.7](https://wordpress.org/news/2016/12/vaughan/) or later).
 
 ### Testing
 
@@ -97,6 +100,6 @@ WordPress on your own server. **Do not test on servers you do not own.**)
 
 [GPLv2+](http://www.gnu.org/licenses/gpl-2.0.html)
 
-[docs]: http://v2.wp-api.org/
+[docs]: https://developer.wordpress.org/rest-api/
 [contributing]: CONTRIBUTING.md
 [hackerone]: https://hackerone.com/wp-api
