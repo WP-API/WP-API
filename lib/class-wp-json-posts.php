@@ -974,7 +974,7 @@ class WP_JSON_Posts {
 			}
 		}
 
-		do_action( 'json_insert_post', $post, $data, $update );
+		do_action( 'json_insert_post', $post, $data, $update, $post_ID );
 
 		return $post_ID;
 	}
