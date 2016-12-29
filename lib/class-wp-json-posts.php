@@ -41,6 +41,9 @@ class WP_JSON_Posts {
 			'/posts/(?P<id>\d+)/revisions' => array(
 				array( $this, 'get_revisions' ),         WP_JSON_Server::READABLE
 			),
+			'/posts/(?P<id>\d+)/revisions/(?P<revision>\d+)' => array(
+				array( $this, 'get_revision' ),         WP_JSON_Server::READABLE
+			),
 
 			// Meta-post endpoints
 			'/posts/types' => array(
@@ -89,6 +92,26 @@ class WP_JSON_Posts {
 		}
 
 		return $struct;
+	}
+
+	/**
+	 * Retrieve a single revision
+	 *
+	 * @param int $revision Revision ID
+	 * @return array Revision entity
+	 */
+	public function get_revision( $revision ) {
+		$revision = (int) $revision;
+
+		$revision = get_post( $revision );
+
+		if ( empty( $revision ) || ! wp_is_post_revision( $revision ) ) {
+			return new WP_Error( 'json_revision_invalid_id', __( 'Invalid revision ID.' ), array( 'status' => 404 ) );
+		}
+
+		$data = $this->prepare_post( get_object_vars( $revision ), 'view-revision' );
+
+		return $data;
 	}
 
 	/**
@@ -676,6 +699,8 @@ class WP_JSON_Posts {
 		if ( 'view-revision' != $context ) {
 			$links['replies'] = json_url( '/posts/' . $post['ID'] . '/comments' );
 			$links['version-history'] = json_url( '/posts/' . $post['ID'] . '/revisions' );
+		} else {
+			$links['self'] = json_url( '/posts/' . $post['post_parent'] . '/revisions/' . $post['ID'] );
 		}
 
 		$_post['meta'] = array( 'links' => $links );
