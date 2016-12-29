@@ -136,7 +136,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	 *
 	 * @see WP_JSON_Posts::edit_post()
 	 */
-	public function edit_post( $id, $data, $_headers = array() ) {
+	public function edit_post( $id, $data = array(), $_files = array(), $_headers = array() ) {
 		$id = (int) $id;
 
 		if ( empty( $id ) ) {
@@ -153,7 +153,11 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::edit_post( $id, $data, $_headers );
+		if ( !empty( $_files ) ) {
+			return $this->insert_attachment( $_files, $_headers, 0, $id);
+		} else {
+			return parent::edit_post( $id, $data, $_headers );
+		}
 	}
 
 	/**
@@ -215,6 +219,36 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_cannot_edit', __( 'Sorry, you are not allowed to edit this post.' ), array( 'status' => 401 ) );
 		}
 
+		return $this->insert_attachment( $_files, $_headers, $post_id, 0);
+	}
+	
+	/**
+	 * \brief Helper method for {@see upload_attachment} and {@see edit_post}, containing shared logic.
+	 *
+	 * @param array $_files Data from $_FILES
+	 * @param array $_headers HTTP headers from the request
+	 * @param int $post_id To attach the attachment to a post pass in a post id.
+	 * @param int $attachment_id If updating an attachment then pass in the id.
+	 * @return array|WP_Error Attachment data or error
+	 */
+	protected function insert_attachment( $_files, $_headers, $post_id = 0, $attachment_id = 0) {
+	
+		$attachment_id = (int) $attachment_id;
+		$post_id = (int) $post_id;
+		$update = ! empty( $attachment_id );
+		
+		if ( $update ) {
+			$current_post = get_post( absint($attachment_id), ARRAY_A );
+
+			if ( ! $current_post ) {
+				return new WP_Error( 'json_post_invalid_id', __( 'Invalid post ID.' ), array( 'status' => 400 ) );
+			}
+			
+			if ( empty($post_id) ) {
+				$post_id = $current_post['post_parent'];
+			}
+		}
+		
 		// Get the file via $_FILES or raw data
 		if ( empty( $_files ) ) {
 			$file = $this->upload_from_data( $_files, $_headers );
@@ -257,9 +291,9 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			'post_content'   => $content,
 		);
 
-		// This should never be set as it would then overwrite an existing attachment.
-		if ( isset( $attachment['ID'] ) ) {
-			unset( $attachment['ID'] );
+		// If an attachment_id was passed in then update the attachment.
+		if ( $update ) {
+			$attachment['ID'] = $attachment_id;
 		}
 
 		// Save the data
