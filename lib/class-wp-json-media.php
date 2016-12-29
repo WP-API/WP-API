@@ -78,7 +78,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 			return new WP_Error( 'json_post_invalid_type', __( 'Invalid post type' ), array( 'status' => 400 ) );
 		}
 
-		return parent::get_post( $id, $context );
+		return parent::get( $id, $context );
 	}
 
 	/**
@@ -191,7 +191,7 @@ class WP_JSON_Media extends WP_JSON_Posts {
 	public function upload_attachment( $_files, $_headers, $post_id = 0 ) {
 
 		$post_type = get_post_type_object( 'attachment' );
-		
+
 		if ( $post_id == 0 ) {
 			$post_parent_type = get_post_type_object( 'post' );
 		} else {
