@@ -107,11 +107,6 @@ class WP_JSON_Users {
 			$response = new WP_JSON_Response( $response );
 		}
 
-		$data = $response->get_data();
-
-		$response->header( 'Location', $data['meta']['links']['self'] );
-		$response->set_status( 302 );
-
 		return $response;
 	}
 
