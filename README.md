@@ -2,9 +2,6 @@
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
-[![Build Status](https://travis-ci.org/WP-API/WP-API.svg?branch=develop)](https://travis-ci.org/WP-API/WP-API)
-[![codecov.io](http://codecov.io/github/WP-API/WP-API/coverage.svg?branch=develop)](http://codecov.io/github/WP-API/WP-API?branch=develop)
-
 **Development is no longer taking place in this repository** - see
 [WordPress core Trac](https://core.trac.wordpress.org)
 instead.
