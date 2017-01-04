@@ -2,9 +2,14 @@
 
 Access your WordPress site's data through an easy-to-use HTTP REST API.
 
-**Development is no longer taking place in this repository** - see
-[WordPress core Trac](https://core.trac.wordpress.org)
-instead.
+**Development is no longer taking place in this repository**.
+
+- For support requests, use the
+  [WordPress forums](https://wordpress.org/support/).
+- For bugs and patches, use
+  [WordPress core Trac](https://core.trac.wordpress.org).
+  Be sure to include full details and reproduction steps about the issue you are
+  experiencing, and ideally a patch with unit tests.
 
 The **"develop"** branch is version 2 which represents the last "beta" versions of the
 [plugin](https://wordpress.org/plugins/rest-api/).
@@ -44,9 +49,14 @@ extra data for plugin and theme developers!
 The API code in this plugin is currently integrated into core WordPress starting in
 [4.7](https://wordpress.org/news/2016/12/vaughan/).
 
-**Development is no longer taking place in this repository** - see
-[WordPress core Trac](https://core.trac.wordpress.org)
-instead.
+**Development is no longer taking place in this repository**.
+
+- For support requests, use the
+  [WordPress forums](https://wordpress.org/support/).
+- For bugs and patches, use
+  [WordPress core Trac](https://core.trac.wordpress.org).
+  Be sure to include full details and reproduction steps about the issue you are
+  experiencing, and ideally a patch with unit tests.
 
 ## Quick Setup
 
