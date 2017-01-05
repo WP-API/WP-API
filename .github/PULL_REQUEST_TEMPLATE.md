@@ -1,4 +1,4 @@
-The REST API has been merged into WordPress core! Development and support is no longer taking place in this repository.
+The REST API has been merged into WordPress core! Development and support are no longer taking place in this repository.
 
 Please post support requests to the WordPress forums at https://wordpress.org/support/forum/how-to-and-troubleshooting/ with the topic tag "rest-api".
 
