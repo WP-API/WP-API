@@ -470,6 +470,41 @@ if ( ! function_exists( 'rest_validate_request_arg' ) ) {
 			}
 		}
 
+		if ( 'array' === $args['type'] ) {
+			// A comma-separated array of IDs could be acceptable instead of an array.
+			if ( is_string( $value ) && isset( $args['allow_csv'] ) && $args['allow_csv'] ) {
+				$value = wp_parse_id_list( $value );
+				if ( empty( $value ) ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s requires type %s, or comma-separated list of IDs.', $param, 'array' ) ) );
+				}
+			} elseif ( ! is_array( $value ) ) {
+				return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not of type %s' ), $param, 'array' ) );
+			}
+
+			// Validate that the items in the array are of the correct type, defaulting to string as the type.
+			$type = isset( $args['items']['type'] ) ? $args['items']['type'] : 'string';
+			$function = '__return_false';
+			switch ( $type ) {
+				case 'integer':
+					$function = 'is_numeric';
+					break;
+
+				case 'boolean':
+					$function = 'rest_is_boolean';
+					break;
+
+				case 'string':
+					$function = 'is_string';
+					break;
+			}
+
+			foreach ( $value as $_value ) {
+				if ( ! $function( $_value ) ) {
+					return new WP_Error( 'rest_invalid_param', sprintf( __( 'All items in %s must be of type %s' ), $param, $type ) );
+				}
+			}
+		}
+
 		if ( 'integer' === $args['type'] && ! is_numeric( $value ) ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( /* translators: 1: parameter, 2: type name */ __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
 		}
@@ -560,6 +595,21 @@ if ( ! function_exists( 'rest_sanitize_request_arg' ) ) {
 
 		if ( 'integer' === $args['type'] ) {
 			return (int) $value;
+		}
+
+		if ( 'array' === $args['type'] ) {
+			// A comma-separated array of IDs could be acceptable instead of an array.
+			if ( is_string( $value ) && isset( $args['allow_csv'] ) && $args['allow_csv'] ) {
+				$value = wp_parse_id_list( $value );
+			}
+
+			$value = (array) $value;
+
+			// Map values to the correct type, defaulting to string as the type.
+			$type = isset( $args['items']['type'] ) ? $args['items']['type'] : 'string';
+			foreach ( $value as &$_value ) {
+				settype( $_value, $type );
+			}
 		}
 
 		if ( 'boolean' === $args['type'] ) {
