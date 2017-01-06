@@ -286,6 +286,12 @@ abstract class WP_REST_Meta_Fields {
 					continue;
 				}
 
+				// Whitelist the supported types for types, as we don't want invalid types
+				// to be updated with arbitrary values that we can't do decent sanitizing for.
+				if ( ! in_array( $args['type'], array( 'number', 'string', 'boolean' ), true ) ) {
+					continue;
+				}
+
 				if ( $rest_args['single'] ) {
 					$rest_args['schema']['type'] = $args['type'];
 				} else {
@@ -293,6 +299,10 @@ abstract class WP_REST_Meta_Fields {
 					$rest_args['schema']['items'] = array(
 						'type' => $args['type'],
 					);
+				}
+			} else {
+				if ( ! in_array( $rest_args['schema']['type'], array( 'number', 'string', 'boolean' ), true ) ) {
+					continue;
 				}
 			}
 
