@@ -104,6 +104,50 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		unregister_setting( 'somegroup', 'mycustomsetting' );
 	}
 
+	public function test_get_item_with_invalid_value_array_in_options() {
+		wp_set_current_user( $this->administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest',
+				'schema' => array(
+					'enum'    => array( 'validvalue1', 'validvalue2' ),
+					'default' => 'validvalue1',
+				),
+			),
+			'type'         => 'string',
+		) );
+
+		update_option( 'mycustomsetting', array( 'A sneaky array!' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsettinginrest'] );
+	}
+
+	public function test_get_item_with_invalid_object_array_in_options() {
+		wp_set_current_user( $this->administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => array(
+				'name'   => 'mycustomsettinginrest',
+				'schema' => array(
+					'enum'    => array( 'validvalue1', 'validvalue2' ),
+					'default' => 'validvalue1',
+				),
+			),
+			'type'         => 'string',
+		) );
+
+		update_option( 'mycustomsetting', (object) array( 'A sneaky array!' ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
+		$response = $this->server->dispatch( $request );
+		$data = $response->get_data();
+		$this->assertEquals( null, $data['mycustomsettinginrest'] );
+	}
+
 	public function get_setting_custom_callback( $result, $name, $args ) {
 		switch ( $name ) {
 			case 'mycustomsetting1':
@@ -114,38 +158,29 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function test_get_item_with_filter() {
 		wp_set_current_user( $this->administrator );
-
 		add_filter( 'rest_pre_get_setting', array( $this, 'get_setting_custom_callback' ), 10, 3 );
-
 		register_setting( 'somegroup', 'mycustomsetting1', array(
 			'show_in_rest' => array(
 				'name'   => 'mycustomsettinginrest1',
 			),
 			'type'         => 'string',
 		) );
-
 		register_setting( 'somegroup', 'mycustomsetting2', array(
 			'show_in_rest' => array(
 				'name'   => 'mycustomsettinginrest2',
 			),
 			'type'         => 'string',
 		) );
-
 		update_option( 'mycustomsetting1', 'unfiltered1' );
 		update_option( 'mycustomsetting2', 'unfiltered2' );
-
 		$request = new WP_REST_Request( 'GET', '/wp/v2/settings' );
 		$response = $this->server->dispatch( $request );
 		$data = $response->get_data();
-
 		$this->assertEquals( 200, $response->get_status() );
-
 		$this->assertArrayHasKey( 'mycustomsettinginrest1', $data );
 		$this->assertEquals( 'unfiltered1', $data['mycustomsettinginrest1'] );
-
 		$this->assertArrayHasKey( 'mycustomsettinginrest2', $data );
 		$this->assertEquals( 'unfiltered2', $data['mycustomsettinginrest2'] );
-
 		unregister_setting( 'somegroup', 'mycustomsetting' );
 		remove_all_filters( 'rest_pre_get_setting' );
 	}
@@ -227,6 +262,23 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 10, $data['posts_per_page'] );
+	}
+
+	public function test_update_item_with_invalid_stored_value_in_options() {
+		wp_set_current_user( $this->administrator );
+
+		register_setting( 'somegroup', 'mycustomsetting', array(
+			'show_in_rest' => true,
+			'type'         => 'string',
+		) );
+		update_option( 'mycustomsetting', array( 'A sneaky array!' ) );
+
+		wp_set_current_user( $this->administrator );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/settings' );
+		$request->set_param( 'mycustomsetting', null );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
 	}
 
 	public function test_delete_item() {
