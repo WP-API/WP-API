@@ -420,7 +420,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		$prepared_comment['comment_agent'] = '';
-		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment, true );
+		$prepared_comment['comment_approved'] = wp_allow_comment( $prepared_comment );
 
 		if ( is_wp_error( $prepared_comment['comment_approved'] ) ) {
 			$error_code = $prepared_comment['comment_approved']->get_error_code();
