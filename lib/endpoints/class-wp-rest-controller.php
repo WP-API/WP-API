@@ -210,6 +210,28 @@ abstract class WP_REST_Controller {
 	}
 
 	/**
+	 * Filter a response to include only a subset of response fields
+	 *
+	 * @param array $data
+	 * @param array $fields
+	 * @return array
+	 */
+	public function filter_response_by_fields( $data, $fields ) {
+		if ( empty( $fields ) || 0 === count( $fields ) ) {
+			return $data;
+		}
+
+		$filtered_data = array();
+		foreach ( $fields as $field ) {
+			if ( isset( $data[ $field ] ) ) {
+				$filtered_data[ $field ] = $data[ $field ];
+			}
+		}
+
+		return $filtered_data;
+	}
+
+	/**
 	 * Get the item's schema, conforming to JSON Schema.
 	 *
 	 * @return array
