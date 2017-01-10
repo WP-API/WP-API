@@ -41,11 +41,12 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response = $this->server->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( 6, count( $data ) );
+		$this->assertEquals( 7, count( $data ) );
 		$this->assertEqualSets( array(
 			'publish',
 			'private',
 			'pending',
+			'auto-draft',
 			'draft',
 			'trash',
 			'future',

@@ -945,6 +945,25 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_cannot_create', $response, 401 );
 	}
 
+	public function test_create_post_auto_draft() {
+		wp_set_current_user( $this->editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
+		$params = $this->set_post_data( array(
+			'status' => 'auto-draft',
+		) );
+		$request->set_body_params( $params );
+		$response = $this->server->dispatch( $request );
+
+		$data = $response->get_data();
+		$new_post = get_post( $data['id'] );
+		$this->assertEquals( 'auto-draft', $data['status'] );
+		$this->assertEquals( 'auto-draft', $new_post->post_status );
+		// Confirm dates are null
+		$this->assertNull( $data['date_gmt'] );
+		$this->assertNull( $data['modified_gmt'] );
+	}
+
 	public function test_create_post_draft() {
 		wp_set_current_user( $this->editor_id );
 

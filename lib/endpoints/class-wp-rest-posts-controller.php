@@ -983,6 +983,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function handle_status_param( $post_status, $post_type ) {
 
 		switch ( $post_status ) {
+			case 'auto-draft':
 			case 'draft':
 			case 'pending':
 				break;
@@ -1550,7 +1551,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'status'          => array(
 					'description' => __( 'A named status for the object.' ),
 					'type'        => 'string',
-					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
+					'enum'        => array_merge(
+						array_keys( get_post_stati( array( 'internal' => false ) ) ),
+						array( 'auto-draft' )
+					),
 					'context'     => array( 'edit' ),
 				),
 				'type'            => array(

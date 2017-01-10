@@ -63,6 +63,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 	public function get_items( $request ) {
 		$data = array();
 		$statuses = get_post_stati( array( 'internal' => false ), 'object' );
+		$statuses['auto-draft'] = get_post_status_object( 'auto-draft' );
 		$statuses['trash'] = get_post_status_object( 'trash' );
 		foreach ( $statuses as $slug => $obj ) {
 			$ret = $this->check_read_permission( $obj );
@@ -103,7 +104,7 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 		if ( true === $status->public ) {
 			return true;
 		}
-		if ( false === $status->internal || 'trash' === $status->name ) {
+		if ( false === $status->internal || in_array( $status->name, array( 'auto-draft', 'trash' ) ) ) {
 			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
 			foreach ( $types as $type ) {
 				if ( current_user_can( $type->cap->edit_posts ) ) {
