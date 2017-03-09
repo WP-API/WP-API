@@ -7,6 +7,8 @@
  * Version: 2.0-beta15
  * Plugin URI: https://github.com/WP-API/WP-API
  * License: GPL2+
+ * Text Domain: rest-api
+ * Domain Path: /languages
  */
 
 /**
@@ -137,10 +139,18 @@ if ( ! class_exists( 'WP_REST_User_Meta_Fields' ) ) {
 include_once( dirname( __FILE__ ) . '/extras.php' );
 require_once( dirname( __FILE__ ) . '/core-integration.php' );
 
+add_action( 'init', '_add_extra_api_load_textdomain' );
 add_filter( 'init', '_add_extra_api_post_type_arguments', 11 );
 add_action( 'init', '_add_extra_api_taxonomy_arguments', 11 );
 add_action( 'rest_api_init', 'rest_register_settings', 10 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
+
+/**
+ * Load the plugin textdomain.
+ */
+function _add_extra_api_load_textdomain() {
+	load_plugin_textdomain( 'rest-api', false, basename( dirname( plugin_dir_path( __FILE__ ) ) ) . '/languages' );
+}
 
 /**
  * Adds extra post type registration arguments.
