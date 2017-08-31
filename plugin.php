@@ -205,6 +205,8 @@ function _add_extra_api_taxonomy_arguments() {
  * This is required are WordPress Core does not internally register
  * it's settings via `register_rest_setting()`. This should be removed
  * once / if core starts to register settings internally.
+ *
+ * @global string $wp_version WordPress Version.
  */
 function rest_register_settings() {
 	global $wp_version;
